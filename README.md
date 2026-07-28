@@ -10,9 +10,9 @@ The private All2CF control plane, account system, billing, deployment orchestrat
 
 ## Community
 
-- [Ask a question or share an idea](../../discussions)
-- [Report a public bug](../../issues/new?template=bug.yml)
-- [Request a feature](../../issues/new?template=feature.yml)
+- [Ask a question or share an idea](https://github.com/LogicMateCA/all2cf-starter/discussions)
+- [Report a public bug](https://github.com/LogicMateCA/all2cf-starter/issues/new?template=bug.yml)
+- [Request a feature](https://github.com/LogicMateCA/all2cf-starter/issues/new?template=feature.yml)
 - [All2CF Support](https://app.all2cf.com/?support=ticket&source=github-starter) for private, billing, account, or deployment-specific help
 
 ## Deployment
@@ -26,4 +26,3 @@ When the first source release is published, the same signed version will support
 The public deployment buttons will not be enabled until the repository contains standalone source, a license, and a verified release.
 
 Learn more at [All2CF](https://all2cf.com).
-
