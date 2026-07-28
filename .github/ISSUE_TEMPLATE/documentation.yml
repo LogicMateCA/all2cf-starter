@@ -1,0 +1,25 @@
+name: Documentation
+description: Report missing, unclear, or incorrect documentation
+title: "[Docs] "
+labels:
+  - "type: documentation"
+  - "status: triage"
+body:
+  - type: input
+    id: page
+    attributes:
+      label: Documentation page
+      placeholder: "Public URL or page title"
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What needs improvement?
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested correction
+

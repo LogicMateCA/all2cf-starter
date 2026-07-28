@@ -1,0 +1,9 @@
+blank_issues_enabled: false
+contact_links:
+  - name: All2CF Support
+    url: https://app.all2cf.com/?support=ticket&source=github
+    about: Account, billing, authorization, private logs, and customer-specific deployment support
+  - name: Security report
+    url: https://app.all2cf.com/?support=ticket&source=github-security
+    about: Report suspected vulnerabilities privately
+
