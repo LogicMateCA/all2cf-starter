@@ -10,6 +10,7 @@ This repository is a reusable starter. Replace neutral placeholders during proje
 - Sol high is the sole controller. Luna medium workers receive bounded, independent tasks. Child workers cannot commit or deploy; the controller owns integration and release.
 - The generic words “发布” and “deploy” authorize an immediate development deployment after required checks. The explicit phrase “正式发布” or “production” is itself the production authorization; do not add another confirmation step.
 - Markdown and frontmatter are the source of truth for `/dp` artifacts. Generated output must not silently become the source.
+- Every material code, configuration, schema, dependency, behavior, ownership, Skill, or release-policy change must update one focused Change Spec and every affected canonical Markdown document in the same change. Run `knowledge:sync` and `knowledge:check` before completion so `/dp` never falls behind the repository. Do not edit generated `/dp` JSON directly.
 - Use SQL-first PostgreSQL access. Do not add an ORM by default; justify any ORM in a Change Spec.
 - Route Product Design work through the Product Design skill, and visual/frontend taste work through the applicable taste skill.
 - For Cloudflare build, deploy, inspection, or rollback work, read and follow `skills/cloudflare-release/SKILL.md`.
@@ -17,7 +18,7 @@ This repository is a reusable starter. Replace neutral placeholders during proje
 - For Expo/EAS build, update, Apple App Store, Google Play, or rollback work, read and follow `skills/expo-release/SKILL.md`.
 - For dependency checks or upgrades, read and follow `skills/runtime-upgrade/SKILL.md`; use current stable compatible versions, not unreviewed prereleases.
 - For whole-project understanding, Change Specs, documentation synchronization, or `/dp`, read and follow `skills/project-context/SKILL.md`.
-- Keep these contracts current through a Change Spec whenever behavior, ownership, architecture, or release policy changes.
+- Keep these contracts current through a Change Spec whenever behavior, ownership, architecture, or release policy changes. A material change is incomplete while its `/dp` source or generated snapshot is stale.
 
 ## Scope and safety
 

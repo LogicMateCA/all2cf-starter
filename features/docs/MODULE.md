@@ -11,6 +11,6 @@ Purpose: own public Astro Starlight documentation, generated references, interna
 - Audience: product users, operators, project owners, and AI controllers.
 - Canonical source: Markdown with frontmatter
 - `/dp` output: generated from the Markdown source
-- Freshness owner: Sol controller through Change Spec, knowledge sync, and documentation verification.
+- Freshness owner: Sol controller through a focused Change Spec, affected canonical Markdown updates, `knowledge:sync`, and `knowledge:check` in every material change.
 
-Keep docs current through a Change Spec. Generated output must never silently replace the Markdown/frontmatter source.
+No material implementation is complete while `/dp` is stale. Generated output must never silently replace the Markdown/frontmatter source; after a release, live `/dp` must report the exact released commit and Change Spec.

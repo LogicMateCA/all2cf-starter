@@ -20,6 +20,7 @@ source: "starter"
 
 - [ ] Clean, identified commit and package/artifact recorded
 - [ ] Change Spec and current Markdown/frontmatter source updated
+- [ ] `/dp` regenerated from source and `knowledge:check` passed; live Development/Production release shows the exact released commit and Change Spec
 - [ ] Relevant tests, build, migration, and route checks passed
 - [ ] Cloudflare facts/operations checked through official MCP first
 - [ ] Worker Studio capabilities detected where applicable

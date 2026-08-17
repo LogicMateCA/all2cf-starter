@@ -24,7 +24,7 @@ Reusable foundation for AI-led Cloudflare products with a Web application, Worke
 
 ## Change Spec
 
-Every material change records intent, affected contracts, migration or rollback needs, validation evidence, and documentation updates before merge. This file remains current as the project evolves.
+Every material change records intent, affected contracts, migration or rollback needs, validation evidence, and documentation updates before merge. The same change updates all affected canonical Markdown, runs `knowledge:sync`, and proves `knowledge:check`; generated `/dp` JSON is never edited as source. This file remains current as the project evolves.
 
 ## Operational skills
 
