@@ -1,0 +1,7 @@
+appId: com.logicm8.starter.preview
+---
+- launchApp
+- assertVisible: "Starter"
+- assertVisible: "Environment"
+- assertVisible: "API health:"
+- tapOn: "Check again"

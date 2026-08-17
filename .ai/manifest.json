@@ -24,5 +24,5 @@
     "postgresql": "sql-first",
     "orm": "not-default"
   },
-  "skills": ["product-design", "taste"]
+  "skills": ["product-design", "taste", "cloudflare-release", "expo-release"]
 }

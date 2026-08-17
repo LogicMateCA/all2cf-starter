@@ -10,6 +10,10 @@
   "engines": {
     "node": ">=24"
   },
+  "overrides": {
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
   "scripts": {
     "ai:context": "node scripts/ai-context.mjs",
     "ai:doctor": "node scripts/ai-doctor.mjs",
@@ -18,6 +22,15 @@
     "starter:provision": "node scripts/starterctl.mjs provision",
     "release:dev": "node scripts/starterctl.mjs release development",
     "release:production": "node scripts/starterctl.mjs release production",
+    "mobile:doctor": "node scripts/mobile-release.mjs doctor",
+    "mobile:verify": "node scripts/mobile-release.mjs verify",
+    "mobile:plan:dev": "node scripts/mobile-release.mjs plan development",
+    "mobile:plan:preview": "node scripts/mobile-release.mjs plan preview",
+    "mobile:plan:production": "node scripts/mobile-release.mjs plan production",
+    "mobile:release:dev": "node scripts/mobile-release.mjs release development",
+    "mobile:release:preview": "node scripts/mobile-release.mjs release preview",
+    "mobile:release:production": "node scripts/mobile-release.mjs release production",
+    "mobile:record-e2e": "node scripts/mobile-release.mjs record-e2e",
     "knowledge:sync": "node scripts/build-dp.mjs",
     "knowledge:check": "node scripts/knowledge-check.mjs",
     "build:dp": "npm run knowledge:sync",
@@ -34,6 +47,8 @@
     "@cloudflare/workers-types": "5.20260817.1",
     "@types/node": "25.2.1",
     "jsonc-parser": "3.3.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
     "typescript": "5.9.3",
     "wrangler": "4.123.0",
     "yaml": "2.9.0"

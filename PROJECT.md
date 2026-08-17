@@ -25,3 +25,9 @@ Reusable foundation for AI-led Cloudflare products with a Web application, Worke
 ## Change Spec
 
 Every material change records intent, affected contracts, migration or rollback needs, validation evidence, and documentation updates before merge. This file remains current as the project evolves.
+
+## Operational skills
+
+- `skills/cloudflare-release/SKILL.md` owns verified Cloudflare builds, Development releases, explicit Production releases, and rollback evidence.
+- `skills/expo-release/SKILL.md` owns Expo verification, Development/Preview updates and builds, and separate Apple App Store and Google Play submission evidence.
+- Visual systems, Web/Expo component sets, and chart choices remain reusable templates selected per product; they are not release skills.

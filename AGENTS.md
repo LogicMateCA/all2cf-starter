@@ -12,6 +12,8 @@ This repository is a reusable starter. Replace neutral placeholders during proje
 - Markdown and frontmatter are the source of truth for `/dp` artifacts. Generated output must not silently become the source.
 - Use SQL-first PostgreSQL access. Do not add an ORM by default; justify any ORM in a Change Spec.
 - Route Product Design work through the Product Design skill, and visual/frontend taste work through the applicable taste skill.
+- For Cloudflare build, deploy, inspection, or rollback work, read and follow `skills/cloudflare-release/SKILL.md`.
+- For Expo/EAS build, update, Apple App Store, Google Play, or rollback work, read and follow `skills/expo-release/SKILL.md`.
 - Keep these contracts current through a Change Spec whenever behavior, ownership, architecture, or release policy changes.
 
 ## Scope and safety
