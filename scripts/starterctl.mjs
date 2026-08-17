@@ -9,7 +9,7 @@ import { parseEnv } from "./lib/env-profile.mjs";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const config = JSON.parse(await readFile(path.join(root, "starter.config.json"), "utf8"));
 const env = parseEnv(await readFile(path.join(root, ".dev.vars"), "utf8"));
-const statePath = path.join(root, ".all2cf/state.json");
+const statePath = path.join(root, ".all2cf/state.local.json");
 const state = await readState();
 
 function run(command, args, options = {}) {

@@ -16,5 +16,6 @@ playwright-report/
 .idea/
 .vscode/
 .all2cf/*.local.json
+.all2cf/state.local.json
 .ai/runtime/
 apps/web/public/dp/project.snapshot.json
