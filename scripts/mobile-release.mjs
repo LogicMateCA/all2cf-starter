@@ -6,6 +6,7 @@ import { parseEnv } from "./lib/env-profile.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const mobileRoot = path.join(root, "apps/mobile");
+const starterConfig = JSON.parse(await readFile(path.join(root, "starter.config.json"), "utf8"));
 const statePath = path.join(root, ".all2cf/mobile-state.local.json");
 const easVersion = "22.0.0";
 const providers = JSON.parse(await readFile(path.join(root, "profiles/providers.json"), "utf8"));
@@ -77,7 +78,7 @@ async function doctor() {
     if (!easConfig.build?.[profile]) throw new Error(`Missing EAS build profile ${profile}`);
   }
   const endpoints = {};
-  for (const [environment, url] of [["development", "https://dev.logicm8.com/api/health"], ["production", "https://starter.logicm8.com/api/health"]]) {
+  for (const [environment, url] of [["development", `https://${starterConfig.development.domain}/api/health`], ["production", `https://${starterConfig.production.domain}/api/health`]]) {
     const response = await fetch(url);
     endpoints[environment] = { url, status: response.status, ok: response.ok };
     if (!response.ok) throw new Error(`${environment} mobile API is unavailable`);
@@ -87,9 +88,9 @@ async function doctor() {
 
 async function verify() {
   await doctor();
-  npm(["run", "typecheck", "--workspace", "@starter/mobile"], { inherit: true });
+  npm(["run", "typecheck", "--workspace", "apps/mobile"], { inherit: true });
   run("npx", ["expo-doctor@latest"], { cwd: mobileRoot, inherit: true });
-  npm(["run", "export", "--workspace", "@starter/mobile"], { inherit: true });
+  npm(["run", "export", "--workspace", "apps/mobile"], { inherit: true });
   console.log(JSON.stringify({ ok: true, checks: ["doctor", "typecheck", "expo-doctor", "expo-export"] }, null, 2));
 }
 

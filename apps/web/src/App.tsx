@@ -103,13 +103,14 @@ function Section({ id, title, description, icon: Icon, children }: {
   </section>;
 }
 
-function Brand() {
-  return <a className="brand" href="/"><span><CircleDot size={17} /></span><strong>starter</strong></a>;
+function Brand({ name }: { name: string }) {
+  return <a className="brand" href="/"><span><CircleDot size={17} /></span><strong>{name}</strong></a>;
 }
 
 function Home() {
+  const { data } = useSnapshot();
   return <div className="home-grid"><div className="home-wrap">
-    <header className="home-header"><Brand /><a href="/dp">Development plan</a></header>
+    <header className="home-header"><Brand name={data.project.title} /><a href="/dp">Development plan</a></header>
     <main className="home-main"><div>
       <p className="home-kicker"><CircleDot size={16} /> AI-readable Cloudflare starter</p>
       <h1>Understand the system.<br /><span>Then change it.</span></h1>
@@ -131,7 +132,7 @@ function DevelopmentPlan() {
 
   return <div className="plan-shell">
     <aside className={menuOpen ? "plan-nav open" : "plan-nav"}>
-      <div className="nav-head"><Brand /><button aria-label="Close navigation" onClick={() => setMenuOpen(false)}><X size={18} /></button></div>
+      <div className="nav-head"><Brand name={data.project.title} /><button aria-label="Close navigation" onClick={() => setMenuOpen(false)}><X size={18} /></button></div>
       <nav>{[
         ["#overview", "Overview", CircleDot], ["#technology", "Technology", Code2], ["#modules", "Modules", Blocks],
         ["#cloudflare", "Cloudflare", Network], ["#orchestration", "AI orchestration", Bot], ["#release", "Release lanes", Rocket],
@@ -192,4 +193,3 @@ function DevelopmentPlan() {
 export function App() {
   return window.location.pathname === "/dp" ? <DevelopmentPlan /> : <Home />;
 }
-

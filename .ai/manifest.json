@@ -1,6 +1,6 @@
 {
   "schema": "starter-ai-contract/v1",
-  "project": "<project-name>",
+  "project": "starter",
   "sourceOfTruth": {
     "dp": "markdown-frontmatter",
     "changes": "change-spec"
@@ -8,12 +8,23 @@
   "controller": {
     "high": "Sol",
     "medium": "Luna",
-    "childrenMay": ["inspect", "analyze", "implement", "test"],
-    "childrenMayNot": ["commit", "deploy"]
+    "childrenMay": [
+      "inspect",
+      "analyze",
+      "implement",
+      "test"
+    ],
+    "childrenMayNot": [
+      "commit",
+      "deploy"
+    ]
   },
   "release": {
     "defaultEnvironment": "development",
-    "productionKeywords": ["正式发布", "production"],
+    "productionKeywords": [
+      "正式发布",
+      "production"
+    ],
     "requiresExplicitIntent": true
   },
   "cloudflare": {
@@ -24,5 +35,12 @@
     "postgresql": "sql-first",
     "orm": "not-default"
   },
-  "skills": ["product-design", "taste", "cloudflare-release", "expo-release", "runtime-upgrade"]
+  "skills": [
+    "product-design",
+    "taste",
+    "starter-bootstrap",
+    "cloudflare-release",
+    "expo-release",
+    "runtime-upgrade"
+  ]
 }

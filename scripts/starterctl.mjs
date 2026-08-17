@@ -14,6 +14,7 @@ const profilePath = process.env.STARTER_DEV_PROFILE_PATH || providers.defaultPat
 let profileEnv = new Map();
 try { profileEnv = parseEnv(await readFile(profilePath, "utf8")); } catch {}
 const statePath = path.join(root, ".all2cf/state.local.json");
+const preflightPath = path.join(root, ".all2cf/preflight.local.json");
 const state = await readState();
 
 function run(command, args, options = {}) {
@@ -46,6 +47,18 @@ async function saveState() {
   await writeFile(statePath, `${JSON.stringify(state, null, 2)}\n`);
 }
 
+async function requireProvisionPreflight() {
+  let receipt;
+  try { receipt = JSON.parse(await readFile(preflightPath, "utf8")); }
+  catch { throw new Error("Cloudflare provisioning requires a current official MCP preflight receipt; run the MCP preflight, then npm run cf:preflight:record"); }
+  const configSource = await readFile(path.join(root, "starter.config.json"), "utf8");
+  const configHash = createHash("sha256").update(configSource).digest("hex");
+  const age = Date.now() - new Date(receipt.checkedAt).getTime();
+  if (receipt.schemaVersion !== "starter-cloudflare-preflight/v1" || receipt.evidence !== "official-cloudflare-mcp-snapshot" || !receipt.snapshotHash || receipt.configHash !== configHash || receipt.accountId !== config.cloudflare.accountId || receipt.projectSlug !== config.project.slug || receipt.collisions?.length || !Number.isFinite(age) || age < 0 || age > 30 * 60 * 1000) {
+    throw new Error("Cloudflare MCP preflight receipt is stale or does not match the current project configuration");
+  }
+}
+
 async function cloudflare(method, apiPath, body) {
   const response = await fetch(`https://api.cloudflare.com/client/v4${apiPath}`, {
     method,
@@ -75,7 +88,7 @@ function ensureTlsVolume(volume, image) {
   ensureVolume(volume);
   run("docker", [
     "run", "--rm", "-v", `${volume}:/tls`, image, "bash", "-lc",
-    "if [ ! -s /tls/server.key ]; then openssl req -x509 -newkey rsa:2048 -nodes -days 3650 -subj '/CN=starter-postgres-dev' -keyout /tls/server.key -out /tls/server.crt >/dev/null 2>&1; chown 999:999 /tls/server.key /tls/server.crt; chmod 600 /tls/server.key; chmod 644 /tls/server.crt; fi",
+    `if [ ! -s /tls/server.key ]; then openssl req -x509 -newkey rsa:2048 -nodes -days 3650 -subj '/CN=${config.development.database.container}' -keyout /tls/server.key -out /tls/server.crt >/dev/null 2>&1; chown 999:999 /tls/server.key /tls/server.crt; chmod 600 /tls/server.key; chmod 644 /tls/server.crt; fi`,
   ]);
 }
 
@@ -87,9 +100,14 @@ function ensureDevelopmentDatabase() {
   ensureVolume(dataVolume);
   ensureTlsVolume(tlsVolume, database.image);
 
-  if (!dockerContainerExists(database.container)) {
-    const legacy = run("docker", ["ps", "-aq", "--filter", "label=com.docker.compose.service=starter-postgres-dev"]).trim();
-    if (legacy) run("docker", ["rm", "-f", legacy]);
+  if (dockerContainerExists(database.container)) {
+    const inspection = JSON.parse(run("docker", ["container", "inspect", database.container]))[0];
+    const envValues = new Set(inspection.Config?.Env || []);
+    const port = inspection.NetworkSettings?.Ports?.["5432/tcp"]?.[0];
+    if (inspection.Config?.Image !== database.image || !envValues.has(`POSTGRES_DB=${database.database}`) || !envValues.has(`POSTGRES_USER=${database.user}`) || port?.HostIp !== database.host || Number(port?.HostPort) !== database.port) {
+      throw new Error(`Development database container ${database.container} exists with an unexpected identity`);
+    }
+  } else {
     run("docker", [
       "run", "-d",
       "--name", database.container,
@@ -124,7 +142,8 @@ function ensureProductionDatabase() {
   const database = config.production.database;
   const password = new URL(required("STARTER_PRODUCTION_DATABASE_URL")).password;
   if (!/^[A-Za-z0-9_-]+$/u.test(password)) throw new Error("Production database password contains unsupported provisioning characters");
-  const script = `set -eu\nC=${database.container}\nU=${database.adminUser}\nif ! docker exec -u postgres "$C" psql -U "$U" -tAc "select 1 from pg_roles where rolname='${database.user}'" | grep -q 1; then docker exec -u postgres "$C" psql -U "$U" -v ON_ERROR_STOP=1 -c "create role ${database.user} login"; fi\ndocker exec -u postgres "$C" psql -U "$U" -v ON_ERROR_STOP=1 -c "alter role ${database.user} password '${password}'"\nif ! docker exec -u postgres "$C" psql -U "$U" -tAc "select 1 from pg_database where datname='${database.database}'" | grep -q 1; then docker exec -u postgres "$C" createdb -U "$U" -O ${database.user} ${database.database}; fi\ndocker exec -u postgres "$C" psql -U "$U" -d ${database.database} -v ON_ERROR_STOP=1 -c "grant all on schema public to ${database.user}"\n`;
+  const allowExisting = state.resources.productionDatabase?.database === database.database && state.resources.productionDatabase?.user === database.user;
+  const script = `set -eu\nC=${database.container}\nU=${database.adminUser}\nROLE_EXISTS=$(docker exec -u postgres "$C" psql -U "$U" -tAc "select 1 from pg_roles where rolname='${database.user}'")\nDB_OWNER=$(docker exec -u postgres "$C" psql -U "$U" -tAc "select pg_get_userbyid(datdba) from pg_database where datname='${database.database}'")\nif [ "${allowExisting ? "1" : "0"}" != 1 ] && { [ "$ROLE_EXISTS" = 1 ] || [ -n "$DB_OWNER" ]; }; then echo "production database or role collision" >&2; exit 42; fi\nif [ -n "$DB_OWNER" ] && [ "$DB_OWNER" != "${database.user}" ]; then echo "production database has unexpected owner" >&2; exit 43; fi\nif [ "$ROLE_EXISTS" != 1 ]; then docker exec -u postgres "$C" psql -U "$U" -v ON_ERROR_STOP=1 -c "create role ${database.user} login"; fi\ndocker exec -u postgres "$C" psql -U "$U" -v ON_ERROR_STOP=1 -c "alter role ${database.user} password '${password}'"\nif [ -z "$DB_OWNER" ]; then docker exec -u postgres "$C" createdb -U "$U" -O ${database.user} ${database.database}; fi\ndocker exec -u postgres "$C" psql -U "$U" -d ${database.database} -v ON_ERROR_STOP=1 -c "grant all on schema public to ${database.user}"\n`;
   const result = spawnSync("ssh", ["-i", database.sshKey, "-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=yes", "-o", `UserKnownHostsFile=${database.sshKnownHosts}`, database.sshHost, "bash", "-s"], { cwd: root, input: script, encoding: "utf8" });
   if (result.status !== 0) throw new Error(`Production PostgreSQL provisioning failed: ${result.stderr || result.stdout}`);
   state.resources.productionDatabase = { database: database.database, user: database.user, host: database.host, port: database.port, container: database.container };
@@ -144,7 +163,7 @@ async function ensureVpcService() {
     tls_settings: { cert_verification_mode: "disabled" },
   };
   if (!service) service = await cloudflare("POST", `/accounts/${accountId}/connectivity/directory/services`, desired);
-  else if (service.tcp_port !== database.port || service.host?.ipv4 !== database.host || service.tls_settings?.cert_verification_mode !== "disabled") service = await cloudflare("PUT", `/accounts/${accountId}/connectivity/directory/services/${service.service_id}`, desired);
+  else if (service.type !== "tcp" || service.app_protocol !== "postgresql" || service.tcp_port !== database.port || service.host?.ipv4 !== database.host || service.host?.network?.tunnel_id !== database.tunnelId || service.tls_settings?.cert_verification_mode !== "disabled") throw new Error(`VPC service ${database.vpcServiceName} exists with an unexpected identity`);
   state.resources.developmentVpcService = { id: service.service_id, name: service.name, tunnelId: database.tunnelId };
   return service.service_id;
 }
@@ -178,18 +197,24 @@ async function writeWrangler(environment, hyperdriveId) {
   if (errors.length) throw new Error(`${target.wranglerConfig} contains invalid JSONC`);
   value.name = target.worker;
   value.workers_dev = true;
-  value.vars = { ...(value.vars || {}), APP_ENV: environment };
+  value.vars = { ...(value.vars || {}), APP_ENV: environment, SERVICE_NAME: config.project.slug };
   value.hyperdrive = [{ binding: "HYPERDRIVE", id: hyperdriveId }];
   value.routes = [{ pattern: target.domain, custom_domain: true }];
   await writeFile(configPath, `${JSON.stringify(value, null, 2)}\n`);
 }
 
 async function provision() {
+  await requireProvisionPreflight();
   ensureDevelopmentDatabase();
+  await saveState();
   ensureProductionDatabase();
+  await saveState();
   const developmentServiceId = await ensureVpcService();
+  await saveState();
   const developmentHyperdriveId = await ensureHyperdrive("development", developmentServiceId);
+  await saveState();
   const productionHyperdriveId = await ensureHyperdrive("production", config.production.database.vpcServiceId);
+  await saveState();
   await writeWrangler("development", developmentHyperdriveId);
   await writeWrangler("production", productionHyperdriveId);
   await saveState();
@@ -240,7 +265,7 @@ async function verifyUrl(environment, baseUrl) {
     const result = { path: pathname, status: response.status, contentType };
     if (pathname.startsWith("/api/")) {
       const payload = await response.json();
-      if (pathname === "/api/version" && (payload.data?.environment !== environment || payload.data?.service !== "starter")) {
+      if (pathname === "/api/version" && (payload.data?.environment !== environment || payload.data?.service !== config.project.slug)) {
         throw new Error(`${baseUrl}${pathname} returned the wrong release identity`);
       }
       if (pathname === "/api/health/database") {

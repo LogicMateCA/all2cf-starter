@@ -10,7 +10,8 @@
     "enabled": true
   },
   "vars": {
-    "APP_ENV": "development"
+    "APP_ENV": "development",
+    "SERVICE_NAME": "starter"
   },
   "assets": {
     "directory": "../dist/web",

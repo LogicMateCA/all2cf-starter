@@ -22,13 +22,16 @@ const requiredGroups = {
   postgresql: ["DATABASE_URL", "STARTER_PRODUCTION_DATABASE_URL"],
 };
 const optionalGroups = {
-  expo: ["EXPO_TOKEN", "EXPO_OWNER"],
+  expoAccount: ["EXPO_TOKEN", "EXPO_OWNER"],
+  expoProject: ["EXPO_PROJECT_ID"],
+  appleStore: ["APPLE_TEAM_ID", "ASC_KEY_ID", "ASC_ISSUER_ID", "ASC_API_KEY_BASE64", "ASC_APP_ID"],
+  googlePlay: ["GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64"],
   googleOAuth: ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"],
   googleAi: ["GOOGLE_AI_API_KEY"],
-  github: ["GITHUB_TOKEN", "GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET"],
-  stripeTest: ["STRIPE_SECRET_KEY", "STRIPE_PUBLISHABLE_KEY"],
+  github: ["GITHUB_TOKEN", "GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET", "GITHUB_APP_ID", "GITHUB_APP_PRIVATE_KEY_BASE64"],
+  stripeTest: ["STRIPE_SECRET_KEY", "STRIPE_PUBLISHABLE_KEY", "STRIPE_PRICE_PRO"],
   stripeWebhook: ["STRIPE_WEBHOOK_SECRET"],
-  cfsendSandbox: ["CFSEND_API_URL", "CFSEND_API_KEY", "CFSEND_FROM"],
+  cfsendSandbox: ["CFSEND_API_URL", "CFSEND_API_KEY", "CFSEND_FROM", "CFSEND_SANDBOX"],
 };
 const inspect = (groups) => Object.fromEntries(Object.entries(groups).map(([name, keys]) => [name, keys.every((key) => Boolean(value(key))) ? "ready" : "not-configured"]));
 const required = inspect(requiredGroups);

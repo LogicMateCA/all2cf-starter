@@ -5,10 +5,13 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-nati
 
 type HealthState = "idle" | "checking" | "healthy" | "unavailable";
 
-const extra = Constants.expoConfig?.extra as { appVariant?: string } | undefined;
+const extra = Constants.expoConfig?.extra as { appVariant?: string; apiUrls?: { development?: string; production?: string } } | undefined;
 const configuredVariant = extra?.appVariant ?? "development";
 const appVariant = Updates.channel === "production" ? "production" : configuredVariant;
-const apiUrl = appVariant === "production" ? "https://starter.logicm8.com" : "https://dev.logicm8.com";
+const localApiUrl = process.env.EXPO_PUBLIC_API_URL;
+const developmentApiUrl = extra?.apiUrls?.development;
+const productionApiUrl = extra?.apiUrls?.production;
+const apiUrl = appVariant === "production" ? productionApiUrl : Updates.channel ? developmentApiUrl : localApiUrl || developmentApiUrl;
 
 export default function HomeScreen() {
   const [status, setStatus] = useState<HealthState>("idle");

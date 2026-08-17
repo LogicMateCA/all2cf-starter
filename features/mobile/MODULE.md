@@ -8,8 +8,8 @@ source: starter
 
 Purpose: provide an Expo Router SDK 57 application shell and a deterministic EAS development, preview, E2E, update, build, submit, and rollback contract.
 
-- Development and Preview call `https://dev.logicm8.com`.
-- Production calls `https://starter.logicm8.com`.
+- Development and Preview use the Development domain declared in `starter.config.json`.
+- Production uses the Production domain declared in `starter.config.json`.
 - Generic mobile release intent targets Development.
 - Production requires the explicit phrase `正式发布移动端` or `production`.
 - Native fingerprints decide Build versus Update; runtimeVersion remains appVersion.

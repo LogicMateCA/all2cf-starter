@@ -25,7 +25,7 @@ app.get("/api/version", (c) =>
   c.json({
     data: {
       environment: c.env.APP_ENV,
-      service: "starter",
+      service: c.env.SERVICE_NAME,
     },
     requestId: c.var.requestId,
   }),
