@@ -34,8 +34,8 @@
     },
     {
       "area": "Database",
-      "choice": "PostgreSQL 18.4 + node-postgres 8.23.0 + SQL-first migrations",
-      "status": "implemented"
+      "choice": "PostgreSQL 18.4 + node-postgres 8.23.0 connection; SQL-first migrations planned",
+      "status": "connection-verified"
     },
     {
       "area": "Connection",
@@ -91,6 +91,11 @@
       "area": "Starter bootstrap",
       "choice": "Environment materialization + idempotent PostgreSQL/VPC/Hyperdrive provisioning",
       "status": "verified"
+    },
+    {
+      "area": "Project context",
+      "choice": "Commit-level Change Specs + Markdown-source /dp synchronization",
+      "status": "implemented"
     },
     {
       "area": "Docs",

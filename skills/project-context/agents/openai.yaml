@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project Context"
+  short_description: "Keep AI context, Change Specs, and /dp current"
+  default_prompt: "Use $project-context to inspect the whole project and synchronize its AI-readable context and /dp."

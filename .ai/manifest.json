@@ -41,6 +41,7 @@
     "starter-bootstrap",
     "cloudflare-release",
     "expo-release",
-    "runtime-upgrade"
+    "runtime-upgrade",
+    "project-context"
   ]
 }

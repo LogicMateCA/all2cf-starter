@@ -16,6 +16,7 @@ This repository is a reusable starter. Replace neutral placeholders during proje
 - For copying or initializing this Starter, read and follow `skills/starter-bootstrap/SKILL.md`.
 - For Expo/EAS build, update, Apple App Store, Google Play, or rollback work, read and follow `skills/expo-release/SKILL.md`.
 - For dependency checks or upgrades, read and follow `skills/runtime-upgrade/SKILL.md`; use current stable compatible versions, not unreviewed prereleases.
+- For whole-project understanding, Change Specs, documentation synchronization, or `/dp`, read and follow `skills/project-context/SKILL.md`.
 - Keep these contracts current through a Change Spec whenever behavior, ownership, architecture, or release policy changes.
 
 ## Scope and safety
