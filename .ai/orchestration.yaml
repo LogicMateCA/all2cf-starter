@@ -1,0 +1,31 @@
+version: 1
+controller:
+  name: GPT-5.6 Sol
+  model: gpt-5.6-sol
+  level: high
+  owns: [scope, architecture, change-spec, shared-contracts, integration, git, documentation-finalization, deploy, release-evidence]
+workers:
+  model: gpt-5.6-luna
+  level: medium
+  inherit_full_conversation: false
+  require_write_scope: true
+  require_structured_result: true
+  may: [inspect, analyze, implement, test, draft-documentation]
+  may_not: [commit, merge, deploy, apply-migrations, mutate-production]
+release:
+  generic_words: [发布, deploy]
+  generic_environment: development
+  production_words: [正式发布, production]
+  production_requires: explicit-intent
+cloudflare:
+  facts_and_operations: official-mcp-first
+  worker_studio: capability-detect-before-use
+data:
+  postgres: sql-first
+  orm: opt-in-with-change-spec
+source:
+  dp: markdown-frontmatter
+  updates: change-spec-required
+routing:
+  product-design: product-design-skill
+  visual-taste: applicable-taste-skill

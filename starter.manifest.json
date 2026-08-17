@@ -1,0 +1,50 @@
+{
+  "$schema": "./schemas/starter-manifest.schema.json",
+  "starterVersion": "0.1.0",
+  "state": "template",
+  "runtime": {
+    "application": "cloudflare-workerd",
+    "tooling": "node-24",
+    "deployment": "wrangler"
+  },
+  "applications": [
+    "web",
+    "worker",
+    "mobile",
+    "docs"
+  ],
+  "modules": [
+    "auth",
+    "billing",
+    "support",
+    "admin",
+    "docs"
+  ],
+  "technology": [
+    { "area": "Web", "choice": "React 19 + Vite", "status": "implemented" },
+    { "area": "Worker", "choice": "Hono + Cloudflare workerd", "status": "implemented" },
+    { "area": "Database", "choice": "PostgreSQL + node-postgres + SQL-first migrations", "status": "planned" },
+    { "area": "Connection", "choice": "Cloudflare Hyperdrive", "status": "planned" },
+    { "area": "Authentication", "choice": "Better Auth", "status": "planned" },
+    { "area": "Billing", "choice": "Better Auth Stripe", "status": "planned" },
+    { "area": "Email", "choice": "CFsend", "status": "planned" },
+    { "area": "Web UI", "choice": "Owned shadcn/ui components", "status": "planned" },
+    { "area": "Charts", "choice": "Bklit UI", "status": "planned" },
+    { "area": "Mobile", "choice": "Expo Router + React Native Reusables", "status": "planned" },
+    { "area": "Docs", "choice": "Astro Starlight", "status": "planned" },
+    { "area": "AI controller", "choice": "GPT-5.6 Sol high", "status": "defined" },
+    { "area": "AI workers", "choice": "GPT-5.6 Luna medium", "status": "defined" },
+    { "area": "Cloudflare context", "choice": "Official MCP + Worker Studio MCP", "status": "defined" }
+  ],
+  "environments": [
+    { "id": "development", "worker": "starter-dev", "domain": "dev.example.com", "releaseIntent": "发布" },
+    { "id": "production", "worker": "starter", "domain": "app.example.com", "releaseIntent": "正式发布" }
+  ],
+  "ai": {
+    "entrypoint": "AGENTS.md",
+    "projectContext": "PROJECT.md",
+    "contextCommand": "npm run ai:context -- --json",
+    "doctorCommand": "npm run ai:doctor"
+  }
+}
+

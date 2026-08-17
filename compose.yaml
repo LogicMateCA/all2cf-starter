@@ -1,0 +1,16 @@
+services:
+  starter-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - starter-node-modules:/workspace/node_modules
+    ports:
+      - "15173:5173"
+      - "18787:8787"
+    command: ["sleep", "infinity"]
+
+volumes:
+  starter-node-modules:

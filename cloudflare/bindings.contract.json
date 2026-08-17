@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Starter Cloudflare bindings contract",
+  "description": "Reserved binding names and isolation rules. Provision concrete resources separately; this contract intentionally contains no account, database, bucket, queue, or secret IDs.",
+  "environments": {
+    "development": {
+      "worker": "starter-dev",
+      "resourceIsolation": "Development resources only; never point at production resources."
+    },
+    "production": {
+      "worker": "starter",
+      "resourceIsolation": "Production resources only; never share mutable development resources."
+    }
+  },
+  "bindings": {
+    "HYPERDRIVE": {
+      "kind": "hyperdrive",
+      "status": "future",
+      "requiredPerEnvironment": true
+    },
+    "STARTER_R2": {
+      "kind": "r2_bucket",
+      "status": "future",
+      "requiredPerEnvironment": true
+    },
+    "STARTER_QUEUE": {
+      "kind": "queue",
+      "status": "future",
+      "requiredPerEnvironment": true
+    },
+    "STARTER_DLQ": {
+      "kind": "queue",
+      "status": "future",
+      "requiredPerEnvironment": true
+    },
+    "CFSEND": {
+      "kind": "service_binding",
+      "status": "future",
+      "requiredPerEnvironment": true
+    },
+    "STRIPE": {
+      "kind": "secret_or_service_binding",
+      "status": "future",
+      "requiredPerEnvironment": true
+    },
+    "AUTH": {
+      "kind": "service_binding",
+      "status": "future",
+      "requiredPerEnvironment": true
+    }
+  }
+}

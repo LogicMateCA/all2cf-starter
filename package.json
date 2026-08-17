@@ -1,0 +1,38 @@
+{
+  "name": "@starter/root",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "workers/*"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "ai:context": "node scripts/ai-context.mjs",
+    "ai:doctor": "node scripts/ai-doctor.mjs",
+    "credentials:doctor": "node scripts/credentials-doctor.mjs",
+    "env:materialize:dev": "node scripts/materialize-dev-env.mjs",
+    "knowledge:sync": "node scripts/build-dp.mjs",
+    "knowledge:check": "node scripts/knowledge-check.mjs",
+    "build:dp": "npm run knowledge:sync",
+    "build:web": "npm run build --workspace @starter/web",
+    "build": "npm run build:dp && npm run build:web",
+    "dev:web": "npm run build:dp && npm run dev --workspace @starter/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "cf:types": "wrangler types --config cloudflare/wrangler.development.jsonc workers/app/worker-configuration.d.ts",
+    "cf:dry-run:dev": "wrangler deploy --dry-run --config cloudflare/wrangler.development.jsonc --outdir dist/worker-development",
+    "cf:dry-run:production": "wrangler deploy --dry-run --config cloudflare/wrangler.production.jsonc --outdir dist/worker-production",
+    "verify": "npm run ai:doctor && npm run knowledge:sync && npm run knowledge:check && npm run cf:types && npm run typecheck && npm run build && npm run cf:dry-run:dev && npm run cf:dry-run:production"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20260817.1",
+    "@types/node": "25.2.1",
+    "jsonc-parser": "3.3.1",
+    "typescript": "5.9.3",
+    "wrangler": "4.123.0",
+    "yaml": "2.9.0"
+  }
+}

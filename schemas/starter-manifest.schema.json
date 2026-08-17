@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://starter.local/schemas/starter-manifest.schema.json",
+  "type": "object",
+  "required": ["starterVersion", "state", "runtime", "applications", "modules", "technology", "environments", "ai"],
+  "properties": {
+    "starterVersion": { "type": "string" },
+    "state": { "enum": ["template", "initialized", "locally_verified", "development_verified", "production_released"] },
+    "runtime": { "type": "object" },
+    "applications": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "modules": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "technology": { "type": "array", "items": { "type": "object", "required": ["area", "choice", "status"] } },
+    "environments": { "type": "array", "items": { "type": "object", "required": ["id", "worker", "domain", "releaseIntent"] } },
+    "ai": { "type": "object", "required": ["entrypoint", "projectContext", "contextCommand", "doctorCommand"] }
+  }
+}
+

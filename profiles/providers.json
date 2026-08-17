@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "starter-development-profile/v1",
+  "defaultPath": "/opt/1panel/apps/_starter_profile/development.env",
+  "shared": [
+    "CLOUDFLARE_API_TOKEN",
+    "CLOUDFLARE_ACCOUNT_ID",
+    "CLOUDFLARE_ZONE_ID",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "GOOGLE_AI_API_KEY",
+    "GITHUB_TOKEN",
+    "GITHUB_CLIENT_ID",
+    "GITHUB_CLIENT_SECRET",
+    "STRIPE_SECRET_KEY",
+    "STRIPE_PUBLISHABLE_KEY",
+    "STRIPE_WEBHOOK_SECRET",
+    "CFSEND_API_URL",
+    "CFSEND_API_KEY",
+    "CFSEND_FROM",
+    "STARTER_POSTGRES_ADMIN_URL"
+  ],
+  "generatedPerProject": [
+    "BETTER_AUTH_SECRET",
+    "APP_ENCRYPTION_KEY"
+  ],
+  "publicClient": [
+    "STRIPE_PUBLISHABLE_KEY",
+    "GOOGLE_CLIENT_ID"
+  ]
+}
+

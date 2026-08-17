@@ -1,0 +1,28 @@
+{
+  "schema": "starter-ai-contract/v1",
+  "project": "<project-name>",
+  "sourceOfTruth": {
+    "dp": "markdown-frontmatter",
+    "changes": "change-spec"
+  },
+  "controller": {
+    "high": "Sol",
+    "medium": "Luna",
+    "childrenMay": ["inspect", "analyze", "implement", "test"],
+    "childrenMayNot": ["commit", "deploy"]
+  },
+  "release": {
+    "defaultEnvironment": "development",
+    "productionKeywords": ["正式发布", "production"],
+    "requiresExplicitIntent": true
+  },
+  "cloudflare": {
+    "officialMcpFirst": true,
+    "workerStudio": "capability-detected"
+  },
+  "data": {
+    "postgresql": "sql-first",
+    "orm": "not-default"
+  },
+  "skills": ["product-design", "taste"]
+}
