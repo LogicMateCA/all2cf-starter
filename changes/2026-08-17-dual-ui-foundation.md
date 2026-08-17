@@ -1,7 +1,7 @@
 ---
 id: dual-ui-foundation
 title: Separate Desktop and Mobile UI foundations
-status: local-verified
+status: development-verified
 affectedModules: [mobile, auth, admin, docs]
 docsImpact: [ARCHITECTURE.md, DESIGN.md, features/mobile/MODULE.md, starter.manifest.json, /dp]
 ---
@@ -38,4 +38,4 @@ Verified results:
 
 # Release
 
-Local verification is complete. Development release evidence will be recorded after the combined repository checks and commit pass.
+Desktop Web and `/dp` were released to Development from commit `7e9a4eb08cd37c6bec7d0144394373afd6be1686`: deployment `f12563f8-909d-466a-8c71-ef1905429d0d`, version `12c206cd-03a1-4616-b7f3-e387f0256c99`. Mobile Web/iOS/Android remain locally exported because no Mobile Web hosting target or EAS project is configured.
