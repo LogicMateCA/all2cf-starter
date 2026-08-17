@@ -1,6 +1,6 @@
 ---
 title: "Starter release contract"
-status: "template"
+status: "verified-baseline"
 source: "starter"
 ---
 
@@ -24,3 +24,9 @@ source: "starter"
 ## Evidence
 
 Report exact environment, identity, commands/checks, results, failures, and unverified gates. Never call a build or HTTP 200 alone a complete release validation.
+
+## Baseline validation
+
+- Cloudflare Development and Production deployment, identity read-back, PostgreSQL identity, artifact parity, and Development rollback are verified through the project scripts and official Cloudflare MCP.
+- Expo local TypeScript, Doctor, iOS/Android export, API reachability, and fingerprint planning are verified.
+- Expo remote Project binding, EAS Build/Update, installed-device E2E, App Store Connect, Google Play, and mobile rollback remain unverified and must not be represented as complete.

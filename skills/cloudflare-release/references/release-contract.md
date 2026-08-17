@@ -3,8 +3,9 @@
 | Intent | Target | Repository command | Remote mutation | Required result |
 | --- | --- | --- | --- | --- |
 | Build / verify | none | `npm run verify` | No | AI doctor, knowledge sync/check, types, build, and both Wrangler dry runs pass |
-| 发布 / deploy / release | Development | `npm run release:dev` | Yes | Clean commit, verified artifact, `starter-dev`, `dev.logicm8.com`, bindings and four live checks |
-| 正式发布 / production | Production | `npm run release:production` | Yes | Exact Development artifact parity, `starter`, `starter.logicm8.com`, bindings and four live checks |
+| 发布 / deploy / release | Development | `npm run release:dev` | Yes | Clean commit, verified artifact, `starter-dev`, `dev.logicm8.com`, bindings and five live checks |
+| 正式发布 / production | Production | `npm run release:production` | Yes | Exact Development artifact parity, `starter`, `starter.logicm8.com`, bindings and five live checks |
+| Roll back Development | Development | `npm run rollback:dev -- <version-id>` | Yes | Exact known-good version at 100% traffic and all five live checks |
 | Provision / reconcile infrastructure | named environments | `npm run starter:provision` | Yes | Exact PostgreSQL, VPC service, Hyperdrive IDs, and generated Wrangler bindings |
 
 ## Evidence checklist
@@ -16,7 +17,7 @@
 - Worker and custom domain
 - Hyperdrive and other binding identities
 - Deployment and version IDs from Cloudflare read-back
-- `/`, `/dp`, `/api/health`, and `/api/health/database` response status and target identity
+- `/`, `/dp`, `/api/health`, `/api/version`, and `/api/health/database` response status and target identity
 - Failed checks or unresolved gates
 - Known-good rollback deployment/version when relevant
 

@@ -25,6 +25,7 @@
     "react-native-screens": "~4.26.0"
   },
   "devDependencies": {
+    "@expo/fingerprint": "0.20.7",
     "@types/react": "~19.2.2",
     "typescript": "~6.0.3"
   }

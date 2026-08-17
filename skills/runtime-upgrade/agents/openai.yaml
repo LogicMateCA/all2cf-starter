@@ -1,0 +1,4 @@
+interface:
+  display_name: "Runtime Upgrade"
+  short_description: "Upgrade Starter dependencies with compatibility gates"
+  default_prompt: "Use $runtime-upgrade to inspect and safely upgrade the Starter runtime dependencies."

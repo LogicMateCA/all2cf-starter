@@ -1,6 +1,6 @@
 ---
 module: mobile
-status: implemented
+status: local-verified
 source: starter
 ---
 
@@ -16,3 +16,5 @@ Purpose: provide an Expo Router SDK 57 application shell and a deterministic EAS
 - UI kit, design profile, and native chart renderer are intentionally not selected by this module.
 
 Use the project-local `expo-release` skill for every mobile release or rollback.
+
+Validation boundary: Expo Doctor, TypeScript, iOS export, Android export, API reachability, and native fingerprint planning are verified. EAS Project binding, remote builds/updates, installed-device E2E, Apple submission, Google submission, and mobile rollback remain unverified until real account evidence exists.

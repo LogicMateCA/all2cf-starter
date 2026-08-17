@@ -7,6 +7,8 @@ description: Release and operate an Expo mobile app in this Starter repository. 
 
 Use this skill for the complete Expo/EAS release lifecycle. It is evidence-led: do not call a build, update, submit, or rollback successful until the exact artifact and verification evidence are recorded.
 
+The Starter baseline currently has local verification only. Until a real Expo project, remote builds, installed Preview E2E, both store submissions, and an Update rollback have been recorded, report those stages as unverified rather than describing this skill as fully validated.
+
 ## Target selection
 
 - Generic mobile release/build/update requests target **development**.
@@ -20,10 +22,10 @@ Use this skill for the complete Expo/EAS release lifecycle. It is evidence-led: 
 2. Require a clean Git worktree and record the exact commit. Do not release from uncommitted or mixed-product changes.
 3. Run the mobile verification scripts from `apps/mobile/package.json` (including lint, typecheck, unit/E2E, and build checks when present). Record command, result, and artifact/log location. A successful command alone is not proof of route or API parity.
 4. Resolve and record the exact API environment/base URL, EAS profile, channel, app identifier, and Expo project. Fail closed on missing or conflicting values; do not silently substitute development credentials.
-5. Resolve `runtimeVersion` and native fingerprint. Fingerprint is used only to decide whether a new native build is required. The app runtimeVersion remains the app version; never replace it with a fingerprint.
+5. Resolve `runtimeVersion` and native fingerprint with the explicitly pinned `@expo/fingerprint` command used by the repository. Fingerprint is used only to decide whether a new native build is required. The app runtimeVersion remains the app version; never replace it with a fingerprint.
 6. Choose the smallest valid operation: EAS Update for JS/assets-only changes; a new native build for native dependency, config-plugin, permission, SDK, or other binary changes. Record the exact EAS build ID or update/group ID and fingerprint.
 7. For preview, verify the published preview update on the preview channel/profile with the Development API and exact commit. Where binary compatibility allows, republish that exact verified EAS Update group to Production. Runtime API selection must follow the installed update channel so the promoted bundle uses the Production API; do not bake a Preview-only API into a promotable JS bundle. Native changes require a production build.
-8. For production native changes, create both Apple and Android builds and use the Production submit profile. Record Apple App Store Connect and Google Play submission evidence separately; one platform succeeding does not make the two-platform release complete. For rollback, identify the exact prior known-good build/update and target channel first; rollback only to that artifact and record the resulting ID.
+8. For production native changes, create both Apple and Android builds, wait for both builds, and use the Production submit profile. Poll the real submission records to terminal status and record Apple App Store Connect and Google Play evidence separately; listing a submission is not proof it succeeded. One platform succeeding does not make the two-platform release complete. For rollback, identify the exact prior known-good build/update and target channel first; rollback only to that artifact and record the resulting ID.
 
 ## Evidence and handoff
 

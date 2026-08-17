@@ -1,0 +1,28 @@
+{
+  "$schema": "./schemas/dependency-policy.schema.json",
+  "stableOnly": true,
+  "automaticMerge": false,
+  "automaticProductionRelease": false,
+  "externalPins": {
+    "eas-cli": "22.0.0"
+  },
+  "tracks": [
+    {
+      "id": "cloudflare-web-worker",
+      "mode": "latest-stable",
+      "packages": ["wrangler", "@cloudflare/workers-types", "hono", "pg", "vite", "@vitejs/plugin-react", "tailwindcss", "@tailwindcss/vite", "lucide-react"]
+    },
+    {
+      "id": "expo-sdk",
+      "mode": "expo-compatible",
+      "packages": ["expo", "react-native", "react", "expo-router", "expo-updates", "expo-dev-client", "@expo/fingerprint", "eas-cli"]
+    },
+    {
+      "id": "better-auth",
+      "mode": "aligned-latest-stable",
+      "packages": ["better-auth", "auth", "@better-auth/stripe"],
+      "companions": ["stripe"],
+      "requirements": ["same Better Auth release line", "review official migration notes", "generate and review SQL", "verify auth and Stripe flows"]
+    }
+  ]
+}

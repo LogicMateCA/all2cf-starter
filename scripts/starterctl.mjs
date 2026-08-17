@@ -278,7 +278,10 @@ async function release(environment) {
   const configPath = path.join(root, target.wranglerConfig);
   const configHash = await fileHash(configPath);
   const targetConfig = parseJsonc(await readFile(configPath, "utf8"));
-  state.releases[environment] = { commit, artifactHash: hash, configHash, compatibilityDate: targetConfig.compatibility_date, domain: target.domain, worker: target.worker, deployment, checks, verifiedAt: new Date().toISOString() };
+  const releaseRecord = { commit, artifactHash: hash, configHash, compatibilityDate: targetConfig.compatibility_date, domain: target.domain, worker: target.worker, deployment, checks, verifiedAt: new Date().toISOString() };
+  state.releaseHistory ||= [];
+  state.releaseHistory.push({ environment, ...releaseRecord });
+  state.releases[environment] = releaseRecord;
   await saveState();
   console.log(JSON.stringify({ ok: true, environment, ...state.releases[environment] }, null, 2));
 }
@@ -287,6 +290,8 @@ async function rollback(environment, versionId) {
   if (!new Set(["development", "production"]).has(environment)) throw new Error("rollback environment must be development or production");
   if (!versionId) throw new Error("rollback requires an exact Worker version ID");
   const target = config[environment];
+  const knownGood = (state.releaseHistory || []).find((release) => release.environment === environment && release.deployment?.versions?.some((item) => item.version_id === versionId));
+  if (!knownGood) throw new Error(`rollback target ${versionId} is not present in recorded release history`);
   const before = await latestDeployment(target.worker);
   run("npx", ["wrangler", "rollback", versionId, "--config", target.wranglerConfig, "--name", target.worker, "--message", `${environment} rollback drill`, "--yes"], { inherit: true, env: { ...process.env, CLOUDFLARE_API_TOKEN: required("CLOUDFLARE_API_TOKEN") } });
   const checks = await verifyUrl(environment, `https://${target.domain}`);
@@ -295,6 +300,7 @@ async function rollback(environment, versionId) {
   if (activeVersion !== versionId) throw new Error(`Rollback read-back expected ${versionId}, received ${activeVersion || "unknown"}`);
   state.rollbacks ||= [];
   state.rollbacks.push({ environment, worker: target.worker, requestedVersion: versionId, before, after, checks, verifiedAt: new Date().toISOString() });
+  state.releases[environment] = { ...knownGood, deployment: after, checks, verifiedAt: new Date().toISOString(), rolledBackFrom: before };
   await saveState();
   console.log(JSON.stringify({ ok: true, environment, requestedVersion: versionId, before, after, checks }, null, 2));
 }

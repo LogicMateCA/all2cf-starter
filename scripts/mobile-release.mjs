@@ -2,12 +2,25 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseEnv } from "./lib/env-profile.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const mobileRoot = path.join(root, "apps/mobile");
 const statePath = path.join(root, ".all2cf/mobile-state.local.json");
 const easVersion = "22.0.0";
+const providers = JSON.parse(await readFile(path.join(root, "profiles/providers.json"), "utf8"));
+const profilePath = process.env.STARTER_DEV_PROFILE_PATH || providers.defaultPath;
+let profile = new Map();
+let projectEnv = new Map();
+try { profile = parseEnv(await readFile(profilePath, "utf8")); } catch {}
+try { projectEnv = parseEnv(await readFile(path.join(root, ".dev.vars"), "utf8")); } catch {}
 const state = await readState();
+
+function required(name) {
+  const value = process.env[name] || projectEnv.get(name) || profile.get(name);
+  if (!value) throw new Error(`${name} is required for remote mobile release`);
+  return value;
+}
 
 async function readState() {
   try { return JSON.parse(await readFile(statePath, "utf8")); }
@@ -35,7 +48,13 @@ function run(command, args, options = {}) {
 }
 
 function npm(args, options = {}) { return run("npm", args, options); }
-function eas(args, options = {}) { return run("npx", ["--yes", `eas-cli@${easVersion}`, ...args], { cwd: mobileRoot, ...options }); }
+function eas(args, options = {}) {
+  return run("npx", ["--yes", `eas-cli@${easVersion}`, ...args], {
+    cwd: mobileRoot,
+    ...options,
+    env: { EXPO_TOKEN: required("EXPO_TOKEN"), EXPO_PROJECT_ID: required("EXPO_PROJECT_ID"), ...(options.env || {}) },
+  });
+}
 function git(args) { return execFileSync("git", args, { cwd: root, encoding: "utf8" }).trim(); }
 
 function parseJsonOutput(output) {
@@ -82,7 +101,7 @@ function profileFor(environment) {
 function fingerprints(profile) {
   const result = {};
   for (const platform of ["android", "ios"]) {
-    const output = run("npx", ["fingerprint", "fingerprint:generate", "--platform", platform], {
+    const output = run("npx", ["--no-install", "fingerprint", "fingerprint:generate", "--platform", platform], {
       cwd: mobileRoot,
       env: { APP_VARIANT: profile },
     });
@@ -109,7 +128,8 @@ async function plan(environment) {
 }
 
 async function release(environment) {
-  if (!process.env.EXPO_TOKEN) throw new Error("EXPO_TOKEN is required for remote mobile release");
+  required("EXPO_TOKEN");
+  required("EXPO_PROJECT_ID");
   if (git(["status", "--porcelain"])) throw new Error("Mobile release requires a clean Git worktree");
   await verify();
   const releasePlan = await plan(environment);
@@ -124,12 +144,12 @@ async function release(environment) {
     if (releasePlan.action === "update" && preview.updateGroupId) {
       remote = parseJsonOutput(eas(["update:republish", "--group", preview.updateGroupId, "--destination-channel", "production", "--message", message, "--platform", "all", "--json", "--non-interactive"]));
     } else {
-      const builds = parseJsonOutput(eas(["build", "--profile", "production", "--platform", "all", "--message", message, "--auto-submit-with-profile", "production", "--json", "--non-interactive"]));
+      const builds = parseJsonOutput(eas(["build", "--profile", "production", "--platform", "all", "--message", message, "--auto-submit-with-profile", "production", "--wait", "--json", "--non-interactive"]));
       const submissions = parseJsonOutput(eas(["submit:list", "--platform", "all", "--limit", "10", "--json", "--non-interactive"]));
       remote = { builds, submissions };
     }
   } else if (releasePlan.action === "build") {
-    remote = { builds: parseJsonOutput(eas(["build", "--profile", environment, "--platform", "all", "--message", message, "--json", "--non-interactive"])) };
+    remote = { builds: parseJsonOutput(eas(["build", "--profile", environment, "--platform", "all", "--message", message, "--wait", "--json", "--non-interactive"])) };
   } else {
     remote = parseJsonOutput(eas(["update", "--channel", environment, "--environment", environment, "--message", message, "--platform", "all", "--json", "--non-interactive"]));
   }

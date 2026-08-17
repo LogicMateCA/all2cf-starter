@@ -30,4 +30,7 @@ Every material change records intent, affected contracts, migration or rollback 
 
 - `skills/cloudflare-release/SKILL.md` owns verified Cloudflare builds, Development releases, explicit Production releases, and rollback evidence.
 - `skills/expo-release/SKILL.md` owns Expo verification, Development/Preview updates and builds, and separate Apple App Store and Google Play submission evidence.
+- `skills/runtime-upgrade/SKILL.md` owns stable-version discovery, compatibility decisions, Better Auth/plugin alignment, upgrade verification, and Development release evidence.
 - Visual systems, Web/Expo component sets, and chart choices remain reusable templates selected per product; they are not release skills.
+
+Planned operational skills are deliberately limited to `starter-bootstrap`, `project-context`, and `cloudflare-infrastructure`. Create each only after its underlying workflow has been exercised end to end. Database migration and provider-specific skills wait for the real Better Auth, Stripe, and CFsend implementations.
