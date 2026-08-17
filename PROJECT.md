@@ -1,6 +1,6 @@
 ---
 title: "Cloudflare AI Starter"
-status: "initialized"
+status: "production-released"
 owner: "project owner"
 source: "starter"
 ---
