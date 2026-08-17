@@ -334,6 +334,7 @@ async function release(environment) {
   syncWorkerSecrets(environment, target.wranglerConfig);
   run("npx", ["wrangler", "deploy", "--config", target.wranglerConfig, "--message", `${environment} ${commit.slice(0, 12)}`], { inherit: true, env: { ...process.env, CLOUDFLARE_API_TOKEN: required("CLOUDFLARE_API_TOKEN") } });
   const checks = await verifyUrl(environment, `https://${target.domain}`);
+  if (environment === "development") run("npm", ["run", "auth:smoke:dev:remote"], { inherit: true });
   const deployment = await latestDeployment(target.worker);
   const configPath = path.join(root, target.wranglerConfig);
   const configHash = await fileHash(configPath);

@@ -1,7 +1,7 @@
 ---
 id: account-menu-foundation
 title: Google-style authenticated account and settings entry
-status: implemented-local
+status: development-released
 affectedModules: [auth, admin, support, mobile]
 docsImpact: [DESIGN.md, features/auth/MODULE.md, /dp]
 ---
@@ -26,4 +26,4 @@ After sign-in, every primary Web and Expo surface exposes a familiar upper-right
 
 # Release
 
-Desktop now provides the upper-right signed-out/sign-in state, authenticated avatar menu, Account, Settings, System/Light/Dark, English/简体中文, and sign out. Preferences persist on the Better Auth user profile. Help/Support, role-gated Admin, Expo preference UI, cross-device E2E, and Development browser evidence remain pending.
+Desktop Development now provides the upper-right signed-out/sign-in state, authenticated avatar menu, Account, Settings, System/Light/Dark, English/简体中文, and sign out. Preferences persist on the Better Auth user profile. Help/Support, role-gated Admin, Expo preference UI, cross-device E2E, and visual browser inspection remain pending.

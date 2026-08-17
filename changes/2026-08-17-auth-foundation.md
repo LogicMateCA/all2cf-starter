@@ -1,7 +1,7 @@
 ---
 id: auth-foundation
 title: A2C-derived Better Auth login foundation
-status: local-verified
+status: development-released
 affectedModules: [auth, admin, mobile, docs]
 docsImpact: [features/auth/MODULE.md, DESIGN.md, ARCHITECTURE.md, RELEASE.md, /dp]
 ---
@@ -34,4 +34,4 @@ Bundle evidence passes the existing budgets: Desktop public main about 63KB gzip
 
 # Release
 
-Development release is pending. Production database and Production Worker remain out of scope. Google OAuth callback completion, real CFsend delivery, and installed-device SecureStore behavior remain unverified.
+Development is released at `dev.logicm8.com` with exact Worker/database route identity, local workerd auth smoke, Cloudflare-edge auth smoke, and Secure/HttpOnly/SameSite/host-only Cookie evidence. The release command now repeats both smoke layers on every Development deployment. Production database and Production Worker remain unchanged. Google OAuth callback completion, real CFsend delivery, visual browser inspection, and installed-device SecureStore behavior remain unverified.

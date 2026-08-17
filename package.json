@@ -20,6 +20,7 @@
     "credentials:doctor": "node scripts/credentials-doctor.mjs",
     "auth:schema:generate": "node scripts/generate-auth-schema.mjs",
     "auth:smoke:dev": "node scripts/auth-smoke.mjs",
+    "auth:smoke:dev:remote": "node scripts/auth-smoke.mjs --remote",
     "db:migrate:status": "node scripts/database-migrate.mjs --environment=development",
     "db:migrate:dev": "node scripts/database-migrate.mjs --environment=development --apply",
     "db:migrate:production:status": "node scripts/database-migrate.mjs --environment=production",

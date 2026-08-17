@@ -45,7 +45,7 @@
     {
       "area": "Authentication",
       "choice": "Better Auth stable line (current target 1.6.29)",
-      "status": "local-verified"
+      "status": "development-released"
     },
     {
       "area": "Billing",

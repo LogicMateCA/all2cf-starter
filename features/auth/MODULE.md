@@ -1,6 +1,6 @@
 ---
 module: auth
-status: local-verified
+status: development-released
 source: starter
 ---
 

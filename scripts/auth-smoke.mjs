@@ -8,11 +8,12 @@ import { Client } from "pg";
 import { parseEnv } from "./lib/env-profile.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const remote = process.argv.includes("--remote");
 const port = Number(process.env.STARTER_AUTH_SMOKE_PORT || 18788);
-const origin = `http://127.0.0.1:${port}`;
 const envPath = path.join(root, ".dev.vars");
 const values = parseEnv(await readFile(envPath, "utf8"));
 const starter = JSON.parse(await readFile(path.join(root, "starter.config.json"), "utf8"));
+const origin = remote ? `https://${starter.development.domain}` : `http://127.0.0.1:${port}`;
 const baseConfig = parseJsonc(await readFile(path.join(root, "cloudflare/wrangler.development.jsonc"), "utf8"));
 const databaseSource = new URL(values.get("DATABASE_URL") || "");
 databaseSource.hostname = starter.development.database.host;
@@ -21,29 +22,31 @@ databaseSource.pathname = `/${starter.development.database.database}`;
 databaseSource.searchParams.set("sslmode", "require");
 databaseSource.searchParams.set("uselibpqcompat", "true");
 
-const tempRoot = path.join(root, "dist/auth-smoke");
-const configPath = path.join(tempRoot, "wrangler.jsonc");
-await mkdir(tempRoot, { recursive: true });
-const localConfig = {
-  ...baseConfig,
-  name: "starter-auth-smoke",
-  main: path.join(root, "workers/app/index.ts"),
-  vars: { ...baseConfig.vars, AUTH_CANONICAL_ORIGIN: origin, AUTH_REQUIRE_EMAIL_VERIFICATION: "false", AUTH_EMAIL_MODE: "database-outbox" },
-  assets: { ...baseConfig.assets, directory: path.join(root, "dist/web") },
-  hyperdrive: [{ ...baseConfig.hyperdrive[0], localConnectionString: databaseSource.toString() }],
-  routes: [],
-  workers_dev: false,
-};
-await writeFile(configPath, `${JSON.stringify(localConfig, null, 2)}\n`, { mode: 0o600 });
-
-const child = spawn("npx", ["wrangler", "dev", "--config", configPath, "--env-file", envPath, "--ip", "127.0.0.1", "--port", String(port), "--show-interactive-dev-session", "false", "--log-level", "warn"], {
-  cwd: root,
-  env: process.env,
-  stdio: ["ignore", "pipe", "pipe"],
-});
+let child = null;
 let logs = "";
-child.stdout.on("data", (chunk) => { logs += chunk.toString(); });
-child.stderr.on("data", (chunk) => { logs += chunk.toString(); });
+if (!remote) {
+  const tempRoot = path.join(root, "dist/auth-smoke");
+  const configPath = path.join(tempRoot, "wrangler.jsonc");
+  await mkdir(tempRoot, { recursive: true });
+  const localConfig = {
+    ...baseConfig,
+    name: "starter-auth-smoke",
+    main: path.join(root, "workers/app/index.ts"),
+    vars: { ...baseConfig.vars, AUTH_CANONICAL_ORIGIN: origin, AUTH_REQUIRE_EMAIL_VERIFICATION: "false", AUTH_EMAIL_MODE: "database-outbox" },
+    assets: { ...baseConfig.assets, directory: path.join(root, "dist/web") },
+    hyperdrive: [{ ...baseConfig.hyperdrive[0], localConnectionString: databaseSource.toString() }],
+    routes: [],
+    workers_dev: false,
+  };
+  await writeFile(configPath, `${JSON.stringify(localConfig, null, 2)}\n`, { mode: 0o600 });
+  child = spawn("npx", ["wrangler", "dev", "--config", configPath, "--env-file", envPath, "--ip", "127.0.0.1", "--port", String(port), "--show-interactive-dev-session", "false", "--log-level", "warn"], {
+    cwd: root,
+    env: process.env,
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  child.stdout.on("data", (chunk) => { logs += chunk.toString(); });
+  child.stderr.on("data", (chunk) => { logs += chunk.toString(); });
+}
 
 const email = `smoke+${randomUUID()}@example.test`;
 const password = `Smoke-${randomUUID()}-A1!`;
@@ -63,7 +66,7 @@ function assert(condition, message) {
 }
 
 async function request(pathname, init = {}) {
-  const response = await fetch(`${origin}${pathname}`, { ...init, headers: { "CF-Connecting-IP": smokeIp, ...(init.headers || {}) } });
+  const response = await fetch(`${origin}${pathname}`, { ...init, headers: { ...(!remote ? { "CF-Connecting-IP": smokeIp } : {}), ...(init.headers || {}) } });
   let payload;
   try { payload = await response.json(); } catch { payload = null; }
   return { response, payload };
@@ -71,7 +74,7 @@ async function request(pathname, init = {}) {
 
 async function waitUntilReady() {
   for (let attempt = 0; attempt < 60; attempt += 1) {
-    if (child.exitCode !== null) throw new Error(`wrangler dev exited before readiness\n${logs}`);
+    if (child?.exitCode !== null && child) throw new Error(`wrangler dev exited before readiness\n${logs}`);
     try {
       const response = await fetch(`${origin}/api/health`);
       if (response.ok) return;
@@ -111,6 +114,14 @@ try {
   const cookieHeaders = typeof login.response.headers.getSetCookie === "function" ? login.response.headers.getSetCookie() : [login.response.headers.get("set-cookie")].filter(Boolean);
   const cookie = cookieHeaders.map((value) => value.split(";", 1)[0]).join("; ");
   assert(cookie.includes("session"), "email sign-in did not set a session cookie");
+  if (remote) {
+    const sessionSetCookie = cookieHeaders.find((value) => value.includes("session_token")) || "";
+    assert(/;\s*HttpOnly/iu.test(sessionSetCookie), "edge session cookie is missing HttpOnly");
+    assert(/;\s*Secure/iu.test(sessionSetCookie), "edge session cookie is missing Secure");
+    assert(/;\s*SameSite=Lax/iu.test(sessionSetCookie), "edge session cookie is missing SameSite=Lax");
+    assert(!/;\s*Domain=/iu.test(sessionSetCookie), "edge session cookie is not host-only");
+    checks.push("secure-host-only-cookie");
+  }
   checks.push("email-sign-in");
 
   const session = await request("/api/session", { headers: { Cookie: cookie, Origin: origin } });
@@ -165,17 +176,19 @@ try {
   assert(outbox.rows[0]?.count >= 2, "auth emails were not written to the development outbox");
   checks.push("email-outbox");
 
-  console.log(JSON.stringify({ ok: true, runtime: "workerd", database: starter.development.database.database, checks }, null, 2));
+  console.log(JSON.stringify({ ok: true, runtime: remote ? "cloudflare-development-edge" : "workerd", database: starter.development.database.database, checks }, null, 2));
 } finally {
   if (database._connected) {
     await database.query("delete from app_auth_email_outbox where recipient = $1", [email]).catch(() => undefined);
     await database.query("delete from app_user where email = $1", [email]).catch(() => undefined);
     await database.end().catch(() => undefined);
   }
-  child.kill("SIGTERM");
-  await Promise.race([
-    new Promise((resolve) => child.once("close", resolve)),
-    new Promise((resolve) => setTimeout(resolve, 2000)),
-  ]);
-  if (child.exitCode === null) child.kill("SIGKILL");
+  if (child) {
+    child.kill("SIGTERM");
+    await Promise.race([
+      new Promise((resolve) => child.once("close", resolve)),
+      new Promise((resolve) => setTimeout(resolve, 2000)),
+    ]);
+    if (child.exitCode === null) child.kill("SIGKILL");
+  }
 }
