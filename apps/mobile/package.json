@@ -5,13 +5,23 @@
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
+    "web": "expo start --web",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "typecheck": "tsc --noEmit",
     "export": "expo export --platform all",
+    "export:web": "expo export --platform web",
     "doctor": "npx expo-doctor@latest"
   },
   "dependencies": {
+    "@expo/metro-runtime": "~57.0.10",
+    "@tamagui/button": "2.7.7",
+    "@tamagui/core": "2.7.7",
+    "@tamagui/shapes": "2.7.7",
+    "@tamagui/shorthands": "2.7.7",
+    "@tamagui/spinner": "2.7.7",
+    "@tamagui/stacks": "2.7.7",
+    "@tamagui/text": "2.7.7",
     "expo": "~57.0.13",
     "expo-constants": "~57.0.11",
     "expo-dev-client": "~57.0.1",
@@ -20,9 +30,11 @@
     "expo-secure-store": "~57.0.1",
     "expo-updates": "~57.0.13",
     "react": "19.2.3",
+    "react-dom": "19.2.3",
     "react-native": "0.86.2",
     "react-native-safe-area-context": "~5.7.0",
-    "react-native-screens": "~4.26.0"
+    "react-native-screens": "~4.26.0",
+    "react-native-web": "^0.21.2"
   },
   "devDependencies": {
     "@expo/fingerprint": "0.20.7",

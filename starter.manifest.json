@@ -59,17 +59,17 @@
     },
     {
       "area": "Web UI",
-      "choice": "Owned shadcn/ui components",
-      "status": "planned"
+      "choice": "Owned shadcn/ui source components + Tailwind",
+      "status": "implemented"
     },
     {
       "area": "Web charts",
-      "choice": "shadcn Chart + Bklit; ECharts for heavy analytics",
-      "status": "defined"
+      "choice": "shadcn Chart over Recharts 3.10.1; Bklit advanced and ECharts heavy analytics opt-in",
+      "status": "implemented"
     },
     {
       "area": "Mobile",
-      "choice": "Expo 57.0.13 + React Native 0.86.2 + EAS CLI 22; owned thin UI seam, Tamagui optional template",
+      "choice": "Expo 57.0.13 + React Native 0.86.2 + Tamagui 2.7.7 for Mobile Web/iOS/Android",
       "status": "local-verified"
     },
     {

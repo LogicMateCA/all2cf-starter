@@ -1,4 +1,4 @@
-import { useEffect, useState, type ComponentType, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useState, type ComponentType, type ReactNode } from "react";
 import {
   ArrowRight,
   Blocks,
@@ -17,6 +17,11 @@ import {
   Sun,
   X,
 } from "lucide-react";
+
+const TechnologyStatusChart = lazy(async () => {
+  const module = await import("./components/technology-status-chart");
+  return { default: module.TechnologyStatusChart };
+});
 
 type Technology = { area: string; choice: string; status: string };
 type ModuleDocument = { id: string; title: string; status: string; summary: string; path: string };
@@ -158,6 +163,7 @@ function DevelopmentPlan() {
 
         <Section id="technology" title="Technology map" description="The chosen foundation for each product responsibility." icon={Code2}>
           <div className="technology-grid">{data.technology.map((item) => <Surface key={item.area}><span className={`status ${item.status}`}>{item.status}</span><h3>{item.area}</h3><p>{item.choice}</p></Surface>)}</div>
+          <Surface className="technology-chart"><div><span className="role-label">Decision status</span><h3>Technology maturity</h3><p>Live counts from the generated Development Plan snapshot.</p></div><Suspense fallback={<div className="chart-loading">Loading chart…</div>}><TechnologyStatusChart items={data.technology} /></Suspense></Surface>
         </Section>
 
         <Section id="modules" title="Module catalog" description="Purpose and ownership stay close to code in MODULE.md." icon={Blocks}>

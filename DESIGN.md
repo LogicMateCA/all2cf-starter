@@ -31,11 +31,12 @@ source: "starter"
 
 ## Platform component strategy
 
-- Web uses owned shadcn/ui components with Tailwind. Bklit remains available for advanced Web charts that exceed the ordinary shadcn Chart/Recharts layer.
-- Expo owns a deliberately small component contract and token layer for primitives such as Button, TextField, Avatar, Menu, Sheet, Dialog, List, and feedback states. This is an adapter and template seam, not a from-scratch UI framework.
-- Build native behavior from React Native and stable Expo capabilities first. Keep component APIs product-owned so different visual templates can replace presentation without rewriting authentication, navigation, accessibility, or analytics behavior.
-- Tamagui is an optional mobile-template profile, not a base dependency. Select it only when a product will materially benefit from sharing styled components between Web and Native or from its compiler/theme system enough to justify Tamagui Provider, token, Metro/Babel, and monorepo configuration.
-- Do not mix Tamagui and another full mobile UI system inside one template. A selected template has one primitive owner and may wrap third-party behavior behind the owned component contract.
+- Desktop Web uses owned shadcn/ui source components with Tailwind. Ordinary charts use the owned shadcn Chart component layer; Recharts remains its internal renderer and must not be imported directly by feature code. Bklit remains available for advanced Web charts, with ECharts opt-in for heavy analytics.
+- Mobile Web, iOS, and Android use a separate Tamagui 2 component and token system. Use package-level Tamagui imports rather than the full `tamagui` barrel to control bundle size.
+- Desktop and Mobile do not share pages, navigation, layouts, UI components, or presentation tokens. Share behavior contracts and base brand assets only.
+- The Mobile base carries only minimal light/dark themes, spacing, sizing, typography, and required component subthemes. Product templates extend this baseline rather than importing hundreds of unused default themes.
+- Tamagui Compiler is not enabled while Tamagui 2.7.7 depends on TypeScript APIs removed in the Starter's supported TypeScript 6/7 toolchain. Runtime-only builds are the verified baseline; enable compiler optimization only after upstream compatibility and measured release evidence.
+- Do not mix Tamagui with another full mobile UI system. Platform-native controls may be wrapped only when their behavior materially improves the product.
 
 ## Placeholders
 

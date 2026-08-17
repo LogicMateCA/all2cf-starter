@@ -4,18 +4,19 @@
   "automaticMerge": false,
   "automaticProductionRelease": false,
   "externalPins": {
-    "eas-cli": "22.0.0"
+    "eas-cli": "22.0.0",
+    "shadcn": "4.18.0"
   },
   "tracks": [
     {
       "id": "cloudflare-web-worker",
       "mode": "latest-stable",
-      "packages": ["wrangler", "@cloudflare/workers-types", "hono", "pg", "vite", "@vitejs/plugin-react", "tailwindcss", "@tailwindcss/vite", "lucide-react"]
+      "packages": ["wrangler", "@cloudflare/workers-types", "hono", "pg", "vite", "@vitejs/plugin-react", "tailwindcss", "@tailwindcss/vite", "lucide-react", "recharts", "clsx", "tailwind-merge", "shadcn"]
     },
     {
       "id": "expo-sdk",
       "mode": "expo-compatible",
-      "packages": ["expo", "react-native", "react", "expo-router", "expo-updates", "expo-dev-client", "@expo/fingerprint", "eas-cli"]
+      "packages": ["expo", "react-native", "react", "react-native-web", "expo-router", "expo-updates", "expo-dev-client", "@expo/fingerprint", "@tamagui/core", "@tamagui/stacks", "@tamagui/text", "@tamagui/button", "@tamagui/shapes", "@tamagui/spinner", "@tamagui/shorthands", "eas-cli"]
     },
     {
       "id": "better-auth",

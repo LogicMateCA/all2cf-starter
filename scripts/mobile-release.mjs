@@ -91,7 +91,8 @@ async function verify() {
   npm(["run", "typecheck", "--workspace", "apps/mobile"], { inherit: true });
   run("npx", ["expo-doctor@latest"], { cwd: mobileRoot, inherit: true });
   npm(["run", "export", "--workspace", "apps/mobile"], { inherit: true });
-  console.log(JSON.stringify({ ok: true, checks: ["doctor", "typecheck", "expo-doctor", "expo-export"] }, null, 2));
+  npm(["run", "bundle:check:mobile"], { inherit: true });
+  console.log(JSON.stringify({ ok: true, checks: ["doctor", "typecheck", "expo-doctor", "expo-export", "bundle-budget"] }, null, 2));
 }
 
 function profileFor(environment) {

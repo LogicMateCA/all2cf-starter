@@ -1,7 +1,7 @@
 ---
 id: mobile-ui-strategy
 title: Thin owned Expo UI seam with optional Tamagui template
-status: defined
+status: superseded
 affectedModules: [mobile, auth]
 docsImpact: [DESIGN.md, features/mobile/MODULE.md, starter.manifest.json, /dp]
 ---
@@ -25,4 +25,4 @@ Expo products can select different mature visual templates without coupling auth
 
 # Release
 
-Architecture decision only. Tamagui is not installed in the base Starter, and no mobile visual template is yet selected.
+Superseded by `dual-ui-foundation` after the product owner selected separate Desktop shadcn/ui and Mobile Web/iOS/Android Tamagui foundations. This record remains as decision history.

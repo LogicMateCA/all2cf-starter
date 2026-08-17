@@ -33,7 +33,7 @@ const config: ExpoConfig = {
   name: selected.name,
   slug: `${starter.project.slug}-mobile`,
   version: "1.0.0",
-  platforms: ["ios", "android"],
+  platforms: ["ios", "android", "web"],
   orientation: "portrait",
   userInterfaceStyle: "automatic",
   scheme: selected.scheme,
@@ -43,6 +43,10 @@ const config: ExpoConfig = {
   },
   android: {
     package: selected.packageName
+  },
+  web: {
+    bundler: "metro",
+    output: "single"
   },
   plugins: ["expo-router", "expo-dev-client", "expo-secure-store", "expo-updates"],
   extra: {

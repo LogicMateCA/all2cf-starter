@@ -1,7 +1,12 @@
 import Constants from "expo-constants";
 import * as Updates from "expo-updates";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { Button } from "@tamagui/button";
+import { Text } from "@tamagui/core";
+import { Circle } from "@tamagui/shapes";
+import { Spinner } from "@tamagui/spinner";
+import { XStack, YStack } from "@tamagui/stacks";
+import { H1, Paragraph } from "@tamagui/text";
 
 type HealthState = "idle" | "checking" | "healthy" | "unavailable";
 
@@ -31,32 +36,19 @@ export default function HomeScreen() {
   }, [checkHealth]);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Starter</Text>
-      <Text style={styles.label}>Environment</Text>
-      <Text style={styles.value}>{appVariant}</Text>
-      <Text style={styles.label}>API</Text>
-      <Text style={styles.value}>{apiUrl}</Text>
-      <View style={styles.statusRow}>
-        {status === "checking" ? <ActivityIndicator /> : <View style={[styles.dot, status === "healthy" ? styles.good : styles.bad]} />}
-        <Text accessibilityRole="text">API health: {status}</Text>
-      </View>
-      <Pressable accessibilityRole="button" onPress={() => void checkHealth()} style={styles.button}>
-        <Text style={styles.buttonText}>Check again</Text>
-      </Pressable>
-    </View>
+    <YStack flex={1} justify="center" gap="$3" p="$6" bg="$background">
+      <H1 mb="$4">Starter</H1>
+      <Text color="$color10" fontSize="$2" textTransform="uppercase">Environment</Text>
+      <Paragraph mb="$2">{appVariant}</Paragraph>
+      <Text color="$color10" fontSize="$2" textTransform="uppercase">API</Text>
+      <Paragraph mb="$2">{apiUrl}</Paragraph>
+      <XStack items="center" gap="$2" mt="$3">
+        {status === "checking" ? <Spinner /> : <Circle size={12} background={status === "healthy" ? "$green10" : "$red10"} />}
+        <Paragraph accessibilityRole="text">API health: {status}</Paragraph>
+      </XStack>
+      <Button mt="$4" onPress={() => void checkHealth()} accessibilityLabel="Check API health again">
+        Check again
+      </Button>
+    </YStack>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", padding: 24, gap: 10 },
-  title: { fontSize: 32, fontWeight: "700", marginBottom: 18 },
-  label: { color: "#667085", fontSize: 13, textTransform: "uppercase" },
-  value: { fontSize: 17, marginBottom: 8 },
-  statusRow: { alignItems: "center", flexDirection: "row", gap: 8, marginTop: 16 },
-  dot: { borderRadius: 6, height: 12, width: 12 },
-  good: { backgroundColor: "#16a34a" },
-  bad: { backgroundColor: "#dc2626" },
-  button: { alignItems: "center", backgroundColor: "#111827", borderRadius: 8, marginTop: 18, padding: 14 },
-  buttonText: { color: "#fff", fontWeight: "600" }
-});
