@@ -25,7 +25,8 @@ Project initialization replaces generic names and records the smallest accurate 
 - Durable state, queues, storage, and external services must document ownership and failure behavior.
 - Desktop Web uses shadcn/ui/Tailwind. Mobile Web/iOS/Android use a lean Tamagui 2 runtime configuration with package-level imports.
 - Better Auth 1.6.29 owns identity endpoints on the Worker. It uses its built-in PostgreSQL/Kysely adapter through request-scoped Hyperdrive pools, host-only Web cookies, official Expo deep-link/SecureStore plugins, database rate limits, and SQL-first migrations.
-- Development auth email is recorded in `app_auth_email_outbox`. Production uses the same outbox as an audit/retry boundary and sends through the configured customer-owned CFsend Runtime with an idempotency key.
+- Authentication email always passes through `app_auth_email_outbox` and a real provider. CFsend is the default product provider, using a customer-owned Runtime URL, scoped key, verified sender, and stable idempotency key. Resend is an explicit HTTP adapter switch. Cloudflare Email Service is retained as a third opt-in adapter and adds a `send_email` binding only when selected.
+- Outbox-only is not an authentication email provider. Missing credentials or provider delivery failure fails closed; Development and Production both require verified email before credential sign-in.
 - Theme and locale are user-profile fields exposed through an authenticated preferences contract; product authorization remains separate from these presentation preferences.
 
 ## Change Spec

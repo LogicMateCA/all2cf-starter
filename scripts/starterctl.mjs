@@ -37,14 +37,18 @@ function required(name) {
 }
 
 function syncWorkerSecrets(environment, wranglerConfig) {
+  const emailProvider = config.email?.provider || "cfsend";
   const secrets = {
     BETTER_AUTH_SECRET: required(environment === "production" ? "STARTER_PRODUCTION_BETTER_AUTH_SECRET" : "BETTER_AUTH_SECRET"),
     GOOGLE_CLIENT_ID: required("GOOGLE_CLIENT_ID"),
     GOOGLE_CLIENT_SECRET: required("GOOGLE_CLIENT_SECRET"),
-    ...(environment === "production" ? {
+    ...(emailProvider === "cfsend" ? {
       CFSEND_API_URL: required("CFSEND_API_URL"),
       CFSEND_API_KEY: required("CFSEND_API_KEY"),
       CFSEND_FROM: required("CFSEND_FROM"),
+    } : emailProvider === "resend" ? {
+      RESEND_API_KEY: required("RESEND_API_KEY"),
+      RESEND_FROM: required("RESEND_FROM"),
     } : {}),
   };
   const result = spawnSync("npx", ["wrangler", "secret", "bulk", "--config", wranglerConfig], {
@@ -211,6 +215,7 @@ async function ensureHyperdrive(environment, serviceId) {
 
 async function writeWrangler(environment, hyperdriveId) {
   const target = config[environment];
+  const emailProvider = config.email?.provider || "cfsend";
   const configPath = path.join(root, target.wranglerConfig);
   const errors = [];
   const value = parseJsonc(await readFile(configPath, "utf8"), errors, { allowTrailingComma: true });
@@ -223,11 +228,15 @@ async function writeWrangler(environment, hyperdriveId) {
     SERVICE_NAME: config.project.slug,
     APP_NAME: config.project.name,
     AUTH_CANONICAL_ORIGIN: `https://${target.domain}`,
-    AUTH_REQUIRE_EMAIL_VERIFICATION: environment === "production" ? "true" : "false",
-    AUTH_EMAIL_MODE: environment === "production" ? "cfsend" : "database-outbox",
+    AUTH_REQUIRE_EMAIL_VERIFICATION: "true",
+    AUTH_EMAIL_PROVIDER: emailProvider,
+    RESEND_API_URL: config.email?.resendApiUrl || "https://api.resend.com",
+    ...(emailProvider === "cloudflare-email" ? { CLOUDFLARE_EMAIL_FROM: required("CLOUDFLARE_EMAIL_FROM") } : {}),
     MOBILE_DEEP_LINK_SCHEMES: [`${config.project.slug}-dev://`, `${config.project.slug}-preview://`, `${config.project.slug}://`].join(","),
   };
-  value.secrets = { required: ["BETTER_AUTH_SECRET", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", ...(environment === "production" ? ["CFSEND_API_URL", "CFSEND_API_KEY", "CFSEND_FROM"] : [])] };
+  value.secrets = { required: ["BETTER_AUTH_SECRET", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", ...(emailProvider === "cfsend" ? ["CFSEND_API_URL", "CFSEND_API_KEY", "CFSEND_FROM"] : emailProvider === "resend" ? ["RESEND_API_KEY", "RESEND_FROM"] : [])] };
+  if (emailProvider === "cloudflare-email") value.send_email = [{ name: "EMAIL" }];
+  else delete value.send_email;
   value.hyperdrive = [{ binding: "HYPERDRIVE", id: hyperdriveId }];
   value.routes = [{ pattern: target.domain, custom_domain: true }];
   await writeFile(configPath, `${JSON.stringify(value, null, 2)}\n`);

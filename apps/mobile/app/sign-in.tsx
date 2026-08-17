@@ -41,7 +41,8 @@ export default function SignInScreen() {
     setBusy(true); setError("");
     const result = await authClient.signIn.email({ email: email.trim().toLowerCase(), password });
     setBusy(false);
-    if (result.error) setError("Email or password is incorrect.");
+    if (result.error?.code === "EMAIL_NOT_VERIFIED") setStep("check-email");
+    else if (result.error) setError("Email or password is incorrect.");
     else router.replace("/");
   }
 

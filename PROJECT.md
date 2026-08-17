@@ -36,3 +36,5 @@ Every material change records intent, affected contracts, migration or rollback 
 - Visual systems, Web/Expo component sets, and chart choices remain reusable templates selected per product; they are not release skills.
 
 The remaining planned operational skill is `cloudflare-infrastructure`. Create it only after its topology-change workflow has been exercised end to end. The Better Auth database and release workflow is now implemented in project scripts; per the Starter policy, extract it into a Skill only after Development deployment and repeatable live evidence are stable. Stripe and broader CFsend operations still wait for their complete product flows.
+
+Authentication email is a product contract rather than an environment convenience: CFsend is the default provider, Resend is switchable, and Cloudflare Email Service is opt-in. Copied projects must configure one real provider before credential registration can be released.

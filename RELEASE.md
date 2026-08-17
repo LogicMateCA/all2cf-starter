@@ -13,7 +13,8 @@ source: "starter"
 - Child workers cannot deploy or commit. Sol remains the high-level controller for release actions.
 - Development release applies checksum-locked Development SQL migrations, runs the local workerd auth smoke suite, synchronizes Development Worker secrets, deploys, verifies public plus unauthorized protected routes, then repeats the full auth cycle at the Cloudflare edge including Secure Cookie attributes.
 - Production release applies the same reviewed migration set to the Production database and uses a separate Production Better Auth secret. It remains gated by exact Development artifact parity and explicit Production wording.
-- Worker secret sync includes Better Auth, Google OAuth, and CFsend Runtime credentials; values remain local/remote secrets and are never written into Wrangler source.
+- Worker secret sync includes Better Auth, Google OAuth, and only the selected email provider. CFsend is the default and requires Runtime URL/key/from; Resend requires key/from; Cloudflare Email Service creates its binding only when selected. Values remain local/remote secrets and are never written into Wrangler source.
+- Development and Production both require verified email. Release must fail before deployment when the selected provider is incomplete; a local outbox row is not delivery evidence.
 
 ## Checklist
 

@@ -31,7 +31,10 @@ const optionalGroups = {
   github: ["GITHUB_TOKEN", "GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET", "GITHUB_APP_ID", "GITHUB_APP_PRIVATE_KEY_BASE64"],
   stripeTest: ["STRIPE_SECRET_KEY", "STRIPE_PUBLISHABLE_KEY", "STRIPE_PRICE_PRO"],
   stripeWebhook: ["STRIPE_WEBHOOK_SECRET"],
-  cfsendSandbox: ["CFSEND_API_URL", "CFSEND_API_KEY", "CFSEND_FROM", "CFSEND_SANDBOX"],
+  cfsend: ["CFSEND_API_URL", "CFSEND_API_KEY", "CFSEND_FROM"],
+  cfsendSandbox: ["CFSEND_SANDBOX"],
+  resend: ["RESEND_API_KEY", "RESEND_FROM"],
+  cloudflareEmail: ["CLOUDFLARE_EMAIL_FROM"],
 };
 const inspect = (groups) => Object.fromEntries(Object.entries(groups).map(([name, keys]) => [name, keys.every((key) => Boolean(value(key))) ? "ready" : "not-configured"]));
 const required = inspect(requiredGroups);

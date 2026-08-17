@@ -15,7 +15,8 @@
     "APP_NAME": "Cloudflare AI Starter",
     "AUTH_CANONICAL_ORIGIN": "https://starter.logicm8.com",
     "AUTH_REQUIRE_EMAIL_VERIFICATION": "true",
-    "AUTH_EMAIL_MODE": "cfsend",
+    "AUTH_EMAIL_PROVIDER": "cfsend",
+    "RESEND_API_URL": "https://api.resend.com",
     "MOBILE_DEEP_LINK_SCHEMES": "starter-dev://,starter-preview://,starter://"
   },
   "secrets": {

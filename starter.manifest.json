@@ -54,8 +54,8 @@
     },
     {
       "area": "Email",
-      "choice": "CFsend Runtime with database outbox and idempotent delivery",
-      "status": "implementation-verified"
+      "choice": "CFsend default; Resend switch; optional Cloudflare Email Service; provider-backed auth outbox",
+      "status": "local-verified"
     },
     {
       "area": "Web UI",

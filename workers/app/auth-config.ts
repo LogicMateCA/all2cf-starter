@@ -7,6 +7,7 @@ export type AuthEmail = {
   to: string;
   subject: string;
   text: string;
+  html: string;
   url: string;
 };
 
@@ -19,8 +20,16 @@ type StarterAuthInput = {
   googleClientSecret: string;
   mobileSchemes: string[];
   requireEmailVerification: boolean;
-  enqueueEmail: (email: AuthEmail) => void;
+  enqueueEmail: (email: AuthEmail) => Promise<void>;
 };
+
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/gu, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character] || character);
+}
+
+function authEmailHtml(title: string, message: string, action: string, url: string) {
+  return `<!doctype html><html><body style="margin:0;background:#f4f7fb;font-family:Arial,sans-serif;color:#111827"><div style="max-width:560px;margin:40px auto;background:#fff;border:1px solid #dbe3ee;border-radius:16px;padding:32px"><h1 style="font-size:24px;margin:0 0 14px">${escapeHtml(title)}</h1><p style="line-height:1.65;color:#475569">${escapeHtml(message)}</p><a href="${escapeHtml(url)}" style="display:inline-block;margin-top:10px;padding:12px 18px;border-radius:9px;background:#172033;color:#fff;text-decoration:none;font-weight:700">${escapeHtml(action)}</a></div></body></html>`;
+}
 
 export function createStarterAuth(input: StarterAuthInput) {
   const secure = input.baseURL.startsWith("https://");
@@ -80,7 +89,7 @@ export function createStarterAuth(input: StarterAuthInput) {
       maxPasswordLength: 128,
       revokeSessionsOnPasswordReset: true,
       async sendResetPassword({ user, url }) {
-        input.enqueueEmail({ kind: "password-reset", to: user.email, subject: `Reset your ${input.appName} password`, text: `Reset your password: ${url}`, url });
+        await input.enqueueEmail({ kind: "password-reset", to: user.email, subject: `Reset your ${input.appName} password`, text: `Reset your password: ${url}`, html: authEmailHtml("Reset your password", `Use this secure link to choose a new ${input.appName} password.`, "Reset password", url), url });
       },
     },
     emailVerification: {
@@ -88,7 +97,7 @@ export function createStarterAuth(input: StarterAuthInput) {
       sendOnSignIn: input.requireEmailVerification,
       autoSignInAfterVerification: false,
       async sendVerificationEmail({ user, url }) {
-        input.enqueueEmail({ kind: "email-verification", to: user.email, subject: `Verify your ${input.appName} email`, text: `Verify your email: ${url}`, url });
+        await input.enqueueEmail({ kind: "email-verification", to: user.email, subject: `Verify your ${input.appName} email`, text: `Verify your email: ${url}`, html: authEmailHtml("Verify your email", `Confirm this address to finish creating your ${input.appName} account.`, "Verify email", url), url });
       },
     },
     rateLimit: {

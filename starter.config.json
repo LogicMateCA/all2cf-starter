@@ -9,6 +9,10 @@
     "zoneId": "f3df57513059be317d04a5009ab9e855",
     "zoneName": "logicm8.com"
   },
+  "email": {
+    "provider": "cfsend",
+    "resendApiUrl": "https://api.resend.com"
+  },
   "development": {
     "worker": "starter-dev",
     "domain": "dev.logicm8.com",

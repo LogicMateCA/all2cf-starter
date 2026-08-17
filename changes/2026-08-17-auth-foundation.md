@@ -17,7 +17,7 @@ Starter users can register, sign in with email/password or configured Google OAu
 - Host-only secure cookies, trusted origins, Cloudflare client IP, database-backed rate limiting, safe same-origin return paths, and production email-enumeration protection.
 - Desktop login state machine, route/session guard, account entry, theme/language persistence, and logout.
 - Expo client and A2C-derived sign-in/reset UI using the official Better Auth Expo plugin, SecureStore, and environment-specific deep links.
-- Development database outbox plus Production CFsend Runtime delivery with an idempotent send key and recorded sent/failed state.
+- Provider-backed authentication outbox. The follow-up `auth-email-providers` Change Spec replaces the original Development outbox-only behavior with mandatory verification and CFsend-default delivery.
 - Signed-in System/Light/Dark and English/简体中文 preferences stored on the user profile; signed-out preferences remain local.
 - Database-authoritative sessions with Cookie cache disabled so reset, sign out, and revocation are immediate.
 
@@ -34,4 +34,4 @@ Bundle evidence passes the existing budgets: Desktop public main about 63KB gzip
 
 # Release
 
-Development is released at `dev.logicm8.com` with exact Worker/database route identity, local workerd auth smoke, Cloudflare-edge auth smoke, and Secure/HttpOnly/SameSite/host-only Cookie evidence. The release command now repeats both smoke layers on every Development deployment. Production database and Production Worker remain unchanged. Google OAuth callback completion, real CFsend delivery, visual browser inspection, and installed-device SecureStore behavior remain unverified.
+The original Development auth foundation was released at `dev.logicm8.com`, but its outbox-only email policy is superseded and must not be promoted. The `auth-email-providers` Change Spec owns the mandatory-verification correction. Production database and Production Worker remain unchanged.
