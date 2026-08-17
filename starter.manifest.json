@@ -95,7 +95,7 @@
     {
       "area": "Project context",
       "choice": "Commit-level Change Specs + Markdown-source /dp synchronization",
-      "status": "implemented"
+      "status": "development-verified"
     },
     {
       "area": "Docs",

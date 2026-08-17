@@ -7,6 +7,7 @@ import YAML from "yaml";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const policy = JSON.parse(await readFile(path.join(root, ".ai/change-policy.json"), "utf8"));
 const runGit = (args) => execFileSync("git", args, { cwd: root, encoding: "utf8" }).trim();
+const runGitRaw = (args) => execFileSync("git", args, { cwd: root, encoding: "utf8" }).trimEnd();
 const isChangeSpec = (file) => file.startsWith(`${policy.changeSpecDirectory}/`) && file.endsWith(".md") && !file.endsWith("/_template.md");
 const isGenerated = (file) => file.startsWith("apps/web/public/dp/") || file.startsWith("dist/") || file.startsWith(".all2cf/");
 const isMaterial = (file) => !isChangeSpec(file) && !isGenerated(file);
@@ -21,7 +22,7 @@ function parseFrontmatter(source, file) {
 }
 
 async function validateWorkingTree() {
-  const lines = runGit(["status", "--porcelain"]).split("\n").filter(Boolean);
+  const lines = runGitRaw(["status", "--porcelain"]).split("\n").filter(Boolean);
   const files = lines.map((line) => line.slice(3).split(" -> ").at(-1));
   if (!files.some(isMaterial)) return [];
   const specs = files.filter(isChangeSpec);

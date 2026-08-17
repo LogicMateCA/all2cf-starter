@@ -29,4 +29,5 @@ A copied Starter can derive project identity from one configuration, materialize
 
 - Cloudflare release and rollback baseline: commit `5f2074699b8cec46c791cecffc1afb026cd5ca0e`.
 - Starter bootstrap Development release: commit `fa92b30ae39be60579496b9a02e00a70ff3b329f`, deployment `9d3aa6a0-47bc-41a2-8e2c-b4f7fd5f80b6`, version `b5cd7696-c84d-4e9c-8c1c-51b0cc5d4b18`.
+- Project context Development release: commit `9e378e8887e0d73889fc5d92ace38b839942232a`, deployment `4834eb0a-d7bf-42b1-b19d-4e17e0e87523`, version `e9c1790f-4637-4c3a-8451-c58a487202b9`.
 - Expo remote EAS Project, installed-device E2E, store submission, and mobile rollback remain unverified.
