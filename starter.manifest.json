@@ -69,7 +69,7 @@
     },
     {
       "area": "Mobile",
-      "choice": "Expo 57.0.13 + React Native 0.86.2 + EAS CLI 22; UI and chart profile deferred",
+      "choice": "Expo 57.0.13 + React Native 0.86.2 + EAS CLI 22; owned thin UI seam, Tamagui optional template",
       "status": "local-verified"
     },
     {

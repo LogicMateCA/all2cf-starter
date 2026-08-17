@@ -13,7 +13,9 @@ Purpose: provide an Expo Router SDK 57 application shell and a deterministic EAS
 - Generic mobile release intent targets Development.
 - Production requires the explicit phrase `正式发布移动端` or `production`.
 - Native fingerprints decide Build versus Update; runtimeVersion remains appVersion.
-- UI kit, design profile, and native chart renderer are intentionally not selected by this module.
+- Base UI strategy: thin product-owned primitives and tokens over React Native/Expo; no full custom framework.
+- Tamagui is permitted as a complete optional template profile, not installed in the base and not mixed piecemeal with another full UI system.
+- Final visual templates and native chart renderer remain intentionally undecided until representative product screens are built and measured.
 
 Use the project-local `expo-release` skill for every mobile release or rollback.
 
