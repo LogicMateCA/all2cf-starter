@@ -9,6 +9,10 @@ import { parseEnv } from "./lib/env-profile.mjs";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const config = JSON.parse(await readFile(path.join(root, "starter.config.json"), "utf8"));
 const env = parseEnv(await readFile(path.join(root, ".dev.vars"), "utf8"));
+const providers = JSON.parse(await readFile(path.join(root, "profiles/providers.json"), "utf8"));
+const profilePath = process.env.STARTER_DEV_PROFILE_PATH || providers.defaultPath;
+let profileEnv = new Map();
+try { profileEnv = parseEnv(await readFile(profilePath, "utf8")); } catch {}
 const statePath = path.join(root, ".all2cf/state.local.json");
 const state = await readState();
 
@@ -26,7 +30,7 @@ function exists(command, args) {
 }
 
 function required(name) {
-  const value = process.env[name] || env.get(name);
+  const value = process.env[name] || env.get(name) || profileEnv.get(name);
   if (!value) throw new Error(`${name} is required`);
   return value;
 }
@@ -204,15 +208,24 @@ async function walkFiles(directory) {
 
 async function artifactHash() {
   const hash = createHash("sha256");
-  for (const file of [...await walkFiles(path.join(root, "dist/web")), path.join(root, "workers/app/index.ts")].sort()) {
+  for (const file of [
+    ...await walkFiles(path.join(root, "dist/web")),
+    path.join(root, "workers/app/index.ts"),
+    path.join(root, "workers/app/package.json"),
+    path.join(root, "package-lock.json"),
+  ].sort()) {
     hash.update(path.relative(root, file));
     hash.update(await readFile(file));
   }
   return hash.digest("hex");
 }
 
-async function verifyUrl(baseUrl) {
-  const checks = ["/", "/dp", "/api/health", "/api/health/database"];
+async function fileHash(file) {
+  return createHash("sha256").update(await readFile(file)).digest("hex");
+}
+
+async function verifyUrl(environment, baseUrl) {
+  const checks = ["/", "/dp", "/api/health", "/api/version", "/api/health/database"];
   const results = [];
   for (const pathname of checks) {
     let response;
@@ -223,14 +236,30 @@ async function verifyUrl(baseUrl) {
       await new Promise((resolve) => setTimeout(resolve, 2000));
     }
     if (!response?.ok) throw new Error(`${baseUrl}${pathname} verification failed with ${response?.status || "network error"}`);
-    results.push({ path: pathname, status: response.status, contentType: response.headers.get("content-type") });
+    const contentType = response.headers.get("content-type");
+    const result = { path: pathname, status: response.status, contentType };
+    if (pathname.startsWith("/api/")) {
+      const payload = await response.json();
+      if (pathname === "/api/version" && (payload.data?.environment !== environment || payload.data?.service !== "starter")) {
+        throw new Error(`${baseUrl}${pathname} returned the wrong release identity`);
+      }
+      if (pathname === "/api/health/database") {
+        const expected = config[environment].database;
+        if (payload.data?.database !== expected.database || payload.data?.user_name !== expected.user) {
+          throw new Error(`${baseUrl}${pathname} returned the wrong database identity`);
+        }
+      }
+      result.identity = payload.data;
+    }
+    results.push(result);
   }
   return results;
 }
 
 async function latestDeployment(worker) {
   const deployments = await cloudflare("GET", `/accounts/${config.cloudflare.accountId}/workers/scripts/${worker}/deployments`);
-  const latest = Array.isArray(deployments) ? deployments[0] : deployments?.deployments?.[0];
+  const items = Array.isArray(deployments) ? deployments : deployments?.deployments || [];
+  const latest = [...items].sort((left, right) => new Date(right.created_on).getTime() - new Date(left.created_on).getTime())[0];
   return latest ? { id: latest.id, createdOn: latest.created_on, versions: latest.versions } : null;
 }
 
@@ -242,19 +271,39 @@ async function release(environment) {
   const hash = await artifactHash();
   if (environment === "production" && state.releases.development?.artifactHash !== hash) throw new Error("Production requires the exact artifact already verified in Development");
   const target = config[environment];
-  run("npx", ["wrangler", "deploy", "--config", target.wranglerConfig], { inherit: true, env: { ...process.env, CLOUDFLARE_API_TOKEN: required("CLOUDFLARE_API_TOKEN") } });
-  const checks = await verifyUrl(`https://${target.domain}`);
   const commit = run("git", ["rev-parse", "HEAD"]).trim();
+  run("npx", ["wrangler", "deploy", "--config", target.wranglerConfig, "--message", `${environment} ${commit.slice(0, 12)}`], { inherit: true, env: { ...process.env, CLOUDFLARE_API_TOKEN: required("CLOUDFLARE_API_TOKEN") } });
+  const checks = await verifyUrl(environment, `https://${target.domain}`);
   const deployment = await latestDeployment(target.worker);
-  state.releases[environment] = { commit, artifactHash: hash, domain: target.domain, worker: target.worker, deployment, checks, verifiedAt: new Date().toISOString() };
+  const configPath = path.join(root, target.wranglerConfig);
+  const configHash = await fileHash(configPath);
+  const targetConfig = parseJsonc(await readFile(configPath, "utf8"));
+  state.releases[environment] = { commit, artifactHash: hash, configHash, compatibilityDate: targetConfig.compatibility_date, domain: target.domain, worker: target.worker, deployment, checks, verifiedAt: new Date().toISOString() };
   await saveState();
   console.log(JSON.stringify({ ok: true, environment, ...state.releases[environment] }, null, 2));
+}
+
+async function rollback(environment, versionId) {
+  if (!new Set(["development", "production"]).has(environment)) throw new Error("rollback environment must be development or production");
+  if (!versionId) throw new Error("rollback requires an exact Worker version ID");
+  const target = config[environment];
+  const before = await latestDeployment(target.worker);
+  run("npx", ["wrangler", "rollback", versionId, "--config", target.wranglerConfig, "--name", target.worker, "--message", `${environment} rollback drill`, "--yes"], { inherit: true, env: { ...process.env, CLOUDFLARE_API_TOKEN: required("CLOUDFLARE_API_TOKEN") } });
+  const checks = await verifyUrl(environment, `https://${target.domain}`);
+  const after = await latestDeployment(target.worker);
+  const activeVersion = after?.versions?.find((item) => item.percentage === 100)?.version_id;
+  if (activeVersion !== versionId) throw new Error(`Rollback read-back expected ${versionId}, received ${activeVersion || "unknown"}`);
+  state.rollbacks ||= [];
+  state.rollbacks.push({ environment, worker: target.worker, requestedVersion: versionId, before, after, checks, verifiedAt: new Date().toISOString() });
+  await saveState();
+  console.log(JSON.stringify({ ok: true, environment, requestedVersion: versionId, before, after, checks }, null, 2));
 }
 
 const [command = "help", argument] = process.argv.slice(2);
 if (command === "provision") await provision();
 else if (command === "release") await release(argument || "development");
+else if (command === "rollback") await rollback(argument || "development", process.argv[4]);
 else {
-  console.log("starterctl commands: provision | release [development|production]");
+  console.log("starterctl commands: provision | release [development|production] | rollback [development|production] <version-id>");
   process.exitCode = 1;
 }

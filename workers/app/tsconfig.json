@@ -4,6 +4,5 @@
     "types": ["@cloudflare/workers-types"],
     "noEmit": true
   },
-  "include": ["index.ts", "worker-configuration.d.ts"]
+  "include": ["index.ts", "worker-configuration.development.d.ts"]
 }
-

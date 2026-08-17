@@ -14,16 +14,24 @@ try {
   process.exitCode = 1;
   process.exit();
 }
-const groups = {
+let project = new Map();
+try { project = parseEnv(await readFile(path.join(root, ".dev.vars"), "utf8")); } catch {}
+const value = (key) => profile.get(key) || project.get(key);
+const requiredGroups = {
   cloudflare: ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"],
+  postgresql: ["DATABASE_URL", "STARTER_PRODUCTION_DATABASE_URL"],
+};
+const optionalGroups = {
+  expo: ["EXPO_TOKEN", "EXPO_OWNER"],
   googleOAuth: ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"],
   googleAi: ["GOOGLE_AI_API_KEY"],
   github: ["GITHUB_TOKEN", "GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET"],
   stripeTest: ["STRIPE_SECRET_KEY", "STRIPE_PUBLISHABLE_KEY"],
   stripeWebhook: ["STRIPE_WEBHOOK_SECRET"],
   cfsendSandbox: ["CFSEND_API_URL", "CFSEND_API_KEY", "CFSEND_FROM"],
-  postgresql: ["STARTER_POSTGRES_ADMIN_URL"],
 };
-const status = Object.fromEntries(Object.entries(groups).map(([name, keys]) => [name, keys.every((key) => Boolean(profile.get(key))) ? "ready" : "missing"]));
-console.log(JSON.stringify({ profilePath, status }, null, 2));
-if (Object.values(status).some((value) => value === "missing")) process.exitCode = 1;
+const inspect = (groups) => Object.fromEntries(Object.entries(groups).map(([name, keys]) => [name, keys.every((key) => Boolean(value(key))) ? "ready" : "not-configured"]));
+const required = inspect(requiredGroups);
+const optional = inspect(optionalGroups);
+console.log(JSON.stringify({ profilePath, required, optional }, null, 2));
+if (Object.values(required).some((status) => status !== "ready")) process.exitCode = 1;
