@@ -35,4 +35,4 @@ Every material change records intent, affected contracts, migration or rollback 
 - `skills/project-context/SKILL.md` owns Change Specs, module/document status, AI onboarding context, stale detection, and `/dp` synchronization.
 - Visual systems, Web/Expo component sets, and chart choices remain reusable templates selected per product; they are not release skills.
 
-The remaining planned operational skill is `cloudflare-infrastructure`. Create it only after its topology-change workflow has been exercised end to end. Database migration and provider-specific skills wait for the real Better Auth, Stripe, and CFsend implementations.
+The remaining planned operational skill is `cloudflare-infrastructure`. Create it only after its topology-change workflow has been exercised end to end. The Better Auth database and release workflow is now implemented in project scripts; per the Starter policy, extract it into a Skill only after Development deployment and repeatable live evidence are stable. Stripe and broader CFsend operations still wait for their complete product flows.

@@ -19,3 +19,4 @@ playwright-report/
 .all2cf/state.local.json
 .ai/runtime/
 apps/web/public/dp/project.snapshot.json
+db/generated/

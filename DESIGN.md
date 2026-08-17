@@ -23,6 +23,8 @@ source: "starter"
 - Separate Sign out visually from ordinary destinations and keep it one deliberate action; destructive account deletion belongs inside Settings and requires its own confirmation flow.
 - Web uses an anchored account popover with keyboard navigation, focus return, outside-click handling, and Escape dismissal. Expo uses an equivalent native sheet or settings screen while preserving the same information architecture.
 - Account-level theme and language should follow the user across Web and Expo when signed in. Before authentication, use device/system defaults and retain only a local preference.
+- The implemented Desktop flow follows A2C's proven state progression, not its legacy visual styling: identify email, choose password/registration/linked-provider setup, use generic email-result states, handle reset tokens, and return only to a validated same-origin path.
+- The Desktop account trigger and menu use owned shadcn/ui components. Authentication SDK, protected routes, and menu primitives are route/lazy chunks so public pages do not pay their full JavaScript cost.
 
 ## Workflow routing
 

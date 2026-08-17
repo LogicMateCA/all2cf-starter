@@ -34,8 +34,8 @@
     },
     {
       "area": "Database",
-      "choice": "PostgreSQL 18.4 + node-postgres 8.23.0 connection; SQL-first migrations planned",
-      "status": "connection-verified"
+      "choice": "PostgreSQL 18.4 + node-postgres 8.23.0 + checksum-locked SQL-first migrations",
+      "status": "development-verified"
     },
     {
       "area": "Connection",
@@ -45,7 +45,7 @@
     {
       "area": "Authentication",
       "choice": "Better Auth stable line (current target 1.6.29)",
-      "status": "planned"
+      "status": "local-verified"
     },
     {
       "area": "Billing",
@@ -54,8 +54,8 @@
     },
     {
       "area": "Email",
-      "choice": "CFsend",
-      "status": "planned"
+      "choice": "CFsend Runtime with database outbox and idempotent delivery",
+      "status": "implementation-verified"
     },
     {
       "area": "Web UI",

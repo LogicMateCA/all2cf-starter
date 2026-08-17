@@ -17,6 +17,22 @@ import {
   Sun,
   X,
 } from "lucide-react";
+import { usePreferences } from "./lib/preferences";
+
+const AccountControl = lazy(async () => {
+  const module = await import("./components/account-control");
+  return { default: module.AccountControl };
+});
+
+const AuthPage = lazy(async () => {
+  const module = await import("./components/auth-page");
+  return { default: module.AuthPage };
+});
+
+const ProtectedApp = lazy(async () => {
+  const module = await import("./components/protected-app");
+  return { default: module.ProtectedApp };
+});
 
 const TechnologyStatusChart = lazy(async () => {
   const module = await import("./components/technology-status-chart");
@@ -112,10 +128,14 @@ function Brand({ name }: { name: string }) {
   return <a className="brand" href="/"><span><CircleDot size={17} /></span><strong>{name}</strong></a>;
 }
 
+function AccountSlot({ compact = false }: { compact?: boolean }) {
+  return <Suspense fallback={<span className="account-skeleton" aria-label="Loading account" />}><AccountControl compact={compact} /></Suspense>;
+}
+
 function Home() {
   const { data } = useSnapshot();
   return <div className="home-grid"><div className="home-wrap">
-    <header className="home-header"><Brand name={data.project.title} /><a href="/dp">Development plan</a></header>
+    <header className="home-header"><Brand name={data.project.title} /><div className="home-actions"><a href="/dp">Development plan</a><AccountSlot compact /></div></header>
     <main className="home-main"><div>
       <p className="home-kicker"><CircleDot size={16} /> AI-readable Cloudflare starter</p>
       <h1>Understand the system.<br /><span>Then change it.</span></h1>
@@ -129,8 +149,7 @@ function Home() {
 function DevelopmentPlan() {
   const { data, source } = useSnapshot();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [dark, setDark] = useState(() => window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false);
-  useEffect(() => { document.documentElement.dataset.theme = dark ? "dark" : "light"; }, [dark]);
+  const { theme, setTheme } = usePreferences();
   const bindings = Object.entries(data.cloudflare.bindingsContract?.bindings || {});
   const controller = data.orchestration.controller || {};
   const commit = data.source.commit ? data.source.commit.slice(0, 12) : "not initialized";
@@ -153,7 +172,7 @@ function DevelopmentPlan() {
       <header className="plan-toolbar">
         <button className="menu-button" aria-label="Open navigation" onClick={() => setMenuOpen(true)}><Menu size={19} /></button>
         <span>Development Plan</span>
-        <button className="theme-button" aria-label="Toggle color theme" onClick={() => setDark((value) => !value)}>{dark ? <Sun size={17} /> : <Moon size={17} />}</button>
+        <div className="toolbar-actions"><button className="theme-button" aria-label="Toggle color theme" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>{theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}</button><AccountSlot compact /></div>
       </header>
       <div className="plan-content">
         <section id="overview" className="plan-lead">
@@ -197,5 +216,9 @@ function DevelopmentPlan() {
 }
 
 export function App() {
-  return window.location.pathname === "/dp" ? <DevelopmentPlan /> : <Home />;
+  const path = window.location.pathname;
+  if (path === "/login") return <Suspense fallback={<main className="protected-loading"><span /><span /><span /></main>}><AuthPage /></Suspense>;
+  if (path === "/app" || path === "/app/settings") return <Suspense fallback={<main className="protected-loading"><span /><span /><span /></main>}><ProtectedApp /></Suspense>;
+  if (path === "/dp") return <DevelopmentPlan />;
+  return <Home />;
 }

@@ -24,6 +24,9 @@ Project initialization replaces generic names and records the smallest accurate 
 - Worker Studio integrations are capability-detected at runtime.
 - Durable state, queues, storage, and external services must document ownership and failure behavior.
 - Desktop Web uses shadcn/ui/Tailwind. Mobile Web/iOS/Android use a lean Tamagui 2 runtime configuration with package-level imports.
+- Better Auth 1.6.29 owns identity endpoints on the Worker. It uses its built-in PostgreSQL/Kysely adapter through request-scoped Hyperdrive pools, host-only Web cookies, official Expo deep-link/SecureStore plugins, database rate limits, and SQL-first migrations.
+- Development auth email is recorded in `app_auth_email_outbox`. Production uses the same outbox as an audit/retry boundary and sends through the configured customer-owned CFsend Runtime with an idempotency key.
+- Theme and locale are user-profile fields exposed through an authenticated preferences contract; product authorization remains separate from these presentation preferences.
 
 ## Change Spec
 

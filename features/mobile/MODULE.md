@@ -16,8 +16,10 @@ Purpose: provide a touch-first Expo Router SDK 57 application shell for Mobile W
 - Tamagui 2.7.7 is the selected Mobile UI foundation, using `@tamagui/core` and package-level component imports with a minimal owned theme/token configuration.
 - Expo Web uses Metro and `single` output. Desktop Web remains a separate shadcn/ui application and shares no Mobile UI code.
 - Tamagui Compiler remains blocked on the current TypeScript 6/7 toolchain; runtime-only Web/iOS/Android exports are verified and compiler performance is unclaimed.
+- Better Auth uses the official Expo client/server plugins, SecureStore-backed native cookies, deep-link schemes per Development/Preview/Production, and the same A2C-derived email/password/Google/reset state contract as Desktop Web.
+- Metro resolves the Expo plugin's `better-auth/cookies` import to Better Auth's own focused `cookie-utils.mjs`. This avoids bundling server schema and all Zod locales; every aligned Better Auth upgrade must revalidate the resolver path and all three exports.
 - Final visual templates and native chart renderer remain intentionally undecided until representative product screens are built and measured.
 
 Use the project-local `expo-release` skill for every mobile release or rollback.
 
-Validation boundary: Expo Doctor, TypeScript, Mobile Web HTTP/export, iOS export, Android export, API reachability, and native fingerprint planning are verified. Browser Lighthouse/console inspection, EAS Project binding, remote builds/updates, installed-device E2E, Apple submission, Google submission, and mobile rollback remain unverified until their tools or account evidence exist.
+Validation boundary: Expo Doctor, dependency alignment, TypeScript, Mobile Web export, iOS export, Android export, bundle budgets, API reachability, and native fingerprint planning are verified. Browser Lighthouse/console inspection, EAS Project binding, remote builds/updates, installed-device auth/SecureStore E2E, Apple submission, Google submission, and mobile rollback remain unverified until their tools or account evidence exist.

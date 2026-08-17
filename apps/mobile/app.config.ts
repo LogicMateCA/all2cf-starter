@@ -48,7 +48,7 @@ const config: ExpoConfig = {
     bundler: "metro",
     output: "single"
   },
-  plugins: ["expo-router", "expo-dev-client", "expo-secure-store", "expo-updates"],
+  plugins: ["expo-router", "expo-dev-client", "expo-secure-store", "expo-updates", "expo-web-browser"],
   extra: {
     appVariant: variant,
     apiUrls: {

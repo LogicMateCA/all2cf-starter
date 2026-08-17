@@ -36,6 +36,26 @@ function required(name) {
   return value;
 }
 
+function syncWorkerSecrets(environment, wranglerConfig) {
+  const secrets = {
+    BETTER_AUTH_SECRET: required(environment === "production" ? "STARTER_PRODUCTION_BETTER_AUTH_SECRET" : "BETTER_AUTH_SECRET"),
+    GOOGLE_CLIENT_ID: required("GOOGLE_CLIENT_ID"),
+    GOOGLE_CLIENT_SECRET: required("GOOGLE_CLIENT_SECRET"),
+    ...(environment === "production" ? {
+      CFSEND_API_URL: required("CFSEND_API_URL"),
+      CFSEND_API_KEY: required("CFSEND_API_KEY"),
+      CFSEND_FROM: required("CFSEND_FROM"),
+    } : {}),
+  };
+  const result = spawnSync("npx", ["wrangler", "secret", "bulk", "--config", wranglerConfig], {
+    cwd: root,
+    input: JSON.stringify(secrets),
+    encoding: "utf8",
+    env: { ...process.env, CLOUDFLARE_API_TOKEN: required("CLOUDFLARE_API_TOKEN") },
+  });
+  if (result.status !== 0) throw new Error(`Worker secret sync failed: ${result.stderr || result.stdout}`);
+}
+
 async function readState() {
   try { return JSON.parse(await readFile(statePath, "utf8")); }
   catch { return { schemaVersion: "starter-provision-state/v1", resources: {}, releases: {} }; }
@@ -197,7 +217,17 @@ async function writeWrangler(environment, hyperdriveId) {
   if (errors.length) throw new Error(`${target.wranglerConfig} contains invalid JSONC`);
   value.name = target.worker;
   value.workers_dev = true;
-  value.vars = { ...(value.vars || {}), APP_ENV: environment, SERVICE_NAME: config.project.slug };
+  value.vars = {
+    ...(value.vars || {}),
+    APP_ENV: environment,
+    SERVICE_NAME: config.project.slug,
+    APP_NAME: config.project.name,
+    AUTH_CANONICAL_ORIGIN: `https://${target.domain}`,
+    AUTH_REQUIRE_EMAIL_VERIFICATION: environment === "production" ? "true" : "false",
+    AUTH_EMAIL_MODE: environment === "production" ? "cfsend" : "database-outbox",
+    MOBILE_DEEP_LINK_SCHEMES: [`${config.project.slug}-dev://`, `${config.project.slug}-preview://`, `${config.project.slug}://`].join(","),
+  };
+  value.secrets = { required: ["BETTER_AUTH_SECRET", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", ...(environment === "production" ? ["CFSEND_API_URL", "CFSEND_API_KEY", "CFSEND_FROM"] : [])] };
   value.hyperdrive = [{ binding: "HYPERDRIVE", id: hyperdriveId }];
   value.routes = [{ pattern: target.domain, custom_domain: true }];
   await writeFile(configPath, `${JSON.stringify(value, null, 2)}\n`);
@@ -235,8 +265,8 @@ async function artifactHash() {
   const hash = createHash("sha256");
   for (const file of [
     ...await walkFiles(path.join(root, "dist/web")),
-    path.join(root, "workers/app/index.ts"),
-    path.join(root, "workers/app/package.json"),
+    ...await walkFiles(path.join(root, "workers/app")),
+    ...await walkFiles(path.join(root, "db/migrations")),
     path.join(root, "package-lock.json"),
   ].sort()) {
     hash.update(path.relative(root, file));
@@ -250,21 +280,23 @@ async function fileHash(file) {
 }
 
 async function verifyUrl(environment, baseUrl) {
-  const checks = ["/", "/dp", "/api/health", "/api/version", "/api/health/database"];
+  const checks = ["/", "/dp", "/login", "/api/health", "/api/version", "/api/health/database", "/api/auth-methods", "/api/session", "/api/preferences"];
   const results = [];
   for (const pathname of checks) {
+    const expectedStatus = new Set(["/api/session", "/api/preferences"]).has(pathname) ? 401 : 200;
     let response;
     for (let attempt = 0; attempt < 30; attempt += 1) {
       try { response = await fetch(`${baseUrl}${pathname}`, { headers: { Accept: pathname.startsWith("/api/") ? "application/json" : "text/html" } }); }
       catch {}
-      if (response?.ok) break;
+      if (response?.status === expectedStatus) break;
       await new Promise((resolve) => setTimeout(resolve, 2000));
     }
-    if (!response?.ok) throw new Error(`${baseUrl}${pathname} verification failed with ${response?.status || "network error"}`);
+    if (response?.status !== expectedStatus) throw new Error(`${baseUrl}${pathname} verification failed with ${response?.status || "network error"}; expected ${expectedStatus}`);
     const contentType = response.headers.get("content-type");
     const result = { path: pathname, status: response.status, contentType };
     if (pathname.startsWith("/api/")) {
       const payload = await response.json();
+      if (new Set(["/api/session", "/api/preferences"]).has(pathname) && payload.error?.code !== "UNAUTHORIZED") throw new Error(`${baseUrl}${pathname} did not enforce authentication`);
       if (pathname === "/api/version" && (payload.data?.environment !== environment || payload.data?.service !== config.project.slug)) {
         throw new Error(`${baseUrl}${pathname} returned the wrong release identity`);
       }
@@ -292,11 +324,14 @@ async function release(environment) {
   if (!new Set(["development", "production"]).has(environment)) throw new Error("release environment must be development or production");
   const dirty = run("git", ["status", "--porcelain"]).trim();
   if (dirty) throw new Error("Release requires a clean Git worktree");
+  run("npm", ["run", environment === "production" ? "db:migrate:production" : "db:migrate:dev"], { inherit: true });
   run("npm", ["run", "verify"], { inherit: true });
+  if (environment === "development") run("npm", ["run", "auth:smoke:dev"], { inherit: true });
   const hash = await artifactHash();
   if (environment === "production" && state.releases.development?.artifactHash !== hash) throw new Error("Production requires the exact artifact already verified in Development");
   const target = config[environment];
   const commit = run("git", ["rev-parse", "HEAD"]).trim();
+  syncWorkerSecrets(environment, target.wranglerConfig);
   run("npx", ["wrangler", "deploy", "--config", target.wranglerConfig, "--message", `${environment} ${commit.slice(0, 12)}`], { inherit: true, env: { ...process.env, CLOUDFLARE_API_TOKEN: required("CLOUDFLARE_API_TOKEN") } });
   const checks = await verifyUrl(environment, `https://${target.domain}`);
   const deployment = await latestDeployment(target.worker);

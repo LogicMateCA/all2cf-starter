@@ -11,6 +11,9 @@ source: "starter"
 - Generic “发布” or “deploy” means development only.
 - “正式发布” or “production” is the explicit Production authorization. Do not request a second confirmation.
 - Child workers cannot deploy or commit. Sol remains the high-level controller for release actions.
+- Development release applies checksum-locked Development SQL migrations, runs the workerd auth smoke suite, synchronizes Development Worker secrets, deploys, and verifies public plus unauthorized protected routes.
+- Production release applies the same reviewed migration set to the Production database and uses a separate Production Better Auth secret. It remains gated by exact Development artifact parity and explicit Production wording.
+- Worker secret sync includes Better Auth, Google OAuth, and CFsend Runtime credentials; values remain local/remote secrets and are never written into Wrangler source.
 
 ## Checklist
 

@@ -1,0 +1,27 @@
+import { spawnSync } from "node:child_process";
+import { mkdir, readFile } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { parseEnv } from "./lib/env-profile.mjs";
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const betterAuthVersion = "1.6.29";
+const output = path.join(root, `db/generated/better-auth-${betterAuthVersion}.sql`);
+const values = parseEnv(await readFile(path.join(root, ".dev.vars"), "utf8"));
+if (!values.get("DATABASE_URL") || !values.get("BETTER_AUTH_SECRET")) throw new Error("DATABASE_URL and BETTER_AUTH_SECRET are required");
+const config = JSON.parse(await readFile(path.join(root, "starter.config.json"), "utf8"));
+const databaseUrl = new URL(values.get("DATABASE_URL"));
+databaseUrl.hostname = config.development.database.host;
+databaseUrl.port = String(config.development.database.port);
+databaseUrl.pathname = `/${config.development.database.database}`;
+databaseUrl.searchParams.set("sslmode", "require");
+databaseUrl.searchParams.set("uselibpqcompat", "true");
+await mkdir(path.dirname(output), { recursive: true });
+
+const result = spawnSync("npx", ["--yes", `auth@${betterAuthVersion}`, "generate", "--config", "workers/app/auth.cli.ts", "--output", path.relative(root, output), "--yes"], {
+  cwd: root,
+  encoding: "utf8",
+  env: { ...process.env, DATABASE_URL: databaseUrl.toString(), BETTER_AUTH_SECRET: values.get("BETTER_AUTH_SECRET") },
+});
+if (result.status !== 0) throw new Error(`Better Auth schema generation failed\n${[result.stderr, result.stdout].filter(Boolean).join("\n")}`);
+console.log(result.stdout || JSON.stringify({ ok: true, output: path.relative(root, output) }));

@@ -11,7 +11,15 @@
   },
   "vars": {
     "APP_ENV": "production",
-    "SERVICE_NAME": "starter"
+    "SERVICE_NAME": "starter",
+    "APP_NAME": "Cloudflare AI Starter",
+    "AUTH_CANONICAL_ORIGIN": "https://starter.logicm8.com",
+    "AUTH_REQUIRE_EMAIL_VERIFICATION": "true",
+    "AUTH_EMAIL_MODE": "cfsend",
+    "MOBILE_DEEP_LINK_SCHEMES": "starter-dev://,starter-preview://,starter://"
+  },
+  "secrets": {
+    "required": ["BETTER_AUTH_SECRET", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "CFSEND_API_URL", "CFSEND_API_KEY", "CFSEND_FROM"]
   },
   "assets": {
     "directory": "../dist/web",

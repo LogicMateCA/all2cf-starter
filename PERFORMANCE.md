@@ -14,6 +14,7 @@ source: "starter"
 - Initial JavaScript: `< 180KB` gzip until a project-specific budget replaces it.
 - Desktop Chart code must be lazy-loaded outside the main route bundle.
 - Mobile Web foundation JavaScript: `< 400KB` gzip before product templates and features; every project must replace this provisional ceiling with measured route budgets.
+- Current auth-enabled evidence: Desktop public main route is about `63KB` gzip, Desktop auth/account code is lazy-loaded, Mobile Web is about `386KB` gzip, iOS Hermes bytecode is about `2.96MB`, and Android Hermes bytecode is about `3.27MB`.
 - Interactive reads: normally no more than two PostgreSQL round trips; writes normally no more than four.
 
 ## Rules
@@ -23,6 +24,7 @@ source: "starter"
 - Avoid speculative caching; document freshness, invalidation, and failure behavior.
 - Validate source, preview, and production-equivalent paths where relevant.
 - Treat compiler claims as unverified until the current supported TypeScript/Expo toolchain produces measurable optimized artifacts.
+- Keep the focused Better Auth Metro resolver regression-tested. Removing it currently adds server-only schema and Zod locale code to all Mobile bundles and exceeds the release budgets.
 
 ## Change Spec
 
