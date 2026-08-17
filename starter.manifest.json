@@ -1,7 +1,7 @@
 {
   "$schema": "./schemas/starter-manifest.schema.json",
   "starterVersion": "0.1.0",
-  "state": "template",
+  "state": "initialized",
   "runtime": {
     "application": "cloudflare-workerd",
     "tooling": "node-24",
@@ -37,8 +37,8 @@
     { "area": "Cloudflare context", "choice": "Official MCP + Worker Studio MCP", "status": "defined" }
   ],
   "environments": [
-    { "id": "development", "worker": "starter-dev", "domain": "dev.example.com", "releaseIntent": "发布" },
-    { "id": "production", "worker": "starter", "domain": "app.example.com", "releaseIntent": "正式发布" }
+    { "id": "development", "worker": "starter-dev", "domain": "dev.logicm8.com", "releaseIntent": "发布" },
+    { "id": "production", "worker": "starter", "domain": "starter.logicm8.com", "releaseIntent": "正式发布" }
   ],
   "ai": {
     "entrypoint": "AGENTS.md",
@@ -47,4 +47,3 @@
     "doctorCommand": "npm run ai:doctor"
   }
 }
-

@@ -7,6 +7,9 @@ services:
     volumes:
       - .:/workspace
       - starter-node-modules:/workspace/node_modules
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /root/.ssh/id_1panel_root_192_168_0_91:/run/starter-secrets/production-ssh-key:ro
+      - /root/.ssh/known_hosts:/run/starter-secrets/known_hosts:ro
     ports:
       - "15173:5173"
       - "18787:8787"

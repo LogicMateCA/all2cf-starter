@@ -15,7 +15,7 @@
   "bindings": {
     "HYPERDRIVE": {
       "kind": "hyperdrive",
-      "status": "future",
+      "status": "active",
       "requiredPerEnvironment": true
     },
     "STARTER_R2": {

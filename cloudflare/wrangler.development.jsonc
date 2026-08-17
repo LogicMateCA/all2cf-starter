@@ -3,7 +3,9 @@
   "name": "starter-dev",
   "main": "../workers/app/index.ts",
   "compatibility_date": "2026-08-16",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "observability": {
     "enabled": true
   },
@@ -12,7 +14,22 @@
   },
   "assets": {
     "directory": "../dist/web",
-    "run_worker_first": ["/api/*"],
+    "run_worker_first": [
+      "/api/*"
+    ],
     "not_found_handling": "single-page-application"
-  }
+  },
+  "workers_dev": true,
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "d665e59cdc9741c1898ba7c472c22abf"
+    }
+  ],
+  "routes": [
+    {
+      "pattern": "dev.logicm8.com",
+      "custom_domain": true
+    }
+  ]
 }

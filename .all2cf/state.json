@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "starter-provision-state/v1",
+  "resources": {
+    "developmentDatabase": {
+      "database": "starterdev",
+      "user": "starterdev",
+      "host": "192.168.0.125",
+      "port": 55435,
+      "container": "starter-postgres-dev",
+      "tls": true
+    },
+    "productionDatabase": {
+      "database": "starter",
+      "user": "starter",
+      "host": "192.168.0.91",
+      "port": 5433,
+      "container": "1Panel-postgresql-etUL"
+    },
+    "developmentVpcService": {
+      "id": "01a00dcd-bbc3-76e1-8d88-9fb2dc5e557e",
+      "name": "starter-postgres-dev",
+      "tunnelId": "56ac4c90-0bd4-440a-9690-23a92174a1e6"
+    },
+    "developmentHyperdrive": {
+      "id": "d665e59cdc9741c1898ba7c472c22abf",
+      "name": "starter-dev-db",
+      "database": "starterdev",
+      "serviceId": "01a00dcd-bbc3-76e1-8d88-9fb2dc5e557e"
+    },
+    "productionHyperdrive": {
+      "id": "d06b8bceb83b4ad38dfbb6648a9c927f",
+      "name": "starter-prod-db",
+      "database": "starter",
+      "serviceId": "019fe238-1588-7511-a946-404c24e9b103"
+    }
+  },
+  "releases": {},
+  "updatedAt": "2026-08-17T03:47:04.989Z"
+}

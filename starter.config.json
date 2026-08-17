@@ -1,0 +1,46 @@
+{
+  "$schema": "./schemas/starter-config.schema.json",
+  "project": {
+    "name": "Cloudflare AI Starter",
+    "slug": "starter"
+  },
+  "cloudflare": {
+    "accountId": "7cb5d7a44fde3f702b4757dbf6d4218d",
+    "zoneId": "f3df57513059be317d04a5009ab9e855",
+    "zoneName": "logicm8.com"
+  },
+  "development": {
+    "worker": "starter-dev",
+    "domain": "dev.logicm8.com",
+    "wranglerConfig": "cloudflare/wrangler.development.jsonc",
+    "database": {
+      "database": "starterdev",
+      "user": "starterdev",
+      "container": "starter-postgres-dev",
+      "image": "postgres:18.4-bookworm",
+      "host": "192.168.0.125",
+      "port": 55435,
+      "tunnelId": "56ac4c90-0bd4-440a-9690-23a92174a1e6",
+      "vpcServiceName": "starter-postgres-dev",
+      "hyperdriveName": "starter-dev-db"
+    }
+  },
+  "production": {
+    "worker": "starter",
+    "domain": "starter.logicm8.com",
+    "wranglerConfig": "cloudflare/wrangler.production.jsonc",
+    "database": {
+      "database": "starter",
+      "user": "starter",
+      "host": "192.168.0.91",
+      "port": 5433,
+      "sshHost": "root@192.168.0.91",
+      "sshKey": "/run/starter-secrets/production-ssh-key",
+      "sshKnownHosts": "/run/starter-secrets/known_hosts",
+      "container": "1Panel-postgresql-etUL",
+      "adminUser": "nc426",
+      "vpcServiceId": "019fe238-1588-7511-a946-404c24e9b103",
+      "hyperdriveName": "starter-prod-db"
+    }
+  }
+}

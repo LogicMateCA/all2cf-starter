@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { Client } from "pg";
 
 type AppVariables = {
   requestId: string;
@@ -29,6 +30,22 @@ app.get("/api/version", (c) =>
     requestId: c.var.requestId,
   }),
 );
+
+app.get("/api/health/database", async (c) => {
+  const client = new Client({ connectionString: c.env.HYPERDRIVE.connectionString });
+  try {
+    await client.connect();
+    const result = await client.query<{ database: string; user_name: string; version: string }>(
+      `select current_database() as database, current_user as user_name, current_setting('server_version') as version`,
+    );
+    return c.json({ data: { status: "ok", ...result.rows[0] }, requestId: c.var.requestId });
+  } catch (error) {
+    console.error(JSON.stringify({ event: "database_health_failed", requestId: c.var.requestId, error: error instanceof Error ? error.message : String(error) }));
+    return c.json({ error: { code: "DATABASE_UNAVAILABLE", message: "Database health check failed." }, requestId: c.var.requestId }, 503);
+  } finally {
+    await client.end().catch(() => undefined);
+  }
+});
 
 app.notFound((c) =>
   c.json(

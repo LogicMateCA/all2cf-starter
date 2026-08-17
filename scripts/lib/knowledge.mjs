@@ -76,6 +76,11 @@ async function readJson(root, relativePath) {
   return JSON.parse(await readFile(path.join(root, relativePath), "utf8"));
 }
 
+async function readOptionalJson(root, relativePath, fallback = null) {
+  try { return await readJson(root, relativePath); }
+  catch { return fallback; }
+}
+
 async function readJsonc(root, relativePath) {
   const errors = [];
   const value = parseJsonc(await readFile(path.join(root, relativePath), "utf8"), errors, { allowTrailingComma: true });
@@ -104,13 +109,14 @@ function environmentFromConfig(id, config, manifestEnvironment) {
 }
 
 export async function collectKnowledge(root) {
-  const [manifest, aiManifest, orchestrationSource, bindings, developmentConfig, productionConfig] = await Promise.all([
+  const [manifest, aiManifest, orchestrationSource, bindings, developmentConfig, productionConfig, provisionState] = await Promise.all([
     readJson(root, "starter.manifest.json"),
     readJson(root, ".ai/manifest.json"),
     readFile(path.join(root, ".ai/orchestration.yaml"), "utf8"),
     readJson(root, "cloudflare/bindings.contract.json"),
     readJsonc(root, "cloudflare/wrangler.development.jsonc"),
     readJsonc(root, "cloudflare/wrangler.production.jsonc"),
+    readOptionalJson(root, ".all2cf/state.json"),
   ]);
   const documents = await Promise.all(rootDocuments.map((file) => readMarkdown(root, file)));
   const project = documents.find((document) => document.path === "PROJECT.md");
@@ -118,10 +124,11 @@ export async function collectKnowledge(root) {
   const commit = gitValue(root, ["rev-parse", "HEAD"]);
   const branch = gitValue(root, ["branch", "--show-current"]);
   const dirty = Boolean(gitValue(root, ["status", "--porcelain"], ""));
+  const commitTime = commit ? gitValue(root, ["show", "-s", "--format=%cI", commit]) : null;
 
   return {
     schemaVersion: "starter-development-plan/v1",
-    generatedAt: new Date().toISOString(),
+    generatedAt: commitTime || new Date().toISOString(),
     source: {
       commit,
       branch,
@@ -147,6 +154,7 @@ export async function collectKnowledge(root) {
       bindingsContract: bindings,
       mcpPolicy: aiManifest.cloudflare,
       workerStudio: "capability-detected",
+      provisioning: provisionState,
     },
     orchestration: YAML.parse(orchestrationSource),
     release: aiManifest.release,
@@ -163,4 +171,3 @@ export async function collectKnowledge(root) {
 export function stableSnapshot(value) {
   return `${JSON.stringify(value, null, 2)}\n`;
 }
-
