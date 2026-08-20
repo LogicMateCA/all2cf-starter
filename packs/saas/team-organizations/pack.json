@@ -37,12 +37,14 @@
     {
       "path": "/app/team",
       "module": "../components/features/organization-page",
-      "export": "OrganizationPage"
+      "export": "OrganizationPage",
+      "workerFirst": false
     },
     {
       "path": "/app/invitation",
       "module": "../components/features/organization-page",
-      "export": "OrganizationInvitationPage"
+      "export": "OrganizationInvitationPage",
+      "workerFirst": false
     }
   ],
   "authPlugins": {

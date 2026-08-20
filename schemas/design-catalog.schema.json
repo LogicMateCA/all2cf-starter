@@ -70,13 +70,27 @@
             }
           },
           "rules": { "type": "object", "required": ["do", "dont"] },
-          "adapters": { "type": "object" },
+          "adapters": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["marketing", "desktop-web", "admin", "docs", "mobile"],
+            "properties": {
+              "marketing": { "$ref": "#/$defs/adapterState" },
+              "desktop-web": { "$ref": "#/$defs/adapterState" },
+              "admin": { "$ref": "#/$defs/adapterState" },
+              "docs": { "$ref": "#/$defs/adapterState" },
+              "mobile": { "$ref": "#/$defs/adapterState" }
+            }
+          },
           "quality": { "type": "object" }
         }
       }
     }
   },
   "$defs": {
+    "adapterState": {
+      "enum": ["defined", "implemented", "local-verified", "development-verified", "production-released"]
+    },
     "colorMode": {
       "type": "object",
       "additionalProperties": false,

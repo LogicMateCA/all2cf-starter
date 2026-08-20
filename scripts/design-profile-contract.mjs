@@ -9,6 +9,7 @@ const catalog = JSON.parse(await readFile(path.join(root, "design/catalog.json")
 const { declared } = await loadDependencyContract(root);
 const failures = [];
 const requiredTargets = ["marketing", "desktop-web", "admin", "docs", "mobile"];
+const implementedAdapterStates = new Set(["implemented", "local-verified", "development-verified", "production-released"]);
 
 function luminance(hex) {
   const channels = hex.slice(1).match(/../gu)?.map((value) => Number.parseInt(value, 16) / 255);
@@ -25,7 +26,7 @@ function contrast(left, right) {
 const profiles = [];
 const signatures = new Map();
 for (const profile of catalog.profiles || []) {
-  for (const target of requiredTargets) if (profile.adapters?.[target] !== "implemented") failures.push(`${profile.id} adapter ${target} must be implemented`);
+  for (const target of requiredTargets) if (!implementedAdapterStates.has(profile.adapters?.[target])) failures.push(`${profile.id} adapter ${target} must be implemented or verified`);
   if (profile.quality?.contrast !== "WCAG AA") failures.push(`${profile.id} must declare WCAG AA contrast`);
   if (profile.quality?.reducedMotion !== true) failures.push(`${profile.id} must support reduced motion`);
   for (const [dial, value] of Object.entries(profile.dials || {})) if (!Number.isInteger(value) || value < 1 || value > 10) failures.push(`${profile.id} dial ${dial} must be an integer from 1 to 10`);
@@ -58,7 +59,7 @@ for (const profile of catalog.profiles || []) {
   const signature = JSON.stringify({ direction: profile.direction, dials: profile.dials, colors: profile.semanticColors, radius: profile.tokens?.radius, fonts: [profile.tokens?.fontDisplay, profile.tokens?.fontMobileDisplay] });
   if (signatures.has(signature)) failures.push(`${profile.id} duplicates the visual contract of ${signatures.get(signature)}`);
   signatures.set(signature, profile.id);
-  profiles.push({ id: profile.id, version: profile.version, adapters: requiredTargets, webBytes: Buffer.byteLength(web), mobileBytes: Buffer.byteLength(mobile), contrast: contrastResults });
+  profiles.push({ id: profile.id, version: profile.version, adapters: Object.fromEntries(requiredTargets.map((target) => [target, profile.adapters[target]])), webBytes: Buffer.byteLength(web), mobileBytes: Buffer.byteLength(mobile), contrast: contrastResults });
 }
 
 const forbiddenRuntimeDependencies = [...declared.keys()].filter((name) => /(^|[/@-])(stylekit|powerai)([/@-]|$)/iu.test(name));

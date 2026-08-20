@@ -3,7 +3,7 @@ import type { Plugin, ViteDevServer } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { fileURLToPath, URL } from 'node:url'
-import { readFile, rename, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { execFileSync } from 'node:child_process'
 import path from 'node:path'
 import type { IncomingMessage, ServerResponse } from 'node:http'
@@ -124,9 +124,31 @@ function localSetupApi(): Plugin {
   }
 }
 
+function optionalMapLibreWorker(): Plugin {
+  return {
+    name: 'starter-maplibre-worker',
+    async writeBundle(options) {
+      if (!options.dir) return
+      for (const filename of ['maplibre-gl-worker.mjs', 'maplibre-gl-shared.mjs']) {
+        const source = path.join(repositoryRoot, 'node_modules/maplibre-gl/dist', filename)
+        let moduleSource: string
+        try {
+          moduleSource = await readFile(source, 'utf8')
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code === 'ENOENT') return
+          throw error
+        }
+        const target = path.join(options.dir, 'assets', filename)
+        await mkdir(path.dirname(target), { recursive: true })
+        await writeFile(target, moduleSource)
+      }
+    },
+  }
+}
+
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? '/_app/' : '/',
-  plugins: [localSetupApi(), react(), tailwindcss()],
+  plugins: [localSetupApi(), react(), tailwindcss(), optionalMapLibreWorker()],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   build: { outDir: '../../dist/app-site', emptyOutDir: true },
 }))

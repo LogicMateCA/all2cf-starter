@@ -1,7 +1,7 @@
 ---
 id: design-page-materialization
 title: Materialize owned Design Profiles and Astro Page Packs
-status: implemented
+status: local-verified
 affectedModules: [assembler, marketing, web, mobile, docs]
 docsImpact: [PROJECT.md, ARCHITECTURE.md, DESIGN.md, PERFORMANCE.md, features/assembler/MODULE.md, features/marketing/MODULE.md, starter.blueprint.json, catalog/catalog.json, design/catalog.json, pages/catalog.json, /setup, /dp]
 ---
@@ -24,7 +24,7 @@ The selected Design Profile becomes deterministic Web, Marketing, Docs, and Mobi
 - Pin and re-read StyleKit commit `29141b684d5abb967558eb8083fbae91dbbc51b8` and PowerAI Astro commit `a1176bf882bf0b1af98115f3280c2a6928e69261` before adaptation.
 - Prove default plan/apply/check, selected route presence, optional Growth selection/removal, design profile switch/removal, package-lock consistency, typechecks, static builds, bundle budgets, and both Worker dry-runs.
 - Verify built HTML for selected public routes, absence of unselected routes, React shell routing, Docs output, and real 404 output.
-- Visual acceptance for each StyleKit-derived profile remains a separate gate and cannot be inferred from a successful build.
+- Visual acceptance for each StyleKit-derived profile requires real browser evidence and cannot be inferred from a successful build.
 
 Implemented evidence:
 
@@ -34,8 +34,9 @@ Implemented evidence:
 - Switching from Owned Neutral to Precision SaaS changed the generated Web, Marketing, Docs, Mobile, and Marketing project outputs to the pinned profile and passed all workspace typechecks and builds. Editorial Signal additionally proved display typography reaches CSS targets and the generic Mobile serif adapter; switching back restored the default profile and clean receipt.
 - Local Wrangler served Marketing, React `/login` and `/dp`, Starlight `/docs`, and `/api/health`; `/setup` returned the intended Worker 404 and an unknown browser route returned the static HTML 404.
 - Development and Production Worker type generation/checks and dry-run bundles passed with the Static Assets binding and explicit Worker-first route list. No Worker was deployed.
-
-Still open before `local-verified`: responsive visual evidence, keyboard and accessibility review, and profile-specific visual comparison for every StyleKit-derived direction.
+- Playwright checked all nine Core Product Astro routes plus selected Blog, Case Studies, Integrations, and Careers routes. Every audited route returned the expected response without horizontal overflow, console/page errors, or axe violations after correcting invalid definition-list markup and the Contact heading hierarchy.
+- All four Design Profiles passed desktop/mobile, light/dark, keyboard, reduced-motion, accessibility, and production-build Lighthouse acceptance. The accepted screenshots show materially different layout language rather than token-only recolors.
+- Deselecting every optional Growth route removed all four source routes; the rebuilt production artifact and static server returned 404 for each. The reusable materialization change is locally verified. Individual Page Catalog entries remain `implemented` where real copied-project content, collections, forms, metadata, or evidence are still required.
 
 # Release
 

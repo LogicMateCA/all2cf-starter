@@ -66,6 +66,9 @@ const steps = [
 const groupForKind: Record<Pack["kind"], SelectionGroup> = { design: "design", page: "pages", saas: "saas", capability: "capabilities" };
 const requiredPacks = new Set(["page.core-product-site", "saas.identity-core", "saas.product-operations-lite"]);
 const emptyLifecycle = (): Lifecycle => ({ selected: false, materialized: false, localVerified: false, developmentVerified: false, productionReleased: false });
+const selectLifecycle = (lifecycle: Lifecycle, selected: boolean): Lifecycle => selected
+  ? { ...lifecycle, selected: true }
+  : { ...lifecycle, selected: false, localVerified: false, developmentVerified: false, productionReleased: false };
 
 function hydrateSelections(blueprint: Blueprint, packs: Pack[]) {
   const copy = structuredClone(blueprint);
@@ -148,7 +151,7 @@ export function SetupPage() {
     const selections = blueprint.selections[group].map((selection) => {
       const nextSelected = pack.kind === "design" ? selection.id === pack.id : selection.id === pack.id ? selected : selection.lifecycle.selected;
       if (nextSelected === selection.lifecycle.selected) return selection;
-      return { ...selection, lifecycle: nextSelected ? { ...selection.lifecycle, selected: true } : emptyLifecycle() };
+      return { ...selection, lifecycle: selectLifecycle(selection.lifecycle, nextSelected) };
     });
     return { ...blueprint, preset: requiredPacks.has(pack.id) ? blueprint.preset : "custom", selections: { ...blueprint.selections, [group]: selections } };
   });
@@ -159,7 +162,7 @@ export function SetupPage() {
       ...blueprint.selections,
       design: blueprint.selections.design.map((selection) => ({
         ...selection,
-        lifecycle: selection.id === profile.packId ? { ...selection.lifecycle, selected: true } : emptyLifecycle(),
+        lifecycle: selectLifecycle(selection.lifecycle, selection.id === profile.packId),
       })),
     },
   }));
@@ -173,7 +176,7 @@ export function SetupPage() {
     const pagesInPack = payload.pageCatalog.pages.filter(({ packId }) => packId === page.packId).map(({ id }) => id);
     const packSelected = requiredPacks.has(page.packId) || pagesInPack.some((id) => pageIds.has(id));
     const backingSelections = blueprint.selections[backingGroup].map((selection) => selection.id === page.packId
-      ? { ...selection, lifecycle: packSelected ? { ...selection.lifecycle, selected: true } : emptyLifecycle() }
+      ? { ...selection, lifecycle: selectLifecycle(selection.lifecycle, packSelected) }
       : selection);
     return { ...blueprint, preset: requiredPacks.has(page.packId) ? blueprint.preset : "custom", pageSet: { selected: [...pageIds] }, selections: { ...blueprint.selections, [backingGroup]: backingSelections } };
   });
@@ -184,7 +187,7 @@ export function SetupPage() {
       selections[group] = selections[group].map((selection) => {
         const selected = requiredPacks.has(selection.id) || presetSelections.has(selection.id);
         if (selected === selection.lifecycle.selected) return selection;
-        return { ...selection, lifecycle: selected ? { ...selection.lifecycle, selected: true } : emptyLifecycle() };
+        return { ...selection, lifecycle: selectLifecycle(selection.lifecycle, selected) };
       });
     }
     const selectedPagePacks = new Set(selections.pages.filter(({ lifecycle }) => lifecycle.selected).map(({ id }) => id));

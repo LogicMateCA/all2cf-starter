@@ -51,7 +51,8 @@ export function validateAssemblyContracts(manifest, blueprint, catalog, designCa
       if (!selection.id.startsWith(`${kind}.`)) failures.push(`Blueprint selection ${selection.id} is in the wrong group ${group}`);
       const lifecycle = selection.lifecycle || {};
       if (lifecycle.selected && packs.get(selection.id)?.delivery === "planned") failures.push(`Blueprint cannot select unavailable planned pack ${selection.id}`);
-      const sequence = ["selected", "materialized", "localVerified", "developmentVerified", "productionReleased"];
+      if (!lifecycle.selected && (lifecycle.localVerified || lifecycle.developmentVerified || lifecycle.productionReleased)) failures.push(`Blueprint lifecycle for ${selection.id} retains verification after deselection`);
+      const sequence = ["materialized", "localVerified", "developmentVerified", "productionReleased"];
       for (let index = 1; index < sequence.length; index += 1) {
         if (lifecycle[sequence[index]] && !lifecycle[sequence[index - 1]]) failures.push(`Blueprint lifecycle for ${selection.id} skips ${sequence[index - 1]}`);
       }

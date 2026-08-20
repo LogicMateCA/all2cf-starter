@@ -53,11 +53,12 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["path", "module", "export"],
+        "required": ["path", "module", "export", "workerFirst"],
         "properties": {
           "path": { "type": "string", "pattern": "^/" },
           "module": { "type": "string" },
-          "export": { "type": "string", "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*$" }
+          "export": { "type": "string", "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*$" },
+          "workerFirst": { "type": "boolean" }
         }
       }
     },

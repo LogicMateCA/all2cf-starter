@@ -24,7 +24,9 @@ Every owned Design Profile is compiled through one shared Design Engine and chec
 - All 40 checked color pairs pass `4.5:1`; the narrowest current pair is Owned Neutral light muted text at `4.55:1`.
 - Profile signatures are distinct and no StyleKit or PowerAI runtime dependency exists in active or optional pack manifests.
 - Materialization drift check and all workspace typechecks pass after the compiler extraction.
-- A real screenshot audit was attempted through the available Chrome connection, but the browser returned `Target closed`. Product Design rules prohibit silently replacing that capture path with Playwright. Responsive screenshots, keyboard behavior, rendered dark mode, Lighthouse, and profile-by-profile visual comparison therefore remain open and the StyleKit pack remains `implemented`, not `local-verified`.
+- The user explicitly authorized Playwright after the original Chrome connection failed. Each of Owned Neutral, Precision SaaS, Editorial Signal, and Midnight Control was materialized and captured at `1440x900` light and `390x844` dark. All eight accepted captures were visually inspected.
+- All four profiles rendered the primary heading in two lines at both sizes, kept the primary action in the first viewport, showed visible keyboard focus, respected reduced motion, produced no horizontal overflow, and returned zero axe violations, console errors, or page errors.
+- Production-build Lighthouse runs for every profile scored 100 for Performance, Accessibility, Best Practices, and SEO on desktop and mobile, with `0` CLS and `0ms` TBT. These measurements promote the profile and Marketing adapter contracts to `local-verified`; other target adapters remain independently `implemented`.
 
 # Release
 

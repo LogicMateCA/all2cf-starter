@@ -24,7 +24,7 @@ source: "starter"
 - One side-effect-free Design Engine compiles every Catalog profile during `design:contract`, not only the selected profile. The offline gate requires all five target adapters, valid Product Design dials, reduced-motion policy, distinct visual contracts, complete light/dark Web and Mobile output, pinned donor provenance, and no StyleKit or PowerAI runtime dependency.
 - Core semantic color pairs are measured in both modes at `4.5:1` minimum. This proves token-level WCAG AA contrast only; rendered controls, images, focus states, zoom/reflow, keyboard behavior, and assistive-technology semantics still require browser evidence.
 - Open Design and RunCopilot are research and extraction aids. They may inform a Change Spec but are not dependencies or design authorities.
-- Initial StyleKit-derived profiles are deliberately few: Precision SaaS normalizes `corporate-clean` and `stripe-style`; Editorial Signal normalizes `editorial` and `asymmetric-grid`; Midnight Control normalizes `linear-style` and `dashboard-layout`. These owned directions now pass deterministic compile and token-contrast contracts, but remain `implemented` until responsive screenshots, rendered light/dark comparison, keyboard interaction, accessibility, and Lighthouse evidence promote them to `local-verified`.
+- Initial StyleKit-derived profiles are deliberately few: Precision SaaS normalizes `corporate-clean` and `stripe-style`; Editorial Signal normalizes `editorial` and `asymmetric-grid`; Midnight Control normalizes `linear-style` and `dashboard-layout`. Owned Neutral and all three StyleKit-derived directions are `local-verified` as Marketing expressions: each passed real desktop/mobile and light/dark browser capture, visible keyboard focus, reduced-motion behavior, zero automated accessibility violations, zero horizontal overflow, and production-build Lighthouse scores of 100 for Performance, Accessibility, Best Practices, and SEO. Desktop Web, Admin, Docs, and Mobile adapters remain independently `implemented` until their own product-specific visual flows are accepted.
 
 ## Authenticated account shell
 
@@ -45,7 +45,7 @@ source: "starter"
 - Product flows, UX audits, and visual exploration use the Product Design skill.
 - Frontend visual direction and anti-generic taste use the applicable taste skill.
 - `/setup` recommends a small set of compatible design profiles from the product brief. The user selects one; AI records it in the Blueprint before materializing pages.
-- Every Design or Page pack carries reference screenshots, target-specific empty/loading/error states, accessibility gates, and performance budgets before it can become `local-verified`.
+- Every Design or Page pack carries reference screenshots, target-specific empty/loading/error states, accessibility gates, and performance budgets before it can become `local-verified`. A locally verified Design Profile does not automatically promote every target adapter or every Page Catalog entry.
 
 ## Platform component strategy
 

@@ -2,6 +2,7 @@ import { Hono, type Context } from "hono";
 import { isAPIError } from "better-auth/api";
 import { Client } from "pg";
 import { withRequestAuth, type AuthRuntimeEnv } from "./auth-runtime";
+import { workerCapabilityRoutePaths } from "./generated/capability-routes";
 
 type AppVariables = {
   requestId: string;
@@ -257,6 +258,7 @@ app.get("/support/*", serveProductApplication);
 app.get("/admin", serveProductApplication);
 app.get("/admin/*", serveProductApplication);
 app.get("/dp", serveProductApplication);
+for (const routePath of workerCapabilityRoutePaths) app.get(routePath, serveProductApplication);
 
 app.all("/setup", (c) => c.json({ error: { code: "LOCAL_ONLY", message: "Project setup is available only from the local development server." } }, 404));
 app.all("/setup/*", (c) => c.json({ error: { code: "LOCAL_ONLY", message: "Project setup is available only from the local development server." } }, 404));

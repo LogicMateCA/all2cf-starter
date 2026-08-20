@@ -54,7 +54,7 @@
         "lifecycle": {
           "selected": true,
           "materialized": true,
-          "localVerified": false,
+          "localVerified": true,
           "developmentVerified": false,
           "productionReleased": false
         },
@@ -82,7 +82,7 @@
           "developmentVerified": false,
           "productionReleased": false
         },
-        "note": "Core product pages will be adapted from the audited PowerAI donor into owned page packs."
+        "note": "Core product routes are owned PowerAI-informed templates; their reusable route and browser layer is verified, while copied-project content and functional acceptance remain project gates."
       },
       {
         "id": "page.optional-growth",
@@ -158,7 +158,7 @@
           "developmentVerified": false,
           "productionReleased": false
         },
-        "note": "Optional Web-only map pack with verified plan/apply/removal; browser WebGL and a real map provider remain project-level gates. Mobile mapping uses a separate native-aware pack."
+        "note": "Optional Web-only map pack is locally verified through plan/apply, Worker routing, browser WebGL, keyboard/accessibility, budgets, and complete removal. A real map provider remains a copied-project release gate. Mobile mapping uses a separate native-aware pack."
       }
     ]
   },

@@ -36,7 +36,8 @@
     {
       "path": "/map",
       "module": "../components/capabilities/mapcn-web-page",
-      "export": "MapCapabilityPage"
+      "export": "MapCapabilityPage",
+      "workerFirst": true
     }
   ]
 }
