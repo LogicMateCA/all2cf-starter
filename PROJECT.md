@@ -31,6 +31,7 @@ Blueprint-driven project assembler for AI-led Cloudflare products. `/setup` capt
 - `catalog/catalog.json` is the internal Design, Page, SaaS, and Capability catalog used by AI and `/setup`.
 - Each Catalog pack declares `baseline`, `materializer`, or `planned` delivery. `/setup` may display planned work, but executable presets, saved selections, and AI materialization reject it until a real delivery path exists.
 - `design/catalog.json` is the versioned owned Design Profile catalog; the Blueprint pins exactly one profile ID and version.
+- `npm run design:contract` compiles every selected and unselected profile through the shared Design Engine, enforces light/dark token contrast and target-adapter completeness, and rejects StyleKit or PowerAI runtime leakage.
 - `starter.manifest.json` records the repository capabilities and current implemented state; it does not replace the Blueprint.
 - StyleKit, PowerAI, and MapCN are donor sources for owned adapters or packs. OpenSaaS, LastSaaS, Open Design, and RunCopilot are reference-only inputs.
 - `pages/catalog.json` is the route-level Page Catalog. PowerAI contributes audited information architecture only; `/setup` selects individual pages, authenticated routes retain the existing Better Auth flow, and unselected growth routes are not materialized.

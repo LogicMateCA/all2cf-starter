@@ -32,6 +32,7 @@ source: "starter"
 - Treat compiler claims as unverified until the current supported TypeScript/Expo toolchain produces measurable optimized artifacts.
 - Keep the focused Better Auth Metro resolver regression-tested. Removing it currently adds server-only schema and Zod locale code to all Mobile bundles and exceeds the release budgets.
 - Every Catalog pack records its own bundle, query, asset, and runtime constraints before it can move from selected to locally verified.
+- `design:contract` compiles every profile in memory and must stay free of network, database, browser, and materialization side effects. Runtime builds contain only the selected generated adapters and no StyleKit or PowerAI donor dependency.
 
 ## Change Spec
 
