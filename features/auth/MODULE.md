@@ -1,6 +1,6 @@
 ---
 module: auth
-status: development-released
+status: local-verified
 source: starter
 ---
 
@@ -15,6 +15,7 @@ Purpose: provide the implemented Web identity foundation and the shared contract
 - Email verification is mandatory in every environment. The default provider is CFsend; Resend and Cloudflare Email Service are explicit switches. No environment may silently replace delivery with logging or outbox-only behavior.
 - Email reliability: each message owns one outbox row, provider identity, stable idempotency key, provider message ID, attempt count, and failure code. CFsend/Resend retry only network, 429, and 5xx failures with the same idempotency key; permanent 4xx responses fail closed.
 - Database boundary: Better Auth's built-in PostgreSQL/Kysely adapter uses per-request Hyperdrive pools. Schema changes are reviewed SQL migrations; Drizzle is not installed.
+- Account identity boundary: Better Auth 1.7.1 identifies external accounts by `(issuer, account_id)`. The Starter's initial empty-database schema creates that field and unique index directly. Legacy identity backfill belongs to an existing product upgrade and is intentionally absent here.
 - Roles and permissions: the separation between platform and organization roles is a required future contract. Organization and Admin plugins are not currently enabled and must not be reported as implemented.
 - Upgrade boundary: Better Auth core, the Expo plugin, and every later selected official plugin move as one reviewed stable-compatible line. Each upgrade generates a schema proposal, records compatibility, and adds immutable SQL migrations when needed.
 - Sensitive data handling: provider credentials enter through the local development profile and Worker secrets.
@@ -24,6 +25,6 @@ Purpose: provide the implemented Web identity foundation and the shared contract
 
 All auth changes require explicit threat, migration, and rollback notes in a Change Spec. Keep states and permission behavior documented here.
 
-Local verification uses `npm run auth:email:contract` for CFsend, Resend, and optional Cloudflare Email Service provider behavior. `npm run auth:smoke:dev` runs real workerd against Development PostgreSQL and a CFsend contract double, creates isolated identity data, verifies mandatory email verification plus the credential/reset/session cycle, and removes the owned user and outbox rows afterward. Google callback completion, real CFsend delivery, installed-device SecureStore behavior, and Production migration remain unverified until exercised in their target environments. The current Development environment has auth release evidence; the current Production release does not yet contain this auth line.
+Local verification uses `npm run auth:email:contract` for CFsend, Resend, and optional Cloudflare Email Service provider behavior. `npm run auth:smoke:dev` runs real workerd with either an explicit isolated database URL or Development PostgreSQL and a CFsend contract double, verifies the fresh Better Auth 1.7 schema, issuer-scoped credential identity, mandatory email verification, and the credential/reset/session cycle, then removes its owned rows. Google callback completion, real CFsend delivery, shared Development schema recreation, installed-device SecureStore behavior, and Production schema recreation remain unverified until exercised in their target environments. The current shared environments do not yet contain the Better Auth 1.7.1 line.
 
-`npm run auth:schema:generate` writes a versioned proposal under ignored `db/generated/`; it never overwrites an applied migration. Upgrades compare that proposal to `db/migrations/` and add a new reviewed, immutable migration.
+`npm run auth:schema:generate` writes a versioned proposal under ignored `db/generated/`. Upgrades compare that proposal to `db/migrations/`. The reusable Starter may refresh its baseline only while its release databases are intentionally empty; an initialized product must add a reviewed immutable migration instead. `npm run db:empty:check` proves the data precondition without writing either database.

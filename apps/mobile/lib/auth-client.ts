@@ -6,7 +6,9 @@ import { apiUrl, appScheme } from "./runtime";
 
 const webStorage = {
   getItem(key: string) { return typeof localStorage === "undefined" ? null : localStorage.getItem(key); },
+  async getItemAsync(key: string) { return webStorage.getItem(key); },
   setItem(key: string, value: string) { if (typeof localStorage !== "undefined") localStorage.setItem(key, value); },
+  async setItemAsync(key: string, value: string) { webStorage.setItem(key, value); },
 };
 
 export const authClient = createAuthClient({
@@ -20,7 +22,7 @@ export const authClient = createAuthClient({
   })],
 });
 
-export function authenticatedHeaders() {
-  const cookie = authClient.getCookie();
+export async function authenticatedHeaders() {
+  const cookie = await authClient.getCookie();
   return cookie ? { Cookie: cookie } : {};
 }

@@ -26,6 +26,7 @@
     "db:migrate:dev": "node scripts/database-migrate.mjs --environment=development --apply",
     "db:migrate:production:status": "node scripts/database-migrate.mjs --environment=production",
     "db:migrate:production": "node scripts/database-migrate.mjs --environment=production --apply",
+    "db:empty:check": "node scripts/database-empty-check.mjs",
     "identity:sync": "node scripts/sync-project-identity.mjs",
     "cf:preflight:record": "node scripts/record-cloudflare-preflight.mjs",
     "dependencies:check": "node scripts/dependency-check.mjs",

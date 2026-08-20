@@ -32,7 +32,7 @@ Blueprint-driven project assembler for AI-led Cloudflare products. `/setup` capt
 - `starter.manifest.json` records the repository capabilities and current implemented state; it does not replace the Blueprint.
 - StyleKit, PowerAI, and MapCN are donor sources for owned adapters or packs. OpenSaaS, LastSaaS, Open Design, and RunCopilot are reference-only inputs.
 - Better Auth core and every selected official Better Auth plugin are maintained as one aligned stable-compatible upstream family.
-- The current reviewed runtime baseline is Wrangler 4.124.0, Workers types 5.20260820.1, Hono 4.13.3, Vite 8.2.2, and Expo SDK 57.0.14. Better Auth remains on 1.6.29 until its separate issuer-scoped account migration is completed.
+- The current locally verified runtime baseline is Wrangler 4.124.0, Workers types 5.20260820.1, Hono 4.13.3, Vite 8.2.2, Expo SDK 57.0.14, and aligned Better Auth 1.7.1 packages. Better Auth 1.7.1 remains unreleased until the empty shared databases are confirmed and recreated from its issuer-scoped baseline, followed by live Development checks.
 
 ## Change Spec
 

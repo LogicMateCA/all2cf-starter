@@ -63,6 +63,7 @@ export function createStarterAuth(input: StarterAuthInput) {
     account: {
       modelName: "app_account",
       fields: {
+        issuer: "issuer",
         accountId: "account_id",
         providerId: "provider_id",
         userId: "user_id",

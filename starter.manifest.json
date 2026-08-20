@@ -55,8 +55,8 @@
     },
     {
       "area": "Authentication",
-      "choice": "Better Auth stable line (current target 1.6.29)",
-      "status": "development-released"
+      "choice": "Better Auth 1.7.1 aligned across core and Expo with issuer-scoped empty-database baseline",
+      "status": "local-verified"
     },
     {
       "area": "Billing",

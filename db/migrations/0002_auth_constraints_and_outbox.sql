@@ -1,4 +1,4 @@
-create unique index "app_account_provider_account_uidx" on "app_account" ("provider_id", "account_id");
+create unique index "app_account_issuer_account_id_uidx" on "app_account" ("issuer", "account_id");
 
 create table "app_auth_email_outbox" (
   "id" text primary key,

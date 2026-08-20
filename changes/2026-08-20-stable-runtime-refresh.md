@@ -24,6 +24,7 @@ Starter uses the newest reviewed stable releases on its existing Cloudflare, Web
 - Full `npm run verify` passed in the Node 24 project container: knowledge/change checks, both Worker type generations/checks, all TypeScript projects, Vite production build, Web bundle budgets, and both Cloudflare dry-runs.
 - The main Web bundle remains below budget at 64,371-byte gzip; the chart chunk is 103,812-byte gzip.
 - Remote EAS builds, device E2E, and a real Development Worker publication were not run because this change has no release authorization.
+- `npm audit` currently reports 15 non-critical transitive advisories under Expo/Metro (`image-size`, `uuid`, and their parents). npm's proposed automatic resolution downgrades Expo from SDK 57 to SDK 53, so it is rejected as incompatible; keep the SDK 57 line current and recheck on each Expo patch instead of forcing unsupported overrides.
 
 # Release
 

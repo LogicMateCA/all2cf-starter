@@ -17,9 +17,12 @@ Purpose: provide a touch-first Expo Router SDK 57 application shell for Mobile W
 - Expo Web uses Metro and `single` output. Desktop Web remains a separate shadcn/ui application and shares no Mobile UI code.
 - Tamagui Compiler remains blocked on the current TypeScript 6/7 toolchain; runtime-only Web/iOS/Android exports are verified and compiler performance is unclaimed.
 - Better Auth uses the official Expo client/server plugins, SecureStore-backed native cookies, deep-link schemes per Development/Preview/Production, and the same A2C-derived email/password/Google/reset state contract as Desktop Web.
+- Better Auth 1.7.1 requires both synchronous and asynchronous storage methods; the owned Web storage adapter and native SecureStore path implement that contract, and cookie access is awaited before constructing authenticated headers.
 - Metro resolves the Expo plugin's `better-auth/cookies` import to Better Auth's own focused `cookie-utils.mjs`. This avoids bundling server schema and all Zod locales; every aligned Better Auth upgrade must revalidate the resolver path and all three exports.
 - Final visual templates and native chart renderer remain intentionally undecided until representative product screens are built and measured.
 
 Use the project-local `expo-release` skill for every mobile release or rollback.
 
 Validation boundary: Expo Doctor, dependency alignment, TypeScript, Mobile Web export, iOS export, Android export, bundle budgets, API reachability, and native fingerprint planning are verified. Browser Lighthouse/console inspection, EAS Project binding, remote builds/updates, installed-device auth/SecureStore E2E, Apple submission, Google submission, and mobile rollback remain unverified until their tools or account evidence exist.
+
+Dependency audit boundary: the current npm audit findings are transitive Expo/Metro toolchain advisories with no critical item. npm proposes an incompatible SDK 53 downgrade; do not apply it or force overrides outside Expo's compatibility line. Recheck on every SDK 57 patch and move when Expo publishes a compatible fix.

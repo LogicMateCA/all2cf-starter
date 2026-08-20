@@ -17,12 +17,15 @@ const values = parseEnv(await readFile(envPath, "utf8"));
 const starter = JSON.parse(await readFile(path.join(root, "starter.config.json"), "utf8"));
 const origin = remote ? `https://${starter.development.domain}` : `http://127.0.0.1:${port}`;
 const baseConfig = parseJsonc(await readFile(path.join(root, "cloudflare/wrangler.development.jsonc"), "utf8"));
-const databaseSource = new URL(values.get("DATABASE_URL") || "");
-databaseSource.hostname = starter.development.database.host;
-databaseSource.port = String(starter.development.database.port);
-databaseSource.pathname = `/${starter.development.database.database}`;
-databaseSource.searchParams.set("sslmode", "require");
-databaseSource.searchParams.set("uselibpqcompat", "true");
+const isolatedDatabaseUrl = process.env.STARTER_AUTH_SMOKE_DATABASE_URL?.trim();
+const databaseSource = new URL(isolatedDatabaseUrl || values.get("DATABASE_URL") || "");
+if (!isolatedDatabaseUrl) {
+  databaseSource.hostname = starter.development.database.host;
+  databaseSource.port = String(starter.development.database.port);
+  databaseSource.pathname = `/${starter.development.database.database}`;
+  databaseSource.searchParams.set("sslmode", "require");
+  databaseSource.searchParams.set("uselibpqcompat", "true");
+}
 
 let child = null;
 let mailServer = null;
@@ -62,7 +65,7 @@ if (!remote) {
     workers_dev: false,
   };
   await writeFile(configPath, `${JSON.stringify(localConfig, null, 2)}\n`, { mode: 0o600 });
-  child = spawn("npx", ["wrangler", "dev", "--config", configPath, "--env-file", smokeEnvPath, "--ip", "127.0.0.1", "--port", String(port), "--show-interactive-dev-session", "false", "--log-level", "warn"], {
+  child = spawn(process.execPath, ["--no-warnings", path.join(root, "node_modules/wrangler/wrangler-dist/cli.js"), "dev", "--config", configPath, "--env-file", smokeEnvPath, "--ip", "127.0.0.1", "--port", String(port), "--show-interactive-dev-session", "false", "--log-level", "warn"], {
     cwd: root,
     env: process.env,
     stdio: ["ignore", "pipe", "pipe"],
@@ -75,12 +78,8 @@ const email = `smoke+${randomUUID()}@example.test`;
 const password = `Smoke-${randomUUID()}-A1!`;
 const smokeIp = `203.0.113.${Math.floor(Math.random() * 254) + 1}`;
 const database = new Client({
-  host: starter.development.database.host,
-  port: starter.development.database.port,
-  user: decodeURIComponent(databaseSource.username),
-  password: decodeURIComponent(databaseSource.password),
-  database: starter.development.database.database,
-  ssl: { rejectUnauthorized: false },
+  connectionString: databaseSource.toString(),
+  ...(!isolatedDatabaseUrl ? { ssl: { rejectUnauthorized: false } } : {}),
   application_name: `${starter.project.slug}-auth-smoke-cleanup`,
 });
 
@@ -144,7 +143,10 @@ try {
 
   const known = await request("/api/auth-flow/check-email", { method: "POST", headers: { "Content-Type": "application/json", Origin: origin }, body: JSON.stringify({ email }) });
   assert(known.response.status === 200 && known.payload?.data?.exists === true && known.payload?.data?.hasPassword === true, "known email lookup did not return password capability");
+  const credentialIdentity = await database.query("select issuer, account_id, user_id from app_account where user_id = (select id from app_user where email = $1) and provider_id = 'credential'", [email]);
+  assert(credentialIdentity.rows[0]?.issuer === "local:credential" && credentialIdentity.rows[0]?.account_id === credentialIdentity.rows[0]?.user_id, "Better Auth 1.7 credential identity is not issuer-scoped to the stable user ID");
   checks.push("known-email");
+  checks.push("credential-issuer-identity");
 
   const unverifiedLogin = await request("/api/auth/sign-in/email", { method: "POST", headers: { "Content-Type": "application/json", Origin: origin }, body: JSON.stringify({ email, password, callbackURL: "/app" }) });
   assert(unverifiedLogin.response.status !== 200, "unverified email was allowed to sign in");
