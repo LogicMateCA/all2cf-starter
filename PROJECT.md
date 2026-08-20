@@ -22,6 +22,7 @@ Blueprint-driven project assembler for AI-led Cloudflare products. `/setup` capt
 
 - A copied project can explain its modules, tools, Cloudflare topology, documentation, and release state without relying on chat history.
 - A copied project can show which packs were selected, materialized, locally verified, Development verified, and Production released.
+- `/dp` presents Catalog readiness and current-project lifecycle as separate facts, so an available or reusable verified pack cannot be mistaken for a selected or released project capability.
 - Unselected routes, dependencies, bindings, secrets, and database objects are absent rather than hidden behind runtime flags. Every copied Starter database begins empty from the final selected baseline; this repository never carries legacy-data migration or backfill logic.
 - Generic release intent targets Development; only explicit Production intent promotes the same verified artifact.
 

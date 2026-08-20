@@ -69,6 +69,7 @@ type CatalogPack = {
   name: string;
   version: string;
   status: string;
+  delivery: "baseline" | "materializer" | "planned";
   targets: string[];
   ownership: string;
   updatePolicy: string;
@@ -195,13 +196,8 @@ function AccountSlot({ compact = false }: { compact?: boolean }) {
   return <Suspense fallback={<span className="account-skeleton" aria-label="Loading account" />}><AccountControl compact={compact} /></Suspense>;
 }
 
-function lifecycleStage(lifecycle: Lifecycle) {
-  if (lifecycle.productionReleased) return "production-released";
-  if (lifecycle.developmentVerified) return "development-verified";
-  if (lifecycle.localVerified) return "local-verified";
-  if (lifecycle.materialized) return "implemented";
-  if (lifecycle.selected) return "selected";
-  return "available";
+function LifecycleMark({ active, label }: { active: boolean; label: string }) {
+  return <span className={active ? "lifecycle-mark active" : "lifecycle-mark inactive"} aria-label={`${label}: ${active ? "yes" : "no"}`}><span aria-hidden="true">{active ? "Yes" : "—"}</span></span>;
 }
 
 function Home() {
@@ -225,6 +221,11 @@ function DevelopmentPlan() {
   const bindings = Object.entries(data.cloudflare.bindingsContract?.bindings || {});
   const controller = data.orchestration.controller || {};
   const commit = data.source.commit ? data.source.commit.slice(0, 12) : "not initialized";
+  const lifecycleRows = Object.entries(data.assembly.blueprint.selections).flatMap(([group, selections]) => selections.map((selection) => ({
+    group,
+    selection,
+    pack: data.assembly.catalog.packs.find(({ id }) => id === selection.id),
+  })));
 
   return <div className="plan-shell">
     <aside className={menuOpen ? "plan-nav open" : "plan-nav"}>
@@ -259,7 +260,15 @@ function DevelopmentPlan() {
             <Surface><span className="role-label">Provider defaults</span><h3>{data.assembly.blueprint.providers.auth}</h3><dl className="compact-facts"><div><dt>Social</dt><dd>{data.assembly.blueprint.providers.socialAuth.join(", ") || "none"}</dd></div><div><dt>Email</dt><dd>{data.assembly.blueprint.providers.email.default}</dd></div><div><dt>Billing</dt><dd>{data.assembly.blueprint.providers.billing}</dd></div></dl></Surface>
             <Surface><span className="role-label">Materialization receipt</span><h3>{data.assembly.materialization.packs.length} materialized packs</h3><dl className="compact-facts"><div><dt>Files</dt><dd>{data.assembly.materialization.packs.reduce((total, pack) => total + pack.files, 0)}</dd></div><div><dt>Dependencies</dt><dd>{data.assembly.materialization.dependencyCount}</dd></div><div><dt>Auth</dt><dd>{data.assembly.materialization.generatedAuthServerHash && data.assembly.materialization.generatedAuthClientHash ? "tracked" : "missing"}</dd></div><div><dt>Design</dt><dd>{data.assembly.materialization.generatedDesignWebHash && data.assembly.materialization.generatedDesignMarketingHash && data.assembly.materialization.generatedDesignDocsHash && data.assembly.materialization.generatedDesignMobileHash ? "all targets tracked" : "missing"}</dd></div><div><dt>Pages</dt><dd>{data.assembly.materialization.generatedMarketingProjectHash ? "project output tracked" : "missing"}</dd></div><div><dt>Check</dt><dd>starter:materialize:check</dd></div></dl></Surface>
           </div>
-          <div className="selection-groups">{Object.entries(data.assembly.blueprint.selections).map(([group, selections]) => <Surface key={group} className="selection-group"><div className="selection-group-head"><h3>{group}</h3><span>{selections.filter(({ lifecycle }) => lifecycle.selected).length} selected</span></div><div>{selections.map((selection) => { const stage = lifecycleStage(selection.lifecycle); return <div className="selection-row" key={selection.id}><code>{selection.id}</code><span className={`status ${stage}`}>{stage}</span></div>; })}</div></Surface>)}</div>
+          <Surface className="lifecycle-surface">
+            <div className="lifecycle-heading"><div><span className="role-label">Current project realization</span><h3>Pack lifecycle</h3></div><p>Catalog readiness describes reusable code. The five lifecycle columns describe only this Blueprint.</p></div>
+            <div className="lifecycle-scroll">
+              <table className="lifecycle-table">
+                <thead><tr><th scope="col">Pack</th><th scope="col">Catalog</th><th scope="col">Delivery</th><th scope="col">Selected</th><th scope="col">Materialized</th><th scope="col">Local</th><th scope="col">Development</th><th scope="col">Production</th></tr></thead>
+                <tbody>{lifecycleRows.map(({ group, selection, pack }) => <tr key={selection.id}><th scope="row"><strong>{pack?.name || selection.id}</strong><small>{group} / {selection.id}</small></th><td><span className={`status ${pack?.status || "missing"}`}>{pack?.status || "missing"}</span></td><td><code>{pack?.delivery || "missing"}</code></td><td><LifecycleMark active={selection.lifecycle.selected} label={`${selection.id} selected`} /></td><td><LifecycleMark active={selection.lifecycle.materialized} label={`${selection.id} materialized`} /></td><td><LifecycleMark active={selection.lifecycle.localVerified} label={`${selection.id} locally verified`} /></td><td><LifecycleMark active={selection.lifecycle.developmentVerified} label={`${selection.id} Development verified`} /></td><td><LifecycleMark active={selection.lifecycle.productionReleased} label={`${selection.id} Production released`} /></td></tr>)}</tbody>
+              </table>
+            </div>
+          </Surface>
         </Section>
 
         <Section id="catalog" title="Internal pack catalog" description="Owned assembly choices with explicit provenance, target platforms, and update behavior." icon={Library}>

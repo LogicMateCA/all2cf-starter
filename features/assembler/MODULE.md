@@ -21,7 +21,7 @@ Purpose: turn a product brief and explicit `/setup` selections into a small, own
 - Unselected pages, database tables, bindings, secrets, routes, and runtime dependencies are not generated or hidden behind runtime feature flags. Optional pack templates remain in `packs/` as assembler inputs and do not enter the Worker asset graph.
 - Database assembly always targets a new empty database. Selecting a pack adds its current baseline SQL before first provisioning; deselecting removes that SQL before provisioning. Existing-product migrations, data backfills, and dual-write compatibility do not belong to Starter.
 - AI may recommend and prefill selections, but it must show conflicts and consequences before changing the Blueprint. The controller owns integration and release.
-- `/dp` is a read-only projection of the Blueprint, Catalog, Markdown contracts, code status, and release evidence. It never edits the Blueprint.
+- `/dp` is a read-only projection of the Blueprint, Catalog, Markdown contracts, code status, and release evidence. Its lifecycle matrix separates reusable Catalog readiness and delivery mode from the current Blueprint's selected, materialized, locally verified, Development verified, and Production released states. It never edits the Blueprint.
 
 StyleKit, PowerAI, and MapCN are donor inputs to owned packs, not permanent upstream runtime services. OpenSaaS, LastSaaS, Open Design, and RunCopilot remain reference sources. Better Auth core and every selected official plugin, including Organization, API Key, Expo, and Stripe, are the tracked stable-compatible upstream family.
 
