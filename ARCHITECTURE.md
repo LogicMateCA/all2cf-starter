@@ -47,6 +47,7 @@ Each Catalog pack declares targets, ownership, provenance and license, update po
 - Worker Studio integrations are capability-detected at runtime.
 - Durable state, queues, storage, and external services must document ownership and failure behavior.
 - Desktop Web uses shadcn/ui/Tailwind. Mobile Web/iOS/Android use a lean Tamagui 2 runtime configuration with package-level imports.
+- Runtime baseline: Node 24.14, Wrangler 4.124.0, Workers types 5.20260820.1, Hono 4.13.3, Vite 8.2.2, Expo 57.0.14, and React Native 0.86.2. Expo owns compatible React, React Native, Router, and native-module selection.
 - Better Auth 1.6.29 owns identity endpoints on the Worker. It uses its built-in PostgreSQL/Kysely adapter through request-scoped Hyperdrive pools, host-only Web cookies, official Expo deep-link/SecureStore plugins, database rate limits, and SQL-first migrations.
 - Better Auth core and every selected official plugin upgrade together on the latest reviewed stable-compatible line. Generated schema changes are proposals; immutable SQL migrations remain the release source.
 - Authentication email always passes through `app_auth_email_outbox` and a real provider. CFsend is the default product provider, using a customer-owned Runtime URL, scoped key, verified sender, and stable idempotency key. Resend is an explicit HTTP adapter switch. Cloudflare Email Service is retained as a third opt-in adapter and adds a `send_email` binding only when selected.

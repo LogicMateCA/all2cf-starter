@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@better-auth/expo": "1.6.29",
-    "@expo/metro-runtime": "~57.0.10",
+    "@expo/metro-runtime": "~57.0.11",
     "@tamagui/button": "2.7.7",
     "@tamagui/core": "2.7.7",
     "@tamagui/input": "2.7.7",
@@ -26,14 +26,14 @@
     "@tamagui/stacks": "2.7.7",
     "@tamagui/text": "2.7.7",
     "better-auth": "1.6.29",
-    "expo": "~57.0.13",
+    "expo": "~57.0.14",
     "expo-constants": "~57.0.11",
-    "expo-dev-client": "~57.0.1",
+    "expo-dev-client": "~57.0.13",
     "expo-linking": "~57.0.6",
     "expo-network": "~57.0.1",
-    "expo-router": "~57.0.13",
+    "expo-router": "~57.0.14",
     "expo-secure-store": "~57.0.1",
-    "expo-updates": "~57.0.13",
+    "expo-updates": "~57.0.15",
     "expo-web-browser": "~57.0.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -43,7 +43,7 @@
     "react-native-web": "^0.21.2"
   },
   "devDependencies": {
-    "@expo/fingerprint": "0.20.7",
+    "@expo/fingerprint": "~0.20.8",
     "@types/react": "~19.2.2",
     "typescript": "~6.0.3"
   }

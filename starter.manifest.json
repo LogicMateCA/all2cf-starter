@@ -35,13 +35,13 @@
     },
     {
       "area": "Web",
-      "choice": "React 19.2.3 + Vite 8.2.1",
-      "status": "implemented"
+      "choice": "React 19.2.3 + Vite 8.2.2",
+      "status": "local-verified"
     },
     {
       "area": "Worker",
-      "choice": "Hono 4.13.2 + Cloudflare workerd via Wrangler 4.123.0",
-      "status": "implemented"
+      "choice": "Hono 4.13.3 + Cloudflare workerd via Wrangler 4.124.0",
+      "status": "local-verified"
     },
     {
       "area": "Database",
@@ -80,7 +80,7 @@
     },
     {
       "area": "Mobile",
-      "choice": "Expo 57.0.13 + React Native 0.86.2 + Tamagui 2.7.7 for Mobile Web/iOS/Android",
+      "choice": "Expo 57.0.14 + React Native 0.86.2 + Tamagui 2.7.7 for Mobile Web/iOS/Android",
       "status": "local-verified"
     },
     {
@@ -95,8 +95,8 @@
     },
     {
       "area": "Runtime upgrades",
-      "choice": "Stable-compatible policy + verified Development release",
-      "status": "verified"
+      "choice": "Stable-compatible policy; current refresh requires Development publication before acceptance",
+      "status": "local-verified"
     },
     {
       "area": "Starter bootstrap",

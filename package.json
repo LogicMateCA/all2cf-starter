@@ -63,13 +63,13 @@
     "verify": "npm run ai:doctor && npm run knowledge:sync && npm run knowledge:check && npm run change:check && npm run cf:types && npm run cf:types:check && npm run typecheck && npm run build && npm run bundle:check:web && npm run cf:dry-run:dev && npm run cf:dry-run:production"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "5.20260817.1",
+    "@cloudflare/workers-types": "5.20260820.1",
     "@types/node": "24.13.3",
     "jsonc-parser": "3.3.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "typescript": "7.0.2",
-    "wrangler": "4.123.0",
+    "wrangler": "4.124.0",
     "yaml": "2.9.0"
   }
 }
