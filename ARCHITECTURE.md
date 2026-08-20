@@ -26,6 +26,7 @@ Project initialization replaces generic names and records the smallest accurate 
 - `/setup` is local-only configuration UI, not a public product route. It writes reviewed changes to `starter.blueprint.json` and `starter.config.json`, invokes the transactional identity synchronizer, and refreshes `/dp`; it does not mutate Cloudflare or database infrastructure directly. Both deployed Workers reject `/setup` and `/__starter/*` before static asset fallback.
 - `starter.blueprint.json` answers what this project selected and how far each selection has progressed.
 - `catalog/catalog.json` answers what Starter can assemble and the contract for each pack.
+- `design/catalog.json` answers which owned visual profile is selected, its normalized semantic tokens and rules, donor provenance, and readiness of each platform adapter.
 - `starter.manifest.json` answers what the repository itself currently contains and supports.
 - Markdown and Change Specs explain why the state exists. Generated `/dp` JSON is a disposable projection of these sources.
 - `/dp` is read-only and reports selection, materialization, verification, release, and drift. `/admin` remains the authenticated product-operations area and never becomes the Starter configurator.
@@ -34,7 +35,7 @@ Each Catalog pack declares targets, ownership, provenance and license, update po
 
 ## Catalog ownership
 
-- Design Catalog: owned profiles and adapters for shadcn Web/Admin, Astro pages, Starlight Docs, and later Tamagui brand seeds. StyleKit is an audited donor, never a runtime service.
+- Design Catalog: owned profiles and adapters for shadcn Web/Admin, Astro pages, Starlight Docs, and Tamagui brand seeds. The initial catalog contains Owned Neutral plus Precision SaaS, Editorial Signal, and Midnight Control. StyleKit is an audited, commit-pinned donor, never a runtime service.
 - Page Catalog: owned core and optional static-first page packs. PowerAI Astro is a pinned, licensed donor whose brand and theme are removed during adaptation; generated projects do not track its repository.
 - SaaS Catalog: identity, account, lightweight operations, team, API, billing, and other product presets. OpenSaaS and LastSaaS are product-logic references, not copied foundations.
 - Capability Catalog: independently selectable capabilities such as maps, charts, uploads, search, AI, realtime, queues, and observability. MapCN is the first planned Web pack; its adapted components become owned source while MapLibre remains a normal runtime dependency.

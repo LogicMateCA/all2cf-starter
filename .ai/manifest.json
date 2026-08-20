@@ -5,7 +5,8 @@
     "dp": "markdown-frontmatter",
     "changes": "change-spec",
     "selection": "starter.blueprint.json",
-    "catalog": "catalog/catalog.json"
+    "catalog": "catalog/catalog.json",
+    "designProfiles": "design/catalog.json"
   },
   "controller": {
     "high": "Sol",

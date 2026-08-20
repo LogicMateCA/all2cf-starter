@@ -105,10 +105,11 @@ function environmentFromConfig(id, config, manifestEnvironment) {
 }
 
 export async function collectKnowledge(root) {
-  const [manifest, blueprint, catalog, aiManifest, orchestrationSource, bindings, developmentConfig, productionConfig] = await Promise.all([
+  const [manifest, blueprint, catalog, designCatalog, aiManifest, orchestrationSource, bindings, developmentConfig, productionConfig] = await Promise.all([
     readJson(root, "starter.manifest.json"),
     readJson(root, "starter.blueprint.json"),
     readJson(root, "catalog/catalog.json"),
+    readJson(root, "design/catalog.json"),
     readJson(root, ".ai/manifest.json"),
     readFile(path.join(root, ".ai/orchestration.yaml"), "utf8"),
     readJson(root, "cloudflare/bindings.contract.json"),
@@ -122,7 +123,7 @@ export async function collectKnowledge(root) {
   const branch = gitValue(root, ["branch", "--show-current"]);
   const dirty = Boolean(gitValue(root, ["status", "--porcelain"], ""));
   const commitTime = commit ? gitValue(root, ["show", "-s", "--format=%cI", commit]) : null;
-  const assemblyFailures = validateAssemblyContracts(manifest, blueprint, catalog);
+  const assemblyFailures = validateAssemblyContracts(manifest, blueprint, catalog, designCatalog);
   if (assemblyFailures.length) throw new Error(`Assembly contracts are invalid:\n- ${assemblyFailures.join("\n- ")}`);
   const modules = await collectModules(root);
 
@@ -152,6 +153,7 @@ export async function collectKnowledge(root) {
         presets: catalog.presets,
         packs: catalog.packs,
       },
+      designCatalog,
     },
     modules,
     changes: await collectChanges(root),

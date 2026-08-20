@@ -29,6 +29,7 @@ Blueprint-driven project assembler for AI-led Cloudflare products. `/setup` capt
 
 - `starter.blueprint.json` is the canonical project selection and realization record.
 - `catalog/catalog.json` is the internal Design, Page, SaaS, and Capability catalog used by AI and `/setup`.
+- `design/catalog.json` is the versioned owned Design Profile catalog; the Blueprint pins exactly one profile ID and version.
 - `starter.manifest.json` records the repository capabilities and current implemented state; it does not replace the Blueprint.
 - StyleKit, PowerAI, and MapCN are donor sources for owned adapters or packs. OpenSaaS, LastSaaS, Open Design, and RunCopilot are reference-only inputs.
 - Better Auth core and every selected official Better Auth plugin are maintained as one aligned stable-compatible upstream family.

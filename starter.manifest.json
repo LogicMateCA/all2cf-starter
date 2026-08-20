@@ -34,6 +34,11 @@
       "status": "planned"
     },
     {
+      "area": "Design engine",
+      "choice": "Pinned owned profiles with semantic tokens, AI rules, provenance, and per-platform adapters",
+      "status": "defined"
+    },
+    {
       "area": "Web",
       "choice": "React 19.2.3 + Vite 8.2.2",
       "status": "local-verified"

@@ -1,0 +1,80 @@
+{
+  "$schema": "../schemas/design-catalog.schema.json",
+  "schemaVersion": "starter-design-catalog/v1",
+  "catalogVersion": "0.1.0",
+  "sourcePolicy": "Profiles are Starter-owned, versioned design contracts. Donor material is manually reviewed and normalized; generated products never call donor APIs or inherit donor runtimes.",
+  "profiles": [
+    {
+      "id": "owned-neutral",
+      "version": "0.1.0",
+      "packId": "design.owned-neutral",
+      "name": "Owned Neutral",
+      "description": "Quiet product foundation with strong hierarchy, restrained surfaces, and broad SaaS compatibility.",
+      "status": "production-released",
+      "targets": ["marketing", "desktop-web", "admin", "docs", "mobile"],
+      "source": [{ "name": "Starter", "relationship": "original" }],
+      "direction": { "tone": "calm, precise, trustworthy", "typography": "neutral sans with compact UI hierarchy", "shape": "moderate radius", "depth": "borders before shadows", "motion": "short functional transitions", "imagery": "product evidence before decoration" },
+      "semanticColors": {
+        "light": { "background": "#f7f8fb", "surface": "#ffffff", "foreground": "#111827", "muted": "#667085", "accent": "#315fce", "border": "#dbe3ee", "danger": "#c2413b" },
+        "dark": { "background": "#0b1020", "surface": "#121a2b", "foreground": "#f5f7fb", "muted": "#98a5ba", "accent": "#7da2ff", "border": "#28344a", "danger": "#ff8a80" }
+      },
+      "rules": { "do": ["Use whitespace and typography for hierarchy", "Keep operational surfaces dense but readable", "Show real state and evidence"], "dont": ["Decorative gradients without meaning", "Nested cards for every group", "Motion that delays a task"] },
+      "adapters": { "marketing": "local-verified", "desktop-web": "production-released", "admin": "defined", "docs": "defined", "mobile": "local-verified" },
+      "quality": { "contrast": "WCAG AA", "reducedMotion": true, "fontBudget": "two families maximum", "assetPolicy": "route-specific" }
+    },
+    {
+      "id": "precision-saas",
+      "version": "0.1.0",
+      "packId": "design.stylekit-adapted",
+      "name": "Precision SaaS",
+      "description": "Professional light-first system for SaaS marketing, billing, settings, and data-heavy product work.",
+      "status": "defined",
+      "targets": ["marketing", "desktop-web", "admin", "docs", "mobile"],
+      "source": [{ "name": "StyleKit", "url": "https://github.com/AnxForever/stylekit", "revision": "29141b684d5abb967558eb8083fbae91dbbc51b8", "license": "MIT", "styles": ["corporate-clean", "stripe-style"], "relationship": "adapted-donor" }],
+      "direction": { "tone": "confident, technical, conversion-aware", "typography": "clean sans with generous marketing scale", "shape": "8-12px radius", "depth": "subtle layered shadows", "motion": "150-200ms lift and opacity", "imagery": "product diagrams, screenshots, and restrained illustration" },
+      "semanticColors": {
+        "light": { "background": "#f6f9fc", "surface": "#ffffff", "foreground": "#0a2540", "muted": "#5f6b7a", "accent": "#635bff", "border": "#d8dee8", "danger": "#c9362b" },
+        "dark": { "background": "#0d1424", "surface": "#151f33", "foreground": "#f4f7fb", "muted": "#a6b0c0", "accent": "#8f88ff", "border": "#2b3850", "danger": "#ff8a80" }
+      },
+      "rules": { "do": ["Use one conversion focus per section", "Pair claims with product evidence", "Keep controls compact and predictable"], "dont": ["Pink-red-yellow novelty palettes", "Oversized pill cards", "Heavy shadow stacks"] },
+      "adapters": { "marketing": "defined", "desktop-web": "defined", "admin": "defined", "docs": "defined", "mobile": "defined" },
+      "quality": { "contrast": "WCAG AA", "reducedMotion": true, "fontBudget": "two families maximum", "assetPolicy": "route-specific" }
+    },
+    {
+      "id": "editorial-signal",
+      "version": "0.1.0",
+      "packId": "design.stylekit-adapted",
+      "name": "Editorial Signal",
+      "description": "Content-led product direction with sharp geometry, strong type, asymmetric rhythm, and minimal ornament.",
+      "status": "defined",
+      "targets": ["marketing", "desktop-web", "admin", "docs", "mobile"],
+      "source": [{ "name": "StyleKit", "url": "https://github.com/AnxForever/stylekit", "revision": "29141b684d5abb967558eb8083fbae91dbbc51b8", "license": "MIT", "styles": ["editorial", "asymmetric-grid"], "relationship": "adapted-donor" }],
+      "direction": { "tone": "authoritative, cultural, direct", "typography": "display serif plus functional sans", "shape": "sharp corners", "depth": "flat with rules and contrast", "motion": "color and reveal only", "imagery": "large editorial crops and diagrams" },
+      "semanticColors": {
+        "light": { "background": "#f5f2ea", "surface": "#fffdf7", "foreground": "#171512", "muted": "#6f6a61", "accent": "#d64045", "border": "#c9c2b6", "danger": "#b42318" },
+        "dark": { "background": "#171512", "surface": "#211e1a", "foreground": "#f8f3e8", "muted": "#b7afa2", "accent": "#ff676d", "border": "#4a443b", "danger": "#ff8a80" }
+      },
+      "rules": { "do": ["Let type and grid create character", "Use intentional asymmetry with stable reading order", "Keep application controls simpler than marketing pages"], "dont": ["Rounded cards", "Decorative shadows", "Generic centered section repetition"] },
+      "adapters": { "marketing": "defined", "desktop-web": "defined", "admin": "defined", "docs": "defined", "mobile": "defined" },
+      "quality": { "contrast": "WCAG AA", "reducedMotion": true, "fontBudget": "one variable serif plus one sans", "assetPolicy": "editorial crops with responsive sources" }
+    },
+    {
+      "id": "midnight-control",
+      "version": "0.1.0",
+      "packId": "design.stylekit-adapted",
+      "name": "Midnight Control",
+      "description": "Dark-first technical interface for developer tools, AI products, monitoring, and focused operational workflows.",
+      "status": "defined",
+      "targets": ["marketing", "desktop-web", "admin", "docs", "mobile"],
+      "source": [{ "name": "StyleKit", "url": "https://github.com/AnxForever/stylekit", "revision": "29141b684d5abb967558eb8083fbae91dbbc51b8", "license": "MIT", "styles": ["linear-style", "dashboard-layout"], "relationship": "adapted-donor" }],
+      "direction": { "tone": "focused, fast, technical", "typography": "compact sans with optional mono data", "shape": "restrained 6-8px radius", "depth": "translucent fills and low-contrast borders", "motion": "100-150ms state transitions", "imagery": "live product UI and technical diagrams" },
+      "semanticColors": {
+        "light": { "background": "#f5f6f8", "surface": "#ffffff", "foreground": "#18181b", "muted": "#71717a", "accent": "#5e6ad2", "border": "#dfe1e7", "danger": "#c83f49" },
+        "dark": { "background": "#0a0a0b", "surface": "#111114", "foreground": "#f4f4f5", "muted": "#a1a1aa", "accent": "#7c83ef", "border": "#29292e", "danger": "#eb5757" }
+      },
+      "rules": { "do": ["Use borders and density for hierarchy", "Reserve accent for state and primary action", "Keep data and shortcuts close to the task"], "dont": ["Large glow effects", "Colorful status noise", "Dark surfaces without a complete light mode"] },
+      "adapters": { "marketing": "defined", "desktop-web": "defined", "admin": "defined", "docs": "defined", "mobile": "defined" },
+      "quality": { "contrast": "WCAG AA", "reducedMotion": true, "fontBudget": "one sans plus optional mono subset", "assetPolicy": "lazy product evidence" }
+    }
+  ]
+}

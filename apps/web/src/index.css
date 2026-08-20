@@ -312,6 +312,20 @@ dd { margin: 0; font-size: 12px; font-weight: 700; text-align: right; overflow-w
 .pack-choice-main > small { display: block; margin-top: 11px; color: var(--subtle); font-size: 9px; }
 .pack-check { width: 24px; height: 24px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 7px; color: transparent; }
 .pack-choice.selected .pack-check { border-color: var(--accent); color: white; background: var(--accent); }
+.profile-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.profile-choice { display: grid; gap: 12px; padding: 18px; border: 1px solid var(--border); border-radius: 12px; color: var(--text); background: var(--surface); font: inherit; text-align: left; cursor: pointer; }
+.profile-choice:hover { border-color: var(--strong); }
+.profile-choice.selected { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.profile-swatches { height: 34px; display: grid; grid-template-columns: 1.5fr 1fr .7fr .45fr; gap: 4px; overflow: hidden; border: 1px solid var(--border); border-radius: 8px; }
+.profile-swatches i { display: block; }
+.profile-title { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.profile-title strong { font-size: 14px; }
+.profile-title small, .profile-targets { color: var(--subtle); font-size: 9px; }
+.profile-choice > p { min-height: 34px; margin: 0; color: var(--muted); font-size: 11px; line-height: 1.55; }
+.profile-choice dl { display: grid; gap: 6px; margin: 0; }
+.profile-choice dl div { display: grid; grid-template-columns: 48px 1fr; gap: 8px; }
+.profile-choice dt { color: var(--subtle); font-size: 9px; text-transform: uppercase; }
+.profile-choice dd { margin: 0; color: var(--muted); font-size: 10px; }
 .provider-panel { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .provider-panel > div, .provider-panel > label { min-height: 116px; display: grid; align-content: start; gap: 8px; padding: 16px; border-radius: 10px; background: var(--surface-soft); }
 .provider-panel strong { font-size: 14px; }
@@ -388,7 +402,7 @@ dd { margin: 0; font-size: 12px; font-weight: 700; text-align: right; overflow-w
   .setup-layout { width: min(100% - 30px, 1180px); grid-template-columns: 1fr; gap: 24px; padding-top: 28px; }
   .setup-steps { grid-template-columns: repeat(7, minmax(38px, 1fr)); overflow-x: auto; }
   .setup-steps button { justify-content: center; padding: 0; font-size: 0; }
-  .setup-fields, .environment-fields, .pack-grid, .provider-panel { grid-template-columns: 1fr; }
+  .setup-fields, .environment-fields, .pack-grid, .profile-grid, .provider-panel { grid-template-columns: 1fr; }
   .panel-title { align-items: stretch; flex-direction: column; }
   .preset-selector { align-items: stretch; flex-direction: column; }
 }

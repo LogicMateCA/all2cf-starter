@@ -1,7 +1,7 @@
 {
   "$schema": "../schemas/starter-catalog.schema.json",
   "schemaVersion": "starter-catalog/v1",
-  "catalogVersion": "0.1.0",
+  "catalogVersion": "0.2.0",
   "policies": {
     "betterAuth": "Better Auth core and every selected official plugin move as one stable-compatible version line with generated schema comparison and reviewed SQL migrations.",
     "ownedAdapters": "StyleKit, PowerAI, and MapCN are donor inputs. Accepted code is adapted, licensed, tested, versioned, and maintained by Starter without automatic upstream source sync.",
@@ -56,13 +56,13 @@
       "kind": "design",
       "name": "StyleKit-derived design profiles",
       "version": "0.1.0",
-      "status": "planned",
+      "status": "defined",
       "targets": ["desktop-web", "mobile-web", "ios", "android", "admin", "docs"],
       "ownership": "starter-owned",
       "source": [
         {
           "name": "StyleKit",
-          "url": "https://stylekit.dev",
+          "url": "https://github.com/AnxForever/stylekit",
           "revision": "29141b684d5abb967558eb8083fbae91dbbc51b8",
           "license": "MIT",
           "relationship": "adapted-donor"
@@ -87,7 +87,7 @@
       "source": [
         {
           "name": "PowerAI Astro",
-          "url": "https://github.com/powerai/astro",
+          "url": "https://github.com/sitepins/powerai-astro",
           "revision": "a1176bf882bf0b1af98115f3280c2a6928e69261",
           "license": "MIT",
           "relationship": "adapted-donor"
@@ -231,6 +231,7 @@
         {
           "name": "MapCN",
           "url": "https://www.mapcn.dev/",
+          "revision": "d5d287dfdb214c349342f30e407a7c6cf81c4e84",
           "license": "MIT",
           "relationship": "adapted-donor"
         },
