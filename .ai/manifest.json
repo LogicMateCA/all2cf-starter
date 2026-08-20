@@ -7,7 +7,9 @@
     "selection": "starter.blueprint.json",
     "catalog": "catalog/catalog.json",
     "designProfiles": "design/catalog.json",
-    "pages": "pages/catalog.json"
+    "pages": "pages/catalog.json",
+    "materialization": ".starter/materialization.json",
+    "packTemplates": "packs/"
   },
   "controller": {
     "high": "Sol",

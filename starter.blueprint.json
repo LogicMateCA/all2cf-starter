@@ -147,7 +147,7 @@
           "developmentVerified": false,
           "productionReleased": false
         },
-        "note": "Optional Web-only map pack; mobile mapping will use a separate native-aware pack."
+        "note": "Optional Web-only map pack with verified plan/apply/removal; browser WebGL and a real map provider remain project-level gates. Mobile mapping uses a separate native-aware pack."
       }
     ]
   },

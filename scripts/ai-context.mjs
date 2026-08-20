@@ -18,6 +18,7 @@ const compact = {
     pageSet: context.assembly.blueprint.pageSet,
     selections: context.assembly.blueprint.selections,
     providers: context.assembly.blueprint.providers,
+    materialization: context.assembly.materialization,
     catalogVersion: context.assembly.catalog.catalogVersion,
     catalogPresets: context.assembly.catalog.presets,
     catalogPacks: context.assembly.catalog.packs.map(({ id, kind, status, ownership, updatePolicy }) => ({ id, kind, status, ownership, updatePolicy })),
@@ -47,7 +48,7 @@ const compact = {
     productionMatchesCurrent: Boolean(context.source.commit && operationalState.releases?.production?.commit === context.source.commit),
     dirty: context.source.dirty
   } : null,
-  recommendedReads: ["AGENTS.md", "PROJECT.md", "starter.blueprint.json", "catalog/catalog.json", "design/catalog.json", "pages/catalog.json", "DESIGN.md", ...context.changes.map(({ path: changePath }) => changePath), ...context.modules.map(({ path: modulePath }) => modulePath)],
+  recommendedReads: ["AGENTS.md", "PROJECT.md", "starter.blueprint.json", ".starter/materialization.json", "catalog/catalog.json", "design/catalog.json", "pages/catalog.json", "packs/", "DESIGN.md", ...context.changes.map(({ path: changePath }) => changePath), ...context.modules.map(({ path: modulePath }) => modulePath)],
 };
 
 console.log(JSON.stringify(compact, null, 2));

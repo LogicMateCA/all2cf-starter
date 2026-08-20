@@ -1,0 +1,118 @@
+.map-capability-main {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 56px 0 72px;
+}
+
+.map-capability-main > header {
+  max-width: 680px;
+  margin-bottom: 28px;
+}
+
+.map-capability-main > header > span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.map-capability-main h1 {
+  margin: 8px 0 10px;
+  font-size: clamp(2rem, 5vw, 4.4rem);
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+
+.map-capability-main header p,
+.map-config-note {
+  color: var(--muted);
+}
+
+.map-config-note {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-soft);
+  font-size: 0.9rem;
+}
+
+.starter-map {
+  position: relative;
+  min-height: 560px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface-soft);
+}
+
+.starter-map-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.starter-map-state {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--canvas) 80%, transparent);
+  text-align: center;
+}
+
+.starter-map[data-state="ready"] .starter-map-state {
+  display: none;
+}
+
+.starter-map-marker {
+  width: 20px;
+  height: 20px;
+  border: 3px solid white;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 6px 18px rgb(15 23 42 / 0.3);
+  cursor: pointer;
+}
+
+.starter-map-marker:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.maplibregl-popup-content {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  background: var(--surface);
+  box-shadow: 0 16px 44px rgb(15 23 42 / 0.18);
+}
+
+.maplibregl-popup-content p {
+  margin: 5px 0 0;
+  color: var(--muted);
+}
+
+@media (max-width: 720px) {
+  .map-capability-main {
+    width: min(100% - 24px, 1180px);
+    padding-top: 36px;
+  }
+
+  .starter-map {
+    min-height: 66dvh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .starter-map *,
+  .starter-map *::before,
+  .starter-map *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

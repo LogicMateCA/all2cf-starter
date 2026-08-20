@@ -105,12 +105,13 @@ function environmentFromConfig(id, config, manifestEnvironment) {
 }
 
 export async function collectKnowledge(root) {
-  const [manifest, blueprint, catalog, designCatalog, pageCatalog, aiManifest, orchestrationSource, bindings, developmentConfig, productionConfig] = await Promise.all([
+  const [manifest, blueprint, catalog, designCatalog, pageCatalog, materialization, aiManifest, orchestrationSource, bindings, developmentConfig, productionConfig] = await Promise.all([
     readJson(root, "starter.manifest.json"),
     readJson(root, "starter.blueprint.json"),
     readJson(root, "catalog/catalog.json"),
     readJson(root, "design/catalog.json"),
     readJson(root, "pages/catalog.json"),
+    readJson(root, ".starter/materialization.json"),
     readJson(root, ".ai/manifest.json"),
     readFile(path.join(root, ".ai/orchestration.yaml"), "utf8"),
     readJson(root, "cloudflare/bindings.contract.json"),
@@ -156,6 +157,12 @@ export async function collectKnowledge(root) {
       },
       designCatalog,
       pageCatalog,
+      materialization: {
+        schemaVersion: materialization.schemaVersion,
+        packs: Object.entries(materialization.packs || {}).map(([id, value]) => ({ id, version: value.version, files: Object.keys(value.files || {}).length })),
+        dependencyCount: Object.keys(materialization.dependencies || {}).length,
+        generatedRoutesHash: materialization.generatedRoutesHash,
+      },
     },
     modules,
     changes: await collectChanges(root),

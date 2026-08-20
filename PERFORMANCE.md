@@ -14,6 +14,7 @@ source: "starter"
 - Initial JavaScript: `< 180KB` gzip until a project-specific budget replaces it.
 - Desktop Chart code must be lazy-loaded outside the main route bundle.
 - Capability packs with heavy clients, including MapLibre, editors, and advanced charts, must be dynamically imported and excluded from routes that do not select or render them.
+- The MapCN Web pack caps its route-only MapLibre JavaScript at `300KB` gzip and route CSS, including MapLibre's required stylesheet, at `20KB` gzip. The verified selected build measured about `247KB` and `11KB`; the deselected rebuild contained no MapLibre or MapCN asset.
 - Mobile Web foundation JavaScript: `< 400KB` gzip before product templates and features; every project must replace this provisional ceiling with measured route budgets.
 - Docs initial JavaScript: `< 20KB` gzip; Pagefind search and its WASM index load outside the initial document path, with each search artifact capped at `600KB` raw.
 - Current auth-enabled evidence: Desktop public main route is about `63KB` gzip, Desktop auth/account code is lazy-loaded, Mobile Web is about `386KB` gzip, iOS Hermes bytecode is about `2.96MB`, and Android Hermes bytecode is about `3.27MB`.

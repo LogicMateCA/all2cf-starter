@@ -21,6 +21,17 @@ if (target === "all" || target === "web") {
   const directory = path.join(root, "dist/web/assets");
   for (const file of await files(directory, /^index-.*\.js$/u)) await measure(file, 180_000, "gzip");
   for (const file of await files(directory, /^technology-status-chart-.*\.js$/u)) await measure(file, 130_000, "gzip");
+  const blueprint = JSON.parse(await readFile(path.join(root, "starter.blueprint.json"), "utf8"));
+  const mapSelected = blueprint.selections.capabilities.some(({ id, lifecycle }) => id === "capability.mapcn-web" && lifecycle.selected && lifecycle.materialized);
+  const mapScripts = await files(directory, /^maplibre-gl-.*\.js$/u);
+  const mapStyles = await files(directory, /^mapcn-web-page-.*\.css$/u);
+  if (mapSelected) {
+    if (mapScripts.length !== 1 || mapStyles.length !== 1) results.push({ file: "MapCN route assets", metric: "presence", bytes: mapScripts.length + mapStyles.length, budget: 2, ok: false });
+    for (const file of mapScripts) await measure(file, 300_000, "gzip");
+    for (const file of mapStyles) await measure(file, 20_000, "gzip");
+  } else if (mapScripts.length || mapStyles.length) {
+    results.push({ file: "unselected MapCN route assets", metric: "presence", bytes: mapScripts.length + mapStyles.length, budget: 0, ok: false });
+  }
 }
 
 if (target === "all" || target === "docs") {

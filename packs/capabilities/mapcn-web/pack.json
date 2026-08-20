@@ -1,0 +1,42 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "capability.mapcn-web",
+  "version": "0.1.0",
+  "source": {
+    "name": "MapCN",
+    "url": "https://github.com/AnmolSaini16/mapcn",
+    "revision": "d5d287dfdb214c349342f30e407a7c6cf81c4e84",
+    "license": "MIT",
+    "relationship": "adapted-donor"
+  },
+  "files": [
+    {
+      "source": "templates/mapcn-web-map.tsx",
+      "target": "apps/web/src/components/capabilities/mapcn-web-map.tsx"
+    },
+    {
+      "source": "templates/mapcn-web-page.tsx",
+      "target": "apps/web/src/components/capabilities/mapcn-web-page.tsx"
+    },
+    {
+      "source": "templates/mapcn-web.css",
+      "target": "apps/web/src/components/capabilities/mapcn-web.css"
+    }
+  ],
+  "dependencies": [
+    {
+      "packageFile": "apps/web/package.json",
+      "section": "dependencies",
+      "name": "maplibre-gl",
+      "version": "6.4.1"
+    }
+  ],
+  "routes": [
+    {
+      "path": "/map",
+      "module": "../components/capabilities/mapcn-web-page",
+      "export": "MapCapabilityPage"
+    }
+  ]
+}

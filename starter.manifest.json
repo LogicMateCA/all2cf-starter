@@ -30,8 +30,8 @@
     },
     {
       "area": "Project materialization",
-      "choice": "Deterministic selected-pack application with drift and removal plans",
-      "status": "planned"
+      "choice": "Receipt-backed deterministic pack plan/apply/check with collision-safe file and dependency removal",
+      "status": "local-verified"
     },
     {
       "area": "Design engine",
@@ -91,6 +91,11 @@
     {
       "area": "Web charts",
       "choice": "shadcn Chart over Recharts 3.10.1; Bklit advanced and ECharts heavy analytics opt-in",
+      "status": "implemented"
+    },
+    {
+      "area": "Web maps",
+      "choice": "Optional owned MapCN adaptation over MapLibre GL 6.4.1 with explicit map-provider configuration",
       "status": "implemented"
     },
     {

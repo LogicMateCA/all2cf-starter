@@ -1,7 +1,7 @@
 {
   "$schema": "../schemas/starter-catalog.schema.json",
   "schemaVersion": "starter-catalog/v1",
-  "catalogVersion": "0.4.0",
+  "catalogVersion": "0.5.0",
   "policies": {
     "betterAuth": "Better Auth core and every selected official plugin move as one stable-compatible version line with generated schema comparison and reviewed SQL migrations.",
     "ownedAdapters": "StyleKit, PowerAI, and MapCN are donor inputs. Accepted code is adapted, licensed, tested, versioned, and maintained by Starter without automatic upstream source sync.",
@@ -224,7 +224,7 @@
       "kind": "capability",
       "name": "MapCN Web maps",
       "version": "0.1.0",
-      "status": "planned",
+      "status": "implemented",
       "targets": ["desktop-web", "admin"],
       "ownership": "starter-owned",
       "source": [
@@ -243,10 +243,10 @@
       ],
       "updatePolicy": "runtime-stable",
       "provides": ["owned shadcn-aligned Web map components", "MapLibre rendering", "lazy map route boundary"],
-      "requires": ["explicit Blueprint selection", "map style and data source configuration"],
+      "requires": ["explicit Blueprint selection and materialization", "map style and data source configuration"],
       "conflicts": ["native Expo target", "eager loading on non-map routes"],
-      "performance": ["dynamic import", "map assets excluded from core Web bundle", "viewport-bounded data loading"],
-      "verification": ["map route smoke", "bundle isolation", "keyboard and reduced-motion checks"],
+      "performance": ["dynamic import", "300 KB gzip MapLibre route budget", "map assets excluded from unselected core Web bundle", "viewport-bounded data loading"],
+      "verification": ["select/apply/build/deselect removal cycle", "map route browser smoke", "bundle isolation", "keyboard and reduced-motion checks"],
       "documentation": ["features/assembler/MODULE.md", "PERFORMANCE.md"]
     }
   ]

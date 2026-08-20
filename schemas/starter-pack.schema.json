@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://starter.local/schemas/starter-pack.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "version", "source", "files", "dependencies", "routes"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "starter-pack/v1" },
+    "id": { "type": "string", "pattern": "^(design|page|saas|capability)\\.[a-z0-9-]+$" },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "url", "revision", "license", "relationship"],
+      "properties": {
+        "name": { "type": "string" },
+        "url": { "type": "string" },
+        "revision": { "type": "string" },
+        "license": { "type": "string" },
+        "relationship": { "enum": ["adapted-donor", "starter-original"] }
+      }
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source", "target"],
+        "properties": {
+          "source": { "type": "string" },
+          "target": { "type": "string" }
+        }
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["packageFile", "section", "name", "version"],
+        "properties": {
+          "packageFile": { "type": "string" },
+          "section": { "enum": ["dependencies", "devDependencies"] },
+          "name": { "type": "string" },
+          "version": { "type": "string" }
+        }
+      }
+    },
+    "routes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "module", "export"],
+        "properties": {
+          "path": { "type": "string", "pattern": "^/" },
+          "module": { "type": "string" },
+          "export": { "type": "string", "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*$" }
+        }
+      }
+    }
+  }
+}

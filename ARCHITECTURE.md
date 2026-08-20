@@ -25,6 +25,7 @@ Project initialization replaces generic names and records the smallest accurate 
 ## Configuration and knowledge boundaries
 
 - `/setup` is local-only configuration UI, not a public product route. It writes reviewed changes to `starter.blueprint.json` and `starter.config.json`, invokes the transactional identity synchronizer, and refreshes `/dp`; it does not mutate Cloudflare or database infrastructure directly. Both deployed Workers reject `/setup` and `/__starter/*` before static asset fallback.
+- `/setup` records intent; it does not silently install packages. AI runs the read-only materialization plan, reviews collisions, then explicitly applies it. Pack manifests own exact files, dependencies, and lazy routes, while `.starter/materialization.json` records hashes needed for idempotency and safe removal.
 - `starter.blueprint.json` answers what this project selected and how far each selection has progressed.
 - `catalog/catalog.json` answers what Starter can assemble and the contract for each pack.
 - `design/catalog.json` answers which owned visual profile is selected, its normalized semantic tokens and rules, donor provenance, and readiness of each platform adapter.
@@ -40,7 +41,8 @@ Each Catalog pack declares targets, ownership, provenance and license, update po
 - Design Catalog: owned profiles and adapters for shadcn Web/Admin, Astro pages, Starlight Docs, and Tamagui brand seeds. The initial catalog contains Owned Neutral plus Precision SaaS, Editorial Signal, and Midnight Control. StyleKit is an audited, commit-pinned donor, never a runtime service.
 - Page Catalog: owned core and optional route definitions. PowerAI Astro is a pinned, licensed information-architecture donor whose brand, theme, demo content, auth behavior, and unnecessary client islands are rejected. Public marketing and growth routes are static-first Astro; `/login`, `/app`, `/support`, and `/admin` are React/shadcn product surfaces; `/docs` uses Starlight.
 - SaaS Catalog: identity, account, lightweight operations, team, API, billing, and other product presets. OpenSaaS and LastSaaS are product-logic references, not copied foundations.
-- Capability Catalog: independently selectable capabilities such as maps, charts, uploads, search, AI, realtime, queues, and observability. MapCN is the first planned Web pack; its adapted components become owned source while MapLibre remains a normal runtime dependency.
+- Capability Catalog: independently selectable capabilities such as maps, charts, uploads, search, AI, realtime, queues, and observability. MapCN is the first implemented Web pack; its adapted components become owned source while MapLibre remains a normal runtime dependency only when selected.
+- Optional source templates live under `packs/` and are excluded from application imports. The generated capability route registry has no imports when no capability is selected; selecting MapCN materializes its owned files and exact MapLibre dependency, while deselection removes them only when the receipt still matches.
 - Presets compose catalog IDs rather than duplicating implementations. Basic Product contains the required core; Team SaaS adds Better Auth organizations and Stripe; API Platform adds API keys, signed webhooks, usage, and developer docs; Custom records explicit deviations.
 
 ## Decisions
