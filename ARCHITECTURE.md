@@ -16,6 +16,7 @@ Assembly control flow:
 
 - `apps/web` is a Desktop Web product optimized for mouse, keyboard, large-screen density, dashboards, tables, and complex operations.
 - `apps/mobile` is a separate touch-first Expo Router product whose UI source targets Mobile Web, iOS, and Android.
+- `apps/docs` is a static Astro/Starlight workspace. Its collision-checked output is merged under `/docs` into the existing Worker asset artifact; it does not create a second Worker or server runtime.
 - Desktop and Mobile do not share pages, navigation, layout, UI components, or presentation tokens. They may share API/domain types, auth and permission contracts, i18n keys, telemetry events, and base brand assets.
 - Mobile Web uses Expo Router's `single` output because it is an authenticated application rather than an SEO-oriented document site. Its hosting domain and release target remain undecided.
 

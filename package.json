@@ -51,17 +51,21 @@
     "change:check": "node scripts/change-spec-check.mjs",
     "build:dp": "npm run knowledge:sync",
     "build:web": "npm run build --workspace apps/web",
+    "build:docs": "npm run build --workspace apps/docs",
+    "merge:docs": "node scripts/merge-docs-build.mjs",
     "bundle:check:web": "node scripts/bundle-budget.mjs web",
+    "bundle:check:docs": "node scripts/bundle-budget.mjs docs",
     "bundle:check:mobile": "node scripts/bundle-budget.mjs mobile",
-    "build": "npm run build:dp && npm run build:web",
+    "build": "npm run build:dp && npm run build:web && npm run build:docs && npm run merge:docs",
     "dev:web": "npm run build:dp && npm run dev --workspace apps/web",
+    "dev:docs": "npm run dev --workspace apps/docs",
     "setup": "npm run build:dp && npm run dev --workspace apps/web",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "cf:types": "wrangler types --config cloudflare/wrangler.development.jsonc workers/app/worker-configuration.development.d.ts && wrangler types --config cloudflare/wrangler.production.jsonc workers/app/worker-configuration.production.d.ts",
     "cf:types:check": "wrangler types --check --config cloudflare/wrangler.development.jsonc workers/app/worker-configuration.development.d.ts && wrangler types --check --config cloudflare/wrangler.production.jsonc workers/app/worker-configuration.production.d.ts",
     "cf:dry-run:dev": "wrangler deploy --dry-run --config cloudflare/wrangler.development.jsonc --outdir dist/worker-development",
     "cf:dry-run:production": "wrangler deploy --dry-run --config cloudflare/wrangler.production.jsonc --outdir dist/worker-production",
-    "verify": "npm run ai:doctor && npm run knowledge:sync && npm run knowledge:check && npm run change:check && npm run cf:types && npm run cf:types:check && npm run typecheck && npm run build && npm run bundle:check:web && npm run cf:dry-run:dev && npm run cf:dry-run:production"
+    "verify": "npm run ai:doctor && npm run knowledge:sync && npm run knowledge:check && npm run change:check && npm run cf:types && npm run cf:types:check && npm run typecheck && npm run build && npm run bundle:check:web && npm run bundle:check:docs && npm run cf:dry-run:dev && npm run cf:dry-run:production"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "5.20260820.1",
@@ -69,7 +73,7 @@
     "jsonc-parser": "3.3.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "typescript": "7.0.2",
+    "typescript": "6.0.3",
     "wrangler": "4.124.0",
     "yaml": "2.9.0"
   }

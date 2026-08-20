@@ -19,7 +19,7 @@
         "dark": { "background": "#0b1020", "surface": "#121a2b", "foreground": "#f5f7fb", "muted": "#98a5ba", "accent": "#7da2ff", "border": "#28344a", "danger": "#ff8a80" }
       },
       "rules": { "do": ["Use whitespace and typography for hierarchy", "Keep operational surfaces dense but readable", "Show real state and evidence"], "dont": ["Decorative gradients without meaning", "Nested cards for every group", "Motion that delays a task"] },
-      "adapters": { "marketing": "local-verified", "desktop-web": "production-released", "admin": "defined", "docs": "defined", "mobile": "local-verified" },
+      "adapters": { "marketing": "local-verified", "desktop-web": "production-released", "admin": "defined", "docs": "local-verified", "mobile": "local-verified" },
       "quality": { "contrast": "WCAG AA", "reducedMotion": true, "fontBudget": "two families maximum", "assetPolicy": "route-specific" }
     },
     {

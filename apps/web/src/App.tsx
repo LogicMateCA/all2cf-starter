@@ -194,7 +194,7 @@ function lifecycleStage(lifecycle: Lifecycle) {
 function Home() {
   const { data } = useSnapshot();
   return <div className="home-grid"><div className="home-wrap">
-    <header className="home-header"><Brand name={data.project.title} /><div className="home-actions"><a href="/dp">Development plan</a><AccountSlot compact /></div></header>
+    <header className="home-header"><Brand name={data.project.title} /><div className="home-actions"><a href="/docs/">Docs</a><a href="/dp">Development plan</a><AccountSlot compact /></div></header>
     <main className="home-main"><div>
       <p className="home-kicker"><CircleDot size={16} /> AI-readable Cloudflare starter</p>
       <h1>Understand the system.<br /><span>Then change it.</span></h1>

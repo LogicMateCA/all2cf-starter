@@ -9,6 +9,7 @@ const lockfile = JSON.parse(await readFile(path.join(root, "package-lock.json"),
 const manifests = await Promise.all([
   "package.json",
   "apps/web/package.json",
+  "apps/docs/package.json",
   "apps/mobile/package.json",
   "workers/app/package.json",
 ].map(async (file) => ({ file, value: JSON.parse(await readFile(path.join(root, file), "utf8")) })));

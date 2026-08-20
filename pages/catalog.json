@@ -170,7 +170,7 @@
       "renderer": "starlight",
       "required": true,
       "defaultSelected": true,
-      "status": "planned",
+      "status": "local-verified",
       "sourceStrategy": "starter-original",
       "sections": ["getting-started", "product-guides", "reference", "operations"],
       "acceptance": ["Markdown source", "searchable", "separate from internal /dp"]

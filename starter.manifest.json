@@ -120,8 +120,8 @@
     },
     {
       "area": "Docs",
-      "choice": "Astro Starlight",
-      "status": "planned"
+      "choice": "Astro 7.2.4 + Starlight 0.41.7 static build merged under /docs on the existing Worker",
+      "status": "local-verified"
     },
     {
       "area": "AI controller",

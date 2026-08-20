@@ -15,6 +15,7 @@ source: "starter"
 - Desktop Chart code must be lazy-loaded outside the main route bundle.
 - Capability packs with heavy clients, including MapLibre, editors, and advanced charts, must be dynamically imported and excluded from routes that do not select or render them.
 - Mobile Web foundation JavaScript: `< 400KB` gzip before product templates and features; every project must replace this provisional ceiling with measured route budgets.
+- Docs initial JavaScript: `< 20KB` gzip; Pagefind search and its WASM index load outside the initial document path, with each search artifact capped at `600KB` raw.
 - Current auth-enabled evidence: Desktop public main route is about `63KB` gzip, Desktop auth/account code is lazy-loaded, Mobile Web is about `386KB` gzip, iOS Hermes bytecode is about `2.96MB`, and Android Hermes bytecode is about `3.27MB`.
 - Interactive reads: normally no more than two PostgreSQL round trips; writes normally no more than four.
 

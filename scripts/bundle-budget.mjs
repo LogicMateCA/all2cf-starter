@@ -23,6 +23,18 @@ if (target === "all" || target === "web") {
   for (const file of await files(directory, /^technology-status-chart-.*\.js$/u)) await measure(file, 130_000, "gzip");
 }
 
+if (target === "all" || target === "docs") {
+  const docsRoot = path.join(root, "dist/web");
+  const html = (await readFile(path.join(docsRoot, "docs/index.html"))).toString();
+  const initialScripts = [...html.matchAll(/src="\/_docs\/([^"]+\.js)"/gu)].map((match) => path.join(docsRoot, "_docs", match[1]));
+  let initialBytes = 0;
+  for (const file of initialScripts) initialBytes += gzipSync(await readFile(file)).byteLength;
+  results.push({ file: "dist/web/docs/index.html initial scripts", metric: "gzip", bytes: initialBytes, budget: 20_000, ok: initialBytes <= 20_000 });
+  const searchFiles = await readdir(path.join(docsRoot, "pagefind"), { recursive: true });
+  const wasmFiles = searchFiles.filter((file) => String(file).endsWith(".pagefind")).map((file) => path.join(docsRoot, "pagefind", String(file)));
+  for (const file of wasmFiles) await measure(file, 600_000, "raw");
+}
+
 if (target === "all" || target === "mobile") {
   const mobile = path.join(root, "apps/mobile/dist/_expo/static/js");
   for (const file of await files(path.join(mobile, "web"), /\.js$/u)) await measure(file, 400_000, "gzip");
