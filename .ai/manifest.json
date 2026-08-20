@@ -6,7 +6,8 @@
     "changes": "change-spec",
     "selection": "starter.blueprint.json",
     "catalog": "catalog/catalog.json",
-    "designProfiles": "design/catalog.json"
+    "designProfiles": "design/catalog.json",
+    "pages": "pages/catalog.json"
   },
   "controller": {
     "high": "Sol",

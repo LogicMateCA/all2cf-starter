@@ -46,21 +46,23 @@ function localSetupApi(): Plugin {
         }
 
         try {
-          const [manifestSource, blueprintSource, catalogSource, designCatalogSource, configSource] = await Promise.all([
+          const [manifestSource, blueprintSource, catalogSource, designCatalogSource, pageCatalogSource, configSource] = await Promise.all([
             readFile(path.join(repositoryRoot, 'starter.manifest.json'), 'utf8'),
             readFile(path.join(repositoryRoot, 'starter.blueprint.json'), 'utf8'),
             readFile(path.join(repositoryRoot, 'catalog/catalog.json'), 'utf8'),
             readFile(path.join(repositoryRoot, 'design/catalog.json'), 'utf8'),
+            readFile(path.join(repositoryRoot, 'pages/catalog.json'), 'utf8'),
             readFile(path.join(repositoryRoot, 'starter.config.json'), 'utf8'),
           ])
           const manifest = JSON.parse(manifestSource)
           const catalog = JSON.parse(catalogSource)
           const designCatalog = JSON.parse(designCatalogSource)
+          const pageCatalog = JSON.parse(pageCatalogSource)
           const config = JSON.parse(configSource)
 
           if (request.method === 'GET') {
             response.statusCode = 200
-            response.end(json({ blueprint: JSON.parse(blueprintSource), catalog, designCatalog, config }))
+            response.end(json({ blueprint: JSON.parse(blueprintSource), catalog, designCatalog, pageCatalog, config }))
             return
           }
           if (request.method !== 'PUT') {
@@ -80,7 +82,7 @@ function localSetupApi(): Plugin {
           if (!blueprint || !nextConfig) throw new Error('Blueprint and Starter configuration are required.')
           if (blueprint.project?.name !== nextConfig.project?.name || blueprint.project?.slug !== nextConfig.project?.slug) throw new Error('Blueprint and Starter configuration identities must match.')
           const nextManifest = { ...manifest, project: { name: blueprint.project.name, slug: blueprint.project.slug } }
-          const failures = validateAssemblyContracts(nextManifest, blueprint, catalog, designCatalog)
+          const failures = validateAssemblyContracts(nextManifest, blueprint, catalog, designCatalog, pageCatalog)
           if (failures.length) {
             response.statusCode = 400
             response.end(json({ error: 'Blueprint validation failed.', failures }))
@@ -112,7 +114,7 @@ function localSetupApi(): Plugin {
             throw error
           }
           response.statusCode = 200
-          response.end(json({ blueprint, catalog, designCatalog, config: nextConfig }))
+          response.end(json({ blueprint, catalog, designCatalog, pageCatalog, config: nextConfig }))
         } catch (error) {
           response.statusCode = 400
           response.end(json({ error: error instanceof Error ? error.message : String(error) }))

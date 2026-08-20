@@ -64,6 +64,7 @@ type CatalogPack = {
   source?: Array<{ name: string; relationship: string }>;
 };
 type DesignProfile = { id: string; version: string; packId: string; name: string; description: string; status: string; targets: string[]; adapters: Record<string, string> };
+type PageDefinition = { id: string; packId: string; name: string; route: string; group: string; renderer: string; required: boolean; defaultSelected: boolean; status: string };
 type Snapshot = {
   schemaVersion: string;
   generatedAt: string;
@@ -75,12 +76,14 @@ type Snapshot = {
       status: string;
       preset: string;
       designProfile: { id: string; version: string };
+      pageSet: { selected: string[] };
       setup: { entry: string; status: string; currentStep: string; completedSteps: string[] };
       selections: Record<"design" | "pages" | "saas" | "capabilities", BlueprintSelection[]>;
       providers: { auth: string; socialAuth: string[]; database: string; email: { default: string; alternatives: string[] }; billing: string; release: string };
     };
     catalog: { schemaVersion: string; catalogVersion: string; policies: Record<string, string>; presets: Array<{ id: string; name: string; description: string; selections: string[] }>; packs: CatalogPack[] };
     designCatalog: { schemaVersion: string; catalogVersion: string; sourcePolicy: string; profiles: DesignProfile[] };
+    pageCatalog: { schemaVersion: string; catalogVersion: string; policy: string; pages: PageDefinition[] };
   };
   modules: ModuleDocument[];
   changes: Array<{ id: string; title: string; status: string; summary: string }>;
@@ -120,12 +123,14 @@ const fallback: Snapshot = {
       status: "draft",
       preset: "basic-product",
       designProfile: { id: "owned-neutral", version: "0.1.0" },
+      pageSet: { selected: [] },
       setup: { entry: "/setup", status: "not-started", currentStep: "identity", completedSteps: [] },
       selections: { design: [], pages: [], saas: [], capabilities: [] },
       providers: { auth: "better-auth", socialAuth: ["google"], database: "postgresql-sql-first", email: { default: "cfsend", alternatives: ["resend", "cloudflare-email-service"] }, billing: "better-auth-stripe", release: "cloudflare-workers" },
     },
-    catalog: { schemaVersion: "starter-catalog/v1", catalogVersion: "0.2.0", policies: {}, presets: [], packs: [] },
+    catalog: { schemaVersion: "starter-catalog/v1", catalogVersion: "0.3.0", policies: {}, presets: [], packs: [] },
     designCatalog: { schemaVersion: "starter-design-catalog/v1", catalogVersion: "0.1.0", sourcePolicy: "Starter-owned profiles", profiles: [] },
+    pageCatalog: { schemaVersion: "starter-page-catalog/v1", catalogVersion: "0.1.0", policy: "Starter-owned routes", pages: [] },
   },
   modules: [],
   changes: [],
@@ -237,7 +242,7 @@ function DevelopmentPlan() {
 
         <Section id="blueprint" title="Project Blueprint" description="The canonical selection record behind /setup, with realization tracked separately from intent." icon={Settings2}>
           <div className="assembly-summary">
-            <Surface><span className="role-label">Setup workspace</span><h3>{data.assembly.blueprint.setup.entry}</h3><dl className="compact-facts"><div><dt>Status</dt><dd>{data.assembly.blueprint.setup.status}</dd></div><div><dt>Preset</dt><dd>{data.assembly.blueprint.preset}</dd></div><div><dt>Design</dt><dd>{data.assembly.blueprint.designProfile.id} / {data.assembly.blueprint.designProfile.version}</dd></div><div><dt>Blueprint</dt><dd>{data.assembly.blueprint.status}</dd></div></dl></Surface>
+            <Surface><span className="role-label">Setup workspace</span><h3>{data.assembly.blueprint.setup.entry}</h3><dl className="compact-facts"><div><dt>Status</dt><dd>{data.assembly.blueprint.setup.status}</dd></div><div><dt>Preset</dt><dd>{data.assembly.blueprint.preset}</dd></div><div><dt>Design</dt><dd>{data.assembly.blueprint.designProfile.id} / {data.assembly.blueprint.designProfile.version}</dd></div><div><dt>Pages</dt><dd>{data.assembly.blueprint.pageSet.selected.length}</dd></div><div><dt>Blueprint</dt><dd>{data.assembly.blueprint.status}</dd></div></dl></Surface>
             <Surface><span className="role-label">Provider defaults</span><h3>{data.assembly.blueprint.providers.auth}</h3><dl className="compact-facts"><div><dt>Social</dt><dd>{data.assembly.blueprint.providers.socialAuth.join(", ") || "none"}</dd></div><div><dt>Email</dt><dd>{data.assembly.blueprint.providers.email.default}</dd></div><div><dt>Billing</dt><dd>{data.assembly.blueprint.providers.billing}</dd></div></dl></Surface>
           </div>
           <div className="selection-groups">{Object.entries(data.assembly.blueprint.selections).map(([group, selections]) => <Surface key={group} className="selection-group"><div className="selection-group-head"><h3>{group}</h3><span>{selections.filter(({ lifecycle }) => lifecycle.selected).length} selected</span></div><div>{selections.map((selection) => { const stage = lifecycleStage(selection.lifecycle); return <div className="selection-row" key={selection.id}><code>{selection.id}</code><span className={`status ${stage}`}>{stage}</span></div>; })}</div></Surface>)}</div>
@@ -246,6 +251,7 @@ function DevelopmentPlan() {
         <Section id="catalog" title="Internal pack catalog" description="Owned assembly choices with explicit provenance, target platforms, and update behavior." icon={Library}>
           <div className="preset-grid">{data.assembly.catalog.presets.map((preset) => <Surface key={preset.id}><span className="role-label">{preset.name}</span><p>{preset.description}</p><small>{preset.selections.length} baseline packs</small></Surface>)}</div>
           <div className="preset-grid">{data.assembly.designCatalog.profiles.map((profile) => <Surface key={profile.id}><span className={`status ${profile.status}`}>{profile.status}</span><h3>{profile.name}</h3><p>{profile.description}</p><small>{profile.id} / v{profile.version} / {profile.targets.join(", ")}</small></Surface>)}</div>
+          <Surface className="catalog-table"><div className="catalog-row catalog-header"><span>Page</span><span>Route and renderer</span><span>Pack</span><span>Status</span></div>{data.assembly.pageCatalog.pages.map((page) => <div className="catalog-row" key={page.id}><div><strong>{page.name}</strong><small>{page.id}{page.required ? " / required" : ""}</small></div><div><p>{page.route}</p><small>{page.renderer} / {page.group}</small></div><div><strong>{page.packId}</strong><small>{data.assembly.blueprint.pageSet.selected.includes(page.id) ? "selected" : "available"}</small></div><span className={`status ${page.status}`}>{page.status}</span></div>)}</Surface>
           <Surface className="catalog-table"><div className="catalog-row catalog-header"><span>Pack</span><span>Targets and source</span><span>Ownership</span><span>Status</span></div>{data.assembly.catalog.packs.map((pack) => <div className="catalog-row" key={pack.id}><div><strong>{pack.name}</strong><small>{pack.id} / {pack.version}</small></div><div><p>{pack.targets.join(", ")}</p><small>{pack.source?.length ? pack.source.map(({ name, relationship }) => `${name}: ${relationship}`).join(", ") : "Starter original"}</small></div><div><strong>{pack.ownership}</strong><small>{pack.updatePolicy}</small></div><span className={`status ${pack.status}`}>{pack.status}</span></div>)}</Surface>
         </Section>
 

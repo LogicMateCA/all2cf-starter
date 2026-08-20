@@ -7,6 +7,22 @@
     "id": "owned-neutral",
     "version": "0.1.0"
   },
+  "pageSet": {
+    "selected": [
+      "marketing.home",
+      "marketing.features",
+      "marketing.pricing",
+      "company.about",
+      "company.contact",
+      "product.changelog",
+      "legal.privacy",
+      "legal.terms",
+      "auth.login",
+      "auth.account",
+      "docs.public",
+      "system.not-found"
+    ]
+  },
   "project": {
     "name": "Cloudflare AI Starter",
     "slug": "starter",

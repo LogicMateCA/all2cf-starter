@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://starter.local/schemas/page-catalog.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "catalogVersion", "policy", "donorAudit", "pages"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "starter-page-catalog/v1" },
+    "catalogVersion": { "type": "string" },
+    "policy": { "type": "string" },
+    "donorAudit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "url", "revision", "license", "accepted", "rejected"],
+      "properties": {
+        "name": { "type": "string" },
+        "url": { "type": "string" },
+        "revision": { "type": "string" },
+        "license": { "type": "string" },
+        "accepted": { "type": "array", "items": { "type": "string" } },
+        "rejected": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "packId", "name", "route", "group", "renderer", "required", "defaultSelected", "status", "sourceStrategy", "sections", "acceptance"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9.-]*$" },
+          "packId": { "type": "string", "pattern": "^page\\.[a-z0-9-]+$" },
+          "name": { "type": "string" },
+          "route": { "type": "string" },
+          "group": { "enum": ["marketing", "company", "product", "legal", "auth", "docs", "system", "growth"] },
+          "renderer": { "enum": ["astro-static", "react-app", "starlight"] },
+          "required": { "type": "boolean" },
+          "defaultSelected": { "type": "boolean" },
+          "status": { "enum": ["defined", "planned", "implemented", "local-verified", "development-verified", "production-released"] },
+          "sourceStrategy": { "enum": ["starter-original", "powerai-structure-adapted"] },
+          "sections": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+          "acceptance": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+        }
+      }
+    }
+  }
+}

@@ -3,7 +3,7 @@
   "$id": "https://starter.local/schemas/starter-blueprint.schema.json",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "status", "preset", "designProfile", "project", "setup", "selections", "providers", "environments"],
+  "required": ["schemaVersion", "status", "preset", "designProfile", "pageSet", "project", "setup", "selections", "providers", "environments"],
   "$defs": {
     "lifecycle": {
       "type": "object",
@@ -40,6 +40,18 @@
       "properties": {
         "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
         "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" }
+      }
+    },
+    "pageSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["selected"],
+      "properties": {
+        "selected": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9.-]*$" },
+          "uniqueItems": true
+        }
       }
     },
     "project": {

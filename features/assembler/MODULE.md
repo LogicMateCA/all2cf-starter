@@ -9,6 +9,7 @@ source: starter
 Purpose: turn a product brief and explicit `/setup` selections into a small, owned, verifiable project instead of copying every possible feature into every new repository.
 
 - `/setup` is the local configuration workspace. It collects identity, platforms, design profile, page packs, SaaS modules, capability packs, providers, and environment choices. Deployed Development and Production Workers reject `/setup` and its local API.
+- The Pages step reads `pages/catalog.json` and selects routes individually. Required auth, legal, docs, home, and 404 surfaces cannot be removed; selecting an optional growth route selects its backing pack, while removing the last route removes that pack.
 - Saving a project plan writes the Blueprint and `starter.config.json`, then reuses the transactional identity synchronizer and regenerates `/dp`. A first copied-project identity change must replace canonical Starter resource names.
 - `starter.blueprint.json` is the canonical selection and realization record. It distinguishes selected, materialized, locally verified, Development verified, and Production released states.
 - `catalog/catalog.json` is the AI-readable internal catalog. Every pack declares targets, ownership, provenance, update policy, requirements, conflicts, performance constraints, verification, and documentation impact.

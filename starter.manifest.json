@@ -39,6 +39,11 @@
       "status": "defined"
     },
     {
+      "area": "Page engine",
+      "choice": "Owned route-level Page Catalog; PowerAI structure donor; Astro static public pages, React product routes, and Starlight Docs",
+      "status": "local-verified"
+    },
+    {
       "area": "Web",
       "choice": "React 19.2.3 + Vite 8.2.2",
       "status": "local-verified"

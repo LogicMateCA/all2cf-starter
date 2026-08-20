@@ -1,8 +1,9 @@
-export function validateAssemblyContracts(manifest, blueprint, catalog, designCatalog) {
+export function validateAssemblyContracts(manifest, blueprint, catalog, designCatalog, pageCatalog) {
   const failures = [];
   if (blueprint.schemaVersion !== "starter-blueprint/v1") failures.push("starter.blueprint.json must use starter-blueprint/v1");
   if (catalog.schemaVersion !== "starter-catalog/v1") failures.push("catalog/catalog.json must use starter-catalog/v1");
   if (designCatalog?.schemaVersion !== "starter-design-catalog/v1") failures.push("design/catalog.json must use starter-design-catalog/v1");
+  if (pageCatalog?.schemaVersion !== "starter-page-catalog/v1") failures.push("pages/catalog.json must use starter-page-catalog/v1");
   if (blueprint.project?.name !== manifest.project?.name || blueprint.project?.slug !== manifest.project?.slug) failures.push("Blueprint project identity must match starter.manifest.json");
   if (!blueprint.project?.locales?.includes(blueprint.project?.defaultLocale)) failures.push("Blueprint defaultLocale must be included in locales");
 
@@ -61,6 +62,22 @@ export function validateAssemblyContracts(manifest, blueprint, catalog, designCa
     if (selectedProfile.version !== blueprint.designProfile?.version) failures.push(`Blueprint Design Profile ${selectedProfile.id} must pin version ${selectedProfile.version}`);
     if (!selectedIds.has(selectedProfile.packId)) failures.push(`Blueprint Design Profile ${selectedProfile.id} requires selected pack ${selectedProfile.packId}`);
   }
+
+  const pages = new Map();
+  for (const page of pageCatalog?.pages || []) {
+    if (pages.has(page.id)) failures.push(`Duplicate Page Catalog id ${page.id}`);
+    pages.set(page.id, page);
+    if (!packIds.has(page.packId)) failures.push(`Page ${page.id} references missing pack ${page.packId}`);
+    if (!page.route?.startsWith("/")) failures.push(`Page ${page.id} must use an absolute route`);
+    if (page.required && !page.defaultSelected) failures.push(`Required Page ${page.id} must be selected by default`);
+  }
+  const selectedPages = new Set(blueprint.pageSet?.selected || []);
+  for (const pageId of selectedPages) {
+    const page = pages.get(pageId);
+    if (!page) failures.push(`Blueprint Page ${pageId} is missing from Page Catalog`);
+    else if (!selectedIds.has(page.packId)) failures.push(`Blueprint Page ${pageId} requires selected pack ${page.packId}`);
+  }
+  for (const page of pages.values()) if (page.required && !selectedPages.has(page.id)) failures.push(`Blueprint required Page ${page.id} must remain selected`);
 
   const manifestEnvironments = (manifest.environments || []).map(({ id }) => id).sort();
   const blueprintEnvironments = [...(blueprint.environments || [])].sort();

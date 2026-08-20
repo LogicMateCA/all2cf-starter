@@ -21,6 +21,7 @@ type Blueprint = {
   status: string;
   preset: string;
   designProfile: { id: string; version: string };
+  pageSet: { selected: string[] };
   project: { name: string; slug: string; brief: string; platforms: string[]; locales: string[]; defaultLocale: string };
   setup: { entry: string; status: string; currentStep: string; completedSteps: string[] };
   selections: Record<SelectionGroup, Selection[]>;
@@ -47,7 +48,8 @@ type StarterConfig = {
 };
 type Preset = { id: string; name: string; description: string; selections: string[] };
 type DesignProfile = { id: string; version: string; packId: string; name: string; description: string; status: string; targets: string[]; direction: { tone: string; typography: string; shape: string; depth: string }; semanticColors: { light: Record<string, string>; dark: Record<string, string> }; rules: { do: string[]; dont: string[] }; adapters: Record<string, string> };
-type SetupPayload = { blueprint: Blueprint; catalog: { catalogVersion: string; presets: Preset[]; packs: Pack[] }; designCatalog: { catalogVersion: string; sourcePolicy: string; profiles: DesignProfile[] }; config: StarterConfig };
+type PageDefinition = { id: string; packId: string; name: string; route: string; group: string; renderer: string; required: boolean; defaultSelected: boolean; status: string; sections: string[] };
+type SetupPayload = { blueprint: Blueprint; catalog: { catalogVersion: string; presets: Preset[]; packs: Pack[] }; designCatalog: { catalogVersion: string; sourcePolicy: string; profiles: DesignProfile[] }; pageCatalog: { catalogVersion: string; policy: string; pages: PageDefinition[] }; config: StarterConfig };
 
 const steps = [
   { id: "identity", label: "Product" },
@@ -87,6 +89,14 @@ function PackChoice({ pack, selection, type, onChange }: { pack: Pack; selection
   </label>;
 }
 
+function PageChoice({ page, selected, onChange }: { page: PageDefinition; selected: boolean; onChange: (selected: boolean) => void }) {
+  return <label className={selected ? "pack-choice selected" : "pack-choice"}>
+    <input type="checkbox" checked={selected} disabled={page.required} onChange={(event) => onChange(event.target.checked)} />
+    <span className="pack-choice-main"><span><strong>{page.name}</strong>{page.required ? <small>Required</small> : null}</span><p>{page.sections.slice(0, 4).join(", ")}</p><small>{page.route} / {page.renderer} / {page.status}</small></span>
+    <span className="pack-check"><Check size={15} /></span>
+  </label>;
+}
+
 export function SetupPage() {
   const [payload, setPayload] = useState<SetupPayload | null>(null);
   const [stepIndex, setStepIndex] = useState(0);
@@ -106,6 +116,7 @@ export function SetupPage() {
 
   const currentStep = steps[stepIndex];
   const selectedPacks = useMemo(() => payload ? Object.values(payload.blueprint.selections).flat().filter(({ lifecycle }) => lifecycle.selected) : [], [payload]);
+  const selectedPages = payload?.blueprint.pageSet.selected || [];
 
   if (loadError) return <main className="setup-unavailable"><AlertCircle size={24} /><h1>Local setup is not running</h1><p>{loadError}</p><code>npm run setup</code><a href="/dp">Open the current Development Plan</a></main>;
   if (!payload) return <main className="protected-loading"><span /><span /><span /></main>;
@@ -147,6 +158,17 @@ export function SetupPage() {
       })),
     },
   }));
+  const setPageSelected = (page: PageDefinition, selected: boolean) => updateBlueprint((blueprint) => {
+    const pageIds = new Set(blueprint.pageSet.selected);
+    if (selected || page.required) pageIds.add(page.id);
+    else pageIds.delete(page.id);
+    const pagesInPack = payload.pageCatalog.pages.filter(({ packId }) => packId === page.packId).map(({ id }) => id);
+    const packSelected = page.packId === "page.core-product-site" || pagesInPack.some((id) => pageIds.has(id));
+    const pagePacks = blueprint.selections.pages.map((selection) => selection.id === page.packId
+      ? { ...selection, lifecycle: packSelected ? { ...selection.lifecycle, selected: true } : emptyLifecycle() }
+      : selection);
+    return { ...blueprint, preset: page.packId === "page.core-product-site" ? blueprint.preset : "custom", pageSet: { selected: [...pageIds] }, selections: { ...blueprint.selections, pages: pagePacks } };
+  });
   const applyPreset = (preset: Preset) => updateBlueprint((blueprint) => {
     const presetSelections = new Set(preset.selections);
     const selections = structuredClone(blueprint.selections);
@@ -192,13 +214,13 @@ export function SetupPage() {
         </div> : null}
 
         {currentStep.id === "design" ? <div className="setup-stack"><section className="setup-panel"><h2>Owned design profile</h2><p>{payload.designCatalog.sourcePolicy}</p></section><div className="profile-grid">{payload.designCatalog.profiles.map((profile) => { const selected = payload.blueprint.designProfile.id === profile.id; return <button type="button" key={profile.id} className={selected ? "profile-choice selected" : "profile-choice"} onClick={() => setDesignProfile(profile)}><span className="profile-swatches">{["background", "surface", "accent", "foreground"].map((token) => <i key={token} style={{ background: profile.semanticColors.light[token] }} />)}</span><span className="profile-title"><strong>{profile.name}</strong><small>{profile.status} / v{profile.version}</small></span><p>{profile.description}</p><dl><div><dt>Tone</dt><dd>{profile.direction.tone}</dd></div><div><dt>Type</dt><dd>{profile.direction.typography}</dd></div><div><dt>Shape</dt><dd>{profile.direction.shape}</dd></div></dl><span className="profile-targets">{profile.targets.join(" · ")}</span></button>})}</div></div> : null}
-        {currentStep.id === "pages" ? <div className="pack-grid">{packsFor("page").map((pack) => <PackChoice key={pack.id} pack={pack} selection={selectionFor(pack)} type="checkbox" onChange={(selected) => setPackSelected(pack, selected)} />)}</div> : null}
+        {currentStep.id === "pages" ? <div className="setup-stack"><section className="setup-panel"><h2>Owned Page Catalog</h2><p>{payload.pageCatalog.policy}</p></section>{[...new Set(payload.pageCatalog.pages.map(({ group }) => group))].map((group) => <section className="setup-panel" key={group}><div className="panel-title"><div><h2>{group}</h2><p>Select routes, not a monolithic theme. Required product surfaces stay enabled.</p></div><small>{payload.pageCatalog.pages.filter((page) => page.group === group && selectedPages.includes(page.id)).length} selected</small></div><div className="pack-grid">{payload.pageCatalog.pages.filter((page) => page.group === group).map((page) => <PageChoice key={page.id} page={page} selected={selectedPages.includes(page.id)} onChange={(selected) => setPageSelected(page, selected)} />)}</div></section>)}</div> : null}
         {currentStep.id === "saas" ? <div className="setup-stack"><section className="setup-panel preset-selector"><label><span>Starting preset</span><select value={payload.blueprint.preset} onChange={(event) => { const preset = payload.catalog.presets.find(({ id }) => id === event.target.value); if (preset) applyPreset(preset); }}>{payload.catalog.presets.map((preset) => <option key={preset.id} value={preset.id}>{preset.name}</option>)}</select></label><p>{payload.catalog.presets.find(({ id }) => id === payload.blueprint.preset)?.description}</p></section><div className="pack-grid">{packsFor("saas").map((pack) => <PackChoice key={pack.id} pack={pack} selection={selectionFor(pack)} type="checkbox" onChange={(selected) => setPackSelected(pack, selected)} />)}</div></div> : null}
         {currentStep.id === "capabilities" ? <div className="pack-grid">{packsFor("capability").map((pack) => <PackChoice key={pack.id} pack={pack} selection={selectionFor(pack)} type="checkbox" onChange={(selected) => setPackSelected(pack, selected)} />)}</div> : null}
 
         {currentStep.id === "providers" ? <div className="setup-panel provider-panel"><div><span>Authentication</span><strong>{payload.blueprint.providers.auth}</strong><small>Stable aligned core and plugins</small></div><div><span>Social sign-in</span><div className="provider-checks">{["google", "github", "apple"].map((provider) => <label key={provider}><input type="checkbox" checked={payload.blueprint.providers.socialAuth.includes(provider)} onChange={(event) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, socialAuth: event.target.checked ? [...blueprint.providers.socialAuth, provider] : blueprint.providers.socialAuth.filter((item) => item !== provider) } }))} />{provider}</label>)}</div><small>Only selected providers are materialized.</small></div><div><span>Database</span><strong>{payload.blueprint.providers.database}</strong><small>No default ORM</small></div><label><span>Email</span><select value={payload.blueprint.providers.email.default} onChange={(event) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, email: { ...blueprint.providers.email, default: event.target.value } } }))}><option value="cfsend">CFsend</option><option value="resend">Resend</option><option value="cloudflare-email-service">Cloudflare Email Service</option></select><small>CFsend is the Starter default.</small></label><div><span>Billing</span><strong>{payload.blueprint.providers.billing}</strong><small>Materialized only with Billing</small></div></div> : null}
 
-        {currentStep.id === "review" ? <div className="setup-stack"><section className="setup-panel review-panel"><h2>{payload.blueprint.project.name}</h2><p>{payload.blueprint.project.brief}</p><dl><div><dt>Slug</dt><dd>{payload.blueprint.project.slug}</dd></div><div><dt>Preset</dt><dd>{payload.blueprint.preset}</dd></div><div><dt>Design profile</dt><dd>{payload.blueprint.designProfile.id} / {payload.blueprint.designProfile.version}</dd></div><div><dt>Platforms</dt><dd>{payload.blueprint.project.platforms.join(", ")}</dd></div><div><dt>Social sign-in</dt><dd>{payload.blueprint.providers.socialAuth.join(", ") || "none"}</dd></div><div><dt>Selected packs</dt><dd>{selectedPacks.length}</dd></div><div><dt>Development</dt><dd>{payload.config.development.worker} / {payload.config.development.domain}</dd></div><div><dt>Production</dt><dd>{payload.config.production.worker} / {payload.config.production.domain}</dd></div></dl><div className="review-packs">{selectedPacks.map(({ id }) => <code key={id}>{id}</code>)}</div></section>{saveError ? <p className="setup-error"><AlertCircle size={16} />{saveError}</p> : null}{saveState === "saved" ? <p className="setup-success"><Check size={16} />Blueprint and project identity are synchronized. The Development Plan snapshot is current.</p> : null}<Button className="save-blueprint" onClick={save} disabled={saveState === "saving"}><Save size={16} />{saveState === "saving" ? "Saving project plan" : "Save project plan"}</Button></div> : null}
+        {currentStep.id === "review" ? <div className="setup-stack"><section className="setup-panel review-panel"><h2>{payload.blueprint.project.name}</h2><p>{payload.blueprint.project.brief}</p><dl><div><dt>Slug</dt><dd>{payload.blueprint.project.slug}</dd></div><div><dt>Preset</dt><dd>{payload.blueprint.preset}</dd></div><div><dt>Design profile</dt><dd>{payload.blueprint.designProfile.id} / {payload.blueprint.designProfile.version}</dd></div><div><dt>Pages</dt><dd>{selectedPages.length}</dd></div><div><dt>Platforms</dt><dd>{payload.blueprint.project.platforms.join(", ")}</dd></div><div><dt>Social sign-in</dt><dd>{payload.blueprint.providers.socialAuth.join(", ") || "none"}</dd></div><div><dt>Selected packs</dt><dd>{selectedPacks.length}</dd></div><div><dt>Development</dt><dd>{payload.config.development.worker} / {payload.config.development.domain}</dd></div><div><dt>Production</dt><dd>{payload.config.production.worker} / {payload.config.production.domain}</dd></div></dl><div className="review-packs">{selectedPacks.map(({ id }) => <code key={id}>{id}</code>)}</div></section>{saveError ? <p className="setup-error"><AlertCircle size={16} />{saveError}</p> : null}{saveState === "saved" ? <p className="setup-success"><Check size={16} />Blueprint and project identity are synchronized. The Development Plan snapshot is current.</p> : null}<Button className="save-blueprint" onClick={save} disabled={saveState === "saving"}><Save size={16} />{saveState === "saving" ? "Saving project plan" : "Save project plan"}</Button></div> : null}
 
         <footer className="setup-actions"><Button variant="outline" disabled={stepIndex === 0} onClick={() => setStepIndex((index) => Math.max(0, index - 1))}><ArrowLeft size={15} />Back</Button>{stepIndex < steps.length - 1 ? <Button onClick={() => setStepIndex((index) => Math.min(steps.length - 1, index + 1))}>Continue<ArrowRight size={15} /></Button> : null}</footer>
       </main>
