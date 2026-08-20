@@ -41,6 +41,16 @@ const SetupPage = lazy(async () => {
   return { default: module.SetupPage };
 });
 
+const SupportPage = lazy(async () => {
+  const module = await import("./components/support-page");
+  return { default: module.SupportPage };
+});
+
+const AdminPage = lazy(async () => {
+  const module = await import("./components/admin-page");
+  return { default: module.AdminPage };
+});
+
 const TechnologyStatusChart = lazy(async () => {
   const module = await import("./components/technology-status-chart");
   return { default: module.TechnologyStatusChart };
@@ -294,6 +304,8 @@ export function App() {
   const path = window.location.pathname;
   if (path === "/login") return <Suspense fallback={<main className="protected-loading"><span /><span /><span /></main>}><AuthPage /></Suspense>;
   if (path === "/app" || path === "/app/settings") return <Suspense fallback={<main className="protected-loading"><span /><span /><span /></main>}><ProtectedApp /></Suspense>;
+  if (path === "/support") return <Suspense fallback={<main className="protected-loading"><span /><span /><span /></main>}><SupportPage /></Suspense>;
+  if (path === "/admin") return <Suspense fallback={<main className="protected-loading"><span /><span /><span /></main>}><AdminPage /></Suspense>;
   if (path === "/setup") return <Suspense fallback={<main className="protected-loading"><span /><span /><span /></main>}><SetupPage /></Suspense>;
   if (path === "/dp") return <DevelopmentPlan />;
   return <Home />;

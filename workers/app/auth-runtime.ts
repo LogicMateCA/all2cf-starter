@@ -29,7 +29,7 @@ function mobileSchemes(env: AuthRuntimeEnv) {
   return env.MOBILE_DEEP_LINK_SCHEMES.split(",").map((value) => value.trim()).filter(Boolean);
 }
 
-export async function withRequestAuth<T>(env: AuthRuntimeEnv, ctx: RequestExecutionContext, operation: (auth: StarterAuth) => Promise<T>): Promise<T> {
+export async function withRequestAuth<T>(env: AuthRuntimeEnv, ctx: RequestExecutionContext, operation: (auth: StarterAuth, database: Pool) => Promise<T>): Promise<T> {
   const pool = new Pool({ connectionString: env.HYPERDRIVE.connectionString, max: 2, application_name: `${env.SERVICE_NAME}-auth` });
   const enqueueEmail = async (email: AuthEmail) => {
     const id = crypto.randomUUID();
@@ -62,7 +62,7 @@ export async function withRequestAuth<T>(env: AuthRuntimeEnv, ctx: RequestExecut
   });
 
   try {
-    return await operation(auth);
+    return await operation(auth, pool);
   } finally {
     await pool.end();
   }

@@ -1,7 +1,7 @@
 {
   "$schema": "../schemas/starter-catalog.schema.json",
   "schemaVersion": "starter-catalog/v1",
-  "catalogVersion": "0.3.0",
+  "catalogVersion": "0.4.0",
   "policies": {
     "betterAuth": "Better Auth core and every selected official plugin move as one stable-compatible version line with generated schema comparison and reviewed SQL migrations.",
     "ownedAdapters": "StyleKit, PowerAI, and MapCN are donor inputs. Accepted code is adapted, licensed, tested, versioned, and maintained by Starter without automatic upstream source sync.",
@@ -146,7 +146,7 @@
       "kind": "saas",
       "name": "Lightweight product operations",
       "version": "0.1.0",
-      "status": "planned",
+      "status": "local-verified",
       "targets": ["desktop-web", "worker", "admin", "docs"],
       "ownership": "starter-owned",
       "source": [
@@ -154,12 +154,12 @@
         { "name": "LastSaaS", "relationship": "reference" }
       ],
       "updatePolicy": "reference-only",
-      "provides": ["minimal admin shell", "lightweight support and bug intake", "Starlight docs", "optional Stripe billing"],
+      "provides": ["Better Auth Admin platform roles and user readback", "minimal admin shell", "lightweight support and bug intake", "append-only privileged mutation evidence"],
       "requires": ["identity core", "explicit module selection"],
       "conflicts": ["full helpdesk scope", "unselected organization or billing schema"],
       "performance": ["admin-only route chunks", "no support attachments until selected"],
-      "verification": ["permission matrix", "admin route checks", "support lifecycle checks"],
-      "documentation": ["features/admin/MODULE.md", "features/support/MODULE.md", "features/docs/MODULE.md", "features/billing/MODULE.md"]
+      "verification": ["isolated empty-database schema creation", "permission matrix", "Better Auth Admin user readback", "support lifecycle and audit checks"],
+      "documentation": ["features/admin/MODULE.md", "features/support/MODULE.md", "features/auth/MODULE.md"]
     },
     {
       "id": "saas.team-organizations",

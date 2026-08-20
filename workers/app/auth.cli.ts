@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { Pool } from "pg";
+import { admin } from "better-auth/plugins";
 
 if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is required to generate the Better Auth schema");
 
@@ -14,7 +15,6 @@ export const auth = betterAuth({
     additionalFields: {
       theme: { type: "string", required: false, defaultValue: "system", fieldName: "theme" },
       locale: { type: "string", required: false, defaultValue: "en", fieldName: "locale" },
-      platformRole: { type: "string", required: false, defaultValue: "user", input: false, fieldName: "platform_role" },
     },
   },
   session: { modelName: "app_session", fields: { expiresAt: "expires_at", createdAt: "created_at", updatedAt: "updated_at", ipAddress: "ip_address", userAgent: "user_agent", userId: "user_id" } },
@@ -28,4 +28,13 @@ export const auth = betterAuth({
   verification: { modelName: "app_verification", fields: { expiresAt: "expires_at", createdAt: "created_at", updatedAt: "updated_at" } },
   emailAndPassword: { enabled: true, autoSignIn: false },
   rateLimit: { enabled: true, storage: "database", modelName: "app_auth_rate_limit" },
+  plugins: [admin({
+    defaultRole: "user",
+    adminRoles: ["admin"],
+    impersonationSessionDuration: 60 * 60,
+    schema: {
+      user: { fields: { role: "role", banned: "banned", banReason: "ban_reason", banExpires: "ban_expires" } },
+      session: { fields: { impersonatedBy: "impersonated_by" } },
+    },
+  })],
 });

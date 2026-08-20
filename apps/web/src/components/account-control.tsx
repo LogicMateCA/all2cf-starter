@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Check, Languages, Laptop, LogOut, Moon, Settings, Sun, UserRound } from "lucide-react";
+import { Check, Languages, Laptop, LifeBuoy, LogOut, Moon, Settings, ShieldCheck, Sun, UserRound } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { usePreferences, type LocalePreference, type ThemePreference } from "@/lib/preferences";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -61,6 +61,8 @@ export function AccountControl({ compact = false }: { compact?: boolean }) {
   if (!session?.user) return <Button asChild size={compact ? "sm" : "default"}><a href={`/login?returnTo=${encodeURIComponent(window.location.pathname)}`}>Sign in</a></Button>;
 
   const user = session.user;
+  const role = String("role" in user ? user.role || "" : "");
+  const isAdmin = role.split(",").includes("admin");
   return <DropdownMenu>
     <DropdownMenuTrigger asChild>
       <Button variant="ghost" className="account-trigger" aria-label="Open account menu">
@@ -73,6 +75,8 @@ export function AccountControl({ compact = false }: { compact?: boolean }) {
       <DropdownMenuSeparator />
       <DropdownMenuItem asChild><a href="/app"><UserRound />Account</a></DropdownMenuItem>
       <DropdownMenuItem asChild><a href="/app/settings"><Settings />Settings</a></DropdownMenuItem>
+      <DropdownMenuItem asChild><a href="/support"><LifeBuoy />Support</a></DropdownMenuItem>
+      {isAdmin ? <DropdownMenuItem asChild><a href="/admin"><ShieldCheck />Admin</a></DropdownMenuItem> : null}
       <DropdownMenuSub>
         <DropdownMenuSubTrigger><Sun />Theme</DropdownMenuSubTrigger>
         <DropdownMenuSubContent><DropdownMenuRadioGroup value={theme} onValueChange={(value) => setTheme(value as ThemePreference)}>{themeItems.map(({ value, label, icon: Icon }) => <DropdownMenuRadioItem key={value} value={value}><Icon />{label}</DropdownMenuRadioItem>)}</DropdownMenuRadioGroup></DropdownMenuSubContent>

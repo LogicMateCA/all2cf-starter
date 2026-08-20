@@ -162,12 +162,15 @@ export function SetupPage() {
     const pageIds = new Set(blueprint.pageSet.selected);
     if (selected || page.required) pageIds.add(page.id);
     else pageIds.delete(page.id);
+    const backingPack = payload.catalog.packs.find(({ id }) => id === page.packId);
+    if (!backingPack) return blueprint;
+    const backingGroup = groupForKind[backingPack.kind];
     const pagesInPack = payload.pageCatalog.pages.filter(({ packId }) => packId === page.packId).map(({ id }) => id);
-    const packSelected = page.packId === "page.core-product-site" || pagesInPack.some((id) => pageIds.has(id));
-    const pagePacks = blueprint.selections.pages.map((selection) => selection.id === page.packId
+    const packSelected = requiredPacks.has(page.packId) || pagesInPack.some((id) => pageIds.has(id));
+    const backingSelections = blueprint.selections[backingGroup].map((selection) => selection.id === page.packId
       ? { ...selection, lifecycle: packSelected ? { ...selection.lifecycle, selected: true } : emptyLifecycle() }
       : selection);
-    return { ...blueprint, preset: page.packId === "page.core-product-site" ? blueprint.preset : "custom", pageSet: { selected: [...pageIds] }, selections: { ...blueprint.selections, pages: pagePacks } };
+    return { ...blueprint, preset: requiredPacks.has(page.packId) ? blueprint.preset : "custom", pageSet: { selected: [...pageIds] }, selections: { ...blueprint.selections, [backingGroup]: backingSelections } };
   });
   const applyPreset = (preset: Preset) => updateBlueprint((blueprint) => {
     const presetSelections = new Set(preset.selections);

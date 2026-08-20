@@ -13,6 +13,14 @@ type AppBindings = Omit<AuthRuntimeEnv, "APP_ENV"> & {
 
 const app = new Hono<{ Bindings: AppBindings; Variables: AppVariables }>();
 
+const supportKinds = new Set(["support", "bug"]);
+const supportStatuses = new Set(["open", "in_progress", "resolved", "closed"]);
+
+function isPlatformAdmin(user: unknown) {
+  const role = typeof user === "object" && user && "role" in user ? String(user.role || "") : "";
+  return role.split(",").map((value) => value.trim()).includes("admin");
+}
+
 app.use("*", async (c, next) => {
   c.set("requestId", crypto.randomUUID());
   await next();
@@ -104,6 +112,96 @@ app.post("/api/auth-flow/register", (c) =>
       console.info(JSON.stringify({ event: "auth_registration_not_accepted", requestId: c.var.requestId, status: error.statusCode }));
     }
     return c.json({ data: { accepted: true, message: "If this email can be registered, verification instructions will be sent." } }, 202, { "Cache-Control": "no-store" });
+  }),
+);
+
+app.get("/api/support/tickets", (c) =>
+  withRequestAuth(c.env, c.executionCtx, async (auth, database) => {
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    if (!session?.user) return c.json({ error: { code: "UNAUTHORIZED", message: "Authentication required." } }, 401, { "Cache-Control": "no-store" });
+    const result = await database.query(
+      `select id, kind, subject, body, status, priority, created_at, updated_at, resolved_at
+       from app_support_ticket where created_by_user_id = $1 order by created_at desc limit 50`,
+      [session.user.id],
+    );
+    return c.json({ data: result.rows }, 200, { "Cache-Control": "no-store" });
+  }),
+);
+
+app.post("/api/support/tickets", (c) =>
+  withRequestAuth(c.env, c.executionCtx, async (auth, database) => {
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    if (!session?.user || !session.user.emailVerified) return c.json({ error: { code: "VERIFIED_ACCOUNT_REQUIRED", message: "A verified account is required." } }, 401, { "Cache-Control": "no-store" });
+    const body = await c.req.json<{ kind?: string; subject?: string; body?: string }>();
+    const kind = String(body.kind || "").trim();
+    const subject = String(body.subject || "").trim();
+    const description = String(body.body || "").trim();
+    if (!supportKinds.has(kind)) return c.json({ error: { code: "INVALID_KIND", message: "Kind must be support or bug." } }, 400);
+    if (subject.length < 3 || subject.length > 160) return c.json({ error: { code: "INVALID_SUBJECT", message: "Subject must be between 3 and 160 characters." } }, 400);
+    if (description.length < 10 || description.length > 5000) return c.json({ error: { code: "INVALID_BODY", message: "Description must be between 10 and 5000 characters." } }, 400);
+    const recent = await database.query<{ count: string }>("select count(*)::text as count from app_support_ticket where created_by_user_id = $1 and created_at > now() - interval '1 hour'", [session.user.id]);
+    if (Number(recent.rows[0]?.count || 0) >= 5) return c.json({ error: { code: "RATE_LIMITED", message: "Too many recent tickets." } }, 429);
+    const id = crypto.randomUUID();
+    const result = await database.query(
+      `insert into app_support_ticket (id, created_by_user_id, contact_email, kind, subject, body)
+       values ($1, $2, $3, $4, $5, $6)
+       returning id, kind, subject, body, status, priority, created_at, updated_at, resolved_at`,
+      [id, session.user.id, session.user.email, kind, subject, description],
+    );
+    return c.json({ data: result.rows[0] }, 201, { "Cache-Control": "no-store" });
+  }),
+);
+
+app.get("/api/admin/support/tickets", (c) =>
+  withRequestAuth(c.env, c.executionCtx, async (auth, database) => {
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    if (!session?.user) return c.json({ error: { code: "UNAUTHORIZED", message: "Authentication required." } }, 401, { "Cache-Control": "no-store" });
+    if (!isPlatformAdmin(session.user)) return c.json({ error: { code: "FORBIDDEN", message: "Admin role required." } }, 403, { "Cache-Control": "no-store" });
+    const requestedStatus = c.req.query("status");
+    if (requestedStatus && !supportStatuses.has(requestedStatus)) return c.json({ error: { code: "INVALID_STATUS", message: "Unknown ticket status." } }, 400);
+    const result = await database.query(
+      `select id, created_by_user_id, contact_email, kind, subject, body, status, priority, created_at, updated_at, resolved_at
+       from app_support_ticket where ($1::text is null or status = $1) order by updated_at desc limit 100`,
+      [requestedStatus || null],
+    );
+    return c.json({ data: result.rows }, 200, { "Cache-Control": "no-store" });
+  }),
+);
+
+app.patch("/api/admin/support/tickets/:id", (c) =>
+  withRequestAuth(c.env, c.executionCtx, async (auth, database) => {
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    if (!session?.user) return c.json({ error: { code: "UNAUTHORIZED", message: "Authentication required." } }, 401, { "Cache-Control": "no-store" });
+    if (!isPlatformAdmin(session.user)) return c.json({ error: { code: "FORBIDDEN", message: "Admin role required." } }, 403, { "Cache-Control": "no-store" });
+    const body = await c.req.json<{ status?: string }>();
+    const status = String(body.status || "").trim();
+    if (!supportStatuses.has(status)) return c.json({ error: { code: "INVALID_STATUS", message: "Unknown ticket status." } }, 400);
+    const ticketId = c.req.param("id");
+    const client = await database.connect();
+    try {
+      await client.query("begin");
+      const result = await client.query(
+        `update app_support_ticket set status = $2, updated_at = now(), resolved_at = case when $2 in ('resolved', 'closed') then coalesce(resolved_at, now()) else null end
+         where id = $1 returning id, kind, subject, body, status, priority, created_at, updated_at, resolved_at`,
+        [ticketId, status],
+      );
+      if (!result.rows[0]) {
+        await client.query("rollback");
+        return c.json({ error: { code: "NOT_FOUND", message: "Ticket not found." } }, 404);
+      }
+      await client.query(
+        `insert into app_admin_audit_event (id, actor_user_id, action, target_type, target_id, metadata)
+         values ($1, $2, 'support.status.updated', 'support_ticket', $3, jsonb_build_object('status', $4::text))`,
+        [crypto.randomUUID(), session.user.id, ticketId, status],
+      );
+      await client.query("commit");
+      return c.json({ data: result.rows[0] }, 200, { "Cache-Control": "no-store" });
+    } catch (error) {
+      await client.query("rollback").catch(() => undefined);
+      throw error;
+    } finally {
+      client.release();
+    }
   }),
 );
 

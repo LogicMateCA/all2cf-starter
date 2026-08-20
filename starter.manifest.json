@@ -65,7 +65,12 @@
     },
     {
       "area": "Authentication",
-      "choice": "Better Auth 1.7.1 aligned across core and Expo with issuer-scoped empty-database baseline",
+      "choice": "Better Auth 1.7.1 aligned across core, official Admin plugin, and Expo with issuer-scoped empty-database baseline",
+      "status": "local-verified"
+    },
+    {
+      "area": "Product operations",
+      "choice": "Better Auth Admin user readback + lightweight PostgreSQL support/bug intake + append-only privileged audit evidence",
       "status": "local-verified"
     },
     {

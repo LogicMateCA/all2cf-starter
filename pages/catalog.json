@@ -190,6 +190,34 @@
       "acceptance": ["real 404 response", "route back to a useful product surface"]
     },
     {
+      "id": "support.portal",
+      "packId": "saas.product-operations-lite",
+      "name": "Support and bug intake",
+      "route": "/support",
+      "group": "product",
+      "renderer": "react-app",
+      "required": true,
+      "defaultSelected": true,
+      "status": "local-verified",
+      "sourceStrategy": "starter-original",
+      "sections": ["support-or-bug-intake", "validation", "own-ticket-history", "status"],
+      "acceptance": ["verified account required", "five submissions per account per hour", "users can read only their own tickets"]
+    },
+    {
+      "id": "admin.operations",
+      "packId": "saas.product-operations-lite",
+      "name": "Product operations Admin",
+      "route": "/admin",
+      "group": "product",
+      "renderer": "react-app",
+      "required": true,
+      "defaultSelected": true,
+      "status": "local-verified",
+      "sourceStrategy": "starter-original",
+      "sections": ["better-auth-user-readback", "support-inbox", "ticket-status", "audit-evidence"],
+      "acceptance": ["Better Auth platform admin role required", "organization roles do not grant access", "privileged support mutations are audited"]
+    },
+    {
       "id": "growth.blog",
       "packId": "page.optional-growth",
       "name": "Blog",

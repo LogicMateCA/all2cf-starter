@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseJsonc } from "jsonc-parser";
@@ -19,12 +19,32 @@ const origin = remote ? `https://${starter.development.domain}` : `http://127.0.
 const baseConfig = parseJsonc(await readFile(path.join(root, "cloudflare/wrangler.development.jsonc"), "utf8"));
 const isolatedDatabaseUrl = process.env.STARTER_AUTH_SMOKE_DATABASE_URL?.trim();
 const databaseSource = new URL(isolatedDatabaseUrl || values.get("DATABASE_URL") || "");
-if (!isolatedDatabaseUrl) {
+let scratchDatabase = null;
+let scratchAdmin = null;
+if (!remote && !isolatedDatabaseUrl) {
   databaseSource.hostname = starter.development.database.host;
   databaseSource.port = String(starter.development.database.port);
   databaseSource.pathname = `/${starter.development.database.database}`;
   databaseSource.searchParams.set("sslmode", "require");
   databaseSource.searchParams.set("uselibpqcompat", "true");
+  scratchDatabase = `starter_auth_smoke_${Date.now()}_${randomUUID().replaceAll("-", "").slice(0, 8)}`;
+  scratchAdmin = new Client({ connectionString: databaseSource.toString(), ssl: { rejectUnauthorized: false }, application_name: `${starter.project.slug}-auth-smoke-schema` });
+  await scratchAdmin.connect();
+  await scratchAdmin.query(`create database "${scratchDatabase}"`);
+  databaseSource.pathname = `/${scratchDatabase}`;
+  const migrationClient = new Client({ connectionString: databaseSource.toString(), ssl: { rejectUnauthorized: false }, application_name: `${starter.project.slug}-auth-smoke-migration` });
+  await migrationClient.connect();
+  try {
+    const migrationRoot = path.join(root, "db/migrations");
+    const migrations = (await readdir(migrationRoot)).filter((name) => /^\d+.*\.sql$/u.test(name)).sort();
+    for (const migration of migrations) await migrationClient.query(await readFile(path.join(migrationRoot, migration), "utf8"));
+  } catch (error) {
+    await scratchAdmin.query(`drop database if exists "${scratchDatabase}" with (force)`).catch(() => undefined);
+    await scratchAdmin.end().catch(() => undefined);
+    throw error;
+  } finally {
+    await migrationClient.end().catch(() => undefined);
+  }
 }
 
 let child = null;
@@ -35,6 +55,7 @@ if (!remote) {
   const tempRoot = path.join(root, "dist/auth-smoke");
   const configPath = path.join(tempRoot, "wrangler.jsonc");
   const smokeEnvPath = path.join(tempRoot, ".dev.vars");
+  await mkdir(tempRoot, { recursive: true });
   mailServer = createServer(async (request, response) => {
     let body = "";
     for await (const chunk of request) body += chunk;
@@ -53,7 +74,6 @@ if (!remote) {
   smokeValues.set("CFSEND_API_KEY", "smoke-cfsend-key");
   smokeValues.set("CFSEND_FROM", "Starter Smoke <auth@example.test>");
   await writeFile(smokeEnvPath, renderEnv([...smokeValues.keys()], smokeValues), { mode: 0o600 });
-  await mkdir(tempRoot, { recursive: true });
   const localConfig = {
     ...baseConfig,
     name: "starter-auth-smoke",
@@ -65,7 +85,7 @@ if (!remote) {
     workers_dev: false,
   };
   await writeFile(configPath, `${JSON.stringify(localConfig, null, 2)}\n`, { mode: 0o600 });
-  child = spawn(process.execPath, ["--no-warnings", path.join(root, "node_modules/wrangler/wrangler-dist/cli.js"), "dev", "--config", configPath, "--env-file", smokeEnvPath, "--ip", "127.0.0.1", "--port", String(port), "--show-interactive-dev-session", "false", "--log-level", "warn"], {
+  child = spawn(process.execPath, ["--no-warnings", path.join(root, "node_modules/wrangler/wrangler-dist/cli.js"), "dev", "--config", configPath, "--env-file", smokeEnvPath, "--ip", "127.0.0.1", "--port", String(port), "--show-interactive-dev-session", "false", "--log-level", "info"], {
     cwd: root,
     env: process.env,
     stdio: ["ignore", "pipe", "pipe"],
@@ -180,6 +200,29 @@ try {
   assert(updatedPreferences.payload?.data?.theme === "dark" && updatedPreferences.payload?.data?.locale === "zh", "account preferences did not persist");
   checks.push("account-preferences");
 
+  const supportTicket = await request("/api/support/tickets", { method: "POST", headers: { "Content-Type": "application/json", Cookie: cookie, Origin: origin }, body: JSON.stringify({ kind: "bug", subject: "Smoke support ticket", body: "A reproducible support lifecycle smoke report." }) });
+  assert(supportTicket.response.status === 201 && supportTicket.payload?.data?.status === "open", "verified user could not create a support ticket");
+  const ticketId = supportTicket.payload.data.id;
+  const ownTickets = await request("/api/support/tickets", { headers: { Cookie: cookie, Origin: origin } });
+  assert(ownTickets.response.status === 200 && ownTickets.payload?.data?.some((ticket) => ticket.id === ticketId), "user support inbox did not return the created ticket");
+  const deniedAdmin = await request("/api/admin/support/tickets", { headers: { Cookie: cookie, Origin: origin } });
+  assert(deniedAdmin.response.status === 403, "non-admin user could access the Admin support inbox");
+  checks.push("support-intake-and-isolation");
+
+  await database.query("update app_user set role = 'admin' where email = $1", [email]);
+  const adminTickets = await request("/api/admin/support/tickets", { headers: { Cookie: cookie, Origin: origin } });
+  assert(adminTickets.response.status === 200 && adminTickets.payload?.data?.some((ticket) => ticket.id === ticketId), "platform admin could not read the support inbox");
+  const betterAuthUsers = await request("/api/auth/admin/list-users?limit=20", { headers: { Cookie: cookie, Origin: origin } });
+  assert(betterAuthUsers.response.status === 200 && betterAuthUsers.payload?.users?.some((user) => user.email === email), "Better Auth Admin user list is unavailable");
+  const resolvedTicket = await request(`/api/admin/support/tickets/${ticketId}`, { method: "PATCH", headers: { "Content-Type": "application/json", Cookie: cookie, Origin: origin }, body: JSON.stringify({ status: "resolved" }) });
+  assert(
+    resolvedTicket.response.status === 200 && resolvedTicket.payload?.data?.status === "resolved",
+    `Admin could not resolve the support ticket (${resolvedTicket.response.status}: ${JSON.stringify(resolvedTicket.payload)})`,
+  );
+  const audit = await database.query("select count(*)::int as count from app_admin_audit_event where target_id = $1 and action = 'support.status.updated'", [ticketId]);
+  assert(audit.rows[0]?.count === 1, "support Admin mutation did not write audit evidence");
+  checks.push("better-auth-admin-and-support-lifecycle");
+
   const resetRequest = await request("/api/auth/request-password-reset", { method: "POST", headers: { "Content-Type": "application/json", Origin: origin }, body: JSON.stringify({ email, redirectTo: `${origin}/login` }) });
   assert(resetRequest.response.status === 200, "password reset request failed");
   let resetUrl = "";
@@ -221,14 +264,19 @@ try {
   assert(mailRequests.every((entry) => entry.headers["idempotency-key"]?.startsWith("auth-") && entry.body.html && entry.body.text), "CFsend requests are missing stable idempotency or multipart content");
   checks.push("cfsend-delivery");
 
-  console.log(JSON.stringify({ ok: true, runtime: "workerd", database: starter.development.database.database, checks }, null, 2));
+  console.log(JSON.stringify({ ok: true, runtime: "workerd", database: scratchDatabase ? "temporary-isolated-database" : "explicit-test-database", checks }, null, 2));
 } catch (error) {
+  await new Promise((resolve) => setTimeout(resolve, 250));
   console.error(JSON.stringify({ event: "auth_smoke_failed", message: error instanceof Error ? error.message : String(error), workerdLogs: logs.slice(-4000) }, null, 2));
   throw error;
 } finally {
   if (database._connected) {
-    await database.query("delete from app_auth_email_outbox where recipient = $1", [email]).catch(() => undefined);
-    await database.query("delete from app_user where email = $1", [email]).catch(() => undefined);
+    if (!scratchDatabase) {
+      await database.query("delete from app_admin_audit_event where target_type = 'support_ticket' and target_id in (select id from app_support_ticket where contact_email = $1)", [email]).catch(() => undefined);
+      await database.query("delete from app_support_ticket where contact_email = $1", [email]).catch(() => undefined);
+      await database.query("delete from app_auth_email_outbox where recipient = $1", [email]).catch(() => undefined);
+      await database.query("delete from app_user where email = $1", [email]).catch(() => undefined);
+    }
     await database.end().catch(() => undefined);
   }
   if (child) {
@@ -240,4 +288,8 @@ try {
     if (child.exitCode === null) child.kill("SIGKILL");
   }
   if (mailServer) await new Promise((resolve) => mailServer.close(resolve));
+  if (scratchAdmin && scratchDatabase) {
+    await scratchAdmin.query(`drop database if exists "${scratchDatabase}" with (force)`).catch(() => undefined);
+    await scratchAdmin.end().catch(() => undefined);
+  }
 }

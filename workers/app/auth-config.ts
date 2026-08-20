@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { expo } from "@better-auth/expo";
+import { admin } from "better-auth/plugins";
 import type { Pool } from "pg";
 
 export type AuthEmail = {
@@ -41,7 +42,15 @@ export function createStarterAuth(input: StarterAuthInput) {
     basePath: "/api/auth",
     secret: input.secret,
     trustedOrigins: [input.baseURL, ...input.mobileSchemes],
-    plugins: [expo()],
+    plugins: [expo(), admin({
+      defaultRole: "user",
+      adminRoles: ["admin"],
+      impersonationSessionDuration: 60 * 60,
+      schema: {
+        user: { fields: { role: "role", banned: "banned", banReason: "ban_reason", banExpires: "ban_expires" } },
+        session: { fields: { impersonatedBy: "impersonated_by" } },
+      },
+    })],
     trustHost: false,
     database: input.database,
     user: {
@@ -50,7 +59,6 @@ export function createStarterAuth(input: StarterAuthInput) {
       additionalFields: {
         theme: { type: "string", required: false, defaultValue: "system", fieldName: "theme" },
         locale: { type: "string", required: false, defaultValue: "en", fieldName: "locale" },
-        platformRole: { type: "string", required: false, defaultValue: "user", input: false, fieldName: "platform_role" },
       },
     },
     session: {
@@ -89,6 +97,15 @@ export function createStarterAuth(input: StarterAuthInput) {
       minPasswordLength: 8,
       maxPasswordLength: 128,
       revokeSessionsOnPasswordReset: true,
+      customSyntheticUser: ({ coreFields, additionalFields, id }) => ({
+        ...coreFields,
+        role: "user",
+        banned: false,
+        banReason: null,
+        banExpires: null,
+        ...additionalFields,
+        id,
+      }),
       async sendResetPassword({ user, url }) {
         await input.enqueueEmail({ kind: "password-reset", to: user.email, subject: `Reset your ${input.appName} password`, text: `Reset your password: ${url}`, html: authEmailHtml("Reset your password", `Use this secure link to choose a new ${input.appName} password.`, "Reset password", url), url });
       },

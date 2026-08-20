@@ -30,7 +30,7 @@
         "required": ["id", "packId", "name", "route", "group", "renderer", "required", "defaultSelected", "status", "sourceStrategy", "sections", "acceptance"],
         "properties": {
           "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9.-]*$" },
-          "packId": { "type": "string", "pattern": "^page\\.[a-z0-9-]+$" },
+          "packId": { "type": "string", "pattern": "^(page|saas)\\.[a-z0-9-]+$" },
           "name": { "type": "string" },
           "route": { "type": "string" },
           "group": { "enum": ["marketing", "company", "product", "legal", "auth", "docs", "system", "growth"] },

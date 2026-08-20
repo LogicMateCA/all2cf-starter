@@ -20,7 +20,9 @@
       "auth.login",
       "auth.account",
       "docs.public",
-      "system.not-found"
+      "system.not-found",
+      "support.portal",
+      "admin.operations"
     ]
   },
   "project": {
@@ -98,8 +100,8 @@
         "id": "saas.product-operations-lite",
         "lifecycle": {
           "selected": true,
-          "materialized": false,
-          "localVerified": false,
+          "materialized": true,
+          "localVerified": true,
           "developmentVerified": false,
           "productionReleased": false
         }
