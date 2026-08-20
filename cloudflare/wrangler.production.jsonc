@@ -25,7 +25,10 @@
   "assets": {
     "directory": "../dist/web",
     "run_worker_first": [
-      "/api/*"
+      "/api/*",
+      "/setup",
+      "/setup/*",
+      "/__starter/*"
     ],
     "not_found_handling": "single-page-application"
   },

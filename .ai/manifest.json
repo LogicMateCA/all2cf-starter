@@ -3,7 +3,9 @@
   "project": "starter",
   "sourceOfTruth": {
     "dp": "markdown-frontmatter",
-    "changes": "change-spec"
+    "changes": "change-spec",
+    "selection": "starter.blueprint.json",
+    "catalog": "catalog/catalog.json"
   },
   "controller": {
     "high": "Sol",

@@ -11,6 +11,15 @@ catch {}
 const compact = {
   project: context.project,
   source: context.source,
+  assembly: {
+    setup: context.assembly.blueprint.setup,
+    preset: context.assembly.blueprint.preset,
+    selections: context.assembly.blueprint.selections,
+    providers: context.assembly.blueprint.providers,
+    catalogVersion: context.assembly.catalog.catalogVersion,
+    catalogPresets: context.assembly.catalog.presets,
+    catalogPacks: context.assembly.catalog.packs.map(({ id, kind, status, ownership, updatePolicy }) => ({ id, kind, status, ownership, updatePolicy })),
+  },
   modules: context.modules.map(({ id, status, summary, path: modulePath }) => ({ id, status, summary, path: modulePath })),
   environments: context.environments.map(({ id, worker, domain, appEnv }) => ({ id, worker, domain, appEnv })),
   cloudflare: context.cloudflare.mcpPolicy,
@@ -34,7 +43,7 @@ const compact = {
     productionMatchesCurrent: Boolean(context.source.commit && operationalState.releases?.production?.commit === context.source.commit),
     dirty: context.source.dirty
   } : null,
-  recommendedReads: ["AGENTS.md", "PROJECT.md", ...context.changes.map(({ path: changePath }) => changePath), ...context.modules.map(({ path: modulePath }) => modulePath)],
+  recommendedReads: ["AGENTS.md", "PROJECT.md", "starter.blueprint.json", "catalog/catalog.json", ...context.changes.map(({ path: changePath }) => changePath), ...context.modules.map(({ path: modulePath }) => modulePath)],
 };
 
 console.log(JSON.stringify(compact, null, 2));

@@ -10,10 +10,12 @@ import {
   FileText,
   Gauge,
   GitBranch,
+  Library,
   Menu,
   Moon,
   Network,
   Rocket,
+  Settings2,
   Sun,
   X,
 } from "lucide-react";
@@ -34,6 +36,11 @@ const ProtectedApp = lazy(async () => {
   return { default: module.ProtectedApp };
 });
 
+const SetupPage = lazy(async () => {
+  const module = await import("./components/setup-page");
+  return { default: module.SetupPage };
+});
+
 const TechnologyStatusChart = lazy(async () => {
   const module = await import("./components/technology-status-chart");
   return { default: module.TechnologyStatusChart };
@@ -43,12 +50,35 @@ type Technology = { area: string; choice: string; status: string };
 type ModuleDocument = { id: string; title: string; status: string; summary: string; path: string };
 type Environment = { id: string; worker: string; domain: string; releaseIntent: string; appEnv: string; workersDev: boolean };
 type DocumentRecord = { title: string; status: string; path: string; summary: string };
+type Lifecycle = { selected: boolean; materialized: boolean; localVerified: boolean; developmentVerified: boolean; productionReleased: boolean };
+type BlueprintSelection = { id: string; lifecycle: Lifecycle; note?: string };
+type CatalogPack = {
+  id: string;
+  kind: "design" | "page" | "saas" | "capability";
+  name: string;
+  version: string;
+  status: string;
+  targets: string[];
+  ownership: string;
+  updatePolicy: string;
+  source?: Array<{ name: string; relationship: string }>;
+};
 type Snapshot = {
   schemaVersion: string;
   generatedAt: string;
   source: { commit: string | null; branch: string | null; dirty: boolean; starterVersion: string; state: string };
   project: { title: string; status: string; owner: string | null; summary: string };
   technology: Technology[];
+  assembly: {
+    blueprint: {
+      status: string;
+      preset: string;
+      setup: { entry: string; status: string; currentStep: string; completedSteps: string[] };
+      selections: Record<"design" | "pages" | "saas" | "capabilities", BlueprintSelection[]>;
+      providers: { auth: string; socialAuth: string[]; database: string; email: { default: string; alternatives: string[] }; billing: string; release: string };
+    };
+    catalog: { schemaVersion: string; catalogVersion: string; policies: Record<string, string>; presets: Array<{ id: string; name: string; description: string; selections: string[] }>; packs: CatalogPack[] };
+  };
   modules: ModuleDocument[];
   changes: Array<{ id: string; title: string; status: string; summary: string }>;
   documents: DocumentRecord[];
@@ -82,6 +112,16 @@ const fallback: Snapshot = {
     { area: "Database", choice: "PostgreSQL + SQL-first", status: "planned" },
     { area: "Cloudflare context", choice: "Official MCP + Worker Studio MCP", status: "defined" },
   ],
+  assembly: {
+    blueprint: {
+      status: "draft",
+      preset: "basic-product",
+      setup: { entry: "/setup", status: "not-started", currentStep: "identity", completedSteps: [] },
+      selections: { design: [], pages: [], saas: [], capabilities: [] },
+      providers: { auth: "better-auth", socialAuth: ["google"], database: "postgresql-sql-first", email: { default: "cfsend", alternatives: ["resend", "cloudflare-email-service"] }, billing: "better-auth-stripe", release: "cloudflare-workers" },
+    },
+    catalog: { schemaVersion: "starter-catalog/v1", catalogVersion: "0.1.0", policies: {}, presets: [], packs: [] },
+  },
   modules: [],
   changes: [],
   documents: [],
@@ -132,6 +172,15 @@ function AccountSlot({ compact = false }: { compact?: boolean }) {
   return <Suspense fallback={<span className="account-skeleton" aria-label="Loading account" />}><AccountControl compact={compact} /></Suspense>;
 }
 
+function lifecycleStage(lifecycle: Lifecycle) {
+  if (lifecycle.productionReleased) return "production-released";
+  if (lifecycle.developmentVerified) return "development-verified";
+  if (lifecycle.localVerified) return "local-verified";
+  if (lifecycle.materialized) return "implemented";
+  if (lifecycle.selected) return "selected";
+  return "available";
+}
+
 function Home() {
   const { data } = useSnapshot();
   return <div className="home-grid"><div className="home-wrap">
@@ -158,7 +207,8 @@ function DevelopmentPlan() {
     <aside className={menuOpen ? "plan-nav open" : "plan-nav"}>
       <div className="nav-head"><Brand name={data.project.title} /><button aria-label="Close navigation" onClick={() => setMenuOpen(false)}><X size={18} /></button></div>
       <nav>{[
-        ["#overview", "Overview", CircleDot], ["#technology", "Technology", Code2], ["#modules", "Modules", Blocks],
+        ["#overview", "Overview", CircleDot], ["#blueprint", "Blueprint", Settings2], ["#catalog", "Pack catalog", Library],
+        ["#technology", "Technology", Code2], ["#modules", "Modules", Blocks],
         ["#cloudflare", "Cloudflare", Network], ["#orchestration", "AI orchestration", Bot], ["#release", "Release lanes", Rocket],
         ["#documentation", "Documentation", FileText], ["#performance", "Performance", Gauge],
       ].map(([href, label, Icon]) => {
@@ -179,6 +229,19 @@ function DevelopmentPlan() {
           <div><p className="context-line">{data.schemaVersion} / {data.source.starterVersion}</p><h1>{data.project.title}</h1><p>{data.project.summary}</p></div>
           <dl><div><dt>State</dt><dd>{data.project.status}</dd></div><div><dt>Commit</dt><dd>{commit}</dd></div><div><dt>Knowledge</dt><dd>{data.documentation.documentedModuleCount}/{data.documentation.moduleCount} modules</dd></div></dl>
         </section>
+
+        <Section id="blueprint" title="Project Blueprint" description="The canonical selection record behind /setup, with realization tracked separately from intent." icon={Settings2}>
+          <div className="assembly-summary">
+            <Surface><span className="role-label">Setup workspace</span><h3>{data.assembly.blueprint.setup.entry}</h3><dl className="compact-facts"><div><dt>Status</dt><dd>{data.assembly.blueprint.setup.status}</dd></div><div><dt>Preset</dt><dd>{data.assembly.blueprint.preset}</dd></div><div><dt>Blueprint</dt><dd>{data.assembly.blueprint.status}</dd></div></dl></Surface>
+            <Surface><span className="role-label">Provider defaults</span><h3>{data.assembly.blueprint.providers.auth}</h3><dl className="compact-facts"><div><dt>Social</dt><dd>{data.assembly.blueprint.providers.socialAuth.join(", ") || "none"}</dd></div><div><dt>Email</dt><dd>{data.assembly.blueprint.providers.email.default}</dd></div><div><dt>Billing</dt><dd>{data.assembly.blueprint.providers.billing}</dd></div></dl></Surface>
+          </div>
+          <div className="selection-groups">{Object.entries(data.assembly.blueprint.selections).map(([group, selections]) => <Surface key={group} className="selection-group"><div className="selection-group-head"><h3>{group}</h3><span>{selections.filter(({ lifecycle }) => lifecycle.selected).length} selected</span></div><div>{selections.map((selection) => { const stage = lifecycleStage(selection.lifecycle); return <div className="selection-row" key={selection.id}><code>{selection.id}</code><span className={`status ${stage}`}>{stage}</span></div>; })}</div></Surface>)}</div>
+        </Section>
+
+        <Section id="catalog" title="Internal pack catalog" description="Owned assembly choices with explicit provenance, target platforms, and update behavior." icon={Library}>
+          <div className="preset-grid">{data.assembly.catalog.presets.map((preset) => <Surface key={preset.id}><span className="role-label">{preset.name}</span><p>{preset.description}</p><small>{preset.selections.length} baseline packs</small></Surface>)}</div>
+          <Surface className="catalog-table"><div className="catalog-row catalog-header"><span>Pack</span><span>Targets and source</span><span>Ownership</span><span>Status</span></div>{data.assembly.catalog.packs.map((pack) => <div className="catalog-row" key={pack.id}><div><strong>{pack.name}</strong><small>{pack.id} / {pack.version}</small></div><div><p>{pack.targets.join(", ")}</p><small>{pack.source?.length ? pack.source.map(({ name, relationship }) => `${name}: ${relationship}`).join(", ") : "Starter original"}</small></div><div><strong>{pack.ownership}</strong><small>{pack.updatePolicy}</small></div><span className={`status ${pack.status}`}>{pack.status}</span></div>)}</Surface>
+        </Section>
 
         <Section id="technology" title="Technology map" description="The chosen foundation for each product responsibility." icon={Code2}>
           <div className="technology-grid">{data.technology.map((item) => <Surface key={item.area}><span className={`status ${item.status}`}>{item.status}</span><h3>{item.area}</h3><p>{item.choice}</p></Surface>)}</div>
@@ -219,6 +282,7 @@ export function App() {
   const path = window.location.pathname;
   if (path === "/login") return <Suspense fallback={<main className="protected-loading"><span /><span /><span /></main>}><AuthPage /></Suspense>;
   if (path === "/app" || path === "/app/settings") return <Suspense fallback={<main className="protected-loading"><span /><span /><span /></main>}><ProtectedApp /></Suspense>;
+  if (path === "/setup") return <Suspense fallback={<main className="protected-loading"><span /><span /><span /></main>}><SetupPage /></Suspense>;
   if (path === "/dp") return <DevelopmentPlan />;
   return <Home />;
 }

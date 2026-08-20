@@ -12,6 +12,15 @@ source: "starter"
 - Prefer accessible, responsive defaults and explicit loading, empty, error, and permission states.
 - Reuse the established design system before introducing new visual primitives.
 
+## Owned Design Engine
+
+- Starter owns the design profiles used by generated projects. A profile includes semantic tokens, typography, spacing, radius and elevation rules, interaction states, page recipes, asset direction, accessibility requirements, and per-target adapters.
+- StyleKit is a candidate library of source ideas and recipes. Accepted styles are manually imported from a pinned revision, normalized into Starter's schema, adapted for each target, reviewed with Product Design and Taste, visually compared, accessibility checked, performance tested, and released as a new internal catalog version.
+- Generated projects pin an internal profile version and never call a StyleKit runtime or API. New upstream StyleKit styles do not alter existing projects automatically.
+- PowerAI Astro supplies audited page structure and component ideas for owned Page Packs. Its original brand, theme, content, and repository relationship are removed after adaptation; only license and provenance remain.
+- One selected profile must produce coherent but platform-appropriate outputs for Astro marketing pages, shadcn Desktop Web and Admin, Starlight Docs, and later a Tamagui brand seed. Desktop and mobile still retain separate components and layouts.
+- Open Design and RunCopilot are research and extraction aids. They may inform a Change Spec but are not dependencies or design authorities.
+
 ## Authenticated account shell
 
 - Follow the familiar Google account pattern: signed-out surfaces show a clear sign-in action at the upper right; signed-in surfaces replace it with a circular profile photo or initials button in the same position.
@@ -30,6 +39,8 @@ source: "starter"
 
 - Product flows, UX audits, and visual exploration use the Product Design skill.
 - Frontend visual direction and anti-generic taste use the applicable taste skill.
+- `/setup` recommends a small set of compatible design profiles from the product brief. The user selects one; AI records it in the Blueprint before materializing pages.
+- Every Design or Page pack carries reference screenshots, target-specific empty/loading/error states, accessibility gates, and performance budgets before it can become `local-verified`.
 
 ## Platform component strategy
 

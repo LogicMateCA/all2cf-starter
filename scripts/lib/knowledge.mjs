@@ -3,6 +3,7 @@ import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { parse as parseJsonc } from "jsonc-parser";
 import YAML from "yaml";
+import { validateAssemblyContracts } from "./assembly.mjs";
 
 const rootDocuments = [
   "PROJECT.md",
@@ -104,8 +105,10 @@ function environmentFromConfig(id, config, manifestEnvironment) {
 }
 
 export async function collectKnowledge(root) {
-  const [manifest, aiManifest, orchestrationSource, bindings, developmentConfig, productionConfig] = await Promise.all([
+  const [manifest, blueprint, catalog, aiManifest, orchestrationSource, bindings, developmentConfig, productionConfig] = await Promise.all([
     readJson(root, "starter.manifest.json"),
+    readJson(root, "starter.blueprint.json"),
+    readJson(root, "catalog/catalog.json"),
     readJson(root, ".ai/manifest.json"),
     readFile(path.join(root, ".ai/orchestration.yaml"), "utf8"),
     readJson(root, "cloudflare/bindings.contract.json"),
@@ -119,6 +122,9 @@ export async function collectKnowledge(root) {
   const branch = gitValue(root, ["branch", "--show-current"]);
   const dirty = Boolean(gitValue(root, ["status", "--porcelain"], ""));
   const commitTime = commit ? gitValue(root, ["show", "-s", "--format=%cI", commit]) : null;
+  const assemblyFailures = validateAssemblyContracts(manifest, blueprint, catalog);
+  if (assemblyFailures.length) throw new Error(`Assembly contracts are invalid:\n- ${assemblyFailures.join("\n- ")}`);
+  const modules = await collectModules(root);
 
   return {
     schemaVersion: "starter-development-plan/v1",
@@ -137,7 +143,17 @@ export async function collectKnowledge(root) {
       summary: project?.summary || "",
     },
     technology: manifest.technology || [],
-    modules: await collectModules(root),
+    assembly: {
+      blueprint,
+      catalog: {
+        schemaVersion: catalog.schemaVersion,
+        catalogVersion: catalog.catalogVersion,
+        policies: catalog.policies,
+        presets: catalog.presets,
+        packs: catalog.packs,
+      },
+    },
+    modules,
     changes: await collectChanges(root),
     documents,
     environments: [
@@ -156,7 +172,7 @@ export async function collectKnowledge(root) {
       publicPath: "/docs",
       developmentPlanPath: "/dp",
       moduleCount: manifest.modules?.length || 0,
-      documentedModuleCount: (await collectModules(root)).length,
+      documentedModuleCount: modules.length,
     },
   };
 }

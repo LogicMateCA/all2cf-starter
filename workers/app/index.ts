@@ -142,6 +142,10 @@ app.get("/api/health/database", async (c) => {
   }
 });
 
+app.all("/setup", (c) => c.json({ error: { code: "LOCAL_ONLY", message: "Project setup is available only from the local development server." } }, 404));
+app.all("/setup/*", (c) => c.json({ error: { code: "LOCAL_ONLY", message: "Project setup is available only from the local development server." } }, 404));
+app.all("/__starter/*", (c) => c.json({ error: { code: "LOCAL_ONLY", message: "Starter configuration APIs are not available on deployed Workers." } }, 404));
+
 app.notFound((c) =>
   c.json(
     {

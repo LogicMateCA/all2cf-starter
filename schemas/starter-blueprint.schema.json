@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://starter.local/schemas/starter-blueprint.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "status", "preset", "project", "setup", "selections", "providers", "environments"],
+  "$defs": {
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["selected", "materialized", "localVerified", "developmentVerified", "productionReleased"],
+      "properties": {
+        "selected": { "type": "boolean" },
+        "materialized": { "type": "boolean" },
+        "localVerified": { "type": "boolean" },
+        "developmentVerified": { "type": "boolean" },
+        "productionReleased": { "type": "boolean" }
+      }
+    },
+    "selection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "lifecycle"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "lifecycle": { "$ref": "#/$defs/lifecycle" },
+        "note": { "type": "string" }
+      }
+    }
+  },
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "starter-blueprint/v1" },
+    "status": { "enum": ["draft", "ready", "materializing", "verified"] },
+    "preset": { "type": "string", "minLength": 1 },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "slug", "brief", "platforms", "locales", "defaultLocale"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "slug": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+        "brief": { "type": "string" },
+        "platforms": {
+          "type": "array",
+          "items": { "enum": ["desktop-web", "mobile-web", "ios", "android"] },
+          "uniqueItems": true
+        },
+        "locales": { "type": "array", "items": { "type": "string" }, "minItems": 1, "uniqueItems": true },
+        "defaultLocale": { "type": "string" }
+      }
+    },
+    "setup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entry", "status", "currentStep", "completedSteps"],
+      "properties": {
+        "entry": { "const": "/setup" },
+        "status": { "enum": ["not-started", "in-progress", "ready", "materializing", "complete"] },
+        "currentStep": { "enum": ["identity", "design", "pages", "saas", "capabilities", "providers", "review", "complete"] },
+        "completedSteps": {
+          "type": "array",
+          "items": { "enum": ["identity", "design", "pages", "saas", "capabilities", "providers", "review"] },
+          "uniqueItems": true
+        }
+      }
+    },
+    "selections": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["design", "pages", "saas", "capabilities"],
+      "properties": {
+        "design": { "type": "array", "items": { "$ref": "#/$defs/selection" } },
+        "pages": { "type": "array", "items": { "$ref": "#/$defs/selection" } },
+        "saas": { "type": "array", "items": { "$ref": "#/$defs/selection" } },
+        "capabilities": { "type": "array", "items": { "$ref": "#/$defs/selection" } }
+      }
+    },
+    "providers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["auth", "socialAuth", "database", "email", "billing", "release"],
+      "properties": {
+        "auth": { "type": "string" },
+        "socialAuth": {
+          "type": "array",
+          "items": { "enum": ["google", "github", "apple"] },
+          "uniqueItems": true
+        },
+        "database": { "type": "string" },
+        "email": {
+          "type": "object",
+          "required": ["default", "alternatives"],
+          "properties": {
+            "default": { "type": "string" },
+            "alternatives": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+          }
+        },
+        "billing": { "type": "string" },
+        "release": { "type": "string" }
+      }
+    },
+    "environments": {
+      "type": "array",
+      "items": { "enum": ["development", "production"] },
+      "uniqueItems": true
+    }
+  }
+}

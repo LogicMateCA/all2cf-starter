@@ -1,0 +1,141 @@
+{
+  "$schema": "./schemas/starter-blueprint.schema.json",
+  "schemaVersion": "starter-blueprint/v1",
+  "status": "draft",
+  "preset": "basic-product",
+  "project": {
+    "name": "Cloudflare AI Starter",
+    "slug": "starter",
+    "brief": "A reusable Cloudflare-first product assembler controlled through an AI-readable setup blueprint.",
+    "platforms": [
+      "desktop-web",
+      "mobile-web",
+      "ios",
+      "android"
+    ],
+    "locales": [
+      "en",
+      "zh"
+    ],
+    "defaultLocale": "en"
+  },
+  "setup": {
+    "entry": "/setup",
+    "status": "not-started",
+    "currentStep": "identity",
+    "completedSteps": []
+  },
+  "selections": {
+    "design": [
+      {
+        "id": "design.owned-neutral",
+        "lifecycle": {
+          "selected": true,
+          "materialized": true,
+          "localVerified": true,
+          "developmentVerified": true,
+          "productionReleased": true
+        },
+        "note": "Current neutral shadcn and Tamagui foundation; StyleKit-derived profiles remain a separate planned catalog line."
+      }
+    ],
+    "pages": [
+      {
+        "id": "page.core-product-site",
+        "lifecycle": {
+          "selected": true,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Core product pages will be adapted from the audited PowerAI donor into owned page packs."
+      }
+    ],
+    "saas": [
+      {
+        "id": "saas.identity-core",
+        "lifecycle": {
+          "selected": true,
+          "materialized": true,
+          "localVerified": true,
+          "developmentVerified": true,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.product-operations-lite",
+        "lifecycle": {
+          "selected": true,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.team-organizations",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.billing-stripe",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.api-platform",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      }
+    ],
+    "capabilities": [
+      {
+        "id": "capability.mapcn-web",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Optional Web-only map pack; mobile mapping will use a separate native-aware pack."
+      }
+    ]
+  },
+  "providers": {
+    "auth": "better-auth",
+    "socialAuth": [
+      "google"
+    ],
+    "database": "postgresql-sql-first",
+    "email": {
+      "default": "cfsend",
+      "alternatives": [
+        "resend",
+        "cloudflare-email-service"
+      ]
+    },
+    "billing": "better-auth-stripe",
+    "release": "cloudflare-workers"
+  },
+  "environments": [
+    "development",
+    "production"
+  ]
+}

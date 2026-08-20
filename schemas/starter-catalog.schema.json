@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://starter.local/schemas/starter-catalog.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "catalogVersion", "policies", "presets", "packs"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "starter-catalog/v1" },
+    "catalogVersion": { "type": "string" },
+    "policies": {
+      "type": "object",
+      "required": ["betterAuth", "ownedAdapters", "references"],
+      "properties": {
+        "betterAuth": { "type": "string" },
+        "ownedAdapters": { "type": "string" },
+        "references": { "type": "string" }
+      }
+    },
+    "presets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "description", "selections"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "selections": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+        }
+      }
+    },
+    "packs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "name", "version", "status", "targets", "ownership", "updatePolicy", "provides", "requires", "conflicts", "performance", "verification", "documentation"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^(design|page|saas|capability)\\.[a-z0-9-]+$" },
+          "kind": { "enum": ["design", "page", "saas", "capability"] },
+          "name": { "type": "string" },
+          "version": { "type": "string" },
+          "status": { "enum": ["reference", "defined", "planned", "implemented", "local-verified", "development-verified", "production-released"] },
+          "targets": { "type": "array", "items": { "enum": ["desktop-web", "mobile-web", "ios", "android", "worker", "docs", "admin"] }, "uniqueItems": true },
+          "ownership": { "enum": ["starter-owned", "upstream-tracked", "reference-only"] },
+          "source": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "relationship"],
+              "properties": {
+                "name": { "type": "string" },
+                "url": { "type": "string" },
+                "revision": { "type": "string" },
+                "license": { "type": "string" },
+                "relationship": { "enum": ["adapted-donor", "reference", "runtime-dependency", "tracked-upstream"] }
+              }
+            }
+          },
+          "updatePolicy": { "enum": ["stable-aligned", "internal-curated", "runtime-stable", "reference-only"] },
+          "provides": { "type": "array", "items": { "type": "string" } },
+          "requires": { "type": "array", "items": { "type": "string" } },
+          "conflicts": { "type": "array", "items": { "type": "string" } },
+          "performance": { "type": "array", "items": { "type": "string" } },
+          "verification": { "type": "array", "items": { "type": "string" } },
+          "documentation": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}
