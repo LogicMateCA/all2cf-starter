@@ -8,6 +8,9 @@ import { parseEnv } from "./lib/env-profile.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const config = JSON.parse(await readFile(path.join(root, "starter.config.json"), "utf8"));
+const blueprint = JSON.parse(await readFile(path.join(root, "starter.blueprint.json"), "utf8"));
+const selectedPacks = new Set(Object.values(blueprint.selections).flat().filter(({ lifecycle }) => lifecycle.selected && lifecycle.materialized).map(({ id }) => id));
+const stripeSelected = selectedPacks.has("saas.billing-stripe");
 const env = parseEnv(await readFile(path.join(root, ".dev.vars"), "utf8"));
 const providers = JSON.parse(await readFile(path.join(root, "profiles/providers.json"), "utf8"));
 const profilePath = process.env.STARTER_DEV_PROFILE_PATH || providers.defaultPath;
@@ -49,6 +52,11 @@ function syncWorkerSecrets(environment, wranglerConfig) {
     } : emailProvider === "resend" ? {
       RESEND_API_KEY: required("RESEND_API_KEY"),
       RESEND_FROM: required("RESEND_FROM"),
+    } : {}),
+    ...(stripeSelected ? {
+      STRIPE_SECRET_KEY: required(environment === "production" ? "STARTER_PRODUCTION_STRIPE_SECRET_KEY" : "STRIPE_SECRET_KEY"),
+      STRIPE_WEBHOOK_SECRET: required(environment === "production" ? "STARTER_PRODUCTION_STRIPE_WEBHOOK_SECRET" : "STRIPE_WEBHOOK_SECRET"),
+      STRIPE_PRICE_PRO: required(environment === "production" ? "STARTER_PRODUCTION_STRIPE_PRICE_PRO" : "STRIPE_PRICE_PRO"),
     } : {}),
   };
   const result = spawnSync("npx", ["wrangler", "secret", "bulk", "--config", wranglerConfig], {
@@ -234,7 +242,7 @@ async function writeWrangler(environment, hyperdriveId) {
     ...(emailProvider === "cloudflare-email" ? { CLOUDFLARE_EMAIL_FROM: required("CLOUDFLARE_EMAIL_FROM") } : {}),
     MOBILE_DEEP_LINK_SCHEMES: [`${config.project.slug}-dev://`, `${config.project.slug}-preview://`, `${config.project.slug}://`].join(","),
   };
-  value.secrets = { required: ["BETTER_AUTH_SECRET", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", ...(emailProvider === "cfsend" ? ["CFSEND_API_URL", "CFSEND_API_KEY", "CFSEND_FROM"] : emailProvider === "resend" ? ["RESEND_API_KEY", "RESEND_FROM"] : [])] };
+  value.secrets = { required: ["BETTER_AUTH_SECRET", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", ...(emailProvider === "cfsend" ? ["CFSEND_API_URL", "CFSEND_API_KEY", "CFSEND_FROM"] : emailProvider === "resend" ? ["RESEND_API_KEY", "RESEND_FROM"] : []), ...(stripeSelected ? ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "STRIPE_PRICE_PRO"] : [])] };
   if (emailProvider === "cloudflare-email") value.send_email = [{ name: "EMAIL" }];
   else delete value.send_email;
   value.hyperdrive = [{ binding: "HYPERDRIVE", id: hyperdriveId }];

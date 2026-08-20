@@ -1,0 +1,58 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "saas.team-organizations",
+  "version": "0.1.0",
+  "source": {
+    "name": "Better Auth Organization",
+    "url": "https://better-auth.com/docs/plugins/organization",
+    "revision": "1.7.1",
+    "license": "MIT",
+    "relationship": "tracked-upstream"
+  },
+  "files": [
+    {
+      "source": "templates/organization-auth-plugin.ts",
+      "target": "workers/app/features/organization-auth-plugin.ts"
+    },
+    {
+      "source": "templates/organization-auth-client-plugin.ts",
+      "target": "apps/web/src/features/organization-auth-client-plugin.ts"
+    },
+    {
+      "source": "templates/organization-page.tsx",
+      "target": "apps/web/src/components/features/organization-page.tsx"
+    },
+    {
+      "source": "templates/organization-page.css",
+      "target": "apps/web/src/components/features/organization-page.css"
+    },
+    {
+      "source": "templates/0005_organization.sql",
+      "target": "db/migrations/0005_organization.sql"
+    }
+  ],
+  "dependencies": [],
+  "routes": [
+    {
+      "path": "/app/team",
+      "module": "../components/features/organization-page",
+      "export": "OrganizationPage"
+    },
+    {
+      "path": "/app/invitation",
+      "module": "../components/features/organization-page",
+      "export": "OrganizationInvitationPage"
+    }
+  ],
+  "authPlugins": {
+    "server": {
+      "module": "../features/organization-auth-plugin",
+      "export": "createOrganizationAuthPlugin"
+    },
+    "client": {
+      "module": "../features/organization-auth-client-plugin",
+      "export": "createOrganizationAuthClientPlugin"
+    }
+  }
+}

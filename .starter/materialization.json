@@ -2,5 +2,7 @@
   "schemaVersion": "starter-materialization/v1",
   "packs": {},
   "dependencies": {},
-  "generatedRoutesHash": "b1612aea88c167b888cb954f7e856f95d608c369634aad6380f23977ee21de7a"
+  "generatedRoutesHash": "b1612aea88c167b888cb954f7e856f95d608c369634aad6380f23977ee21de7a",
+  "generatedAuthServerHash": "e39b4b3744e375f8920fe9e846beba207d9ac88e356aef70833d413b998e36c1",
+  "generatedAuthClientHash": "c3c373c7264baedfe7822e00cb4b2b622e997bb94532134d333171e1d00c5919"
 }

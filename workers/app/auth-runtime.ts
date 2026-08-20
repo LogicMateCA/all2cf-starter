@@ -3,6 +3,7 @@ import { createStarterAuth, type AuthEmail, type StarterAuth } from "./auth-conf
 import { AuthEmailProviderError, sendAuthEmail } from "./auth-email-provider";
 
 export type AuthRuntimeEnv = {
+  APP_ENV: string;
   HYPERDRIVE: Env["HYPERDRIVE"];
   SERVICE_NAME: string;
   APP_NAME: string;
@@ -13,6 +14,9 @@ export type AuthRuntimeEnv = {
   BETTER_AUTH_SECRET: string;
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;
+  STRIPE_SECRET_KEY?: string;
+  STRIPE_WEBHOOK_SECRET?: string;
+  STRIPE_PRICE_PRO?: string;
   CFSEND_API_URL?: string;
   CFSEND_API_KEY?: string;
   CFSEND_FROM?: string;
@@ -52,6 +56,7 @@ export async function withRequestAuth<T>(env: AuthRuntimeEnv, ctx: RequestExecut
   const auth = createStarterAuth({
     appName: env.APP_NAME,
     baseURL: env.AUTH_CANONICAL_ORIGIN,
+    appEnvironment: env.APP_ENV,
     secret: env.BETTER_AUTH_SECRET,
     database: pool,
     googleClientId: env.GOOGLE_CLIENT_ID,
@@ -59,6 +64,9 @@ export async function withRequestAuth<T>(env: AuthRuntimeEnv, ctx: RequestExecut
     mobileSchemes: mobileSchemes(env),
     requireEmailVerification: env.AUTH_REQUIRE_EMAIL_VERIFICATION === "true",
     enqueueEmail,
+    stripeSecretKey: env.STRIPE_SECRET_KEY,
+    stripeWebhookSecret: env.STRIPE_WEBHOOK_SECRET,
+    stripePricePro: env.STRIPE_PRICE_PRO,
   });
 
   try {

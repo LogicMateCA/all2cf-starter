@@ -2,9 +2,10 @@ import { betterAuth } from "better-auth";
 import { expo } from "@better-auth/expo";
 import { admin } from "better-auth/plugins";
 import type { Pool } from "pg";
+import { createSelectedAuthPlugins } from "./generated/auth-plugins";
 
 export type AuthEmail = {
-  kind: "email-verification" | "password-reset";
+  kind: "email-verification" | "password-reset" | "organization-invitation";
   to: string;
   subject: string;
   text: string;
@@ -15,6 +16,7 @@ export type AuthEmail = {
 type StarterAuthInput = {
   appName: string;
   baseURL: string;
+  appEnvironment: string;
   secret: string;
   database: Pool;
   googleClientId: string;
@@ -22,6 +24,9 @@ type StarterAuthInput = {
   mobileSchemes: string[];
   requireEmailVerification: boolean;
   enqueueEmail: (email: AuthEmail) => Promise<void>;
+  stripeSecretKey?: string;
+  stripeWebhookSecret?: string;
+  stripePricePro?: string;
 };
 
 function escapeHtml(value: string) {
@@ -50,6 +55,14 @@ export function createStarterAuth(input: StarterAuthInput) {
         user: { fields: { role: "role", banned: "banned", banReason: "ban_reason", banExpires: "ban_expires" } },
         session: { fields: { impersonatedBy: "impersonated_by" } },
       },
+    }), ...createSelectedAuthPlugins({
+      baseURL: input.baseURL,
+      appEnvironment: input.appEnvironment,
+      database: input.database,
+      enqueueEmail: input.enqueueEmail,
+      stripeSecretKey: input.stripeSecretKey,
+      stripeWebhookSecret: input.stripeWebhookSecret,
+      stripePricePro: input.stripePricePro,
     })],
     trustHost: false,
     database: input.database,

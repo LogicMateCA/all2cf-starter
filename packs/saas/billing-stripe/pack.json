@@ -1,0 +1,72 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "saas.billing-stripe",
+  "version": "0.1.0",
+  "source": {
+    "name": "Better Auth Stripe",
+    "url": "https://better-auth.com/docs/plugins/stripe",
+    "revision": "1.7.1",
+    "license": "MIT",
+    "relationship": "tracked-upstream"
+  },
+  "files": [
+    {
+      "source": "templates/stripe-auth-plugin.ts",
+      "target": "workers/app/features/stripe-auth-plugin.ts"
+    },
+    {
+      "source": "templates/stripe-auth-client-plugin.ts",
+      "target": "apps/web/src/features/stripe-auth-client-plugin.ts"
+    },
+    {
+      "source": "templates/billing-page.tsx",
+      "target": "apps/web/src/components/features/billing-page.tsx"
+    },
+    {
+      "source": "templates/billing-page.css",
+      "target": "apps/web/src/components/features/billing-page.css"
+    },
+    {
+      "source": "templates/0006_stripe_billing.sql",
+      "target": "db/migrations/0006_stripe_billing.sql"
+    }
+  ],
+  "dependencies": [
+    {
+      "packageFile": "workers/app/package.json",
+      "section": "dependencies",
+      "name": "@better-auth/stripe",
+      "version": "1.7.1"
+    },
+    {
+      "packageFile": "workers/app/package.json",
+      "section": "dependencies",
+      "name": "stripe",
+      "version": "22.5.0"
+    },
+    {
+      "packageFile": "apps/web/package.json",
+      "section": "dependencies",
+      "name": "@better-auth/stripe",
+      "version": "1.7.1"
+    }
+  ],
+  "routes": [
+    {
+      "path": "/app/billing",
+      "module": "../components/features/billing-page",
+      "export": "BillingPage"
+    }
+  ],
+  "authPlugins": {
+    "server": {
+      "module": "../features/stripe-auth-plugin",
+      "export": "createStripeAuthPlugin"
+    },
+    "client": {
+      "module": "../features/stripe-auth-client-plugin",
+      "export": "createStripeAuthClientPlugin"
+    }
+  }
+}

@@ -12,6 +12,7 @@ This repository is a reusable starter. Replace neutral placeholders during proje
 - Markdown and frontmatter are the source of truth for `/dp` artifacts. Generated output must not silently become the source.
 - Every material code, configuration, schema, dependency, behavior, ownership, Skill, or release-policy change must update one focused Change Spec and every affected canonical Markdown document in the same change. Run `knowledge:sync` and `knowledge:check` before completion so `/dp` never falls behind the repository. Do not edit generated `/dp` JSON directly.
 - Use SQL-first PostgreSQL access. Do not add an ORM by default; justify any ORM in a Change Spec.
+- Treat every new Starter project database as empty infrastructure built from the final selected baseline. Do not design legacy-data migrations, backfills, dual writes, or compatibility shims here; once a copied product owns data, that product owns its later upgrades separately.
 - Route Product Design work through the Product Design skill, and visual/frontend taste work through the applicable taste skill.
 - For Cloudflare build, deploy, inspection, or rollback work, read and follow `skills/cloudflare-release/SKILL.md`.
 - For copying or initializing this Starter, read and follow `skills/starter-bootstrap/SKILL.md`.

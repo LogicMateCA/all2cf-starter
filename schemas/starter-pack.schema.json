@@ -18,7 +18,7 @@
         "url": { "type": "string" },
         "revision": { "type": "string" },
         "license": { "type": "string" },
-        "relationship": { "enum": ["adapted-donor", "starter-original"] }
+        "relationship": { "enum": ["adapted-donor", "starter-original", "tracked-upstream"] }
       }
     },
     "files": {
@@ -58,6 +58,25 @@
           "module": { "type": "string" },
           "export": { "type": "string", "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*$" }
         }
+      }
+    },
+    "authPlugins": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "server": { "$ref": "#/$defs/authPlugin" },
+        "client": { "$ref": "#/$defs/authPlugin" }
+      }
+    }
+  },
+  "$defs": {
+    "authPlugin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["module", "export"],
+      "properties": {
+        "module": { "type": "string" },
+        "export": { "type": "string", "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*$" }
       }
     }
   }

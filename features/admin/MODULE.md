@@ -8,7 +8,7 @@ source: starter
 
 Purpose: provide a small authenticated product-operations shell whose sections are added only when their owning SaaS modules are selected.
 
-- Implemented scope: `/admin` provides Better Auth user readback plus the lightweight support and bug inbox. Billing and organization sections remain absent until their packs are selected.
+- Implemented scope: `/admin` provides Better Auth user readback plus the lightweight support and bug inbox. Organization and Billing capabilities materialize their own product routes first; project-specific Admin readback remains absent until a real operations need defines it.
 - Admin authority: Better Auth's official Admin plugin owns the `admin` platform role and identity endpoints. The Starter UI does not create a second role model. Optional organization membership never grants platform Admin access.
 - Audit events: support status changes append actor, action, target, metadata, and time to `app_admin_audit_event`; read-only screens do not create artificial audit noise.
 - Current UI intentionally exposes user readback rather than every destructive Admin endpoint. Ban, role, session-revocation, and impersonation APIs are upstream-owned and should receive product-specific UI only when a real project needs them.

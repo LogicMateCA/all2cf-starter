@@ -95,7 +95,7 @@ type Snapshot = {
     catalog: { schemaVersion: string; catalogVersion: string; policies: Record<string, string>; presets: Array<{ id: string; name: string; description: string; selections: string[] }>; packs: CatalogPack[] };
     designCatalog: { schemaVersion: string; catalogVersion: string; sourcePolicy: string; profiles: DesignProfile[] };
     pageCatalog: { schemaVersion: string; catalogVersion: string; policy: string; pages: PageDefinition[] };
-    materialization: { schemaVersion: string; packs: Array<{ id: string; version: string; files: number }>; dependencyCount: number; generatedRoutesHash: string | null };
+    materialization: { schemaVersion: string; packs: Array<{ id: string; version: string; files: number }>; dependencyCount: number; generatedRoutesHash: string | null; generatedAuthServerHash: string | null; generatedAuthClientHash: string | null };
   };
   modules: ModuleDocument[];
   changes: Array<{ id: string; title: string; status: string; summary: string }>;
@@ -143,7 +143,7 @@ const fallback: Snapshot = {
     catalog: { schemaVersion: "starter-catalog/v1", catalogVersion: "0.3.0", policies: {}, presets: [], packs: [] },
     designCatalog: { schemaVersion: "starter-design-catalog/v1", catalogVersion: "0.1.0", sourcePolicy: "Starter-owned profiles", profiles: [] },
     pageCatalog: { schemaVersion: "starter-page-catalog/v1", catalogVersion: "0.1.0", policy: "Starter-owned routes", pages: [] },
-    materialization: { schemaVersion: "starter-materialization/v1", packs: [], dependencyCount: 0, generatedRoutesHash: null },
+    materialization: { schemaVersion: "starter-materialization/v1", packs: [], dependencyCount: 0, generatedRoutesHash: null, generatedAuthServerHash: null, generatedAuthClientHash: null },
   },
   modules: [],
   changes: [],
@@ -257,7 +257,7 @@ function DevelopmentPlan() {
           <div className="assembly-summary">
             <Surface><span className="role-label">Setup workspace</span><h3>{data.assembly.blueprint.setup.entry}</h3><dl className="compact-facts"><div><dt>Status</dt><dd>{data.assembly.blueprint.setup.status}</dd></div><div><dt>Preset</dt><dd>{data.assembly.blueprint.preset}</dd></div><div><dt>Design</dt><dd>{data.assembly.blueprint.designProfile.id} / {data.assembly.blueprint.designProfile.version}</dd></div><div><dt>Pages</dt><dd>{data.assembly.blueprint.pageSet.selected.length}</dd></div><div><dt>Blueprint</dt><dd>{data.assembly.blueprint.status}</dd></div></dl></Surface>
             <Surface><span className="role-label">Provider defaults</span><h3>{data.assembly.blueprint.providers.auth}</h3><dl className="compact-facts"><div><dt>Social</dt><dd>{data.assembly.blueprint.providers.socialAuth.join(", ") || "none"}</dd></div><div><dt>Email</dt><dd>{data.assembly.blueprint.providers.email.default}</dd></div><div><dt>Billing</dt><dd>{data.assembly.blueprint.providers.billing}</dd></div></dl></Surface>
-            <Surface><span className="role-label">Materialization receipt</span><h3>{data.assembly.materialization.packs.length} optional packs</h3><dl className="compact-facts"><div><dt>Files</dt><dd>{data.assembly.materialization.packs.reduce((total, pack) => total + pack.files, 0)}</dd></div><div><dt>Dependencies</dt><dd>{data.assembly.materialization.dependencyCount}</dd></div><div><dt>Check</dt><dd>starter:materialize:check</dd></div></dl></Surface>
+            <Surface><span className="role-label">Materialization receipt</span><h3>{data.assembly.materialization.packs.length} optional packs</h3><dl className="compact-facts"><div><dt>Files</dt><dd>{data.assembly.materialization.packs.reduce((total, pack) => total + pack.files, 0)}</dd></div><div><dt>Dependencies</dt><dd>{data.assembly.materialization.dependencyCount}</dd></div><div><dt>Auth registries</dt><dd>{data.assembly.materialization.generatedAuthServerHash && data.assembly.materialization.generatedAuthClientHash ? "tracked" : "missing"}</dd></div><div><dt>Check</dt><dd>starter:materialize:check</dd></div></dl></Surface>
           </div>
           <div className="selection-groups">{Object.entries(data.assembly.blueprint.selections).map(([group, selections]) => <Surface key={group} className="selection-group"><div className="selection-group-head"><h3>{group}</h3><span>{selections.filter(({ lifecycle }) => lifecycle.selected).length} selected</span></div><div>{selections.map((selection) => { const stage = lifecycleStage(selection.lifecycle); return <div className="selection-row" key={selection.id}><code>{selection.id}</code><span className={`status ${stage}`}>{stage}</span></div>; })}</div></Surface>)}</div>
         </Section>

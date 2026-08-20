@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHmac, randomUUID } from "node:crypto";
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
@@ -15,6 +15,10 @@ const mailPort = Number(process.env.STARTER_AUTH_SMOKE_MAIL_PORT || 18789);
 const envPath = path.join(root, ".dev.vars");
 const values = parseEnv(await readFile(envPath, "utf8"));
 const starter = JSON.parse(await readFile(path.join(root, "starter.config.json"), "utf8"));
+const blueprint = JSON.parse(await readFile(path.join(root, "starter.blueprint.json"), "utf8"));
+const selectedPacks = new Set(Object.values(blueprint.selections).flat().filter(({ lifecycle }) => lifecycle.selected && lifecycle.materialized).map(({ id }) => id));
+const organizationsSelected = selectedPacks.has("saas.team-organizations");
+const stripeSelected = selectedPacks.has("saas.billing-stripe");
 const origin = remote ? `https://${starter.development.domain}` : `http://127.0.0.1:${port}`;
 const baseConfig = parseJsonc(await readFile(path.join(root, "cloudflare/wrangler.development.jsonc"), "utf8"));
 const isolatedDatabaseUrl = process.env.STARTER_AUTH_SMOKE_DATABASE_URL?.trim();
@@ -73,12 +77,18 @@ if (!remote) {
   smokeValues.set("CFSEND_API_URL", `http://127.0.0.1:${mailPort}`);
   smokeValues.set("CFSEND_API_KEY", "smoke-cfsend-key");
   smokeValues.set("CFSEND_FROM", "Starter Smoke <auth@example.test>");
+  if (stripeSelected) {
+    smokeValues.set("STRIPE_SECRET_KEY", "sk_test_starter_smoke_only");
+    smokeValues.set("STRIPE_WEBHOOK_SECRET", "whsec_starter_smoke_only");
+    smokeValues.set("STRIPE_PRICE_PRO", "price_starter_smoke_only");
+  }
   await writeFile(smokeEnvPath, renderEnv([...smokeValues.keys()], smokeValues), { mode: 0o600 });
   const localConfig = {
     ...baseConfig,
     name: "starter-auth-smoke",
     main: path.join(root, "workers/app/index.ts"),
     vars: { ...baseConfig.vars, AUTH_CANONICAL_ORIGIN: origin, AUTH_REQUIRE_EMAIL_VERIFICATION: "true", AUTH_EMAIL_PROVIDER: "cfsend" },
+    secrets: { required: [...(baseConfig.secrets?.required || []), ...(stripeSelected ? ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "STRIPE_PRICE_PRO"] : [])] },
     assets: { ...baseConfig.assets, directory: path.join(root, "dist/web") },
     hyperdrive: [{ ...baseConfig.hyperdrive[0], localConnectionString: databaseSource.toString() }],
     routes: [],
@@ -95,6 +105,7 @@ if (!remote) {
 }
 
 const email = `smoke+${randomUUID()}@example.test`;
+const cleanupEmails = [email];
 const password = `Smoke-${randomUUID()}-A1!`;
 const smokeIp = `203.0.113.${Math.floor(Math.random() * 254) + 1}`;
 const database = new Client({
@@ -105,6 +116,11 @@ const database = new Client({
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+function stripeSignature(payload, secret, timestamp = Math.floor(Date.now() / 1000)) {
+  const signature = createHmac("sha256", secret).update(`${timestamp}.${payload}`).digest("hex");
+  return `t=${timestamp},v1=${signature}`;
 }
 
 async function request(pathname, init = {}) {
@@ -200,6 +216,61 @@ try {
   assert(updatedPreferences.payload?.data?.theme === "dark" && updatedPreferences.payload?.data?.locale === "zh", "account preferences did not persist");
   checks.push("account-preferences");
 
+  if (organizationsSelected) {
+    const organizationSlug = `smoke-${randomUUID().slice(0, 12)}`;
+    const createdOrganization = await request("/api/auth/organization/create", { method: "POST", headers: { "Content-Type": "application/json", Cookie: cookie, Origin: origin }, body: JSON.stringify({ name: "Smoke Organization", slug: organizationSlug }) });
+    assert(createdOrganization.response.status === 200 && createdOrganization.payload?.id, `organization creation failed (${createdOrganization.response.status}: ${JSON.stringify(createdOrganization.payload)})`);
+    const organizationId = createdOrganization.payload.id;
+    const listedOrganizations = await request("/api/auth/organization/list", { headers: { Cookie: cookie, Origin: origin } });
+    assert(listedOrganizations.response.status === 200 && listedOrganizations.payload?.some?.((item) => item.id === organizationId), "organization list did not contain the created organization");
+    const member = await database.query("select role from app_organization_member where organization_id = $1 and user_id = (select id from app_user where email = $2)", [organizationId, email]);
+    const defaultTeam = await database.query("select count(*)::int as count from app_team where organization_id = $1", [organizationId]);
+    assert(member.rows[0]?.role === "owner" && defaultTeam.rows[0]?.count === 1, "organization creator role or default team is incorrect");
+    const invitationEmail = `invite+${randomUUID()}@example.test`;
+    cleanupEmails.push(invitationEmail);
+    const invitation = await request("/api/auth/organization/invite-member", { method: "POST", headers: { "Content-Type": "application/json", Cookie: cookie, Origin: origin }, body: JSON.stringify({ organizationId, email: invitationEmail, role: "member", resend: true }) });
+    assert(invitation.response.status === 200, `organization invitation failed (${invitation.response.status}: ${JSON.stringify(invitation.payload)})`);
+    const invitationOutbox = await database.query("select status, action_url from app_auth_email_outbox where recipient = $1 and kind = 'organization-invitation'", [invitationEmail]);
+    assert(invitationOutbox.rows[0]?.status === "sent" && invitationOutbox.rows[0]?.action_url?.includes("/app/invitation?id="), "organization invitation did not use the configured email provider");
+    const invitedPassword = `Invite-${randomUUID()}-A1!`;
+    const invitedIp = `198.51.100.${Math.floor(Math.random() * 254) + 1}`;
+    const invitedRegistration = await request("/api/auth-flow/register", { method: "POST", headers: { "Content-Type": "application/json", Origin: origin }, body: JSON.stringify({ email: invitationEmail, name: "Invited Smoke", password: invitedPassword, confirmPassword: invitedPassword }) });
+    assert(invitedRegistration.response.status === 202, "invited user registration failed");
+    const invitedVerification = await database.query("select action_url from app_auth_email_outbox where recipient = $1 and kind = 'email-verification' order by created_at desc limit 1", [invitationEmail]);
+    const invitedVerificationResponse = await fetch(invitedVerification.rows[0]?.action_url || "", { redirect: "manual", headers: { Origin: origin } });
+    assert(invitedVerificationResponse.status >= 300 && invitedVerificationResponse.status < 400, "invited user email verification failed");
+    const invitedLogin = await request("/api/auth/sign-in/email", { method: "POST", headers: { "Content-Type": "application/json", Origin: origin, "CF-Connecting-IP": invitedIp }, body: JSON.stringify({ email: invitationEmail, password: invitedPassword, callbackURL: "/app/invitation" }) });
+    const invitedCookieHeaders = typeof invitedLogin.response.headers.getSetCookie === "function" ? invitedLogin.response.headers.getSetCookie() : [invitedLogin.response.headers.get("set-cookie")].filter(Boolean);
+    const invitedCookie = invitedCookieHeaders.map((value) => value.split(";", 1)[0]).join("; ");
+    assert(invitedLogin.response.status === 200 && invitedCookie.includes("session"), "invited user sign-in failed");
+    const invitationId = invitation.payload?.id || (await database.query("select id from app_organization_invitation where organization_id = $1 and email = $2", [organizationId, invitationEmail])).rows[0]?.id;
+    const acceptedInvitation = await request("/api/auth/organization/accept-invitation", { method: "POST", headers: { "Content-Type": "application/json", Cookie: invitedCookie, Origin: origin }, body: JSON.stringify({ invitationId }) });
+    assert(acceptedInvitation.response.status === 200, `invitation acceptance failed (${acceptedInvitation.response.status}: ${JSON.stringify(acceptedInvitation.payload)})`);
+    const secondOrganization = await request("/api/auth/organization/create", { method: "POST", headers: { "Content-Type": "application/json", Cookie: cookie, Origin: origin }, body: JSON.stringify({ name: "Isolated Organization", slug: `isolated-${randomUUID().slice(0, 12)}` }) });
+    const isolatedRead = await request(`/api/auth/organization/get-full-organization?organizationId=${encodeURIComponent(secondOrganization.payload?.id || "")}`, { headers: { Cookie: invitedCookie, Origin: origin } });
+    assert(secondOrganization.response.status === 200 && isolatedRead.response.status >= 400, "organization membership did not isolate another tenant");
+    const invitedAdmin = await request("/api/admin/support/tickets", { headers: { Cookie: invitedCookie, Origin: origin } });
+    assert(invitedAdmin.response.status === 403, "organization membership granted platform Admin access");
+    checks.push("organization-create-list-role-team-invitation-acceptance-isolation");
+  }
+
+  if (stripeSelected) {
+    const subscriptions = await request("/api/auth/subscription/list", { headers: { Cookie: cookie, Origin: origin } });
+    assert(subscriptions.response.status === 200 && Array.isArray(subscriptions.payload), "signed-in user could not read the empty subscription projection");
+    const forbiddenReference = await request(`/api/auth/subscription/list?referenceId=${encodeURIComponent(randomUUID())}`, { headers: { Cookie: cookie, Origin: origin } });
+    assert(forbiddenReference.response.status >= 400, "billing reference authorization accepted another user's reference ID");
+    const eventId = `evt_starter_${randomUUID().replaceAll("-", "")}`;
+    const eventBody = JSON.stringify({ id: eventId, object: "event", api_version: "2026-07-29.dahlia", created: Math.floor(Date.now() / 1000), data: { object: {} }, livemode: false, pending_webhooks: 1, request: null, type: "starter.smoke" });
+    const rejectedWebhook = await request("/api/auth/stripe/webhook", { method: "POST", headers: { "Content-Type": "application/json", "Stripe-Signature": "t=1,v1=invalid", Origin: origin }, body: eventBody });
+    assert(rejectedWebhook.response.status === 400, "Stripe webhook accepted an invalid signature");
+    const signature = stripeSignature(eventBody, "whsec_starter_smoke_only");
+    const acceptedWebhook = await request("/api/auth/stripe/webhook", { method: "POST", headers: { "Content-Type": "application/json", "Stripe-Signature": signature, Origin: origin }, body: eventBody });
+    const replayedWebhook = await request("/api/auth/stripe/webhook", { method: "POST", headers: { "Content-Type": "application/json", "Stripe-Signature": signature, Origin: origin }, body: eventBody });
+    const webhookEvidence = await database.query("select received_count from app_stripe_webhook_event where event_id = $1", [eventId]);
+    assert(acceptedWebhook.response.status === 200 && replayedWebhook.response.status === 200 && webhookEvidence.rows[0]?.received_count === 2, "signed Stripe webhook replay evidence is incorrect");
+    checks.push("stripe-reference-authorization-signed-webhook-replay");
+  }
+
   const supportTicket = await request("/api/support/tickets", { method: "POST", headers: { "Content-Type": "application/json", Cookie: cookie, Origin: origin }, body: JSON.stringify({ kind: "bug", subject: "Smoke support ticket", body: "A reproducible support lifecycle smoke report." }) });
   assert(supportTicket.response.status === 201 && supportTicket.payload?.data?.status === "open", "verified user could not create a support ticket");
   const ticketId = supportTicket.payload.data.id;
@@ -274,8 +345,8 @@ try {
     if (!scratchDatabase) {
       await database.query("delete from app_admin_audit_event where target_type = 'support_ticket' and target_id in (select id from app_support_ticket where contact_email = $1)", [email]).catch(() => undefined);
       await database.query("delete from app_support_ticket where contact_email = $1", [email]).catch(() => undefined);
-      await database.query("delete from app_auth_email_outbox where recipient = $1", [email]).catch(() => undefined);
-      await database.query("delete from app_user where email = $1", [email]).catch(() => undefined);
+      await database.query("delete from app_auth_email_outbox where recipient = any($1::text[])", [cleanupEmails]).catch(() => undefined);
+      await database.query("delete from app_user where email = any($1::text[])", [cleanupEmails]).catch(() => undefined);
     }
     await database.end().catch(() => undefined);
   }

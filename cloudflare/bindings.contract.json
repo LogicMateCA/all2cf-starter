@@ -38,10 +38,20 @@
       "status": "future",
       "requiredPerEnvironment": true
     },
-    "STRIPE": {
-      "kind": "secret_or_service_binding",
-      "status": "future",
-      "requiredPerEnvironment": true
+    "STRIPE_SECRET_KEY": {
+      "kind": "secret",
+      "status": "optional-billing-pack",
+      "requiredPerEnvironment": false
+    },
+    "STRIPE_WEBHOOK_SECRET": {
+      "kind": "secret",
+      "status": "optional-billing-pack",
+      "requiredPerEnvironment": false
+    },
+    "STRIPE_PRICE_PRO": {
+      "kind": "secret",
+      "status": "optional-billing-pack",
+      "requiredPerEnvironment": false
     },
     "AUTH": {
       "kind": "service_binding",

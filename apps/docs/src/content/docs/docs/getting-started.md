@@ -9,7 +9,8 @@ description: The shortest safe path from Starter copy to a locally verified proj
 2. Run the local `/setup` workspace and enter the product identity, platforms, design profile, pages, SaaS modules, optional capabilities, providers, and two environment identities.
 3. Review the generated `starter.blueprint.json`. This file records intent; it is not a deployment action.
 4. Let the controller read the project context and materialize only selected packs.
-5. Run the repository verification gates before asking for a Development release.
+5. Provision a new empty database from that final selection. Do not carry Starter-era legacy migration or backfill logic into initialization.
+6. Run the repository verification gates before asking for a Development release.
 
 ## Read these sources in order
 

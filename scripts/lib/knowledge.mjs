@@ -162,6 +162,8 @@ export async function collectKnowledge(root) {
         packs: Object.entries(materialization.packs || {}).map(([id, value]) => ({ id, version: value.version, files: Object.keys(value.files || {}).length })),
         dependencyCount: Object.keys(materialization.dependencies || {}).length,
         generatedRoutesHash: materialization.generatedRoutesHash,
+        generatedAuthServerHash: materialization.generatedAuthServerHash,
+        generatedAuthClientHash: materialization.generatedAuthClientHash,
       },
     },
     modules,

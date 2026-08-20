@@ -1,40 +1,20 @@
-import { betterAuth } from "better-auth";
 import { Pool } from "pg";
-import { admin } from "better-auth/plugins";
+import { createStarterAuth } from "./auth-config";
 
 if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is required to generate the Better Auth schema");
 
-export const auth = betterAuth({
+export const auth = createStarterAuth({
   appName: "Starter schema generator",
   baseURL: "http://localhost:8787",
+  appEnvironment: "schema",
   secret: process.env.BETTER_AUTH_SECRET || "schema-generation-secret-at-least-32-characters",
   database: new Pool({ connectionString: process.env.DATABASE_URL }),
-  user: {
-    modelName: "app_user",
-    fields: { emailVerified: "email_verified", createdAt: "created_at", updatedAt: "updated_at" },
-    additionalFields: {
-      theme: { type: "string", required: false, defaultValue: "system", fieldName: "theme" },
-      locale: { type: "string", required: false, defaultValue: "en", fieldName: "locale" },
-    },
-  },
-  session: { modelName: "app_session", fields: { expiresAt: "expires_at", createdAt: "created_at", updatedAt: "updated_at", ipAddress: "ip_address", userAgent: "user_agent", userId: "user_id" } },
-  account: {
-    modelName: "app_account",
-    fields: {
-      issuer: "issuer", accountId: "account_id", providerId: "provider_id", userId: "user_id", accessToken: "access_token", refreshToken: "refresh_token", idToken: "id_token",
-      accessTokenExpiresAt: "access_token_expires_at", refreshTokenExpiresAt: "refresh_token_expires_at", createdAt: "created_at", updatedAt: "updated_at",
-    },
-  },
-  verification: { modelName: "app_verification", fields: { expiresAt: "expires_at", createdAt: "created_at", updatedAt: "updated_at" } },
-  emailAndPassword: { enabled: true, autoSignIn: false },
-  rateLimit: { enabled: true, storage: "database", modelName: "app_auth_rate_limit" },
-  plugins: [admin({
-    defaultRole: "user",
-    adminRoles: ["admin"],
-    impersonationSessionDuration: 60 * 60,
-    schema: {
-      user: { fields: { role: "role", banned: "banned", banReason: "ban_reason", banExpires: "ban_expires" } },
-      session: { fields: { impersonatedBy: "impersonated_by" } },
-    },
-  })],
+  googleClientId: "schema-google-client",
+  googleClientSecret: "schema-google-secret",
+  mobileSchemes: ["starter-schema://"],
+  requireEmailVerification: true,
+  enqueueEmail: async () => undefined,
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY || "sk_test_schema_placeholder",
+  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || "whsec_schema_placeholder",
+  stripePricePro: process.env.STRIPE_PRICE_PRO || "price_schema_placeholder",
 });

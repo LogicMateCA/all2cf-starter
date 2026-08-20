@@ -1,7 +1,7 @@
 {
   "$schema": "../schemas/starter-catalog.schema.json",
   "schemaVersion": "starter-catalog/v1",
-  "catalogVersion": "0.5.0",
+  "catalogVersion": "0.6.0",
   "policies": {
     "betterAuth": "Better Auth core and every selected official plugin move as one stable-compatible version line with generated schema comparison and reviewed SQL migrations.",
     "ownedAdapters": "StyleKit, PowerAI, and MapCN are donor inputs. Accepted code is adapted, licensed, tested, versioned, and maintained by Starter without automatic upstream source sync.",
@@ -166,7 +166,7 @@
       "kind": "saas",
       "name": "Teams and organizations",
       "version": "0.1.0",
-      "status": "planned",
+      "status": "local-verified",
       "targets": ["desktop-web", "mobile-web", "ios", "android", "worker", "admin"],
       "ownership": "upstream-tracked",
       "source": [
@@ -174,18 +174,18 @@
       ],
       "updatePolicy": "stable-aligned",
       "provides": ["organizations", "members", "invitations", "organization roles", "active organization"],
-      "requires": ["identity core", "aligned Better Auth plugin line", "reviewed SQL migrations"],
+      "requires": ["identity core", "aligned Better Auth plugin line", "new empty Starter database", "configured authentication email provider"],
       "conflicts": ["using organization roles as platform Admin roles"],
       "performance": ["bounded membership lookups", "no organization data on public routes"],
       "verification": ["invitation lifecycle", "role matrix", "cross-organization isolation", "Development auth regression"],
-      "documentation": ["features/auth/MODULE.md", "features/admin/MODULE.md"]
+      "documentation": ["features/organizations/MODULE.md", "features/auth/MODULE.md", "features/admin/MODULE.md"]
     },
     {
       "id": "saas.billing-stripe",
       "kind": "saas",
       "name": "Stripe subscriptions",
       "version": "0.1.0",
-      "status": "planned",
+      "status": "local-verified",
       "targets": ["desktop-web", "worker", "admin"],
       "ownership": "upstream-tracked",
       "source": [
@@ -193,11 +193,11 @@
         { "name": "Stripe SDK", "url": "https://github.com/stripe/stripe-node", "relationship": "runtime-dependency" }
       ],
       "updatePolicy": "stable-aligned",
-      "provides": ["Checkout", "subscriptions", "signed webhooks", "plans", "entitlement projection", "Admin billing readback"],
-      "requires": ["identity core", "Stripe Test and Live configuration", "aligned Better Auth plugin line"],
+      "provides": ["user-scoped Checkout", "subscriptions", "Customer Portal", "signed webhooks", "plans", "subscription projection", "webhook replay evidence"],
+      "requires": ["identity core", "new empty Starter database", "separate Stripe Test and Live configuration", "aligned Better Auth plugin line"],
       "conflicts": ["client-authoritative entitlements", "unsigned webhook processing"],
-      "performance": ["webhook work is replay-safe", "billing client excluded from public routes"],
-      "verification": ["Checkout", "signed webhook", "subscription lifecycle", "replay", "entitlement regression"],
+      "performance": ["webhook receipt is replay-safe", "billing route is lazy", "Stripe server SDK is absent when deselected"],
+      "verification": ["empty subscription projection", "cross-reference denial", "invalid signature denial", "signed webhook replay", "selected Worker dry run", "Stripe Test Checkout and lifecycle before Development verification"],
       "documentation": ["features/billing/MODULE.md", "features/admin/MODULE.md"]
     },
     {

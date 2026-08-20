@@ -17,6 +17,7 @@
     "assembler",
     "auth",
     "billing",
+    "organizations",
     "support",
     "admin",
     "mobile",
@@ -74,9 +75,14 @@
       "status": "local-verified"
     },
     {
+      "area": "Organizations",
+      "choice": "Optional Better Auth Organization 1.7.1 pack with teams, verified invitations, and tenant-scoped roles",
+      "status": "local-verified"
+    },
+    {
       "area": "Billing",
-      "choice": "@better-auth/stripe aligned with Better Auth + Stripe SDK stable compatible",
-      "status": "planned"
+      "choice": "Optional @better-auth/stripe 1.7.1 + Stripe SDK 22.5.0 user-billing pack with signed webhook replay evidence",
+      "status": "local-verified"
     },
     {
       "area": "Email",
