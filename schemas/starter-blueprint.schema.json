@@ -105,7 +105,7 @@
         "auth": { "type": "string" },
         "socialAuth": {
           "type": "array",
-          "items": { "enum": ["google", "github", "apple"] },
+          "items": { "const": "google" },
           "uniqueItems": true
         },
         "database": { "type": "string" },

@@ -1,7 +1,7 @@
 {
   "$schema": "../schemas/starter-catalog.schema.json",
   "schemaVersion": "starter-catalog/v1",
-  "catalogVersion": "0.7.0",
+  "catalogVersion": "0.8.0",
   "policies": {
     "betterAuth": "Better Auth core and every selected official plugin move as one stable-compatible version line with generated schema comparison and reviewed SQL migrations.",
     "ownedAdapters": "StyleKit, PowerAI, and MapCN are donor inputs. Accepted code is adapted, licensed, tested, versioned, and maintained by Starter without automatic upstream source sync.",
@@ -21,12 +21,6 @@
       "selections": ["page.core-product-site", "saas.identity-core", "saas.product-operations-lite", "saas.team-organizations", "saas.billing-stripe"]
     },
     {
-      "id": "api-platform",
-      "name": "API Platform",
-      "description": "Basic Product plus API keys, signed webhooks, usage, and optional billing foundations.",
-      "selections": ["page.core-product-site", "saas.identity-core", "saas.product-operations-lite", "saas.api-platform"]
-    },
-    {
       "id": "custom",
       "name": "Custom",
       "description": "Start with the required core and select additional packs explicitly.",
@@ -40,6 +34,7 @@
       "name": "Owned neutral foundation",
       "version": "0.1.0",
       "status": "implemented",
+      "delivery": "materializer",
       "targets": ["desktop-web", "mobile-web", "ios", "android", "admin", "docs"],
       "ownership": "starter-owned",
       "source": [],
@@ -57,6 +52,7 @@
       "name": "StyleKit-derived design profiles",
       "version": "0.1.0",
       "status": "implemented",
+      "delivery": "materializer",
       "targets": ["desktop-web", "mobile-web", "ios", "android", "admin", "docs"],
       "ownership": "starter-owned",
       "source": [
@@ -82,6 +78,7 @@
       "name": "Core product site",
       "version": "0.1.0",
       "status": "implemented",
+      "delivery": "materializer",
       "targets": ["desktop-web", "docs"],
       "ownership": "starter-owned",
       "source": [
@@ -107,6 +104,7 @@
       "name": "Optional growth pages",
       "version": "0.1.0",
       "status": "implemented",
+      "delivery": "materializer",
       "targets": ["desktop-web"],
       "ownership": "starter-owned",
       "source": [],
@@ -124,6 +122,7 @@
       "name": "Identity and account core",
       "version": "0.1.0",
       "status": "development-verified",
+      "delivery": "baseline",
       "targets": ["desktop-web", "mobile-web", "ios", "android", "worker"],
       "ownership": "upstream-tracked",
       "source": [
@@ -147,6 +146,7 @@
       "name": "Lightweight product operations",
       "version": "0.1.0",
       "status": "local-verified",
+      "delivery": "baseline",
       "targets": ["desktop-web", "worker", "admin", "docs"],
       "ownership": "starter-owned",
       "source": [
@@ -167,6 +167,7 @@
       "name": "Teams and organizations",
       "version": "0.1.0",
       "status": "local-verified",
+      "delivery": "materializer",
       "targets": ["desktop-web", "mobile-web", "ios", "android", "worker", "admin"],
       "ownership": "upstream-tracked",
       "source": [
@@ -186,6 +187,7 @@
       "name": "Stripe subscriptions",
       "version": "0.1.0",
       "status": "local-verified",
+      "delivery": "materializer",
       "targets": ["desktop-web", "worker", "admin"],
       "ownership": "upstream-tracked",
       "source": [
@@ -206,6 +208,7 @@
       "name": "API platform foundation",
       "version": "0.1.0",
       "status": "planned",
+      "delivery": "planned",
       "targets": ["desktop-web", "worker", "admin", "docs"],
       "ownership": "starter-owned",
       "source": [
@@ -225,6 +228,7 @@
       "name": "MapCN Web maps",
       "version": "0.1.0",
       "status": "implemented",
+      "delivery": "materializer",
       "targets": ["desktop-web", "admin"],
       "ownership": "starter-owned",
       "source": [

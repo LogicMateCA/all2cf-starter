@@ -36,13 +36,14 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "kind", "name", "version", "status", "targets", "ownership", "updatePolicy", "provides", "requires", "conflicts", "performance", "verification", "documentation"],
+        "required": ["id", "kind", "name", "version", "status", "delivery", "targets", "ownership", "updatePolicy", "provides", "requires", "conflicts", "performance", "verification", "documentation"],
         "properties": {
           "id": { "type": "string", "pattern": "^(design|page|saas|capability)\\.[a-z0-9-]+$" },
           "kind": { "enum": ["design", "page", "saas", "capability"] },
           "name": { "type": "string" },
           "version": { "type": "string" },
           "status": { "enum": ["reference", "defined", "planned", "implemented", "local-verified", "development-verified", "production-released"] },
+          "delivery": { "enum": ["baseline", "materializer", "planned"] },
           "targets": { "type": "array", "items": { "enum": ["desktop-web", "mobile-web", "ios", "android", "worker", "docs", "admin"] }, "uniqueItems": true },
           "ownership": { "enum": ["starter-owned", "upstream-tracked", "reference-only"] },
           "source": {

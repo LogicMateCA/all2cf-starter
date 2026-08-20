@@ -8,17 +8,25 @@ export function validateAssemblyContracts(manifest, blueprint, catalog, designCa
   if (!blueprint.project?.locales?.includes(blueprint.project?.defaultLocale)) failures.push("Blueprint defaultLocale must be included in locales");
 
   const packIds = new Set();
+  const packs = new Map();
   for (const pack of catalog.packs || []) {
     if (packIds.has(pack.id)) failures.push(`Duplicate Catalog pack id ${pack.id}`);
     packIds.add(pack.id);
+    packs.set(pack.id, pack);
     if (!String(pack.id || "").startsWith(`${pack.kind}.`)) failures.push(`Catalog pack ${pack.id} does not match kind ${pack.kind}`);
+    if (!new Set(["baseline", "materializer", "planned"]).has(pack.delivery)) failures.push(`Catalog pack ${pack.id} has invalid delivery ${pack.delivery || "<missing>"}`);
+    if (pack.delivery === "planned" && pack.status !== "planned") failures.push(`Catalog pack ${pack.id} uses planned delivery but status is ${pack.status}`);
+    if (pack.status === "planned" && pack.delivery !== "planned") failures.push(`Catalog pack ${pack.id} is planned but delivery is ${pack.delivery}`);
   }
 
   const presetIds = new Set();
   for (const preset of catalog.presets || []) {
     if (presetIds.has(preset.id)) failures.push(`Duplicate Catalog preset id ${preset.id}`);
     presetIds.add(preset.id);
-    for (const selectionId of preset.selections || []) if (!packIds.has(selectionId)) failures.push(`Catalog preset ${preset.id} references missing pack ${selectionId}`);
+    for (const selectionId of preset.selections || []) {
+      if (!packIds.has(selectionId)) failures.push(`Catalog preset ${preset.id} references missing pack ${selectionId}`);
+      else if (packs.get(selectionId)?.delivery === "planned") failures.push(`Catalog preset ${preset.id} references unavailable planned pack ${selectionId}`);
+    }
   }
   if (!presetIds.has(blueprint.preset)) failures.push(`Blueprint preset ${blueprint.preset} is missing from Catalog`);
 
@@ -31,6 +39,7 @@ export function validateAssemblyContracts(manifest, blueprint, catalog, designCa
       if (!packIds.has(selection.id)) failures.push(`Blueprint selection ${selection.id} is missing from Catalog`);
       if (!selection.id.startsWith(`${kind}.`)) failures.push(`Blueprint selection ${selection.id} is in the wrong group ${group}`);
       const lifecycle = selection.lifecycle || {};
+      if (lifecycle.selected && packs.get(selection.id)?.delivery === "planned") failures.push(`Blueprint cannot select unavailable planned pack ${selection.id}`);
       const sequence = ["selected", "materialized", "localVerified", "developmentVerified", "productionReleased"];
       for (let index = 1; index < sequence.length; index += 1) {
         if (lifecycle[sequence[index]] && !lifecycle[sequence[index - 1]]) failures.push(`Blueprint lifecycle for ${selection.id} skips ${sequence[index - 1]}`);
@@ -82,5 +91,15 @@ export function validateAssemblyContracts(manifest, blueprint, catalog, designCa
   const manifestEnvironments = (manifest.environments || []).map(({ id }) => id).sort();
   const blueprintEnvironments = [...(blueprint.environments || [])].sort();
   if (JSON.stringify(manifestEnvironments) !== JSON.stringify(blueprintEnvironments)) failures.push("Blueprint environments must match starter.manifest.json");
+  return failures;
+}
+
+export function validateMaterializerDeliveryContracts(catalog, manifests) {
+  const failures = [];
+  const manifestIds = new Set(manifests.map((entry) => entry.manifest?.id || entry.id));
+  for (const pack of catalog.packs || []) {
+    if (pack.delivery === "materializer" && !manifestIds.has(pack.id)) failures.push(`Catalog materializer pack ${pack.id} is missing packs/**/pack.json`);
+    if (pack.delivery !== "materializer" && manifestIds.has(pack.id)) failures.push(`Catalog pack ${pack.id} has ${pack.delivery} delivery but also declares a materializer manifest`);
+  }
   return failures;
 }

@@ -29,13 +29,14 @@ Blueprint-driven project assembler for AI-led Cloudflare products. `/setup` capt
 
 - `starter.blueprint.json` is the canonical project selection and realization record.
 - `catalog/catalog.json` is the internal Design, Page, SaaS, and Capability catalog used by AI and `/setup`.
+- Each Catalog pack declares `baseline`, `materializer`, or `planned` delivery. `/setup` may display planned work, but executable presets, saved selections, and AI materialization reject it until a real delivery path exists.
 - `design/catalog.json` is the versioned owned Design Profile catalog; the Blueprint pins exactly one profile ID and version.
 - `starter.manifest.json` records the repository capabilities and current implemented state; it does not replace the Blueprint.
 - StyleKit, PowerAI, and MapCN are donor sources for owned adapters or packs. OpenSaaS, LastSaaS, Open Design, and RunCopilot are reference-only inputs.
 - `pages/catalog.json` is the route-level Page Catalog. PowerAI contributes audited information architecture only; `/setup` selects individual pages, authenticated routes retain the existing Better Auth flow, and unselected growth routes are not materialized.
 - `packs/` contains Design adapters, route-level Page templates, and optional MapCN Web, Better Auth Organizations, and Stripe Billing inputs. `npm run starter:materialize` plans, `starter:materialize:apply` writes, and `starter:materialize:check` proves that selected files, dependencies, routes, generated Design/Project artifacts, auth-plugin registries, lifecycle state, and the ownership receipt agree.
 - `apps/marketing` builds the selected static-first Astro public routes at the site root; the React application builds under `/_app`, and Starlight remains under `/docs`. Cloudflare Static Assets serves public routes and a real 404 while the Worker handles only APIs and the explicit React application routes.
-- Better Auth core and every selected official Better Auth plugin are maintained as one aligned stable-compatible upstream family.
+- Better Auth core and every selected official Better Auth plugin are maintained as one aligned stable-compatible upstream family. An offline contract checks active manifests, deselected optional-pack manifests, and official-plugin source pins in every `verify`; the online dependency report compares all of them with stable registry tags.
 - The current locally verified runtime baseline is Wrangler 4.124.0, Workers types 5.20260820.1, Hono 4.13.3, Vite 8.2.2, Astro 7.2.4, Starlight 0.41.7, Expo SDK 57.0.14, and aligned Better Auth 1.7.1 packages. TypeScript 6.0.3 is the newest line currently compatible across Astro Check/Volar, Expo, Web, and Worker. Optional Organizations 1.7.1 and Stripe Billing 1.7.1 with Stripe SDK 22.5.0 pass standalone and combined disposable empty-database workerd flows; remote Stripe Test Checkout, Development, and Production remain unreleased.
 
 ## Change Spec

@@ -29,6 +29,7 @@
     "db:empty:check": "node scripts/database-empty-check.mjs",
     "identity:sync": "node scripts/sync-project-identity.mjs",
     "cf:preflight:record": "node scripts/record-cloudflare-preflight.mjs",
+    "dependencies:contract": "node scripts/dependency-contract.mjs",
     "dependencies:check": "node scripts/dependency-check.mjs",
     "env:materialize:dev": "node scripts/materialize-dev-env.mjs",
     "starter:provision": "node scripts/starterctl.mjs provision",
@@ -70,7 +71,7 @@
     "cf:types:check": "wrangler types --check --config cloudflare/wrangler.development.jsonc workers/app/worker-configuration.development.d.ts && wrangler types --check --config cloudflare/wrangler.production.jsonc workers/app/worker-configuration.production.d.ts",
     "cf:dry-run:dev": "wrangler deploy --dry-run --config cloudflare/wrangler.development.jsonc --outdir dist/worker-development",
     "cf:dry-run:production": "wrangler deploy --dry-run --config cloudflare/wrangler.production.jsonc --outdir dist/worker-production",
-    "verify": "npm run ai:doctor && npm run starter:materialize:check && npm run knowledge:sync && npm run knowledge:check && npm run change:check && npm run cf:types && npm run cf:types:check && npm run typecheck && npm run build && npm run bundle:check:marketing && npm run bundle:check:web && npm run bundle:check:docs && npm run cf:dry-run:dev && npm run cf:dry-run:production"
+    "verify": "npm run ai:doctor && npm run dependencies:contract && npm run starter:materialize:check && npm run knowledge:sync && npm run knowledge:check && npm run change:check && npm run cf:types && npm run cf:types:check && npm run typecheck && npm run build && npm run bundle:check:marketing && npm run bundle:check:web && npm run bundle:check:docs && npm run cf:dry-run:dev && npm run cf:dry-run:production"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "5.20260820.1",

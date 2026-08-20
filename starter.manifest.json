@@ -33,7 +33,7 @@
     },
     {
       "area": "Project materialization",
-      "choice": "Receipt-backed deterministic pack plan/apply/check with collision-safe file and dependency removal",
+      "choice": "Executable baseline/materializer/planned Catalog contract plus receipt-backed plan/apply/check with collision-safe removal",
       "status": "local-verified"
     },
     {

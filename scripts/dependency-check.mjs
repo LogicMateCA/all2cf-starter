@@ -1,30 +1,15 @@
-import { execFileSync } from "node:child_process";
+import { execFile } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
+import { loadDependencyContract, validateBetterAuthAlignment } from "./lib/dependency-contract.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const policy = JSON.parse(await readFile(path.join(root, "dependency-policy.json"), "utf8"));
+const execFileAsync = promisify(execFile);
 const lockfile = JSON.parse(await readFile(path.join(root, "package-lock.json"), "utf8"));
-const manifests = await Promise.all([
-  "package.json",
-  "apps/web/package.json",
-  "apps/docs/package.json",
-  "apps/mobile/package.json",
-  "workers/app/package.json",
-].map(async (file) => ({ file, value: JSON.parse(await readFile(path.join(root, file), "utf8")) })));
-
-const declared = new Map();
+const { policy, packManifests, declared } = await loadDependencyContract(root);
 const installed = new Map();
-for (const { file, value } of manifests) {
-  for (const section of ["dependencies", "devDependencies"]) {
-    for (const [name, version] of Object.entries(value[section] || {})) {
-      const entries = declared.get(name) || [];
-      entries.push({ file, section, version });
-      declared.set(name, entries);
-    }
-  }
-}
 
 for (const [location, entry] of Object.entries(lockfile.packages || {})) {
   const marker = "node_modules/";
@@ -36,12 +21,24 @@ for (const [location, entry] of Object.entries(lockfile.packages || {})) {
   installed.set(name, versions);
 }
 
-function latest(name) {
-  const output = execFileSync("npm", ["view", name, "dist-tags", "--json"], { cwd: root, encoding: "utf8", timeout: 15_000 });
-  const latestStable = JSON.parse(output).latest;
+async function fetchLatest(name) {
+  const { stdout } = await execFileAsync("npm", ["view", name, "dist-tags", "--json"], { cwd: root, encoding: "utf8", timeout: 15_000 });
+  const latestStable = JSON.parse(stdout).latest;
   if (!latestStable || latestStable.includes("-")) throw new Error(`${name} does not expose a stable latest dist-tag`);
   return latestStable;
 }
+
+const registryNames = [...new Set(policy.tracks.flatMap((track) => [...track.packages, ...(track.companions || [])]))].sort();
+const latestVersions = new Map();
+let registryIndex = 0;
+async function registryWorker() {
+  while (registryIndex < registryNames.length) {
+    const name = registryNames[registryIndex];
+    registryIndex += 1;
+    latestVersions.set(name, await fetchLatest(name));
+  }
+}
+await Promise.all(Array.from({ length: Math.min(8, registryNames.length) }, () => registryWorker()));
 
 const tracks = policy.tracks.map((track) => ({
   id: track.id,
@@ -51,13 +48,24 @@ const tracks = policy.tracks.map((track) => ({
     declared: declared.get(name) || [],
     installed: [...(installed.get(name) || [])].sort(),
     externalPin: policy.externalPins?.[name] || null,
-    latestStable: latest(name),
+    latestStable: latestVersions.get(name),
     decision: track.mode === "expo-compatible" && name !== "expo" && name !== "eas-cli"
       ? "verify-with-expo-install"
       : declared.has(name) || policy.externalPins?.[name] ? "compare-and-test" : "planned-not-installed",
   })),
-  ...(track.companions ? { companions: track.companions.map((name) => ({ name, declared: declared.get(name) || [], installed: [...(installed.get(name) || [])].sort(), latestStable: latest(name) })) } : {}),
+  ...(track.companions ? { companions: track.companions.map((name) => ({ name, declared: declared.get(name) || [], installed: [...(installed.get(name) || [])].sort(), latestStable: latestVersions.get(name) })) } : {}),
   ...(track.requirements ? { requirements: track.requirements } : {}),
 }));
 
-console.log(JSON.stringify({ checkedAt: new Date().toISOString(), stableOnly: policy.stableOnly, tracks }, null, 2));
+const betterAuth = validateBetterAuthAlignment(policy, declared, packManifests);
+
+const result = {
+  checkedAt: new Date().toISOString(),
+  stableOnly: policy.stableOnly,
+  alignment: {
+    betterAuth,
+  },
+  tracks,
+};
+console.log(JSON.stringify(result, null, 2));
+if (!betterAuth.ok) process.exitCode = 1;

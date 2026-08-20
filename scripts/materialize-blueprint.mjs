@@ -3,6 +3,7 @@ import { spawnSync } from "node:child_process";
 import { mkdir, readFile, readdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { validateAssemblyContracts, validateMaterializerDeliveryContracts } from "./lib/assembly.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const apply = process.argv.includes("--apply");
@@ -235,6 +236,7 @@ function renderMarketingProject(blueprint, pageCatalog, selectedPacks, selectedP
 
 const blueprint = JSON.parse(await readFile(blueprintPath, "utf8"));
 const state = await readState();
+const starterManifest = JSON.parse(await readFile(path.join(root, "starter.manifest.json"), "utf8"));
 const catalog = JSON.parse(await readFile(path.join(root, "catalog/catalog.json"), "utf8"));
 const designCatalog = JSON.parse(await readFile(path.join(root, "design/catalog.json"), "utf8"));
 const pageCatalog = JSON.parse(await readFile(path.join(root, "pages/catalog.json"), "utf8"));
@@ -245,6 +247,10 @@ const pageDefinitions = new Map(pageCatalog.pages.map((page) => [page.id, page])
 const selectedProfile = designCatalog.profiles.find(({ id }) => id === blueprint.designProfile.id);
 if (!selectedProfile || selectedProfile.version !== blueprint.designProfile.version) throw new Error(`Selected Design Profile ${blueprint.designProfile.id}@${blueprint.designProfile.version} is missing from the Design Catalog`);
 const manifests = await readPackManifests();
+const contractFailures = validateAssemblyContracts(starterManifest, blueprint, catalog, designCatalog, pageCatalog);
+if (contractFailures.length) throw new Error(`Assembly contract failed:\n- ${contractFailures.join("\n- ")}`);
+const deliveryFailures = validateMaterializerDeliveryContracts(catalog, manifests);
+if (deliveryFailures.length) throw new Error(`Materializer delivery contract failed:\n- ${deliveryFailures.join("\n- ")}`);
 const selectedManifests = manifests.filter(({ manifest }) => selected.has(manifest.id));
 const desiredFiles = new Map();
 const desiredDependencies = new Map();
