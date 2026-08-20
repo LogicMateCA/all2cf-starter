@@ -167,7 +167,13 @@
     "socialAuth": [
       "google"
     ],
-    "database": "postgresql-sql-first",
+    "database": {
+      "engine": "postgresql",
+      "access": "sql-first",
+      "initialState": "empty",
+      "schemaSource": "selected-pack-baseline",
+      "existingDataPolicy": "out-of-scope"
+    },
     "email": {
       "default": "cfsend",
       "alternatives": [

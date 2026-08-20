@@ -63,6 +63,7 @@ type Environment = { id: string; worker: string; domain: string; releaseIntent: 
 type DocumentRecord = { title: string; status: string; path: string; summary: string };
 type Lifecycle = { selected: boolean; materialized: boolean; localVerified: boolean; developmentVerified: boolean; productionReleased: boolean };
 type BlueprintSelection = { id: string; lifecycle: Lifecycle; note?: string };
+type DatabasePolicy = { engine: "postgresql"; access: "sql-first"; initialState: "empty"; schemaSource: "selected-pack-baseline"; existingDataPolicy: "out-of-scope" };
 type CatalogPack = {
   id: string;
   kind: "design" | "page" | "saas" | "capability";
@@ -91,7 +92,7 @@ type Snapshot = {
       pageSet: { selected: string[] };
       setup: { entry: string; status: string; currentStep: string; completedSteps: string[] };
       selections: Record<"design" | "pages" | "saas" | "capabilities", BlueprintSelection[]>;
-      providers: { auth: string; socialAuth: string[]; database: string; email: { default: string; alternatives: string[] }; billing: string; release: string };
+      providers: { auth: string; socialAuth: string[]; database: DatabasePolicy; email: { default: string; alternatives: string[] }; billing: string; release: string };
     };
     catalog: { schemaVersion: string; catalogVersion: string; policies: Record<string, string>; presets: Array<{ id: string; name: string; description: string; selections: string[] }>; packs: CatalogPack[] };
     designCatalog: { schemaVersion: string; catalogVersion: string; sourcePolicy: string; profiles: DesignProfile[] };
@@ -139,7 +140,7 @@ const fallback: Snapshot = {
       pageSet: { selected: [] },
       setup: { entry: "/setup", status: "not-started", currentStep: "identity", completedSteps: [] },
       selections: { design: [], pages: [], saas: [], capabilities: [] },
-      providers: { auth: "better-auth", socialAuth: ["google"], database: "postgresql-sql-first", email: { default: "cfsend", alternatives: ["resend", "cloudflare-email-service"] }, billing: "better-auth-stripe", release: "cloudflare-workers" },
+      providers: { auth: "better-auth", socialAuth: ["google"], database: { engine: "postgresql", access: "sql-first", initialState: "empty", schemaSource: "selected-pack-baseline", existingDataPolicy: "out-of-scope" }, email: { default: "cfsend", alternatives: ["resend", "cloudflare-email-service"] }, billing: "better-auth-stripe", release: "cloudflare-workers" },
     },
     catalog: { schemaVersion: "starter-catalog/v1", catalogVersion: "0.3.0", policies: {}, presets: [], packs: [] },
     designCatalog: { schemaVersion: "starter-design-catalog/v1", catalogVersion: "0.1.0", sourcePolicy: "Starter-owned profiles", profiles: [] },
@@ -257,7 +258,7 @@ function DevelopmentPlan() {
         <Section id="blueprint" title="Project Blueprint" description="The canonical selection record behind /setup, with realization tracked separately from intent." icon={Settings2}>
           <div className="assembly-summary">
             <Surface><span className="role-label">Setup workspace</span><h3>{data.assembly.blueprint.setup.entry}</h3><dl className="compact-facts"><div><dt>Status</dt><dd>{data.assembly.blueprint.setup.status}</dd></div><div><dt>Preset</dt><dd>{data.assembly.blueprint.preset}</dd></div><div><dt>Design</dt><dd>{data.assembly.blueprint.designProfile.id} / {data.assembly.blueprint.designProfile.version}</dd></div><div><dt>Pages</dt><dd>{data.assembly.blueprint.pageSet.selected.length}</dd></div><div><dt>Blueprint</dt><dd>{data.assembly.blueprint.status}</dd></div></dl></Surface>
-            <Surface><span className="role-label">Provider defaults</span><h3>{data.assembly.blueprint.providers.auth}</h3><dl className="compact-facts"><div><dt>Social</dt><dd>{data.assembly.blueprint.providers.socialAuth.join(", ") || "none"}</dd></div><div><dt>Email</dt><dd>{data.assembly.blueprint.providers.email.default}</dd></div><div><dt>Billing</dt><dd>{data.assembly.blueprint.providers.billing}</dd></div></dl></Surface>
+            <Surface><span className="role-label">Provider defaults</span><h3>{data.assembly.blueprint.providers.auth}</h3><dl className="compact-facts"><div><dt>Social</dt><dd>{data.assembly.blueprint.providers.socialAuth.join(", ") || "none"}</dd></div><div><dt>Database</dt><dd>{data.assembly.blueprint.providers.database.engine} / {data.assembly.blueprint.providers.database.initialState}</dd></div><div><dt>Schema</dt><dd>{data.assembly.blueprint.providers.database.schemaSource}</dd></div><div><dt>Email</dt><dd>{data.assembly.blueprint.providers.email.default}</dd></div><div><dt>Billing</dt><dd>{data.assembly.blueprint.providers.billing}</dd></div></dl></Surface>
             <Surface><span className="role-label">Materialization receipt</span><h3>{data.assembly.materialization.packs.length} materialized packs</h3><dl className="compact-facts"><div><dt>Files</dt><dd>{data.assembly.materialization.packs.reduce((total, pack) => total + pack.files, 0)}</dd></div><div><dt>Dependencies</dt><dd>{data.assembly.materialization.dependencyCount}</dd></div><div><dt>Auth</dt><dd>{data.assembly.materialization.generatedAuthServerHash && data.assembly.materialization.generatedAuthClientHash ? "tracked" : "missing"}</dd></div><div><dt>Design</dt><dd>{data.assembly.materialization.generatedDesignWebHash && data.assembly.materialization.generatedDesignMarketingHash && data.assembly.materialization.generatedDesignDocsHash && data.assembly.materialization.generatedDesignMobileHash ? "all targets tracked" : "missing"}</dd></div><div><dt>Pages</dt><dd>{data.assembly.materialization.generatedMarketingProjectHash ? "project output tracked" : "missing"}</dd></div><div><dt>Check</dt><dd>starter:materialize:check</dd></div></dl></Surface>
           </div>
           <Surface className="lifecycle-surface">

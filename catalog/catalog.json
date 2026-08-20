@@ -4,6 +4,7 @@
   "catalogVersion": "0.8.0",
   "policies": {
     "betterAuth": "Better Auth core and every selected official plugin move as one stable-compatible version line with generated schema comparison and reviewed SQL migrations.",
+    "databaseBaseline": "Every copied Starter project provisions new empty Development and Production PostgreSQL databases from the final selected-pack SQL baseline. Existing data, backfills, dual writes, and compatibility shims are out of scope.",
     "ownedAdapters": "StyleKit, PowerAI, and MapCN are donor inputs. Accepted code is adapted, licensed, tested, versioned, and maintained by Starter without automatic upstream source sync.",
     "references": "OpenSaaS, LastSaaS, Open Design, and RunCopilot inform product logic or extraction only and never become runtime dependencies by default."
   },

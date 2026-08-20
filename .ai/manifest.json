@@ -39,7 +39,10 @@
   },
   "data": {
     "postgresql": "sql-first",
-    "orm": "not-default"
+    "orm": "not-default",
+    "initialState": "empty",
+    "schemaSource": "selected-pack-baseline",
+    "existingDataPolicy": "out-of-scope"
   },
   "skills": [
     "product-design",

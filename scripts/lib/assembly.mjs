@@ -6,6 +6,17 @@ export function validateAssemblyContracts(manifest, blueprint, catalog, designCa
   if (pageCatalog?.schemaVersion !== "starter-page-catalog/v1") failures.push("pages/catalog.json must use starter-page-catalog/v1");
   if (blueprint.project?.name !== manifest.project?.name || blueprint.project?.slug !== manifest.project?.slug) failures.push("Blueprint project identity must match starter.manifest.json");
   if (!blueprint.project?.locales?.includes(blueprint.project?.defaultLocale)) failures.push("Blueprint defaultLocale must be included in locales");
+  const databasePolicy = blueprint.providers?.database || {};
+  const expectedDatabasePolicy = {
+    engine: "postgresql",
+    access: "sql-first",
+    initialState: "empty",
+    schemaSource: "selected-pack-baseline",
+    existingDataPolicy: "out-of-scope",
+  };
+  for (const [key, expected] of Object.entries(expectedDatabasePolicy)) {
+    if (databasePolicy[key] !== expected) failures.push(`Blueprint database policy ${key} must be ${expected}`);
+  }
 
   const packIds = new Set();
   const packs = new Map();

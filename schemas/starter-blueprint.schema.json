@@ -108,7 +108,18 @@
           "items": { "const": "google" },
           "uniqueItems": true
         },
-        "database": { "type": "string" },
+        "database": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["engine", "access", "initialState", "schemaSource", "existingDataPolicy"],
+          "properties": {
+            "engine": { "const": "postgresql" },
+            "access": { "const": "sql-first" },
+            "initialState": { "const": "empty" },
+            "schemaSource": { "const": "selected-pack-baseline" },
+            "existingDataPolicy": { "const": "out-of-scope" }
+          }
+        },
         "email": {
           "type": "object",
           "required": ["default", "alternatives"],

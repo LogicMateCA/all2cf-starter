@@ -29,6 +29,7 @@ Blueprint-driven project assembler for AI-led Cloudflare products. `/setup` capt
 ## Assembly sources
 
 - `starter.blueprint.json` is the canonical project selection and realization record.
+- Its structured database policy is fixed to PostgreSQL, SQL-first access, an empty initial state, the final selected-pack schema baseline, and no existing-data compatibility scope. AI must not infer migration or backfill work for a new Starter project.
 - `catalog/catalog.json` is the internal Design, Page, SaaS, and Capability catalog used by AI and `/setup`.
 - Each Catalog pack declares `baseline`, `materializer`, or `planned` delivery. `/setup` may display planned work, but executable presets, saved selections, and AI materialization reject it until a real delivery path exists.
 - `design/catalog.json` is the versioned owned Design Profile catalog; the Blueprint pins exactly one profile ID and version.
