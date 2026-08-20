@@ -8,6 +8,7 @@
     "deployment": "wrangler"
   },
   "applications": [
+    "marketing",
     "web",
     "worker",
     "mobile",
@@ -15,6 +16,7 @@
   ],
   "modules": [
     "assembler",
+    "marketing",
     "auth",
     "billing",
     "organizations",
@@ -37,12 +39,12 @@
     {
       "area": "Design engine",
       "choice": "Pinned owned profiles with semantic tokens, AI rules, provenance, and per-platform adapters",
-      "status": "defined"
+      "status": "implemented"
     },
     {
       "area": "Page engine",
       "choice": "Owned route-level Page Catalog; PowerAI structure donor; Astro static public pages, React product routes, and Starlight Docs",
-      "status": "local-verified"
+      "status": "implemented"
     },
     {
       "area": "Web",
@@ -56,7 +58,7 @@
     },
     {
       "area": "Database",
-      "choice": "PostgreSQL 18.4 + node-postgres 8.23.0 + checksum-locked SQL-first migrations",
+      "choice": "New empty PostgreSQL 18.4 databases + node-postgres 8.23.0 + selected SQL-first initialization baseline",
       "status": "development-verified"
     },
     {

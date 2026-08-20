@@ -124,8 +124,9 @@ function localSetupApi(): Plugin {
   }
 }
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? '/_app/' : '/',
   plugins: [localSetupApi(), react(), tailwindcss()],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
-  build: { outDir: '../../dist/web', emptyOutDir: true },
-})
+  build: { outDir: '../../dist/app-site', emptyOutDir: true },
+}))

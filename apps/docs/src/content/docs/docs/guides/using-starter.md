@@ -21,6 +21,14 @@ description: How an AI controller should turn the Blueprint into an owned produc
 - OpenSaaS, LastSaaS, Open Design, and RunCopilot are references only.
 - Better Auth core and selected official plugins stay on one reviewed stable-compatible line.
 
+## Materialization outputs
+
+- The selected Design Profile compiles into tracked semantic adapters for Astro Marketing, shadcn Desktop/Admin, Starlight Docs, and the lean Tamagui Mobile theme.
+- Selected Astro Page Catalog entries become real route files. Unselected optional routes remain absent from the build rather than hidden behind runtime flags.
+- The final Worker asset artifact serves Astro at the root, the React product application under `/_app`, and Starlight under `/docs`; explicit Worker routes map `/login`, `/app`, `/support`, `/admin`, and `/dp` to the React shell.
+- `/setup` shows selected outputs, requirements, and conflicts, but saves intent only. AI must review the read-only materialization plan before applying it.
+- Development and Production each start from a new empty PostgreSQL database initialized from the final selected SQL baseline. Starter does not plan around existing data.
+
 ## Keep the system understandable
 
 Every material change must leave a current answer to four questions: what is selected, what is implemented, what has been verified, and what has actually been released. `/dp` is the read-only projection of those answers; Markdown and frontmatter remain canonical.

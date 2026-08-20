@@ -1,0 +1,22 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "page.optional-growth",
+  "version": "0.1.0",
+  "source": {
+    "name": "PowerAI Astro growth structure",
+    "url": "https://github.com/sitepins/powerai-astro",
+    "revision": "a1176bf882bf0b1af98115f3280c2a6928e69261",
+    "license": "MIT",
+    "relationship": "adapted-donor"
+  },
+  "files": [],
+  "pageFiles": {
+    "growth.blog": [{ "source": "templates/blog-index.astro", "target": "apps/marketing/src/pages/blog/index.astro" }],
+    "growth.case-studies": [{ "source": "templates/case-studies-index.astro", "target": "apps/marketing/src/pages/case-studies/index.astro" }],
+    "growth.integrations": [{ "source": "templates/integrations-index.astro", "target": "apps/marketing/src/pages/integrations/index.astro" }],
+    "growth.careers": [{ "source": "templates/careers-index.astro", "target": "apps/marketing/src/pages/careers/index.astro" }]
+  },
+  "dependencies": [],
+  "routes": []
+}

@@ -1,0 +1,51 @@
+---
+import { project, routeSelected } from "../generated/project";
+import "../styles/generated-design-profile.css";
+import "../styles/site.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+  noindex?: boolean;
+}
+
+const { title, description = project.brief, noindex = false } = Astro.props;
+const pageTitle = title ? `${title} | ${project.name}` : project.name;
+const navigation = [
+  { label: "Features", href: "/features", page: "marketing.features" },
+  { label: "Pricing", href: "/pricing", page: "marketing.pricing" },
+  { label: "About", href: "/about", page: "company.about" },
+  { label: "Docs", href: "/docs", page: "docs.public" },
+].filter(({ page }) => routeSelected(page));
+---
+
+<!doctype html>
+<html lang={project.defaultLocale} data-design-profile={project.designProfile.id}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex,nofollow" />}
+    <title>{pageTitle}</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header class="site-header">
+      <a class="site-brand" href="/">{project.name}</a>
+      <nav aria-label="Primary navigation">
+        {navigation.map(({ label, href }) => <a href={href}>{label}</a>)}
+      </nav>
+      <a class="header-action" href="/login">Sign in</a>
+    </header>
+    <main id="content"><slot /></main>
+    <footer class="site-footer">
+      <div><strong>{project.name}</strong><p>{project.brief}</p></div>
+      <nav aria-label="Footer navigation">
+        {routeSelected("company.contact") && <a href="/contact">Contact</a>}
+        {routeSelected("product.changelog") && <a href="/changelog">Changelog</a>}
+        {routeSelected("legal.privacy") && <a href="/privacy">Privacy</a>}
+        {routeSelected("legal.terms") && <a href="/terms">Terms</a>}
+      </nav>
+    </footer>
+  </body>
+</html>

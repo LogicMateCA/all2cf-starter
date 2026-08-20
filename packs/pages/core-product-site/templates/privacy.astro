@@ -1,0 +1,6 @@
+---
+import Base from "../layouts/Base.astro";
+import PageIntro from "../components/PageIntro.astro";
+import { project } from "../generated/project";
+---
+<Base title="Privacy" noindex><PageIntro title="Privacy policy" description="Template content only. Complete a project-specific legal review before publishing." /><article class="content-section legal-copy"><h2>Data controller</h2><p>{project.name} must replace this paragraph with its legal entity, address, and privacy contact.</p><h2>Data collected</h2><p>Document the actual account, authentication, billing, support, analytics, and operational data used by the assembled product.</p><h2>Purpose and retention</h2><p>State a lawful purpose and real retention period for every data category. Do not inherit claims from the Starter.</p><h2>Service providers</h2><p>List only providers that are selected and active in the final Blueprint and release environment.</p></article></Base>

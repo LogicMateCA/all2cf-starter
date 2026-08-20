@@ -9,6 +9,7 @@ dist/
 !*.env.example
 apps/mobile/.expo/
 apps/docs/.astro/
+apps/marketing/.astro/
 apps/mobile/.env.local
 coverage/
 test-results/

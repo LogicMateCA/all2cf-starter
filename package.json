@@ -53,13 +53,15 @@
     "knowledge:check": "node scripts/knowledge-check.mjs",
     "change:check": "node scripts/change-spec-check.mjs",
     "build:dp": "npm run knowledge:sync",
+    "build:marketing": "npm run build --workspace apps/marketing",
     "build:web": "npm run build --workspace apps/web",
     "build:docs": "npm run build --workspace apps/docs",
-    "merge:docs": "node scripts/merge-docs-build.mjs",
+    "merge:sites": "node scripts/merge-sites-build.mjs",
+    "bundle:check:marketing": "node scripts/bundle-budget.mjs marketing",
     "bundle:check:web": "node scripts/bundle-budget.mjs web",
     "bundle:check:docs": "node scripts/bundle-budget.mjs docs",
     "bundle:check:mobile": "node scripts/bundle-budget.mjs mobile",
-    "build": "npm run build:dp && npm run build:web && npm run build:docs && npm run merge:docs",
+    "build": "npm run build:dp && npm run build:marketing && npm run build:web && npm run build:docs && npm run merge:sites",
     "dev:web": "npm run build:dp && npm run dev --workspace apps/web",
     "dev:docs": "npm run dev --workspace apps/docs",
     "setup": "npm run build:dp && npm run dev --workspace apps/web",
@@ -68,7 +70,7 @@
     "cf:types:check": "wrangler types --check --config cloudflare/wrangler.development.jsonc workers/app/worker-configuration.development.d.ts && wrangler types --check --config cloudflare/wrangler.production.jsonc workers/app/worker-configuration.production.d.ts",
     "cf:dry-run:dev": "wrangler deploy --dry-run --config cloudflare/wrangler.development.jsonc --outdir dist/worker-development",
     "cf:dry-run:production": "wrangler deploy --dry-run --config cloudflare/wrangler.production.jsonc --outdir dist/worker-production",
-    "verify": "npm run ai:doctor && npm run starter:materialize:check && npm run knowledge:sync && npm run knowledge:check && npm run change:check && npm run cf:types && npm run cf:types:check && npm run typecheck && npm run build && npm run bundle:check:web && npm run bundle:check:docs && npm run cf:dry-run:dev && npm run cf:dry-run:production"
+    "verify": "npm run ai:doctor && npm run starter:materialize:check && npm run knowledge:sync && npm run knowledge:check && npm run change:check && npm run cf:types && npm run cf:types:check && npm run typecheck && npm run build && npm run bundle:check:marketing && npm run bundle:check:web && npm run bundle:check:docs && npm run cf:dry-run:dev && npm run cf:dry-run:production"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "5.20260820.1",

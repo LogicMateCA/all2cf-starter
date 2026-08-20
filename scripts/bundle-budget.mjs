@@ -1,5 +1,5 @@
 import { gzipSync } from "node:zlib";
-import { readFile, readdir } from "node:fs/promises";
+import { access, readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -11,6 +11,19 @@ async function files(directory, pattern) {
   return (await readdir(directory)).filter((file) => pattern.test(file)).map((file) => path.join(directory, file));
 }
 
+async function exists(file) {
+  try { await access(file); return true; }
+  catch { return false; }
+}
+
+async function routeArtifact(publicRoot, route) {
+  if (route === "/") return path.join(publicRoot, "index.html");
+  const clean = route.replace(/^\/+|\/+$/gu, "");
+  const candidates = [path.join(publicRoot, clean, "index.html"), path.join(publicRoot, `${clean}.html`)];
+  for (const candidate of candidates) if (await exists(candidate)) return candidate;
+  return candidates[0];
+}
+
 async function measure(file, budget, metric) {
   const source = await readFile(file);
   const size = metric === "gzip" ? gzipSync(source).byteLength : source.byteLength;
@@ -18,7 +31,7 @@ async function measure(file, budget, metric) {
 }
 
 if (target === "all" || target === "web") {
-  const directory = path.join(root, "dist/web/assets");
+  const directory = path.join(root, "dist/web/_app/assets");
   for (const file of await files(directory, /^index-.*\.js$/u)) await measure(file, 180_000, "gzip");
   for (const file of await files(directory, /^technology-status-chart-.*\.js$/u)) await measure(file, 130_000, "gzip");
   const blueprint = JSON.parse(await readFile(path.join(root, "starter.blueprint.json"), "utf8"));
@@ -31,6 +44,25 @@ if (target === "all" || target === "web") {
     for (const file of mapStyles) await measure(file, 20_000, "gzip");
   } else if (mapScripts.length || mapStyles.length) {
     results.push({ file: "unselected MapCN route assets", metric: "presence", bytes: mapScripts.length + mapStyles.length, budget: 0, ok: false });
+  }
+}
+
+if (target === "all" || target === "marketing") {
+  const publicRoot = path.join(root, "dist/web");
+  const blueprint = JSON.parse(await readFile(path.join(root, "starter.blueprint.json"), "utf8"));
+  const catalog = JSON.parse(await readFile(path.join(root, "pages/catalog.json"), "utf8"));
+  const selected = new Set(blueprint.pageSet.selected);
+  for (const page of catalog.pages.filter(({ renderer }) => renderer === "astro-static")) {
+    const artifact = await routeArtifact(publicRoot, page.route);
+    const present = await exists(artifact);
+    const expected = selected.has(page.id);
+    results.push({ file: path.relative(root, artifact), metric: expected ? "selected-route" : "unselected-route", bytes: present ? 1 : 0, budget: expected ? 1 : 0, ok: present === expected });
+    if (!present || !expected) continue;
+    const html = await readFile(artifact, "utf8");
+    const initialScripts = [...html.matchAll(/<script[^>]+src=["']([^"']+\.js)["']/gu)].map((match) => path.join(publicRoot, match[1].replace(/^\//u, "")));
+    let initialBytes = 0;
+    for (const file of initialScripts) initialBytes += gzipSync(await readFile(file)).byteLength;
+    results.push({ file: `${path.relative(root, artifact)} initial scripts`, metric: "gzip", bytes: initialBytes, budget: 20_000, ok: initialBytes <= 20_000 });
   }
 }
 

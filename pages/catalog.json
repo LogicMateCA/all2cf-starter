@@ -1,7 +1,7 @@
 {
   "$schema": "../schemas/page-catalog.schema.json",
   "schemaVersion": "starter-page-catalog/v1",
-  "catalogVersion": "0.1.0",
+  "catalogVersion": "0.2.0",
   "policy": "Routes are selected explicitly in the Project Blueprint. Public pages are static-first, authenticated product routes stay in the React application, and Docs use Starlight. Unselected optional routes are not materialized.",
   "donorAudit": {
     "name": "PowerAI Astro",
@@ -30,7 +30,7 @@
       "renderer": "astro-static",
       "required": true,
       "defaultSelected": true,
-      "status": "defined",
+      "status": "implemented",
       "sourceStrategy": "powerai-structure-adapted",
       "sections": ["navigation", "hero", "trust", "value", "proof", "call-to-action", "footer"],
       "acceptance": ["clear product promise", "single primary action", "static HTML without required client JavaScript"]
@@ -44,7 +44,7 @@
       "renderer": "astro-static",
       "required": false,
       "defaultSelected": true,
-      "status": "defined",
+      "status": "implemented",
       "sourceStrategy": "powerai-structure-adapted",
       "sections": ["page-intro", "feature-groups", "proof", "faq", "call-to-action"],
       "acceptance": ["capabilities grouped by user outcome", "no invented product claims"]
@@ -58,7 +58,7 @@
       "renderer": "astro-static",
       "required": false,
       "defaultSelected": true,
-      "status": "defined",
+      "status": "implemented",
       "sourceStrategy": "powerai-structure-adapted",
       "sections": ["page-intro", "plan-comparison", "billing-faq", "call-to-action"],
       "acceptance": ["works without Stripe selected", "billing actions become live only with billing capability"]
@@ -72,7 +72,7 @@
       "renderer": "astro-static",
       "required": false,
       "defaultSelected": true,
-      "status": "defined",
+      "status": "implemented",
       "sourceStrategy": "powerai-structure-adapted",
       "sections": ["page-intro", "mission", "principles", "team-or-founder", "call-to-action"],
       "acceptance": ["content comes from project brief", "team section may be omitted"]
@@ -86,7 +86,7 @@
       "renderer": "astro-static",
       "required": false,
       "defaultSelected": true,
-      "status": "defined",
+      "status": "implemented",
       "sourceStrategy": "powerai-structure-adapted",
       "sections": ["page-intro", "contact-options", "validated-form", "response-expectation"],
       "acceptance": ["server-owned submission", "spam and rate-limit contract before release"]
@@ -100,7 +100,7 @@
       "renderer": "astro-static",
       "required": false,
       "defaultSelected": true,
-      "status": "defined",
+      "status": "implemented",
       "sourceStrategy": "powerai-structure-adapted",
       "sections": ["page-intro", "version-feed", "release-links"],
       "acceptance": ["Markdown-backed", "dated entries", "no dependency on the internal Change Spec format"]
@@ -114,7 +114,7 @@
       "renderer": "astro-static",
       "required": true,
       "defaultSelected": true,
-      "status": "defined",
+      "status": "implemented",
       "sourceStrategy": "starter-original",
       "sections": ["policy-content", "effective-date", "contact"],
       "acceptance": ["project-specific placeholders are explicit", "legal review is not implied"]
@@ -128,7 +128,7 @@
       "renderer": "astro-static",
       "required": true,
       "defaultSelected": true,
-      "status": "defined",
+      "status": "implemented",
       "sourceStrategy": "starter-original",
       "sections": ["terms-content", "effective-date", "contact"],
       "acceptance": ["project-specific placeholders are explicit", "legal review is not implied"]
@@ -184,7 +184,7 @@
       "renderer": "astro-static",
       "required": true,
       "defaultSelected": true,
-      "status": "defined",
+      "status": "implemented",
       "sourceStrategy": "powerai-structure-adapted",
       "sections": ["error-message", "recovery-actions"],
       "acceptance": ["real 404 response", "route back to a useful product surface"]
@@ -226,7 +226,7 @@
       "renderer": "astro-static",
       "required": false,
       "defaultSelected": false,
-      "status": "defined",
+      "status": "implemented",
       "sourceStrategy": "powerai-structure-adapted",
       "sections": ["post-index", "post-detail", "pagination"],
       "acceptance": ["content collection", "RSS and metadata before release"]
@@ -240,7 +240,7 @@
       "renderer": "astro-static",
       "required": false,
       "defaultSelected": false,
-      "status": "defined",
+      "status": "implemented",
       "sourceStrategy": "powerai-structure-adapted",
       "sections": ["case-index", "case-detail", "outcomes", "call-to-action"],
       "acceptance": ["content collection", "evidence-backed outcomes"]
@@ -254,7 +254,7 @@
       "renderer": "astro-static",
       "required": false,
       "defaultSelected": false,
-      "status": "defined",
+      "status": "implemented",
       "sourceStrategy": "powerai-structure-adapted",
       "sections": ["integration-index", "integration-detail", "availability-state"],
       "acceptance": ["only real integrations are published", "content collection"]
@@ -268,7 +268,7 @@
       "renderer": "astro-static",
       "required": false,
       "defaultSelected": false,
-      "status": "defined",
+      "status": "implemented",
       "sourceStrategy": "powerai-structure-adapted",
       "sections": ["role-index", "role-detail", "application-path"],
       "acceptance": ["content collection", "application destination is configured"]

@@ -13,7 +13,7 @@ export default defineConfig({
       customCss: ["./src/styles/custom.css"],
       sidebar: [
         { label: "Start", items: [{ label: "Overview", slug: "docs" }, { label: "Create a project", slug: "docs/getting-started" }] },
-        { label: "Build", items: [{ label: "Use the Starter", slug: "docs/guides/using-starter" }] },
+        { label: "Build", items: [{ label: "Use the Starter", slug: "docs/guides/using-starter" }, { label: "Optional SaaS packs", slug: "docs/guides/optional-saas-packs" }] },
         { label: "Operate", items: [{ label: "Release lanes", slug: "docs/operations/releases" }] }
       ]
     })

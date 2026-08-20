@@ -24,13 +24,22 @@
   },
   "assets": {
     "directory": "../dist/web",
+    "binding": "ASSETS",
     "run_worker_first": [
       "/api/*",
+      "/login",
+      "/app",
+      "/app/*",
+      "/support",
+      "/support/*",
+      "/admin",
+      "/admin/*",
+      "/dp",
       "/setup",
       "/setup/*",
       "/__starter/*"
     ],
-    "not_found_handling": "single-page-application"
+    "not_found_handling": "404-page"
   },
   "workers_dev": true,
   "hyperdrive": [

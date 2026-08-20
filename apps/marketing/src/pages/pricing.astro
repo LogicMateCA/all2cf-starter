@@ -1,0 +1,9 @@
+---
+import Base from "../layouts/Base.astro";
+import PageIntro from "../components/PageIntro.astro";
+import CallToAction from "../components/CallToAction.astro";
+import { project } from "../generated/project";
+const billingHref = project.billingSelected ? "/app/billing" : "/contact";
+const billingLabel = project.billingSelected ? "Manage billing" : "Discuss pricing";
+---
+<Base title="Pricing" description="Project-specific pricing with an optional Stripe billing path."><PageIntro title="Pricing follows the product model." description="This page remains useful before billing is enabled. Stripe actions appear only when the billing pack is selected and configured." /><section class="content-section"><h2>Define plans from real value.</h2><p>The Starter does not invent prices, limits, tax behavior, or entitlement rules. A copied project replaces this section with its reviewed commercial model.</p><div class="outcome-list"><article><h3>Starter plan</h3><p>Describe the smallest complete outcome, its actual limits, and who it is for.</p></article><article><h3>Expanded plan</h3><p>Describe the additional outcome and connect its action only after the Stripe price exists.</p></article></div></section><section class="content-section"><h2>Billing readiness</h2><dl class="fact-list"><div><dt>Stripe pack</dt><dd>{project.billingSelected ? "Selected and materialized" : "Not selected"}</dd></div><div><dt>Checkout</dt><dd>{project.billingSelected ? "Available to verified accounts" : "No inactive checkout is shown"}</dd></div><div><dt>Tax</dt><dd>Project-specific review required before Production</dd></div></dl></section><CallToAction title="Connect pricing only when it is real." body="Keep the public promise aligned with configured products, prices, entitlements, and tax decisions." href={billingHref} label={billingLabel} /></Base>

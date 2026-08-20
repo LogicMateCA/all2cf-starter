@@ -1,0 +1,27 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "page.core-product-site",
+  "version": "0.1.0",
+  "source": {
+    "name": "PowerAI Astro structure",
+    "url": "https://github.com/sitepins/powerai-astro",
+    "revision": "a1176bf882bf0b1af98115f3280c2a6928e69261",
+    "license": "MIT",
+    "relationship": "adapted-donor"
+  },
+  "files": [],
+  "pageFiles": {
+    "marketing.home": [{ "source": "templates/index.astro", "target": "apps/marketing/src/pages/index.astro" }],
+    "marketing.features": [{ "source": "templates/features.astro", "target": "apps/marketing/src/pages/features.astro" }],
+    "marketing.pricing": [{ "source": "templates/pricing.astro", "target": "apps/marketing/src/pages/pricing.astro" }],
+    "company.about": [{ "source": "templates/about.astro", "target": "apps/marketing/src/pages/about.astro" }],
+    "company.contact": [{ "source": "templates/contact.astro", "target": "apps/marketing/src/pages/contact.astro" }],
+    "product.changelog": [{ "source": "templates/changelog.astro", "target": "apps/marketing/src/pages/changelog.astro" }],
+    "legal.privacy": [{ "source": "templates/privacy.astro", "target": "apps/marketing/src/pages/privacy.astro" }],
+    "legal.terms": [{ "source": "templates/terms.astro", "target": "apps/marketing/src/pages/terms.astro" }],
+    "system.not-found": [{ "source": "templates/404.astro", "target": "apps/marketing/src/pages/404.astro" }]
+  },
+  "dependencies": [],
+  "routes": []
+}

@@ -1,7 +1,7 @@
 {
   "$schema": "../schemas/starter-catalog.schema.json",
   "schemaVersion": "starter-catalog/v1",
-  "catalogVersion": "0.6.0",
+  "catalogVersion": "0.7.0",
   "policies": {
     "betterAuth": "Better Auth core and every selected official plugin move as one stable-compatible version line with generated schema comparison and reviewed SQL migrations.",
     "ownedAdapters": "StyleKit, PowerAI, and MapCN are donor inputs. Accepted code is adapted, licensed, tested, versioned, and maintained by Starter without automatic upstream source sync.",
@@ -39,7 +39,7 @@
       "kind": "design",
       "name": "Owned neutral foundation",
       "version": "0.1.0",
-      "status": "production-released",
+      "status": "implemented",
       "targets": ["desktop-web", "mobile-web", "ios", "android", "admin", "docs"],
       "ownership": "starter-owned",
       "source": [],
@@ -56,7 +56,7 @@
       "kind": "design",
       "name": "StyleKit-derived design profiles",
       "version": "0.1.0",
-      "status": "defined",
+      "status": "implemented",
       "targets": ["desktop-web", "mobile-web", "ios", "android", "admin", "docs"],
       "ownership": "starter-owned",
       "source": [
@@ -81,7 +81,7 @@
       "kind": "page",
       "name": "Core product site",
       "version": "0.1.0",
-      "status": "defined",
+      "status": "implemented",
       "targets": ["desktop-web", "docs"],
       "ownership": "starter-owned",
       "source": [
@@ -106,7 +106,7 @@
       "kind": "page",
       "name": "Optional growth pages",
       "version": "0.1.0",
-      "status": "defined",
+      "status": "implemented",
       "targets": ["desktop-web"],
       "ownership": "starter-owned",
       "source": [],

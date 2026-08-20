@@ -1,8 +1,32 @@
 {
   "schemaVersion": "starter-materialization/v1",
-  "packs": {},
+  "packs": {
+    "design.owned-neutral": {
+      "version": "0.1.0",
+      "files": {}
+    },
+    "page.core-product-site": {
+      "version": "0.1.0",
+      "files": {
+        "apps/marketing/src/pages/index.astro": "18de747f882f077f1604e34abe0f990d3fb4489c88da7089ef07cdef0fd865a4",
+        "apps/marketing/src/pages/features.astro": "8251d791c382024cc6f4b3a8db69a9392a6594f5c835369438640d6942fb9d0d",
+        "apps/marketing/src/pages/pricing.astro": "8145e9148da1b64b27f031512bbb53b2524cc73477e4a2f74a1f39a68d3ac2a9",
+        "apps/marketing/src/pages/about.astro": "17ae5af1d2073c153734aecc97c8cbfc9fad4584ac39626c4e87bb6ad71b6c92",
+        "apps/marketing/src/pages/contact.astro": "bef30e71082cd0b00268a26e128841ac423aab758dd663b0e25214fccb921d09",
+        "apps/marketing/src/pages/changelog.astro": "5acddb47892b6f3e1f91e5732d23f80e9a438a61c5d118abe9de9d114b20bd17",
+        "apps/marketing/src/pages/privacy.astro": "6b84d380fee973e19ac17df11ea0b2679f97705b2a9ce95e2a4ace1f10159e6e",
+        "apps/marketing/src/pages/terms.astro": "bb9d3052c415c03d7f2936e9d823c1b7fc8e208607a59ec5fde5a67d2877130e",
+        "apps/marketing/src/pages/404.astro": "a51150aee0b9c0e5a09550ca6c16d87b19151d7664dcf1208a01787ea0a78648"
+      }
+    }
+  },
   "dependencies": {},
   "generatedRoutesHash": "b1612aea88c167b888cb954f7e856f95d608c369634aad6380f23977ee21de7a",
   "generatedAuthServerHash": "e39b4b3744e375f8920fe9e846beba207d9ac88e356aef70833d413b998e36c1",
-  "generatedAuthClientHash": "c3c373c7264baedfe7822e00cb4b2b622e997bb94532134d333171e1d00c5919"
+  "generatedAuthClientHash": "c3c373c7264baedfe7822e00cb4b2b622e997bb94532134d333171e1d00c5919",
+  "generatedDesignWebHash": "d11a241567a9d590d686f2af61f14d7406850eea7d52309845d12d4890f6c011",
+  "generatedDesignMarketingHash": "d11a241567a9d590d686f2af61f14d7406850eea7d52309845d12d4890f6c011",
+  "generatedDesignDocsHash": "d11a241567a9d590d686f2af61f14d7406850eea7d52309845d12d4890f6c011",
+  "generatedDesignMobileHash": "4ee7b1e48cff607fe67e46ff5ead48152e8800cd43fe483c9806e32e8f703121",
+  "generatedMarketingProjectHash": "59e06a60fd65b754c0f8f38687d3eb72ab5df5d5da4c7db89e270a832dfa454f"
 }

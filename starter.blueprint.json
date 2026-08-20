@@ -54,9 +54,9 @@
         "lifecycle": {
           "selected": true,
           "materialized": true,
-          "localVerified": true,
-          "developmentVerified": true,
-          "productionReleased": true
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
         },
         "note": "Current neutral shadcn and Tamagui foundation."
       },
@@ -77,12 +77,23 @@
         "id": "page.core-product-site",
         "lifecycle": {
           "selected": true,
-          "materialized": false,
+          "materialized": true,
           "localVerified": false,
           "developmentVerified": false,
           "productionReleased": false
         },
         "note": "Core product pages will be adapted from the audited PowerAI donor into owned page packs."
+      },
+      {
+        "id": "page.optional-growth",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Optional Astro routes are generated only when their individual Page Catalog entries are selected."
       }
     ],
     "saas": [

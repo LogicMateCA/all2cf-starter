@@ -1,4 +1,4 @@
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { isAPIError } from "better-auth/api";
 import { Client } from "pg";
 import { withRequestAuth, type AuthRuntimeEnv } from "./auth-runtime";
@@ -9,9 +9,11 @@ type AppVariables = {
 
 type AppBindings = Omit<AuthRuntimeEnv, "APP_ENV"> & {
   APP_ENV: string;
+  ASSETS: Env["ASSETS"];
 };
 
 const app = new Hono<{ Bindings: AppBindings; Variables: AppVariables }>();
+type StarterContext = Context<{ Bindings: AppBindings; Variables: AppVariables }>;
 
 const supportKinds = new Set(["support", "bug"]);
 const supportStatuses = new Set(["open", "in_progress", "resolved", "closed"]);
@@ -239,6 +241,22 @@ app.get("/api/health/database", async (c) => {
     await client.end().catch(() => undefined);
   }
 });
+
+async function serveProductApplication(c: StarterContext) {
+  const assetURL = new URL(c.req.url);
+  assetURL.pathname = "/_app/index.html";
+  assetURL.search = "";
+  return c.env.ASSETS.fetch(new Request(assetURL, { method: "GET", headers: c.req.raw.headers }));
+}
+
+app.get("/login", serveProductApplication);
+app.get("/app", serveProductApplication);
+app.get("/app/*", serveProductApplication);
+app.get("/support", serveProductApplication);
+app.get("/support/*", serveProductApplication);
+app.get("/admin", serveProductApplication);
+app.get("/admin/*", serveProductApplication);
+app.get("/dp", serveProductApplication);
 
 app.all("/setup", (c) => c.json({ error: { code: "LOCAL_ONLY", message: "Project setup is available only from the local development server." } }, 404));
 app.all("/setup/*", (c) => c.json({ error: { code: "LOCAL_ONLY", message: "Project setup is available only from the local development server." } }, 404));

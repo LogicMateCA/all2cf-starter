@@ -1,0 +1,15 @@
+---
+import Base from "../layouts/Base.astro";
+import CallToAction from "../components/CallToAction.astro";
+import { project } from "../generated/project";
+---
+<Base>
+  <section class="hero">
+    <div class="hero-copy"><p class="hero-label">Cloudflare-first product foundation</p><h1>Start with the product system already connected.</h1><p>{project.brief}</p><div class="hero-actions"><a class="primary-button" href="/login">Open the product</a><a class="secondary-button" href="/docs">Read the docs</a></div></div>
+    <aside class="assembly-receipt" aria-label="Current project assembly"><header><span>Project Blueprint</span><strong>{project.designProfile.id}</strong></header><dl><div><dt>Public pages</dt><dd>{project.publicPageCount}</dd></div><div><dt>Selected packs</dt><dd>{project.selectedPackCount}</dd></div><div><dt>Platforms</dt><dd>{project.platforms.length}</dd></div><div><dt>Database</dt><dd>Empty baseline</dd></div></dl><a href="/dp">View current evidence</a></aside>
+  </section>
+  <section class="proof-band" aria-label="Foundation"><span>Cloudflare Workers</span><span>PostgreSQL</span><span>Better Auth</span><span>Expo</span></section>
+  <section class="content-section"><h2>Keep only what the product needs.</h2><p>The Blueprint controls pages, SaaS modules, external capabilities, providers, and release lanes before AI changes the repository.</p><div class="outcome-list"><article><h3>Identity that is already connected</h3><p>Email verification, Google sign-in, account settings, provider-backed email, and role-aware administration share one Better Auth foundation.</p></article><article><h3>Cloudflare release boundaries</h3><p>Development is the normal release lane. Production remains a separate explicit action with its own Worker, domain, and database.</p></article><article><h3>Optional modules stay optional</h3><p>Organizations, Stripe billing, maps, and growth pages enter the application only after selection and materialization.</p></article><article><h3>Context survives the conversation</h3><p>Markdown, catalogs, Change Specs, and the generated Development Plan tell the next AI what exists and what remains unverified.</p></article></div></section>
+  <section class="workflow-section"><div><h2>Describe. Configure. Verify. Release.</h2><p>Every stage leaves a repository-readable contract, so later work does not depend on chat memory.</p></div><ol><li><strong>Describe</strong><span>Record the product, platforms, and constraints.</span></li><li><strong>Configure</strong><span>Select exact routes, modules, providers, and design profile.</span></li><li><strong>Verify</strong><span>Build from an empty database and attach current evidence.</span></li><li><strong>Release</strong><span>Publish Development first. Promote only with explicit Production intent.</span></li></ol></section>
+  <CallToAction title="Begin with a reviewed Blueprint." body="Use the product shell now, or inspect the public documentation before changing the assembly." />
+</Base>

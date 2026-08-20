@@ -15,22 +15,81 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "version", "packId", "name", "description", "status", "targets", "source", "direction", "semanticColors", "rules", "adapters", "quality"],
+        "required": ["id", "version", "packId", "name", "description", "status", "targets", "source", "direction", "dials", "semanticColors", "tokens", "rules", "adapters", "quality"],
         "properties": {
           "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
           "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
           "packId": { "type": "string", "pattern": "^design\\.[a-z0-9-]+$" },
           "name": { "type": "string", "minLength": 1 },
           "description": { "type": "string", "minLength": 1 },
-          "status": { "enum": ["defined", "local-verified", "development-verified", "production-released"] },
+          "status": { "enum": ["defined", "implemented", "local-verified", "development-verified", "production-released"] },
           "targets": { "type": "array", "items": { "enum": ["marketing", "desktop-web", "admin", "docs", "mobile"] }, "uniqueItems": true },
           "source": { "type": "array" },
           "direction": { "type": "object" },
-          "semanticColors": { "type": "object", "required": ["light", "dark"] },
+          "dials": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["designVariance", "motionIntensity", "visualDensity"],
+            "properties": {
+              "designVariance": { "type": "integer", "minimum": 1, "maximum": 10 },
+              "motionIntensity": { "type": "integer", "minimum": 1, "maximum": 10 },
+              "visualDensity": { "type": "integer", "minimum": 1, "maximum": 10 }
+            }
+          },
+          "semanticColors": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["light", "dark"],
+            "properties": {
+              "light": { "$ref": "#/$defs/colorMode" },
+              "dark": { "$ref": "#/$defs/colorMode" }
+            }
+          },
+          "tokens": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["fontUi", "fontDisplay", "fontMono", "fontMobileUi", "fontMobileDisplay", "radius", "motion"],
+            "properties": {
+              "fontUi": { "type": "string", "minLength": 1 },
+              "fontDisplay": { "type": "string", "minLength": 1 },
+              "fontMono": { "type": "string", "minLength": 1 },
+              "fontMobileUi": { "type": "string", "minLength": 1 },
+              "fontMobileDisplay": { "type": "string", "minLength": 1 },
+              "radius": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["sm", "md", "lg"],
+                "properties": { "sm": { "type": "integer", "minimum": 0, "maximum": 32 }, "md": { "type": "integer", "minimum": 0, "maximum": 32 }, "lg": { "type": "integer", "minimum": 0, "maximum": 32 } }
+              },
+              "motion": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["fastMs", "standardMs"],
+                "properties": { "fastMs": { "type": "integer", "minimum": 0, "maximum": 500 }, "standardMs": { "type": "integer", "minimum": 0, "maximum": 800 } }
+              }
+            }
+          },
           "rules": { "type": "object", "required": ["do", "dont"] },
           "adapters": { "type": "object" },
           "quality": { "type": "object" }
         }
+      }
+    }
+  },
+  "$defs": {
+    "colorMode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["background", "surface", "foreground", "muted", "accent", "onAccent", "border", "danger"],
+      "properties": {
+        "background": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+        "surface": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+        "foreground": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+        "muted": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+        "accent": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+        "onAccent": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+        "border": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+        "danger": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" }
       }
     }
   }

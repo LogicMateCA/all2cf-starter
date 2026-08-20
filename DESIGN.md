@@ -15,14 +15,14 @@ source: "starter"
 ## Owned Design Engine
 
 - Starter owns the design profiles used by generated projects. A profile includes semantic tokens, typography, spacing, radius and elevation rules, interaction states, page recipes, asset direction, accessibility requirements, and per-target adapters.
-- `design/catalog.json` is the machine-readable profile source. The Blueprint pins one profile ID and exact internal version; profile status and every Marketing, Desktop, Admin, Docs, and Mobile adapter status remain independently visible.
+- `design/catalog.json` is the machine-readable profile source. The Blueprint pins one profile ID and exact internal version; profile status, Product Design dials, and every Marketing, Desktop, Admin, Docs, and Mobile adapter status remain independently visible.
 - StyleKit is a candidate library of source ideas and recipes. Accepted styles are manually imported from a pinned revision, normalized into Starter's schema, adapted for each target, reviewed with Product Design and Taste, visually compared, accessibility checked, performance tested, and released as a new internal catalog version.
 - Generated projects pin an internal profile version and never call a StyleKit runtime or API. New upstream StyleKit styles do not alter existing projects automatically.
 - PowerAI Astro supplies audited page structure and component ideas for owned Page Packs. Its original brand, theme, content, and repository relationship are removed after adaptation; only license and provenance remain.
 - Page choice is independent from visual profile choice. `pages/catalog.json` defines the route, renderer, required state, section intent, and acceptance criteria; the selected Design Profile supplies presentation without changing product behavior.
-- One selected profile must produce coherent but platform-appropriate outputs for Astro marketing pages, shadcn Desktop Web and Admin, Starlight Docs, and later a Tamagui brand seed. Desktop and mobile still retain separate components and layouts.
+- One selected profile deterministically produces coherent but platform-appropriate semantic outputs for Astro Marketing, shadcn Desktop Web and Admin, Starlight Docs, and the lean Tamagui Mobile theme. Desktop and Mobile retain separate components and layouts.
 - Open Design and RunCopilot are research and extraction aids. They may inform a Change Spec but are not dependencies or design authorities.
-- Initial StyleKit-derived profiles are deliberately few: Precision SaaS normalizes `corporate-clean` and `stripe-style`; Editorial Signal normalizes `editorial` and `asymmetric-grid`; Midnight Control normalizes `linear-style` and `dashboard-layout`. These are owned directions, not branded theme clones, and all remain `defined` until their adapters and visual evidence pass.
+- Initial StyleKit-derived profiles are deliberately few: Precision SaaS normalizes `corporate-clean` and `stripe-style`; Editorial Signal normalizes `editorial` and `asymmetric-grid`; Midnight Control normalizes `linear-style` and `dashboard-layout`. These owned directions now have deterministic target adapters and remain `implemented` until responsive screenshots, interaction states, accessibility, and visual comparison promote them to `local-verified`.
 
 ## Authenticated account shell
 
