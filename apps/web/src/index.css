@@ -305,6 +305,13 @@ a:not([class]) {
   gap: 7px;
   margin-left: auto;
 }
+.account-slot {
+  display: inline-flex;
+  min-width: 72px;
+  min-height: 36px;
+  align-items: center;
+  justify-content: flex-end;
+}
 .plan-content {
   width: min(1040px, calc(100% - 56px));
   margin: 0 auto;
@@ -347,6 +354,41 @@ a:not([class]) {
   gap: 12px;
   padding: 11px 0;
   border-bottom: 1px solid var(--border);
+}
+.plan-lead-skeleton {
+  min-height: 330px;
+}
+.plan-lead-skeleton > div > span,
+.plan-lead-skeleton dl div {
+  display: block;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  animation: account-pulse 1.2s ease-in-out infinite alternate;
+}
+.plan-lead-skeleton > div > span:nth-child(1) {
+  width: 150px;
+  height: 12px;
+}
+.plan-lead-skeleton > div > span:nth-child(2) {
+  width: min(420px, 80%);
+  height: 54px;
+  margin-top: 20px;
+}
+.plan-lead-skeleton > div > span:nth-child(3) {
+  width: min(640px, 96%);
+  height: 82px;
+  margin-top: 20px;
+}
+.plan-lead-skeleton dl {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+.plan-lead-skeleton dl div {
+  width: 100%;
+  height: 42px;
+  padding: 0;
 }
 dt {
   color: var(--muted);

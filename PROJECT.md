@@ -17,6 +17,7 @@ Blueprint-driven project assembler for AI-led Cloudflare SaaS products. The reus
 - Explicit non-goals: project-specific business behavior and branding
 - Environments: `development`, `production`
 - Configuration boundary: `/setup` writes the Project Blueprint; `/dp` is read-only; `/admin` operates the resulting product.
+- AI control boundary: Sol is the sole controller but not a permanently high-reasoning process. It selects light, medium, or high from task complexity and risk, defaults normal implementation to medium, and reserves high for architecture, release, ambiguous cross-module judgment, and high-risk mutation.
 
 ## Success criteria
 

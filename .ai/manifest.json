@@ -12,8 +12,14 @@
     "packTemplates": "packs/"
   },
   "controller": {
-    "high": "Sol",
-    "medium": "Luna",
+    "model": "Sol",
+    "reasoning": {
+      "mode": "adaptive",
+      "default": "medium",
+      "allowed": ["light", "medium", "high"]
+    },
+    "workerModel": "Luna",
+    "workerReasoning": "medium",
     "childrenMay": [
       "inspect",
       "analyze",

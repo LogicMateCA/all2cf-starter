@@ -197,7 +197,7 @@
     },
     {
       "area": "AI controller",
-      "choice": "GPT-5.6 Sol high",
+      "choice": "GPT-5.6 Sol adaptive light/medium/high, default medium",
       "status": "defined"
     },
     {

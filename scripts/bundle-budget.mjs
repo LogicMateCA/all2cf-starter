@@ -32,7 +32,10 @@ async function measure(file, budget, metric) {
 
 if (target === "all" || target === "web") {
   const directory = path.join(root, "dist/web/_app/assets");
-  for (const file of await files(directory, /^index-.*\.js$/u)) await measure(file, 180_000, "gzip");
+  for (const file of await files(directory, /^index-.*\.js$/u)) await measure(file, 30_000, "gzip");
+  for (const file of await files(directory, /^react-vendor-.*\.js$/u)) await measure(file, 70_000, "gzip");
+  for (const file of await files(directory, /^auth-page-.*\.js$/u)) await measure(file, 15_000, "gzip");
+  for (const file of await files(directory, /^development-plan-page-.*\.js$/u)) await measure(file, 80_000, "gzip");
   for (const file of await files(directory, /^technology-status-chart-.*\.js$/u)) await measure(file, 130_000, "gzip");
   const blueprint = JSON.parse(await readFile(path.join(root, "starter.blueprint.json"), "utf8"));
   const mapSelected = blueprint.selections.capabilities.some(({ id, lifecycle }) => id === "capability.mapcn-web" && lifecycle.selected && lifecycle.materialized);

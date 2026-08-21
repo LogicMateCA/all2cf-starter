@@ -31,10 +31,10 @@ await rm(targetRoot, { recursive: true, force: true });
 await cp(marketingRoot, targetRoot, { recursive: true });
 await copyWithoutOverwrite(appRoot, path.join(targetRoot, "_app"));
 
-const appSnapshot = path.join(appRoot, "dp/project.snapshot.json");
-if (await exists(appSnapshot)) {
+const appDevelopmentPlan = path.join(appRoot, "dp");
+if (await exists(appDevelopmentPlan)) {
   await rm(path.join(targetRoot, "_app/dp"), { recursive: true, force: true });
-  await copyWithoutOverwrite(appSnapshot, path.join(targetRoot, "dp/project.snapshot.json"));
+  await copyWithoutOverwrite(appDevelopmentPlan, path.join(targetRoot, "dp"));
 }
 
 const docsEntries = await readdir(docsRoot, { withFileTypes: true });

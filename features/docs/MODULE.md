@@ -15,5 +15,6 @@ Purpose: own public Astro Starlight documentation, internal Markdown contracts, 
 - Page Catalog relationship: `docs.public` is a required Starlight route in `pages/catalog.json`. PowerAI does not own Docs, `/dp`, or authentication content.
 - Runtime shape: `apps/docs` builds static Astro/Starlight output. A collision-failing merge step combines Marketing root output, React under `/_app`, and Docs `/docs`, `/_docs`, and `/pagefind` paths into the existing Worker asset artifact; Docs adds no Worker, SSR adapter, binding, secret, or database object.
 - Freshness owner: Sol controller through a focused Change Spec, affected canonical Markdown updates, `knowledge:sync`, and `knowledge:check` in every material change.
+- Performance boundary: `/dp` owns a route-specific dynamic chunk, renders from a freshness-checked compact projection of the complete AI snapshot, reserves its loading geometry, and defers below-fold chart code until it approaches the viewport. Login and ordinary product routes must not download the `/dp` implementation; the complete `/dp/project.snapshot.json` remains available for AI and audit use.
 
 No material implementation is complete while `/dp` is stale. Generated output must never silently replace the Markdown/frontmatter source; after a release, live `/dp` must report the exact released commit and Change Spec.

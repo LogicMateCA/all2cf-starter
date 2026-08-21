@@ -372,5 +372,17 @@ export default defineConfig(({ command }) => ({
   base: command === "build" ? "/_app/" : "/",
   plugins: [localSetupApi(), react(), tailwindcss(), optionalMapLibreWorker()],
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
-  build: { outDir: "../../dist/app-site", emptyOutDir: true },
+  build: {
+    outDir: "../../dist/app-site",
+    emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          return /\/node_modules\/(?:react|react-dom|scheduler)\//u.test(id)
+            ? "react-vendor"
+            : undefined;
+        },
+      },
+    },
+  },
 }));

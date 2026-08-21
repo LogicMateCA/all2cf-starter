@@ -2,7 +2,13 @@ version: 1
 controller:
   name: GPT-5.6 Sol
   model: gpt-5.6-sol
-  level: high
+  level: adaptive
+  default_level: medium
+  allowed_levels: [light, medium, high]
+  level_policy:
+    light: bounded inspection, reporting, and mechanical low-risk edits
+    medium: ordinary implementation, integration, testing, and documentation
+    high: architecture, release, ambiguous cross-module judgment, and high-risk changes
   owns: [scope, architecture, change-spec, shared-contracts, integration, git, documentation-finalization, deploy, release-evidence]
 workers:
   model: gpt-5.6-luna

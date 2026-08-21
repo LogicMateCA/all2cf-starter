@@ -1324,9 +1324,20 @@ async function serveProductApplication(c: StarterContext) {
   const assetURL = new URL(c.req.url);
   assetURL.pathname = "/_app/index.html";
   assetURL.search = "";
-  return c.env.ASSETS.fetch(
+  const response = await c.env.ASSETS.fetch(
     new Request(assetURL, { method: "GET", headers: c.req.raw.headers }),
   );
+  if (c.req.path !== "/dp") return response;
+  const headers = new Headers(response.headers);
+  headers.append(
+    "Link",
+    "</dp/project.index.json>; rel=preload; as=fetch; crossorigin=use-credentials",
+  );
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
 }
 
 app.get("/login", serveProductApplication);
