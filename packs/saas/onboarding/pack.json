@@ -25,7 +25,7 @@
     },
     {
       "source": "templates/0011_onboarding.sql",
-      "target": "db/migrations/0011_onboarding.sql"
+      "target": "db/migrations/1008_onboarding.sql"
     }
   ],
   "dependencies": [],

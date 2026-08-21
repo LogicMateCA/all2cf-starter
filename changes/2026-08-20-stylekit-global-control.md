@@ -53,6 +53,8 @@ The owner selects a StyleKit style such as `neumorphism` once. AI receives a pin
 
 # Verification
 
+- Starlight search, theme controls, and inline code must retain WCAG AA contrast in both modes after every selected StyleKit adapter is generated.
+
 - Snapshot extraction and compile are deterministic from the pinned source and fail on unreviewed source drift.
 - Static checks reject unregistered design values, direct donor runtime imports, missing interaction states, target adapter gaps and pages that bypass the semantic component layer.
 - Browser and accessibility checks cover all required surfaces, modes, breakpoints and states. Build budgets prove the selected style does not ship the whole StyleKit catalog.

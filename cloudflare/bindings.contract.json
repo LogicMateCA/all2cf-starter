@@ -15,8 +15,17 @@
   "bindings": {
     "HYPERDRIVE": {
       "kind": "hyperdrive",
-      "status": "active",
-      "requiredPerEnvironment": true
+      "status": "selected-native-postgresql",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "database.provider=native-postgresql"
+    },
+    "ALL2CF_DATABASE": {
+      "kind": "service_binding",
+      "status": "selected-cfpg",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "database.provider=cfpg",
+      "entrypoint": "All2CFDatabase",
+      "mutuallyExclusiveWith": "HYPERDRIVE"
     },
     "STARTER_R2": {
       "kind": "r2_bucket",
@@ -37,6 +46,51 @@
       "kind": "service_binding",
       "status": "future",
       "requiredPerEnvironment": true
+    },
+    "GOOGLE_CLIENT_ID": {
+      "kind": "secret",
+      "status": "selectable-social-provider",
+      "requiredPerEnvironment": false
+    },
+    "GOOGLE_CLIENT_SECRET": {
+      "kind": "secret",
+      "status": "selectable-social-provider",
+      "requiredPerEnvironment": false
+    },
+    "GITHUB_CLIENT_ID": {
+      "kind": "secret",
+      "status": "selectable-social-provider",
+      "requiredPerEnvironment": false
+    },
+    "GITHUB_CLIENT_SECRET": {
+      "kind": "secret",
+      "status": "selectable-social-provider",
+      "requiredPerEnvironment": false
+    },
+    "APPLE_CLIENT_ID": {
+      "kind": "secret",
+      "status": "selectable-social-provider",
+      "requiredPerEnvironment": false
+    },
+    "APPLE_TEAM_ID": {
+      "kind": "secret",
+      "status": "selectable-social-provider",
+      "requiredPerEnvironment": false
+    },
+    "APPLE_KEY_ID": {
+      "kind": "secret",
+      "status": "selectable-social-provider",
+      "requiredPerEnvironment": false
+    },
+    "APPLE_PRIVATE_KEY_BASE64": {
+      "kind": "secret",
+      "status": "selectable-social-provider",
+      "requiredPerEnvironment": false
+    },
+    "APPLE_APP_BUNDLE_IDENTIFIER": {
+      "kind": "secret",
+      "status": "selectable-social-provider",
+      "requiredPerEnvironment": false
     },
     "STRIPE_SECRET_KEY": {
       "kind": "secret",

@@ -14,6 +14,11 @@ import {
   renderStyleKitCSS,
   renderStyleKitMobile,
 } from "./lib/design-engine.mjs";
+import {
+  CFPG_CONNECTOR_PACKAGE,
+  CFPG_CONNECTOR_VERSION,
+  configureDatabaseRuntime,
+} from "./lib/cfpg.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const apply = process.argv.includes("--apply");
@@ -326,6 +331,14 @@ function renderWorkerFirstConfig(source, routes) {
 
 function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
   const model = JSON.parse(source);
+  const environment = configPath.includes(".development.") ? "development" : "production";
+  const receiptDatabase = configureDatabaseRuntime(model, {
+    provider: blueprint.providers.database.provider,
+    environment,
+    connection: blueprint.providers.database.cfpg[environment],
+    previous: previousRuntime?.database,
+    label: path.relative(root, configPath),
+  });
   const queues = model.queues || { producers: [], consumers: [] };
   queues.producers ||= [];
   queues.consumers ||= [];
@@ -358,7 +371,7 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
     requiredSecrets.delete(previous);
   }
 
-  const receipt = { queues: [], requiredSecrets: [] };
+  const receipt = { queues: [], requiredSecrets: [], database: receiptDatabase };
   for (const [binding, declaration] of desiredCloudflareQueues) {
     if (queues.producers.some((entry) => entry.binding === binding))
       throw new Error(
@@ -583,6 +596,24 @@ const desiredWorkerFeatures = [];
 const desiredWorkerEvents = [];
 const desiredCloudflareSecrets = new Map();
 const desiredCloudflareQueues = new Map();
+
+if (blueprint.providers.database.provider === "cfpg") {
+  for (const environment of ["development", "production"])
+    if (!blueprint.providers.database.cfpg?.[environment])
+      throw new Error(
+        `CFPG ${environment} connection command must be saved before materialization.`,
+      );
+  desiredDependencies.set(
+    `workers/app/package.json|dependencies|${CFPG_CONNECTOR_PACKAGE}`,
+    {
+      packageFile: "workers/app/package.json",
+      section: "dependencies",
+      name: CFPG_CONNECTOR_PACKAGE,
+      version: CFPG_CONNECTOR_VERSION,
+      packId: "provider.database.cfpg",
+    },
+  );
+}
 
 for (const { file, packRoot, manifest } of manifests) {
   const catalogPack = catalogPacks.get(manifest.id);

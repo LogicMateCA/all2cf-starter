@@ -8,9 +8,12 @@
   },
   "dependencies": {
     "@better-auth/expo": "1.7.1",
+    "@better-auth/stripe": "1.7.1",
     "better-auth": "1.7.1",
     "hono": "4.13.3",
-    "pg": "8.23.0"
+    "jose": "6.2.9",
+    "pg": "8.23.0",
+    "stripe": "22.5.0"
   },
   "devDependencies": {
     "@types/pg": "8.21.0",

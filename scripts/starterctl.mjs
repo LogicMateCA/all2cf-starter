@@ -10,6 +10,13 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const config = JSON.parse(await readFile(path.join(root, "starter.config.json"), "utf8"));
 const blueprint = JSON.parse(await readFile(path.join(root, "starter.blueprint.json"), "utf8"));
 const selectedPacks = new Set(Object.values(blueprint.selections).flat().filter(({ lifecycle }) => lifecycle.selected && lifecycle.materialized).map(({ id }) => id));
+const selectedSocialProviders = new Set(blueprint.providers?.socialAuth || ["google"]);
+const socialSecretRequirements = {
+  google: ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"],
+  github: ["GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET"],
+  apple: ["APPLE_CLIENT_ID", "APPLE_TEAM_ID", "APPLE_KEY_ID", "APPLE_PRIVATE_KEY_BASE64", "APPLE_APP_BUNDLE_IDENTIFIER"],
+};
+const socialSecretNames = new Set(Object.values(socialSecretRequirements).flat());
 const stripeSelected = selectedPacks.has("saas.billing-stripe");
 const outgoingWebhooksSelected = selectedPacks.has("saas.outgoing-webhooks");
 const env = parseEnv(await readFile(path.join(root, ".dev.vars"), "utf8"));
@@ -41,11 +48,25 @@ function required(name) {
 }
 
 function syncWorkerSecrets(environment, wranglerConfig) {
-  const emailProvider = config.email?.provider || "cfsend";
+  const configuredEmailProvider = config.email?.provider || "cfsend";
+  const emailProvider = configuredEmailProvider === "cloudflare-email-service" ? "cloudflare-email" : configuredEmailProvider;
   const secrets = {
     BETTER_AUTH_SECRET: required(environment === "production" ? "STARTER_PRODUCTION_BETTER_AUTH_SECRET" : "BETTER_AUTH_SECRET"),
-    GOOGLE_CLIENT_ID: required("GOOGLE_CLIENT_ID"),
-    GOOGLE_CLIENT_SECRET: required("GOOGLE_CLIENT_SECRET"),
+    ...(selectedSocialProviders.has("google") ? {
+      GOOGLE_CLIENT_ID: required("GOOGLE_CLIENT_ID"),
+      GOOGLE_CLIENT_SECRET: required("GOOGLE_CLIENT_SECRET"),
+    } : {}),
+    ...(selectedSocialProviders.has("github") ? {
+      GITHUB_CLIENT_ID: required("GITHUB_CLIENT_ID"),
+      GITHUB_CLIENT_SECRET: required("GITHUB_CLIENT_SECRET"),
+    } : {}),
+    ...(selectedSocialProviders.has("apple") ? {
+      APPLE_CLIENT_ID: required("APPLE_CLIENT_ID"),
+      APPLE_TEAM_ID: required("APPLE_TEAM_ID"),
+      APPLE_KEY_ID: required("APPLE_KEY_ID"),
+      APPLE_PRIVATE_KEY_BASE64: required("APPLE_PRIVATE_KEY_BASE64"),
+      APPLE_APP_BUNDLE_IDENTIFIER: required("APPLE_APP_BUNDLE_IDENTIFIER"),
+    } : {}),
     ...(emailProvider === "cfsend" ? {
       CFSEND_API_URL: required("CFSEND_API_URL"),
       CFSEND_API_KEY: required("CFSEND_API_KEY"),
@@ -231,7 +252,8 @@ async function ensureHyperdrive(environment, serviceId) {
 
 async function writeWrangler(environment, hyperdriveId) {
   const target = config[environment];
-  const emailProvider = config.email?.provider || "cfsend";
+  const configuredEmailProvider = config.email?.provider || "cfsend";
+  const emailProvider = configuredEmailProvider === "cloudflare-email-service" ? "cloudflare-email" : configuredEmailProvider;
   const configPath = path.join(root, target.wranglerConfig);
   const errors = [];
   const value = parseJsonc(await readFile(configPath, "utf8"), errors, { allowTrailingComma: true });
@@ -246,6 +268,7 @@ async function writeWrangler(environment, hyperdriveId) {
     AUTH_CANONICAL_ORIGIN: `https://${target.domain}`,
     AUTH_REQUIRE_EMAIL_VERIFICATION: "true",
     AUTH_EMAIL_PROVIDER: emailProvider,
+    AUTH_SOCIAL_PROVIDERS: [...selectedSocialProviders].join(","),
     RESEND_API_URL: config.email?.resendApiUrl || "https://api.resend.com",
     ...(emailProvider === "cloudflare-email" ? { CLOUDFLARE_EMAIL_FROM: required("CLOUDFLARE_EMAIL_FROM") } : {}),
     MOBILE_DEEP_LINK_SCHEMES: [`${config.project.slug}-dev://`, `${config.project.slug}-preview://`, `${config.project.slug}://`].join(","),
@@ -254,10 +277,9 @@ async function writeWrangler(environment, hyperdriveId) {
     ...(value.secrets || {}),
     required: [
       ...new Set([
-        ...(value.secrets?.required || []),
+        ...(value.secrets?.required || []).filter((name) => !socialSecretNames.has(name)),
         "BETTER_AUTH_SECRET",
-        "GOOGLE_CLIENT_ID",
-        "GOOGLE_CLIENT_SECRET",
+        ...[...selectedSocialProviders].flatMap((provider) => socialSecretRequirements[provider] || []),
         ...(emailProvider === "cfsend"
           ? ["CFSEND_API_URL", "CFSEND_API_KEY", "CFSEND_FROM"]
           : emailProvider === "resend"
@@ -311,25 +333,31 @@ async function ensureConfiguredQueues(environment) {
   state.resources[`${environment}Queues`] = resources;
 }
 
-async function provision() {
+async function provision(environment = "all") {
+  if (!new Set(["all", "development", "production"]).has(environment))
+    throw new Error("provision environment must be development, production, or all");
   await requireProvisionPreflight();
-  ensureDevelopmentDatabase();
-  await saveState();
-  ensureProductionDatabase();
-  await saveState();
-  const developmentServiceId = await ensureVpcService();
-  await saveState();
-  const developmentHyperdriveId = await ensureHyperdrive("development", developmentServiceId);
-  await saveState();
-  const productionHyperdriveId = await ensureHyperdrive("production", config.production.database.vpcServiceId);
-  await saveState();
-  await writeWrangler("development", developmentHyperdriveId);
-  await writeWrangler("production", productionHyperdriveId);
-  await ensureConfiguredQueues("development");
-  await saveState();
-  await ensureConfiguredQueues("production");
-  await saveState();
-  console.log(JSON.stringify({ ok: true, resources: state.resources }, null, 2));
+  if (environment === "all" || environment === "development") {
+    ensureDevelopmentDatabase();
+    await saveState();
+    const developmentServiceId = await ensureVpcService();
+    await saveState();
+    const developmentHyperdriveId = await ensureHyperdrive("development", developmentServiceId);
+    await saveState();
+    await writeWrangler("development", developmentHyperdriveId);
+    await ensureConfiguredQueues("development");
+    await saveState();
+  }
+  if (environment === "all" || environment === "production") {
+    ensureProductionDatabase();
+    await saveState();
+    const productionHyperdriveId = await ensureHyperdrive("production", config.production.database.vpcServiceId);
+    await saveState();
+    await writeWrangler("production", productionHyperdriveId);
+    await ensureConfiguredQueues("production");
+    await saveState();
+  }
+  console.log(JSON.stringify({ ok: true, environment, resources: state.resources }, null, 2));
 }
 
 async function walkFiles(directory) {
@@ -448,10 +476,10 @@ async function rollback(environment, versionId) {
 }
 
 const [command = "help", argument] = process.argv.slice(2);
-if (command === "provision") await provision();
+if (command === "provision") await provision(argument || "all");
 else if (command === "release") await release(argument || "development");
 else if (command === "rollback") await rollback(argument || "development", process.argv[4]);
 else {
-  console.log("starterctl commands: provision | release [development|production] | rollback [development|production] <version-id>");
+  console.log("starterctl commands: provision [development|production|all] | release [development|production] | rollback [development|production] <version-id>");
   process.exitCode = 1;
 }

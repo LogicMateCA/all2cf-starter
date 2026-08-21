@@ -4,6 +4,7 @@ import { createAuthMiddleware, isAPIError } from "better-auth/api";
 import { admin } from "better-auth/plugins";
 import type { Pool } from "pg";
 import { createSelectedAuthPlugins } from "./generated/auth-plugins";
+import { generateAppleClientSecret } from "../../scripts/lib/apple-oauth.mjs";
 
 export type AuthEmail = {
   kind: "email-verification" | "password-reset" | "organization-invitation";
@@ -20,8 +21,16 @@ type StarterAuthInput = {
   appEnvironment: string;
   secret: string;
   database: Pool;
-  googleClientId: string;
-  googleClientSecret: string;
+  socialProviders: string[];
+  googleClientId?: string;
+  googleClientSecret?: string;
+  githubClientId?: string;
+  githubClientSecret?: string;
+  appleClientId?: string;
+  appleTeamId?: string;
+  appleKeyId?: string;
+  applePrivateKeyBase64?: string;
+  appleAppBundleIdentifier?: string;
   mobileSchemes: string[];
   requireEmailVerification: boolean;
   enqueueEmail: (email: AuthEmail) => Promise<void>;
@@ -51,6 +60,16 @@ function authEmailHtml(
 
 export function createStarterAuth(input: StarterAuthInput) {
   const secure = input.baseURL.startsWith("https://");
+  const selectedSocialProviders = new Set(input.socialProviders);
+  const googleReady = selectedSocialProviders.has("google") && input.googleClientId && input.googleClientSecret;
+  const githubReady = selectedSocialProviders.has("github") && input.githubClientId && input.githubClientSecret;
+  const appleReady =
+    selectedSocialProviders.has("apple") &&
+    input.appleClientId &&
+    input.appleTeamId &&
+    input.appleKeyId &&
+    input.applePrivateKeyBase64 &&
+    input.appleAppBundleIdentifier;
   const cookiePrefix =
     input.appName
       .toLowerCase()
@@ -62,7 +81,11 @@ export function createStarterAuth(input: StarterAuthInput) {
     baseURL: input.baseURL,
     basePath: "/api/auth",
     secret: input.secret,
-    trustedOrigins: [input.baseURL, ...input.mobileSchemes],
+    trustedOrigins: [
+      input.baseURL,
+      ...input.mobileSchemes,
+      ...(selectedSocialProviders.has("apple") ? ["https://appleid.apple.com"] : []),
+    ],
     hooks: {
       after: createAuthMiddleware(async (context) => {
         const actions: Record<string, string> = {
@@ -254,10 +277,26 @@ export function createStarterAuth(input: StarterAuthInput) {
       },
     },
     socialProviders: {
-      google: {
-        clientId: input.googleClientId,
-        clientSecret: input.googleClientSecret,
-      },
+      ...(googleReady
+        ? { google: { clientId: input.googleClientId!, clientSecret: input.googleClientSecret! } }
+        : {}),
+      ...(githubReady
+        ? { github: { clientId: input.githubClientId!, clientSecret: input.githubClientSecret!, scope: ["user:email"] } }
+        : {}),
+      ...(appleReady
+        ? {
+            apple: async () => ({
+              clientId: input.appleClientId!,
+              clientSecret: await generateAppleClientSecret({
+                clientId: input.appleClientId!,
+                teamId: input.appleTeamId!,
+                keyId: input.appleKeyId!,
+                privateKeyBase64: input.applePrivateKeyBase64!,
+              }),
+              appBundleIdentifier: input.appleAppBundleIdentifier!,
+            }),
+          }
+        : {}),
     },
     emailAndPassword: {
       enabled: true,

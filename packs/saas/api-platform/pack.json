@@ -32,7 +32,7 @@
     },
     {
       "source": "templates/0011_api_platform.sql",
-      "target": "db/migrations/0011_api_platform.sql"
+      "target": "db/migrations/1009_api_platform.sql"
     },
     {
       "source": "templates/api-platform.md",

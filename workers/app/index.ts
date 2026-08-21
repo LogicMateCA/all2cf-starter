@@ -1,11 +1,12 @@
 import { Hono, type Context } from "hono";
 import { isAPIError } from "better-auth/api";
-import { Client } from "pg";
 import { withRequestAuth, type AuthRuntimeEnv } from "./auth-runtime";
+import { socialProviderMethods } from "../../scripts/lib/social-providers.mjs";
 import { workerCapabilityRoutePaths } from "./generated/capability-routes";
 import { selectedWorkerFeatures } from "./generated/worker-features";
 import { selectedWorkerEvents } from "./generated/worker-events";
 import { collectOperationsHealth } from "./operations-health";
+import { createDatabaseClient } from "./database-runtime";
 
 type AppVariables = {
   requestId: string;
@@ -69,17 +70,15 @@ app.on(["GET", "POST"], "/api/auth/*", (c) =>
   withRequestAuth(c.env, c.executionCtx, (auth) => auth.handler(c.req.raw)),
 );
 
-app.get("/api/auth-methods", (c) =>
-  c.json(
+app.get("/api/auth-methods", (c) => {
+  return c.json(
     {
-      methods: [
-        { key: "google", kind: "social", label: "Google", enabled: true },
-      ],
+      methods: socialProviderMethods(c.env),
     },
     200,
     { "Cache-Control": "no-store" },
-  ),
-);
+  );
+});
 
 app.get("/api/session", (c) =>
   withRequestAuth(c.env, c.executionCtx, async (auth) => {
@@ -427,9 +426,7 @@ app.post("/api/auth-flow/check-email", async (c) => {
       "Cache-Control": "no-store",
     });
 
-  const client = new Client({
-    connectionString: c.env.HYPERDRIVE.connectionString,
-  });
+  const client = createDatabaseClient(c.env, `${c.env.SERVICE_NAME}-admin`);
   try {
     await client.connect();
     const result = await client.query<{
@@ -1281,9 +1278,7 @@ app.get("/api/version", (c) =>
 );
 
 app.get("/api/health/database", async (c) => {
-  const client = new Client({
-    connectionString: c.env.HYPERDRIVE.connectionString,
-  });
+  const client = createDatabaseClient(c.env, `${c.env.SERVICE_NAME}-health`);
   try {
     await client.connect();
     const result = await client.query<{

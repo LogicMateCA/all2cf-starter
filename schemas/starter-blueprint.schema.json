@@ -45,6 +45,21 @@
         "lifecycle": { "$ref": "#/$defs/lifecycle" },
         "note": { "type": "string" }
       }
+    },
+    "cfpgConnection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["connectCommand", "databaseId", "databaseWorker", "entrypoint", "package", "version", "sha256", "alias"],
+      "properties": {
+        "connectCommand": { "type": "string", "pattern": "^npx @all2cf/database-connect@0\\.2\\.0-rc\\.2 db_[a-f0-9]{32}$" },
+        "databaseId": { "type": "string", "pattern": "^db_[a-f0-9]{32}$" },
+        "databaseWorker": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+        "entrypoint": { "const": "All2CFDatabase" },
+        "package": { "const": "@all2cf/database-connect" },
+        "version": { "const": "0.2.0-rc.2" },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "alias": { "const": "@all2cf/database-connect/pg" }
+      }
     }
   },
   "properties": {
@@ -226,7 +241,7 @@
         "auth": { "type": "string" },
         "socialAuth": {
           "type": "array",
-          "items": { "const": "google" },
+          "items": { "enum": ["google", "github", "apple"] },
           "uniqueItems": true
         },
         "database": {
@@ -234,17 +249,29 @@
           "additionalProperties": false,
           "required": [
             "engine",
+            "provider",
             "access",
             "initialState",
             "schemaSource",
-            "existingDataPolicy"
+            "existingDataPolicy",
+            "cfpg"
           ],
           "properties": {
             "engine": { "const": "postgresql" },
+            "provider": { "enum": ["native-postgresql", "cfpg"] },
             "access": { "const": "sql-first" },
             "initialState": { "const": "empty" },
             "schemaSource": { "const": "selected-pack-baseline" },
-            "existingDataPolicy": { "const": "out-of-scope" }
+            "existingDataPolicy": { "const": "out-of-scope" },
+            "cfpg": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["development", "production"],
+              "properties": {
+                "development": { "anyOf": [{ "$ref": "#/$defs/cfpgConnection" }, { "type": "null" }] },
+                "production": { "anyOf": [{ "$ref": "#/$defs/cfpgConnection" }, { "type": "null" }] }
+              }
+            }
           }
         },
         "email": {

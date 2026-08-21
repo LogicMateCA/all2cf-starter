@@ -12,6 +12,14 @@ source: "starter"
 - Prefer accessible, responsive defaults and explicit loading, empty, error, and permission states.
 - Reuse the established design system before introducing new visual primitives.
 
+## Readable typography floor
+
+- Normal body copy starts at `16px` on Web and equivalent native sizing on Expo. Operational descriptions, field help, navigation and table content target at least `14px`.
+- Metadata, badges, timestamps and compact code labels have an absolute `12px` floor. Text below `12px` is prohibited across Marketing, Auth, Product, Admin, Support, Setup, `/dp`, Docs, Mobile and optional pack templates; hiding a textual label uses accessible icon-only behavior rather than unreadable type.
+- Small text never carries the only explanation of a choice, validation error, release blocker or save state. Critical instructions and errors use at least `14px`, readable contrast and `1.45` or greater line height.
+- Dense Admin and data layouts gain space through grouping, disclosure, horizontal scrolling or responsive reflow, never by shrinking text below the floor.
+- `typography:contract` mechanically scans Web, Mobile, Marketing, Docs and pack source for forbidden literal sizes. Browser zoom, reflow, contrast and assistive-technology behavior remain separate acceptance evidence.
+
 ## StyleKit-controlled Design Engine
 
 - StyleKit is the pinned design-source library, not a small inspiration library. Its 146 audited entries include whole-site systems, layouts, effects/components and narrow references. Starter classifies them explicitly; `/setup` exposes only reviewed `global-system` entries as the base style and creates a Starter-owned immutable snapshot for the selected slug and revision.

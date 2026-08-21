@@ -1,0 +1,8 @@
+---
+import { getCollection, render, type CollectionEntry } from "astro:content";
+import Base from "../../layouts/Base.astro";
+export async function getStaticPaths() { const roles = await getCollection("careers", ({ data }) => !data.draft); return roles.map((role) => ({ params: { slug: role.id }, props: { role } })); }
+const { role } = Astro.props as { role: CollectionEntry<"careers"> };
+const { Content } = await render(role);
+---
+<Base title={role.data.title} description={role.data.summary} noindex={role.data.sample}><article class="content-detail"><a class="detail-back" href="/careers">Back to careers</a><header><div class="growth-meta"><span>{role.data.sample ? "Starter sample" : role.data.team}</span><time datetime={role.data.postedAt.toISOString()}>{role.data.postedAt.toLocaleDateString("en", { dateStyle: "medium" })}</time></div><h1>{role.data.title}</h1><p>{role.data.summary}</p><div class="growth-tags"><span>{role.data.location}</span><span>{role.data.workplace}</span><span>{role.data.employmentType}</span></div></header><div class="prose"><Content /></div>{role.data.applicationUrl ? <a class="primary-button detail-action" href={role.data.applicationUrl}>Apply for this role</a> : <aside class="detail-unavailable"><strong>Application path is not configured.</strong><p>This role cannot be released until an owned application destination is set.</p></aside>}</article></Base>

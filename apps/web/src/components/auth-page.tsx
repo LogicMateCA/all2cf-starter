@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { ArrowLeft, CheckCircle2, Eye, EyeOff, Loader2, Mail, ShieldCheck } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 
 type AuthStep = "email" | "password" | "register" | "password-setup" | "forgot" | "check-email" | "reset" | "complete";
 type EmailLookup = { publicLookupRestricted?: boolean; exists?: boolean; name?: string; emailVerified?: boolean; hasPassword?: boolean; linkedProviders?: string[] };
+type SocialMethod = { key: "google" | "github" | "apple"; label: string; enabled: boolean };
 
 function safeReturnTo() {
   const raw = new URLSearchParams(window.location.search).get("returnTo") || "/app";
@@ -30,7 +31,15 @@ export function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [lookup, setLookup] = useState<EmailLookup | null>(null);
+  const [socialMethods, setSocialMethods] = useState<SocialMethod[]>([]);
   const returnTo = safeReturnTo();
+
+  useEffect(() => {
+    void fetch("/api/auth-methods", { headers: { Accept: "application/json" } })
+      .then(async (response) => response.ok ? response.json() : Promise.reject(new Error("methods unavailable")))
+      .then((payload: { methods?: SocialMethod[] }) => setSocialMethods((payload.methods || []).filter(({ enabled }) => enabled)))
+      .catch(() => setSocialMethods([]));
+  }, []);
 
   const resetTransientState = () => { setError(""); setPassword(""); setConfirmPassword(""); };
   const goBack = () => { resetTransientState(); setStep("email"); };
@@ -92,14 +101,14 @@ export function AuthPage() {
     else { window.history.replaceState({}, "", "/login"); setStep("complete"); }
   }
 
-  async function signInGoogle() {
+  async function signInSocial(provider: SocialMethod["key"]) {
     setBusy(true); setError("");
-    const result = await authClient.signIn.social({ provider: "google", callbackURL: returnTo });
-    if (result?.error) { setBusy(false); setError("Google sign-in could not be started."); }
+    const result = await authClient.signIn.social({ provider, callbackURL: returnTo });
+    if (result?.error) { setBusy(false); setError(`${provider} sign-in could not be started.`); }
   }
 
   const title = step === "email" ? "Sign in or create an account" : step === "password" ? `Welcome${lookup?.name ? `, ${lookup.name}` : " back"}` : step === "register" ? "Create your account" : step === "password-setup" ? "Finish account setup" : step === "forgot" ? "Reset your password" : step === "reset" ? "Choose a new password" : step === "complete" ? "Password updated" : "Check your email";
-  const description = step === "email" ? "Use your work email or continue with Google." : step === "password" ? email : step === "register" ? `Create an account for ${email}.` : step === "password-setup" ? `${email} already uses a linked sign-in method.` : step === "forgot" ? `We will send instructions to ${email}.` : step === "reset" ? "Use at least 8 characters." : step === "complete" ? "You can now sign in with your new password." : `Instructions were sent to ${email}.`;
+  const description = step === "email" ? `Use your work email${socialMethods.length ? " or a configured social provider" : ""}.` : step === "password" ? email : step === "register" ? `Create an account for ${email}.` : step === "password-setup" ? `${email} already uses a linked sign-in method.` : step === "forgot" ? `We will send instructions to ${email}.` : step === "reset" ? "Use at least 8 characters." : step === "complete" ? "You can now sign in with your new password." : `Instructions were sent to ${email}.`;
 
   return <main className="auth-shell">
     <a className="auth-brand" href="/"><span><ShieldCheck size={18} /></span><strong>Cloudflare AI Starter</strong></a>
@@ -111,8 +120,8 @@ export function AuthPage() {
         <div className="field"><Label htmlFor="email">Email address</Label><Input id="email" name="email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required autoFocus aria-invalid={Boolean(error)} /></div>
         {error ? <p className="form-error" role="alert">{error}</p> : null}
         <Button type="submit" size="lg" disabled={busy || !email.trim()}>{busy ? <Loader2 className="spin" /> : null}Continue</Button>
-        <div className="auth-divider"><span>or</span></div>
-        <Button type="button" size="lg" variant="outline" onClick={() => void signInGoogle()} disabled={busy} className="google-button"><span className="google-mark">G</span>Continue with Google</Button>
+        {socialMethods.length ? <div className="auth-divider"><span>or</span></div> : null}
+        {socialMethods.map((method) => <Button key={method.key} type="button" size="lg" variant="outline" onClick={() => void signInSocial(method.key)} disabled={busy} className="social-provider-button"><span className="google-mark">{method.label.slice(0, 1)}</span>Continue with {method.label}</Button>)}
       </form> : null}
 
       {step === "password" ? <form onSubmit={signIn} className="auth-form">
@@ -131,7 +140,7 @@ export function AuthPage() {
         <Button type="submit" size="lg" disabled={busy || !name || !password || !confirmPassword}>{busy ? <Loader2 className="spin" /> : null}Create account</Button>
       </form> : null}
 
-      {step === "password-setup" ? <div className="auth-form"><p className="auth-note">Continue with the linked provider, or request an email to create a password.</p><Button size="lg" onClick={() => void signInGoogle()} disabled={busy}>Continue with Google</Button><Button size="lg" variant="outline" onClick={() => void sendReset()} disabled={busy}>Set a password by email</Button></div> : null}
+      {step === "password-setup" ? <div className="auth-form"><p className="auth-note">Continue with a configured linked provider, or request an email to create a password.</p>{socialMethods.map((method) => <Button key={method.key} size="lg" onClick={() => void signInSocial(method.key)} disabled={busy}>Continue with {method.label}</Button>)}<Button size="lg" variant="outline" onClick={() => void sendReset()} disabled={busy}>Set a password by email</Button></div> : null}
       {step === "forgot" ? <form onSubmit={sendReset} className="auth-form">{error ? <p className="form-error" role="alert">{error}</p> : null}<Button type="submit" size="lg" disabled={busy}>{busy ? <Loader2 className="spin" /> : <Mail />}Send reset instructions</Button></form> : null}
       {step === "reset" ? <form onSubmit={resetPassword} className="auth-form"><PasswordField value={password} setValue={setPassword} show={showPassword} setShow={setShowPassword} autoComplete="new-password" autoFocus /><div className="field"><Label htmlFor="confirm-reset-password">Confirm password</Label><Input id="confirm-reset-password" type={showPassword ? "text" : "password"} autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required /></div>{error ? <p className="form-error" role="alert">{error}</p> : null}<Button type="submit" size="lg" disabled={busy}>{busy ? <Loader2 className="spin" /> : null}Update password</Button></form> : null}
       {step === "check-email" ? <div className="auth-result"><span><Mail size={23} /></span><p>The response is intentionally the same whether or not an account exists.</p><Button variant="outline" onClick={goBack}>Return to sign in</Button></div> : null}

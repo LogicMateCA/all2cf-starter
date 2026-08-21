@@ -9,11 +9,148 @@ import { createHash } from "node:crypto";
 import path from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { validateAssemblyContracts } from "../../scripts/lib/assembly.mjs";
+import {
+  resolveCfpgConnectCommand,
+  validateCfpgConnection,
+} from "../../scripts/lib/cfpg.mjs";
 
 const repositoryRoot = fileURLToPath(new URL("../../", import.meta.url));
 const json = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`;
 const sha256 = (value: string) =>
   createHash("sha256").update(value).digest("hex");
+
+const providerCredentialFields = {
+  google: ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"],
+  github: ["GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET"],
+  apple: [
+    "APPLE_CLIENT_ID",
+    "APPLE_TEAM_ID",
+    "APPLE_KEY_ID",
+    "APPLE_PRIVATE_KEY_BASE64",
+    "APPLE_APP_BUNDLE_IDENTIFIER",
+  ],
+  cfsend: ["CFSEND_API_URL", "CFSEND_API_KEY", "CFSEND_FROM"],
+  resend: ["RESEND_API_KEY", "RESEND_FROM"],
+  "cloudflare-email-service": ["CLOUDFLARE_EMAIL_FROM"],
+  stripe: [
+    "STRIPE_SECRET_KEY",
+    "STRIPE_PUBLISHABLE_KEY",
+    "STRIPE_WEBHOOK_SECRET",
+    "STRIPE_PRICE_PRO",
+  ],
+} as const;
+const allowedProviderSecrets = new Set<string>(
+  Object.values(providerCredentialFields).flat(),
+);
+
+function parseEnvSource(source: string) {
+  const values = new Map<string, string>();
+  for (const rawLine of source.split(/\r?\n/u)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
+    const separator = line.indexOf("=");
+    if (separator < 1) continue;
+    const name = line.slice(0, separator).trim();
+    let value = line.slice(separator + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    )
+      value = value.slice(1, -1);
+    values.set(name, value);
+  }
+  return values;
+}
+
+async function readOptionalEnv(file: string) {
+  try {
+    return parseEnvSource(await readFile(file, "utf8"));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT")
+      return new Map<string, string>();
+    throw error;
+  }
+}
+
+async function providerCredentialStatus() {
+  const providers = JSON.parse(
+    await readFile(path.join(repositoryRoot, "profiles/providers.json"), "utf8"),
+  ) as { defaultPath: string };
+  const profilePath = process.env.STARTER_DEV_PROFILE_PATH || providers.defaultPath;
+  const [project, shared] = await Promise.all([
+    readOptionalEnv(path.join(repositoryRoot, ".dev.vars")),
+    readOptionalEnv(profilePath),
+  ]);
+  return Object.fromEntries(
+    Object.entries(providerCredentialFields).map(([provider, fields]) => {
+      const missing = fields.filter(
+        (field) => !(project.get(field) || shared.get(field) || "").trim(),
+      );
+      const projectFields = fields.filter((field) => Boolean(project.get(field)?.trim()));
+      const sharedFields = fields.filter(
+        (field) => !project.get(field)?.trim() && Boolean(shared.get(field)?.trim()),
+      );
+      return [
+        provider,
+        {
+          configured: missing.length === 0,
+          source:
+            projectFields.length === fields.length
+              ? "project"
+              : sharedFields.length === fields.length
+                ? "shared"
+                : projectFields.length || sharedFields.length
+                  ? "mixed"
+                  : "missing",
+          missing,
+        },
+      ];
+    }),
+  );
+}
+
+async function writeProviderSecrets(input: unknown) {
+  if (!input || typeof input !== "object") return;
+  const entries = Object.entries(input as Record<string, unknown>)
+    .filter(([name, value]) => allowedProviderSecrets.has(name) && typeof value === "string" && value.trim())
+    .map(([name, value]) => [name, String(value).trim()] as const);
+  if (!entries.length) return;
+  if (entries.some(([, value]) => /[\r\n\0]/u.test(value)))
+    throw new Error("Provider credentials cannot contain line breaks.");
+  const envPath = path.join(repositoryRoot, ".dev.vars");
+  let source = "";
+  try {
+    source = await readFile(envPath, "utf8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
+  const lines = source ? source.replace(/\n?$/u, "").split(/\r?\n/u) : [];
+  for (const [name, value] of entries) {
+    const index = lines.findIndex((line) => line.trimStart().startsWith(`${name}=`));
+    const next = `${name}=${value}`;
+    if (index >= 0) lines[index] = next;
+    else lines.push(next);
+  }
+  await writeFile(envPath, `${lines.join("\n")}\n`, { encoding: "utf8", mode: 0o600 });
+}
+
+async function normalizedCfpgConnection(input: unknown, command: unknown) {
+  const desiredCommand = String(
+    command || (input && typeof input === "object" && "connectCommand" in input
+      ? (input as { connectCommand?: unknown }).connectCommand
+      : "") || "",
+  ).trim();
+  if (!desiredCommand) return null;
+  if (
+    input &&
+    typeof input === "object" &&
+    "connectCommand" in input &&
+    String((input as { connectCommand?: unknown }).connectCommand || "").trim() === desiredCommand &&
+    validateCfpgConnection(input, "CFPG connection").length === 0
+  )
+    return input;
+  return resolveCfpgConnectCommand(desiredCommand);
+}
 
 async function loadStylekitSnapshots(stylekitCatalog: {
   styles: Array<{
@@ -184,6 +321,7 @@ function localSetupApi(): Plugin {
                   },
                   saasSources,
                   saasCapabilities,
+                  providerCredentials: await providerCredentialStatus(),
                   config,
                 }),
               );
@@ -202,12 +340,32 @@ function localSetupApi(): Plugin {
                 throw new Error("Setup payload is too large.");
             }
             const payload = JSON.parse(body);
-            const blueprint = payload.blueprint;
+            const submittedBlueprint = payload.blueprint;
             const nextConfig = payload.config;
-            if (!blueprint || !nextConfig)
+            if (!submittedBlueprint || !nextConfig)
               throw new Error(
                 "Blueprint and Starter configuration are required.",
               );
+            const cfpgCommands = payload.cfpgCommands || {};
+            const blueprint = {
+              ...submittedBlueprint,
+              providers: {
+                ...submittedBlueprint.providers,
+                database: {
+                  ...submittedBlueprint.providers.database,
+                  cfpg: {
+                    development: await normalizedCfpgConnection(
+                      submittedBlueprint.providers.database.cfpg?.development,
+                      cfpgCommands.development,
+                    ),
+                    production: await normalizedCfpgConnection(
+                      submittedBlueprint.providers.database.cfpg?.production,
+                      cfpgCommands.production,
+                    ),
+                  },
+                },
+              },
+            };
             if (
               blueprint.project?.name !== nextConfig.project?.name ||
               blueprint.project?.slug !== nextConfig.project?.slug
@@ -265,7 +423,10 @@ function localSetupApi(): Plugin {
             const resetIdentity =
               manifest.project?.slug === "starter" &&
               blueprint.project.slug !== "starter";
-            nextConfig.email.provider = blueprint.providers.email.default;
+            nextConfig.email.provider =
+              blueprint.providers.email.default === "cloudflare-email-service"
+                ? "cloudflare-email"
+                : blueprint.providers.email.default;
             await Promise.all([
               writeFile(blueprintTemporaryPath, json(blueprint), {
                 encoding: "utf8",
@@ -307,6 +468,7 @@ function localSetupApi(): Plugin {
               });
               throw error;
             }
+            await writeProviderSecrets(payload.providerSecrets);
             response.statusCode = 200;
             response.end(
               json({
@@ -322,6 +484,7 @@ function localSetupApi(): Plugin {
                 },
                 saasSources,
                 saasCapabilities,
+                providerCredentials: await providerCredentialStatus(),
                 config: nextConfig,
               }),
             );

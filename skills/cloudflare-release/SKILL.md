@@ -25,6 +25,6 @@ Use this skill for the complete Web and Worker release lifecycle. Treat reposito
 
 ## Provisioning boundary
 
-`npm run starter:provision` creates or reconciles database, Cloudflare connectivity resources, and Queues declared by selected materializer packs. It preserves receipt-owned bindings and secret-name requirements, but secret values remain environment-specific inputs. Provisioning is not part of an ordinary release. Run it only for initial setup or an explicit infrastructure reconciliation, and inspect its target identities before it changes state.
+`npm run starter:provision:dev` and `npm run starter:provision:production` create or reconcile only the named environment's database, Cloudflare connectivity resources, and Queues declared by selected materializer packs. `npm run starter:provision` retains the explicit all-environment initialization path. Provisioning preserves receipt-owned bindings and secret-name requirements, but secret values remain environment-specific inputs. It is not part of an ordinary release; run the scoped command only for initial setup or an explicit infrastructure reconciliation, and inspect target identities before mutation. A Development release must never invoke Production provisioning implicitly.
 
 Use [references/release-contract.md](references/release-contract.md) for the command and evidence matrix.

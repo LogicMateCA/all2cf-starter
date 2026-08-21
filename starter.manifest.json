@@ -7,7 +7,13 @@
     "tooling": "node-24",
     "deployment": "wrangler"
   },
-  "applications": ["marketing", "web", "worker", "mobile", "docs"],
+  "applications": [
+    "marketing",
+    "web",
+    "worker",
+    "mobile",
+    "docs"
+  ],
   "modules": [
     "assembler",
     "marketing",
@@ -62,17 +68,17 @@
     },
     {
       "area": "Database",
-      "choice": "New empty PostgreSQL 18.4 databases + node-postgres 8.23.0 + selected SQL-first initialization baseline",
-      "status": "development-verified"
+      "choice": "New empty PostgreSQL-compatible databases + selectable native PostgreSQL or CFPG + selected SQL-first initialization baseline",
+      "status": "implemented"
     },
     {
       "area": "Connection",
-      "choice": "Cloudflare Hyperdrive",
-      "status": "local-verified"
+      "choice": "Selectable Cloudflare Hyperdrive or @all2cf/database-connect 0.2.0-rc.2 with ALL2CF_DATABASE Service Binding",
+      "status": "implemented"
     },
     {
       "area": "Authentication",
-      "choice": "Better Auth 1.7.1 aligned across core, official Admin plugin, and Expo with issuer-scoped empty-database baseline",
+      "choice": "Better Auth 1.7.1 aligned across core, official Admin plugin, Expo, selectable Google/GitHub/Apple OAuth, and issuer-scoped empty-database baseline",
       "status": "local-verified"
     },
     {
@@ -162,7 +168,7 @@
     },
     {
       "area": "Mobile",
-      "choice": "Expo 57.0.14 + React Native 0.86.2 + Tamagui 2.7.7 for Mobile Web/iOS/Android",
+      "choice": "Expo 57.0.15 + React Native 0.86.2 + Tamagui 2.7.7 for Mobile Web/iOS/Android",
       "status": "local-verified"
     },
     {

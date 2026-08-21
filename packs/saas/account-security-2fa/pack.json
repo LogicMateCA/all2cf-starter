@@ -33,7 +33,7 @@
     },
     {
       "source": "templates/0008_two_factor.sql",
-      "target": "db/migrations/0008_two_factor.sql"
+      "target": "db/migrations/1004_two_factor.sql"
     }
   ],
   "dependencies": [],

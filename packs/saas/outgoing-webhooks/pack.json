@@ -25,7 +25,7 @@
     },
     {
       "source": "templates/0010_outgoing_webhooks.sql",
-      "target": "db/migrations/0010_outgoing_webhooks.sql"
+      "target": "db/migrations/1007_outgoing_webhooks.sql"
     }
   ],
   "dependencies": [],

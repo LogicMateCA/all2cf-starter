@@ -13,11 +13,13 @@
     "APP_ENV": "production",
     "SERVICE_NAME": "starter",
     "APP_NAME": "Cloudflare AI Starter",
+    "DATABASE_PROVIDER": "native-postgresql",
     "AUTH_CANONICAL_ORIGIN": "https://starter.logicm8.com",
     "AUTH_REQUIRE_EMAIL_VERIFICATION": "true",
     "AUTH_EMAIL_PROVIDER": "cfsend",
     "RESEND_API_URL": "https://api.resend.com",
-    "MOBILE_DEEP_LINK_SCHEMES": "starter-dev://,starter-preview://,starter://"
+    "MOBILE_DEEP_LINK_SCHEMES": "starter-dev://,starter-preview://,starter://",
+    "AUTH_SOCIAL_PROVIDERS": "google"
   },
   "secrets": {
     "required": [
@@ -26,7 +28,11 @@
       "CFSEND_API_URL",
       "CFSEND_FROM",
       "GOOGLE_CLIENT_ID",
-      "GOOGLE_CLIENT_SECRET"
+      "GOOGLE_CLIENT_SECRET",
+      "STRIPE_PRICE_PRO",
+      "STRIPE_SECRET_KEY",
+      "STRIPE_WEBHOOK_SECRET",
+      "WEBHOOK_SIGNING_KEY"
     ]
   },
   "assets": {
@@ -60,5 +66,23 @@
       "pattern": "starter.logicm8.com",
       "custom_domain": true
     }
-  ]
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "OUTGOING_WEBHOOK_QUEUE",
+        "queue": "starter-outgoing-webhooks"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "starter-outgoing-webhooks",
+        "max_batch_size": 10,
+        "max_batch_timeout": 2,
+        "max_retries": 5,
+        "retry_delay": 10,
+        "max_concurrency": 10
+      }
+    ]
+  }
 }

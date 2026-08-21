@@ -1,17 +1,17 @@
 {
   "$schema": "./schemas/starter-blueprint.schema.json",
   "schemaVersion": "starter-blueprint/v1",
-  "status": "draft",
-  "preset": "saas-foundation",
+  "status": "ready",
+  "preset": "custom",
   "designProfile": {
-    "id": "stylekit-neumorphism",
+    "id": "stylekit-glassmorphism",
     "version": "2.2.0"
   },
   "stylekit": {
-    "slug": "neumorphism",
+    "slug": "glassmorphism",
     "sourceRevision": "29141b684d5abb967558eb8083fbae91dbbc51b8",
     "snapshotVersion": "2.2.0",
-    "snapshotHash": "98aadbb918fd0c28cb301bb11a6385d55b5a8d5f55f84068783704efc8300978"
+    "snapshotHash": "984872eefabf787e50e3d4c8d786c779df818fbd6a5320035aac4ef425e8c85f"
   },
   "pageSet": {
     "selected": [
@@ -29,7 +29,11 @@
       "docs.public",
       "system.not-found",
       "support.portal",
-      "admin.operations"
+      "admin.operations",
+      "growth.blog",
+      "growth.integrations",
+      "growth.case-studies",
+      "growth.careers"
     ]
   },
   "project": {
@@ -58,14 +62,21 @@
       "workspace",
       "project"
     ],
-    "tenantModel": "personal",
-    "chargingModel": "free"
+    "tenantModel": "hybrid",
+    "chargingModel": "hybrid"
   },
   "setup": {
     "entry": "/setup",
-    "status": "not-started",
-    "currentStep": "identity",
-    "completedSteps": []
+    "status": "ready",
+    "currentStep": "review",
+    "completedSteps": [
+      "identity",
+      "saas",
+      "capabilities",
+      "providers",
+      "pages",
+      "design"
+    ]
   },
   "selections": {
     "design": [
@@ -107,9 +118,9 @@
       {
         "id": "page.optional-growth",
         "lifecycle": {
-          "selected": false,
-          "materialized": false,
-          "localVerified": false,
+          "selected": true,
+          "materialized": true,
+          "localVerified": true,
           "developmentVerified": false,
           "productionReleased": false
         },
@@ -172,9 +183,9 @@
       {
         "id": "saas.team-organizations",
         "lifecycle": {
-          "selected": false,
-          "materialized": false,
-          "localVerified": false,
+          "selected": true,
+          "materialized": true,
+          "localVerified": true,
           "developmentVerified": false,
           "productionReleased": false
         }
@@ -182,9 +193,9 @@
       {
         "id": "saas.billing-stripe",
         "lifecycle": {
-          "selected": false,
-          "materialized": false,
-          "localVerified": false,
+          "selected": true,
+          "materialized": true,
+          "localVerified": true,
           "developmentVerified": false,
           "productionReleased": false
         }
@@ -192,9 +203,9 @@
       {
         "id": "saas.entitlements",
         "lifecycle": {
-          "selected": false,
-          "materialized": false,
-          "localVerified": false,
+          "selected": true,
+          "materialized": true,
+          "localVerified": true,
           "developmentVerified": false,
           "productionReleased": false
         }
@@ -202,9 +213,9 @@
       {
         "id": "saas.usage",
         "lifecycle": {
-          "selected": false,
-          "materialized": false,
-          "localVerified": false,
+          "selected": true,
+          "materialized": true,
+          "localVerified": true,
           "developmentVerified": false,
           "productionReleased": false
         }
@@ -232,9 +243,9 @@
       {
         "id": "saas.outgoing-webhooks",
         "lifecycle": {
-          "selected": false,
-          "materialized": false,
-          "localVerified": false,
+          "selected": true,
+          "materialized": true,
+          "localVerified": true,
           "developmentVerified": false,
           "productionReleased": false
         }
@@ -242,9 +253,9 @@
       {
         "id": "saas.onboarding",
         "lifecycle": {
-          "selected": false,
-          "materialized": false,
-          "localVerified": false,
+          "selected": true,
+          "materialized": true,
+          "localVerified": true,
           "developmentVerified": false,
           "productionReleased": false
         }
@@ -271,10 +282,24 @@
     ],
     "database": {
       "engine": "postgresql",
+      "provider": "native-postgresql",
       "access": "sql-first",
       "initialState": "empty",
       "schemaSource": "selected-pack-baseline",
-      "existingDataPolicy": "out-of-scope"
+      "existingDataPolicy": "out-of-scope",
+      "cfpg": {
+        "development": {
+          "connectCommand": "npx @all2cf/database-connect@0.2.0-rc.2 db_bf5ecb97acc443a1bfa17d09319082c3",
+          "databaseId": "db_bf5ecb97acc443a1bfa17d09319082c3",
+          "databaseWorker": "edgepg-34ebaa53803b7c9b",
+          "entrypoint": "All2CFDatabase",
+          "package": "@all2cf/database-connect",
+          "version": "0.2.0-rc.2",
+          "sha256": "17af534e7d628cc76554d876b61ecc341b962e983b4ad86a5dc9c55dcc532dce",
+          "alias": "@all2cf/database-connect/pg"
+        },
+        "production": null
+      }
     },
     "email": {
       "default": "cfsend",

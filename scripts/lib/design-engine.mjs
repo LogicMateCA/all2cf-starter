@@ -234,6 +234,13 @@ body { color: var(--design-foreground); background: var(--design-background); }
   border-color: var(--design-border) !important;
   background: var(--design-surface) !important;
 }
+:where(button[data-open-modal], select) {
+  color: var(--design-foreground) !important;
+}
+:where(:not(pre) > code, kbd) {
+  color: var(--design-foreground) !important;
+  background: var(--design-shadow-color) !important;
+}
 `,
 };
 

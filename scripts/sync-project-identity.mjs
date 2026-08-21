@@ -1,12 +1,14 @@
 import { readFile, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { parse as parseJsonc } from "jsonc-parser";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const reset = process.argv.includes("--reset");
 const readJson = async (file) => JSON.parse(await readFile(path.join(root, file), "utf8"));
 const json = (value) => `${JSON.stringify(value, null, 2)}\n`;
 const config = await readJson("starter.config.json");
+const blueprint = await readJson("starter.blueprint.json");
 const { name, slug } = config.project;
 
 if (!/^[a-z][a-z0-9-]{1,62}$/u.test(slug)) throw new Error("Project slug must match ^[a-z][a-z0-9-]{1,62}$");
@@ -23,6 +25,37 @@ if (reset) {
 
 const writes = [];
 const addJson = (file, value) => writes.push({ file, content: json(value) });
+
+const socialSecretNames = new Set([
+  "GOOGLE_CLIENT_ID",
+  "GOOGLE_CLIENT_SECRET",
+  "GITHUB_CLIENT_ID",
+  "GITHUB_CLIENT_SECRET",
+  "APPLE_CLIENT_ID",
+  "APPLE_TEAM_ID",
+  "APPLE_KEY_ID",
+  "APPLE_PRIVATE_KEY_BASE64",
+  "APPLE_APP_BUNDLE_IDENTIFIER",
+]);
+const socialSecrets = {
+  google: ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"],
+  github: ["GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET"],
+  apple: ["APPLE_CLIENT_ID", "APPLE_TEAM_ID", "APPLE_KEY_ID", "APPLE_PRIVATE_KEY_BASE64", "APPLE_APP_BUNDLE_IDENTIFIER"],
+};
+for (const file of ["cloudflare/wrangler.development.jsonc", "cloudflare/wrangler.production.jsonc"]) {
+  const worker = parseJsonc(await readFile(path.join(root, file), "utf8"));
+  worker.vars ||= {};
+  worker.vars.AUTH_SOCIAL_PROVIDERS = blueprint.providers.socialAuth.join(",");
+  const required = new Set(
+    (worker.secrets?.required || []).filter((name) => !socialSecretNames.has(name)),
+  );
+  for (const provider of blueprint.providers.socialAuth) {
+    for (const name of socialSecrets[provider] || []) required.add(name);
+  }
+  worker.secrets ||= {};
+  worker.secrets.required = [...required];
+  addJson(file, worker);
+}
 
 const aiManifest = await readJson(".ai/manifest.json");
 aiManifest.project = slug;

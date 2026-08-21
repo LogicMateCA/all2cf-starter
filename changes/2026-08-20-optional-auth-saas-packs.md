@@ -26,6 +26,8 @@ Deselecting either pack removes only receipt-matching code, SQL, routes, plugin 
 
 # Validation evidence
 
+- Stripe selection adds `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, and `STRIPE_PRICE_PRO` to both Wrangler secret requirements so local, Development, and Production auth initialization cannot silently omit them.
+- The isolated Auth smoke configuration deduplicates inherited and test-owned Stripe secret requirements, matching Wrangler's unique-binding contract after the Billing pack is materialized.
 - Organization-only workerd smoke passed against a newly created disposable PostgreSQL database: registration, mandatory verification, organization create/list, active workspace switching, bounded member listing, role administration, explicit member removal, default team, CFsend-backed invitation listing/cancellation/acceptance, organization lifecycle notifications, cross-organization isolation, platform Admin denial, support, reset, revocation, and sign-out.
 - Stripe-only workerd smoke passed: empty subscription projection, foreign-reference denial, invalid signature denial, valid signed webhook acceptance, replay count `2`, one idempotent recipient billing notification for repeated provider evidence, and all core auth/support regressions. The selected Product Shell billing surface compiles Checkout, Portal, cancellation-review, renewal-restore and history states without granting from client data; its 32-case browser matrix passed with 52 screenshots and zero failures at `test-results/browser-acceptance/2026-08-21T04-29-16-643Z/authenticated`.
 - Combined Organization plus Stripe selection passed the same disposable empty-database workerd flow.

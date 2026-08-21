@@ -1,19 +1,30 @@
 import { Pool } from "pg";
 import { createStarterAuth, type AuthEmail, type StarterAuth } from "./auth-config";
 import { AuthEmailProviderError, sendAuthEmail } from "./auth-email-provider";
+import { selectedSocialProviders } from "../../scripts/lib/social-providers.mjs";
+import { createDatabasePool } from "./database-runtime";
 
 export type AuthRuntimeEnv = {
   APP_ENV: string;
-  HYPERDRIVE: Env["HYPERDRIVE"];
+  DATABASE_PROVIDER?: string;
+  HYPERDRIVE?: { connectionString: string };
   SERVICE_NAME: string;
   APP_NAME: string;
   AUTH_CANONICAL_ORIGIN: string;
   AUTH_EMAIL_PROVIDER: string;
+  AUTH_SOCIAL_PROVIDERS?: string;
   MOBILE_DEEP_LINK_SCHEMES: string;
   AUTH_REQUIRE_EMAIL_VERIFICATION: string;
   BETTER_AUTH_SECRET: string;
-  GOOGLE_CLIENT_ID: string;
-  GOOGLE_CLIENT_SECRET: string;
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
+  GITHUB_CLIENT_ID?: string;
+  GITHUB_CLIENT_SECRET?: string;
+  APPLE_CLIENT_ID?: string;
+  APPLE_TEAM_ID?: string;
+  APPLE_KEY_ID?: string;
+  APPLE_PRIVATE_KEY_BASE64?: string;
+  APPLE_APP_BUNDLE_IDENTIFIER?: string;
   STRIPE_SECRET_KEY?: string;
   STRIPE_WEBHOOK_SECRET?: string;
   STRIPE_PRICE_PRO?: string;
@@ -36,7 +47,7 @@ function mobileSchemes(env: AuthRuntimeEnv) {
 }
 
 export async function withRequestAuth<T>(env: AuthRuntimeEnv, ctx: RequestExecutionContext, operation: (auth: StarterAuth, database: Pool) => Promise<T>): Promise<T> {
-  const pool = new Pool({ connectionString: env.HYPERDRIVE.connectionString, max: 2, application_name: `${env.SERVICE_NAME}-auth` });
+  const pool = createDatabasePool(env, `${env.SERVICE_NAME}-auth`);
   const enqueueEmail = async (email: AuthEmail) => {
     const id = crypto.randomUUID();
     const provider = String(env.AUTH_EMAIL_PROVIDER || "cfsend").trim().toLowerCase();
@@ -61,8 +72,16 @@ export async function withRequestAuth<T>(env: AuthRuntimeEnv, ctx: RequestExecut
     appEnvironment: env.APP_ENV,
     secret: env.BETTER_AUTH_SECRET,
     database: pool,
+    socialProviders: selectedSocialProviders(env),
     googleClientId: env.GOOGLE_CLIENT_ID,
     googleClientSecret: env.GOOGLE_CLIENT_SECRET,
+    githubClientId: env.GITHUB_CLIENT_ID,
+    githubClientSecret: env.GITHUB_CLIENT_SECRET,
+    appleClientId: env.APPLE_CLIENT_ID,
+    appleTeamId: env.APPLE_TEAM_ID,
+    appleKeyId: env.APPLE_KEY_ID,
+    applePrivateKeyBase64: env.APPLE_PRIVATE_KEY_BASE64,
+    appleAppBundleIdentifier: env.APPLE_APP_BUNDLE_IDENTIFIER,
     mobileSchemes: mobileSchemes(env),
     requireEmailVerification: env.AUTH_REQUIRE_EMAIL_VERIFICATION === "true",
     enqueueEmail,

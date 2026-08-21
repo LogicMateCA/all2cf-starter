@@ -29,7 +29,7 @@
     },
     {
       "source": "templates/0005_organization.sql",
-      "target": "db/migrations/0005_organization.sql"
+      "target": "db/migrations/1001_organization.sql"
     }
   ],
   "dependencies": [],

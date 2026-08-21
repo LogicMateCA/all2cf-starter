@@ -15,14 +15,14 @@ export const project = {
     "android"
   ],
   "designProfile": {
-    "id": "stylekit-neumorphism",
+    "id": "stylekit-glassmorphism",
     "version": "2.2.0"
   },
   "stylekit": {
-    "slug": "neumorphism",
+    "slug": "glassmorphism",
     "sourceRevision": "29141b684d5abb967558eb8083fbae91dbbc51b8",
     "snapshotVersion": "2.2.0",
-    "snapshotHash": "98aadbb918fd0c28cb301bb11a6385d55b5a8d5f55f84068783704efc8300978"
+    "snapshotHash": "984872eefabf787e50e3d4c8d786c779df818fbd6a5320035aac4ef425e8c85f"
   },
   "pages": [
     {
@@ -99,11 +99,31 @@ export const project = {
       "id": "admin.operations",
       "route": "/admin",
       "renderer": "react-app"
+    },
+    {
+      "id": "growth.blog",
+      "route": "/blog",
+      "renderer": "astro-static"
+    },
+    {
+      "id": "growth.case-studies",
+      "route": "/case-studies",
+      "renderer": "astro-static"
+    },
+    {
+      "id": "growth.integrations",
+      "route": "/integrations",
+      "renderer": "astro-static"
+    },
+    {
+      "id": "growth.careers",
+      "route": "/careers",
+      "renderer": "astro-static"
     }
   ],
-  "publicPageCount": 9,
-  "selectedPackCount": 6,
-  "billingSelected": false
+  "publicPageCount": 13,
+  "selectedPackCount": 13,
+  "billingSelected": true
 } as const;
 const selectedPageIds = new Set<string>(project.pages.map(({ id }) => id));
 export function routeSelected(id: string) { return selectedPageIds.has(id); }

@@ -281,12 +281,12 @@ ${smokeHandlers.join("\n")}
       AUTH_EMAIL_PROVIDER: "cfsend",
     },
     secrets: {
-      required: [
+      required: [...new Set([
         ...(baseConfig.secrets?.required || []),
         ...(stripeSelected
           ? ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "STRIPE_PRICE_PRO"]
           : []),
-      ],
+      ])],
     },
     assets: { ...baseConfig.assets, directory: path.join(root, "dist/web") },
     hyperdrive: [

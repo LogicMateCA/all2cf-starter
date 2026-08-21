@@ -1,3 +1,5 @@
+import { validateCfpgConnection } from "./cfpg.mjs";
+
 export function validateAssemblyContracts(
   manifest,
   blueprint,
@@ -70,6 +72,19 @@ export function validateAssemblyContracts(
     if (databasePolicy[key] !== expected)
       failures.push(`Blueprint database policy ${key} must be ${expected}`);
   }
+  if (!new Set(["native-postgresql", "cfpg"]).has(databasePolicy.provider))
+    failures.push("Blueprint database policy provider must be native-postgresql or cfpg");
+  for (const environment of ["development", "production"])
+    failures.push(
+      ...validateCfpgConnection(
+        databasePolicy.cfpg?.[environment],
+        `Blueprint database policy cfpg.${environment}`,
+      ),
+    );
+  const developmentCfpgId = databasePolicy.cfpg?.development?.databaseId;
+  const productionCfpgId = databasePolicy.cfpg?.production?.databaseId;
+  if (developmentCfpgId && developmentCfpgId === productionCfpgId)
+    failures.push("Development and Production CFPG databases must be different");
 
   const packIds = new Set();
   const packs = new Map();

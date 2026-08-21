@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { RefreshCw } from "lucide-react";
+import { ExternalLink, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { providerSetupLinks, type ProviderSetupLinkId } from "@/lib/provider-setup-links";
 
 type HealthStatus = "ok" | "attention" | "unknown" | "not-selected";
 type HealthComponent = {
@@ -20,6 +21,21 @@ type HealthSnapshot = {
 
 function detailLabel(value: string) {
   return value.replace(/([a-z])([A-Z])/gu, "$1 $2");
+}
+
+function linksFor(component: HealthComponent) {
+  const provider = String(component.details.provider || "");
+  const id: ProviderSetupLinkId | null =
+    ["google", "github", "apple"].includes(component.id)
+      ? (component.id as ProviderSetupLinkId)
+      : component.id === "stripe"
+        ? "stripe"
+        : component.id === "email" && provider === "cloudflare-email"
+          ? "cloudflare-email-service"
+          : component.id === "email" && provider in providerSetupLinks
+            ? (provider as ProviderSetupLinkId)
+            : null;
+  return id ? providerSetupLinks[id] : [];
 }
 
 export function AdminHealth() {
@@ -73,6 +89,12 @@ export function AdminHealth() {
           </Button>
         </div>
       </header>
+      <aside className="operations-card admin-provider-guidance">
+        <div>
+          <strong>Provider credentials are read-only in Admin.</strong>
+          <p>To add, replace, or defer Google and email-provider keys, open the project on its local development machine and run <code>npm run setup</code>. Review the saved plan before the next Development release.</p>
+        </div>
+      </aside>
       {error ? <p className="operations-error" role="alert">{error}</p> : null}
       <div className="admin-health-grid">
         {snapshot.components.map((component) => (
@@ -82,6 +104,15 @@ export function AdminHealth() {
               <span className={`status ${component.status}`}>{component.status}</span>
             </header>
             <p>{component.summary}</p>
+            {linksFor(component).length ? (
+              <div className="admin-provider-links">
+                {linksFor(component).map((link) => (
+                  <a href={link.href} target="_blank" rel="noreferrer" key={link.href}>
+                    {link.label}<ExternalLink size={13} />
+                  </a>
+                ))}
+              </div>
+            ) : null}
             <dl>
               {Object.entries(component.details).map(([label, value]) => (
                 <div key={label}>

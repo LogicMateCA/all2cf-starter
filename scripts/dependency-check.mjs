@@ -24,11 +24,16 @@ for (const [location, entry] of Object.entries(lockfile.packages || {})) {
 async function fetchLatest(name) {
   const { stdout } = await execFileAsync("npm", ["view", name, "dist-tags", "--json"], { cwd: root, encoding: "utf8", timeout: 15_000 });
   const latestStable = JSON.parse(stdout).latest;
-  if (!latestStable || latestStable.includes("-")) throw new Error(`${name} does not expose a stable latest dist-tag`);
+  if (!latestStable) throw new Error(`${name} does not expose a latest dist-tag`);
+  if (latestStable.includes("-") && !policy.preReleasePins?.[name])
+    throw new Error(`${name} does not expose a stable latest dist-tag`);
   return latestStable;
 }
 
-const registryNames = [...new Set(policy.tracks.flatMap((track) => [...track.packages, ...(track.companions || [])]))].sort();
+const registryNames = [...new Set([
+  ...policy.tracks.flatMap((track) => [...track.packages, ...(track.companions || [])]),
+  ...Object.keys(policy.preReleasePins || {}),
+])].sort();
 const latestVersions = new Map();
 let registryIndex = 0;
 async function registryWorker() {
@@ -65,6 +70,16 @@ const result = {
   alignment: {
     betterAuth,
   },
+  preReleasePins: Object.fromEntries(
+    Object.entries(policy.preReleasePins || {}).map(([name, pin]) => [
+      name,
+      {
+        ...pin,
+        latest: latestVersions.get(name),
+        current: latestVersions.get(name) === pin.version,
+      },
+    ]),
+  ),
   tracks,
 };
 console.log(JSON.stringify(result, null, 2));

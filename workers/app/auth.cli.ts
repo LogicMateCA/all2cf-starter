@@ -9,6 +9,7 @@ export const auth = createStarterAuth({
   appEnvironment: "schema",
   secret: process.env.BETTER_AUTH_SECRET || "schema-generation-secret-at-least-32-characters",
   database: new Pool({ connectionString: process.env.DATABASE_URL }),
+  socialProviders: ["google"],
   googleClientId: "schema-google-client",
   googleClientSecret: "schema-google-secret",
   mobileSchemes: ["starter-schema://"],

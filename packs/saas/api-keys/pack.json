@@ -29,7 +29,7 @@
     },
     {
       "source": "templates/0007_api_keys.sql",
-      "target": "db/migrations/0007_api_keys.sql"
+      "target": "db/migrations/1003_api_keys.sql"
     }
   ],
   "dependencies": [

@@ -7,6 +7,19 @@
     "automaticMerge": { "const": false },
     "automaticProductionRelease": { "const": false },
     "externalPins": { "type": "object", "additionalProperties": { "type": "string" } },
+    "preReleasePins": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["version", "reason", "updatePolicy"],
+        "properties": {
+          "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+-[0-9A-Za-z.-]+$" },
+          "reason": { "type": "string", "minLength": 1 },
+          "updatePolicy": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
     "tracks": {
       "type": "array",
       "items": {

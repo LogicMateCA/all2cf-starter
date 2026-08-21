@@ -138,8 +138,9 @@ for (const required of [
 const foundation = catalog.presets.find(({ id }) => id === "saas-foundation");
 if (!foundation)
   failures.push("Catalog must provide the saas-foundation preset");
-if (blueprint.preset !== "saas-foundation")
-  failures.push("Starter Blueprint must begin from saas-foundation");
+const presetIds = new Set(catalog.presets.map(({ id }) => id));
+if (blueprint.preset !== "custom" && !presetIds.has(blueprint.preset))
+  failures.push(`Starter Blueprint references unknown preset ${blueprint.preset}`);
 if (
   !blueprint.productIntent?.summary ||
   !blueprint.productIntent?.audiences?.length ||

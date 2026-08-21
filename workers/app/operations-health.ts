@@ -1,5 +1,7 @@
 import type { Pool } from "pg";
 import type { AuthRuntimeEnv } from "./auth-runtime";
+import { selectedSocialProviders } from "../../scripts/lib/social-providers.mjs";
+import type { SocialProviderId } from "../../scripts/lib/social-providers.mjs";
 
 export type OperationsHealthStatus =
   | "ok"
@@ -34,6 +36,12 @@ function requiredConfiguration(
   return { configured: missing.length === 0, missing };
 }
 
+function databaseSummary(env: AuthRuntimeEnv) {
+  return env.DATABASE_PROVIDER === "cfpg"
+    ? "Active query completed through the CFPG Service Binding."
+    : "Active query completed through Hyperdrive.";
+}
+
 async function relationExists(database: Pool, name: string) {
   const result = await database.query<{ relation: string | null }>(
     "select to_regclass($1)::text as relation",
@@ -59,7 +67,7 @@ export async function collectOperationsHealth(
     id: "database",
     label: "PostgreSQL",
     status: "ok",
-    summary: "Active query completed through Hyperdrive.",
+    summary: databaseSummary(env),
     details: {
       latencyMs: databaseLatencyMs,
       checkedAt: databaseResult.rows[0]?.checked_at || null,
@@ -123,22 +131,66 @@ export async function collectOperationsHealth(
     },
   });
 
-  const googleConfiguration = requiredConfiguration([
-    ["GOOGLE_CLIENT_ID", env.GOOGLE_CLIENT_ID],
-    ["GOOGLE_CLIENT_SECRET", env.GOOGLE_CLIENT_SECRET],
-  ]);
-  components.push({
-    id: "google",
-    label: "Google sign-in",
-    status: googleConfiguration.configured ? "ok" : "attention",
-    summary: googleConfiguration.configured
-      ? "OAuth credentials are configured."
-      : "OAuth credentials are incomplete.",
-    details: {
-      configured: googleConfiguration.configured,
-      missing: googleConfiguration.missing.join(", ") || null,
+  const selectedSocial = new Set(selectedSocialProviders(env));
+  const socialConfigurations: Array<{
+    id: SocialProviderId;
+    label: string;
+    values: Array<[string, unknown]>;
+  }> = [
+    {
+      id: "google",
+      label: "Google sign-in",
+      values: [
+        ["GOOGLE_CLIENT_ID", env.GOOGLE_CLIENT_ID],
+        ["GOOGLE_CLIENT_SECRET", env.GOOGLE_CLIENT_SECRET],
+      ] as Array<[string, unknown]>,
     },
-  });
+    {
+      id: "github",
+      label: "GitHub sign-in",
+      values: [
+        ["GITHUB_CLIENT_ID", env.GITHUB_CLIENT_ID],
+        ["GITHUB_CLIENT_SECRET", env.GITHUB_CLIENT_SECRET],
+      ] as Array<[string, unknown]>,
+    },
+    {
+      id: "apple",
+      label: "Apple sign-in",
+      values: [
+        ["APPLE_CLIENT_ID", env.APPLE_CLIENT_ID],
+        ["APPLE_TEAM_ID", env.APPLE_TEAM_ID],
+        ["APPLE_KEY_ID", env.APPLE_KEY_ID],
+        ["APPLE_PRIVATE_KEY_BASE64", env.APPLE_PRIVATE_KEY_BASE64],
+        ["APPLE_APP_BUNDLE_IDENTIFIER", env.APPLE_APP_BUNDLE_IDENTIFIER],
+      ] as Array<[string, unknown]>,
+    },
+  ];
+  for (const provider of socialConfigurations) {
+    if (!selectedSocial.has(provider.id)) {
+      components.push({
+        id: provider.id,
+        label: provider.label,
+        status: "not-selected",
+        summary: "This social provider is not selected in the Blueprint.",
+        details: { selected: false },
+      });
+      continue;
+    }
+    const configuration = requiredConfiguration(provider.values);
+    components.push({
+      id: provider.id,
+      label: provider.label,
+      status: configuration.configured ? "ok" : "attention",
+      summary: configuration.configured
+        ? "OAuth credentials are configured."
+        : "OAuth credentials are incomplete.",
+      details: {
+        selected: true,
+        configured: configuration.configured,
+        missing: configuration.missing.join(", ") || null,
+      },
+    });
+  }
 
   const stripeTable = await relationExists(database, "app_stripe_webhook_event");
   const stripeSelected =

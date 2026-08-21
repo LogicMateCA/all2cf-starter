@@ -18,32 +18,164 @@
         "apps/marketing/src/pages/terms.astro": "bb9d3052c415c03d7f2936e9d823c1b7fc8e208607a59ec5fde5a67d2877130e",
         "apps/marketing/src/pages/404.astro": "a51150aee0b9c0e5a09550ca6c16d87b19151d7664dcf1208a01787ea0a78648"
       }
+    },
+    "page.optional-growth": {
+      "version": "0.2.0",
+      "files": {
+        "apps/marketing/src/content.config.ts": "09dbea02f091016e3cc778d4eaa340468a8e127272bf6568e156c8699f0cbfe2",
+        "apps/marketing/src/pages/blog/index.astro": "0403f73e315c76b568e81fe621bbcf92438d43bf41bba292ac1e85caa336cb94",
+        "apps/marketing/src/pages/blog/[slug].astro": "c1a1e4e485f9a0d71e818da7b2de1964883b26d16ba2f0c8b3c9ffb3bb9297dc",
+        "apps/marketing/src/pages/blog/page/[page].astro": "a5a99aae5f2cb35a9e9a230345a5bfb589824776f1ad29f6bab7ac7c47c87ed1",
+        "apps/marketing/src/pages/rss.xml.ts": "30abdacf64e70590d9895614889fea4db95553ec53d4bb0622309ad08729d134",
+        "apps/marketing/src/content/blog/starter-content-system.md": "86d649dbec68583c4440f6ca7b6a1dd2cc6f559772b5748fce7e575fbb6e3ebf",
+        "apps/marketing/src/pages/case-studies/index.astro": "5440ca067156b9dde5ed642648e150e27fbbcc75104462f98bbea2adb10e3440",
+        "apps/marketing/src/pages/case-studies/[slug].astro": "0c1582f152954f7b1787a0030ed7a87ef807a44e27b3e7baaf81e63826105413",
+        "apps/marketing/src/pages/case-studies/page/[page].astro": "fb556b0fdf00e1d220a7efd77576e74b922f43490f7f34d3e1260e6599f353c0",
+        "apps/marketing/src/content/case-studies/starter-evidence-model.md": "8b4db6fedd6c84c9f44fee2ccc7a9ced1bcaab01c63a30d831466bb3b72c58d3",
+        "apps/marketing/src/pages/integrations/index.astro": "39014dc10e75d9d53480cdec3839200851a2472ef30f3a5354f98eaeacc0b0e3",
+        "apps/marketing/src/pages/integrations/[slug].astro": "6075efa6beaf4b158e71c4976c92de1b05003b370044e783999ec05d50c5beba",
+        "apps/marketing/src/content/integrations/starter-provider.md": "006cfb4bc985f2f9570b1d17cce3fd5e7bdc34cced2ef980d3c168bcd532f301",
+        "apps/marketing/src/pages/careers/index.astro": "b6ac7929b0fa7fb26ee8af47951d3b6e02a22c292dc1a55410e9117deab3e32a",
+        "apps/marketing/src/pages/careers/[slug].astro": "8f3528390bb8c6a67ee6831b98fe9a82604ce9062c0a30335ac6b7f25e5dc852",
+        "apps/marketing/src/content/careers/starter-role.md": "e02552f5375420adfa2700ada942e40fe8728bec7dec77237dc4296e45ddd3dc"
+      }
+    },
+    "saas.billing-stripe": {
+      "version": "0.2.0",
+      "files": {
+        "workers/app/features/stripe-auth-plugin.ts": "6b51a1be82056fae78ab7a063750cfd3779e5c506c70fed5c93bd887a09af210",
+        "apps/web/src/features/stripe-auth-client-plugin.ts": "474a93f2aa02ef99753bcf63d1eff2c61f6ec14759d0e49688a3c8216d0aed82",
+        "apps/web/src/components/features/billing-page.tsx": "13bd4ed0bafff218f20e87c306fdc2e9fcb5b82fda4cd88ebeb74b3f2e6341de",
+        "apps/web/src/components/features/billing-page.css": "714f9c33484dd93b0b4ae4c6d02affe7a81d2498f31a612e4891abdeef8c48a6",
+        "db/migrations/1002_stripe_billing.sql": "254209de7ac4e1274d1801d99e56826bc02a80d8fa00cd6e23938876e5a1ac9d"
+      }
+    },
+    "saas.entitlements": {
+      "version": "0.1.0",
+      "files": {
+        "workers/app/features/entitlements-worker.ts": "d99790c3e7614308b923bf222a7f965156065c1593400f7f759831c3e094c494",
+        "apps/web/src/components/features/entitlements-page.tsx": "773748d982159f244cf09c1eedf5e74e54452d7add1db7645ba7ec6eef0a3879",
+        "apps/web/src/components/features/entitlements-page.css": "d3bc08ebf949d9b171ddc205d808f547f0047fd5654bffaa1bbfb468a123f089",
+        "db/migrations/1005_entitlements.sql": "a2e660b8a414c9f0ed586bd4d0f8b4a5e9ffa1ae922d1dc4d7f8b2cb9c434e98"
+      }
+    },
+    "saas.onboarding": {
+      "version": "0.1.0",
+      "files": {
+        "workers/app/features/onboarding-worker.ts": "f39d91e6624a5422eee9cdb2dc9eebac1d2565976d99684565494c29cac7493f",
+        "apps/web/src/components/features/onboarding-page.tsx": "7b0803bedf57f4df42ca5a2d1fceab1abe38df223812b6d150f0d2f37d3f1da9",
+        "apps/web/src/components/features/onboarding-page.css": "5af91a9d35f318923f599910fc4eb44428f579c026184db35c2ac859f84f2563",
+        "db/migrations/1008_onboarding.sql": "c309e9224bbd7308f6f901223d80202e40655326dab0dea964c86e10c639a31e"
+      }
+    },
+    "saas.outgoing-webhooks": {
+      "version": "0.1.0",
+      "files": {
+        "workers/app/features/outgoing-webhooks-worker.ts": "173e5d6938f90bf69ee67d339c88ebe3a69c7df22b8d3661d52cc174bc4fb469",
+        "apps/web/src/components/features/outgoing-webhooks-page.tsx": "dc722a48c3f5632cdf8a6a60891dad1491919c94fdc70dd48c8fe6a762bf2e9d",
+        "apps/web/src/components/features/outgoing-webhooks-page.css": "ffee17c3597ef388f789862c402248ab0c0801d2f7c428e3c9afced13df452a7",
+        "db/migrations/1007_outgoing_webhooks.sql": "4fa2a6e5e320909ce1750d29f1a2adbb77de131cae3809ab5bef5c23a719fc30"
+      }
+    },
+    "saas.team-organizations": {
+      "version": "0.2.0",
+      "files": {
+        "workers/app/features/organization-auth-plugin.ts": "df8d492ff4e9d22dea96382cc424c0f96499a3f3d00580ffe42c75307e689343",
+        "apps/web/src/features/organization-auth-client-plugin.ts": "a0c32f40056adb67bd1e7b21bb8062ead1eb6c85f8c76e83569ebf414b30955f",
+        "apps/web/src/components/features/organization-page.tsx": "a6e8f1c605c3e0bcaf59199cb9d3d63957daa04387cf862584501ae5ada97973",
+        "apps/web/src/components/features/organization-page.css": "750c644a3ee8f437a33d7fb2de758e5d2ebf52c5cd9ff43483798c2b85e533b8",
+        "db/migrations/1001_organization.sql": "40303fdce844a030107701373921f35abdb3fc255c5a0b26834764110ff02bb0"
+      }
+    },
+    "saas.usage": {
+      "version": "0.1.0",
+      "files": {
+        "workers/app/features/usage-worker.ts": "4182039f3d32504392da336bf4b237fce5211a95601ed81af4c9f8ad5cb5c7e9",
+        "apps/web/src/components/features/usage-page.tsx": "a41f4ee68ded6f1929946b6d55335305eb758731b752f8220b08401fea86a931",
+        "apps/web/src/components/features/usage-page.css": "10a0c9984d25c8228400a8bc58387e36295aa0d3111fb177cb2c0a39ad319fcb",
+        "db/migrations/1006_usage.sql": "879735f83c84a6cc8bbcd3634e1f65b33448ced82f3f613178ab79030a77d3ef"
+      }
     }
   },
-  "dependencies": {},
-  "generatedRoutesHash": "b1612aea88c167b888cb954f7e856f95d608c369634aad6380f23977ee21de7a",
+  "dependencies": {
+    "apps/marketing/package.json|dependencies|@astrojs/rss": {
+      "packageFile": "apps/marketing/package.json",
+      "section": "dependencies",
+      "name": "@astrojs/rss",
+      "version": "4.0.19",
+      "packId": "page.optional-growth"
+    },
+    "workers/app/package.json|dependencies|@better-auth/stripe": {
+      "packageFile": "workers/app/package.json",
+      "section": "dependencies",
+      "name": "@better-auth/stripe",
+      "version": "1.7.1",
+      "packId": "saas.billing-stripe"
+    },
+    "workers/app/package.json|dependencies|stripe": {
+      "packageFile": "workers/app/package.json",
+      "section": "dependencies",
+      "name": "stripe",
+      "version": "22.5.0",
+      "packId": "saas.billing-stripe"
+    },
+    "apps/web/package.json|dependencies|@better-auth/stripe": {
+      "packageFile": "apps/web/package.json",
+      "section": "dependencies",
+      "name": "@better-auth/stripe",
+      "version": "1.7.1",
+      "packId": "saas.billing-stripe"
+    }
+  },
+  "generatedRoutesHash": "97bfd65e415b430c0ee1eb580174e67355060631dded880403eb9a5c07a26739",
   "generatedWorkerFirstRoutes": [],
   "generatedWorkerCapabilityRoutesHash": "28fba3e03c7b1388b7c7efe374c3b4fa7be6b1217d987d7c33dd32b7276f3e2c",
-  "generatedAuthServerHash": "8f3cf17d803638902c5d602e97d7de1166952bde723b4f4793fc880899718d98",
-  "generatedAuthClientHash": "c3c373c7264baedfe7822e00cb4b2b622e997bb94532134d333171e1d00c5919",
-  "generatedWorkerFeaturesHash": "60db8de9b330354d9576ff1bdd69bfd8b33fe3bc8b8ffc8296f098e7fa2412cc",
-  "generatedWorkerEventsHash": "053421ce0358db27dda626bb0acfafd42e8cb3ceb8a0166a2524ed10b390d562",
+  "generatedAuthServerHash": "101d5afebc41eaafa1c29ef2c54f5cbb8e0a39ad1f50b438a936c1f0e14053fe",
+  "generatedAuthClientHash": "86d1309af948e4f853a14cda593c04b2ba16a6fd92407fd67861051fef873cd9",
+  "generatedWorkerFeaturesHash": "7637d3a57bcd15cf25e0c81b3fd6460fc684f191c51dd1b533ce9969d55ff66b",
+  "generatedWorkerEventsHash": "6f2abb47f75f18333e4b93bc5ff0a2a207a434246041ba2c8dd82f9013828123",
   "generatedCloudflareConfigs": {
     "cloudflare/wrangler.development.jsonc": {
-      "queues": [],
-      "requiredSecrets": []
+      "queues": [
+        {
+          "binding": "OUTGOING_WEBHOOK_QUEUE",
+          "queue": "starter-dev-outgoing-webhooks"
+        }
+      ],
+      "requiredSecrets": [
+        "STRIPE_SECRET_KEY",
+        "STRIPE_WEBHOOK_SECRET",
+        "STRIPE_PRICE_PRO",
+        "WEBHOOK_SIGNING_KEY"
+      ],
+      "database": {
+        "provider": "native-postgresql"
+      }
     },
     "cloudflare/wrangler.production.jsonc": {
-      "queues": [],
-      "requiredSecrets": []
+      "queues": [
+        {
+          "binding": "OUTGOING_WEBHOOK_QUEUE",
+          "queue": "starter-outgoing-webhooks"
+        }
+      ],
+      "requiredSecrets": [
+        "STRIPE_SECRET_KEY",
+        "STRIPE_WEBHOOK_SECRET",
+        "STRIPE_PRICE_PRO",
+        "WEBHOOK_SIGNING_KEY"
+      ],
+      "database": {
+        "provider": "native-postgresql"
+      }
     }
   },
-  "generatedDesignWebHash": "56f98ba8f709d53c2216b5c0834b314f6a241be0221948e8c612a2223e3266e9",
-  "generatedDesignMarketingHash": "56f98ba8f709d53c2216b5c0834b314f6a241be0221948e8c612a2223e3266e9",
-  "generatedDesignDocsHash": "56f98ba8f709d53c2216b5c0834b314f6a241be0221948e8c612a2223e3266e9",
-  "generatedStyleAdapterWebHash": "7129d136d1e7191ba6c8e3361d73a31c03c6fe77f79df23bb750c5ffcb01e525",
-  "generatedStyleAdapterMarketingHash": "305c1b96bfb82eb4ba32a0e1ad439a5811ccccdfbef3717464dc1b83fb35872d",
-  "generatedStyleAdapterDocsHash": "bae4e92b149819ae97d4d0a0b16e8ca30fe868d9972ea99adb31c54c15052d80",
-  "generatedDesignMobileHash": "704c69ceb9826cb86f9c5b75f1d6923b49b80aa5b4666738bccdc1e098be6891",
-  "generatedMarketingProjectHash": "c29010a3c85c8014945aabb87c2e0b7d45fd74b882b8ce866cb462da12a5d725"
+  "generatedDesignWebHash": "8a3f0f00d6e03edb10a9e4e29edc1cac9e315f29d1a3758f8cbfcd2d83c740a5",
+  "generatedDesignMarketingHash": "8a3f0f00d6e03edb10a9e4e29edc1cac9e315f29d1a3758f8cbfcd2d83c740a5",
+  "generatedDesignDocsHash": "8a3f0f00d6e03edb10a9e4e29edc1cac9e315f29d1a3758f8cbfcd2d83c740a5",
+  "generatedStyleAdapterWebHash": "19d570dffa9046768fcf6aa4c1cbe68554c45b65b397cc303accfe00e839d40a",
+  "generatedStyleAdapterMarketingHash": "12fae1cb360516aef569353229d3ba82446c199a3fc7bef1888048f7a75629c3",
+  "generatedStyleAdapterDocsHash": "a7ca57212d8448b1a44e3038507fd36a11cf29536d2a58886eac18135556e3ea",
+  "generatedDesignMobileHash": "725c8eb960140bc31948d79c457a982b68757198cc35945465a286bf45d1e1ef",
+  "generatedMarketingProjectHash": "e21dc3cc365bbdc9a816618ad012bf310b8d04536dcb58a7719742aa6fc56e0e"
 }

@@ -1,0 +1,63 @@
+.usage-shell {
+  display: grid;
+  gap: 24px;
+  max-width: 840px;
+  margin: 0 auto;
+  padding: clamp(24px, 5vw, 64px);
+}
+.usage-shell header {
+  display: grid;
+  gap: 10px;
+}
+.usage-shell header > span {
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.usage-shell h1 {
+  margin: 0;
+  font-size: clamp(2.4rem, 6vw, 4.4rem);
+  letter-spacing: -0.055em;
+}
+.usage-shell p {
+  color: var(--muted-foreground);
+  line-height: 1.65;
+}
+.usage-shell section {
+  display: grid;
+  gap: 20px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--design-shadow-raised);
+}
+.usage-plan {
+  display: grid;
+  gap: 4px;
+}
+.usage-plan strong {
+  font-size: 1.35rem;
+}
+.usage-shell article {
+  display: grid;
+  gap: 9px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+.usage-shell article > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+}
+.usage-shell article span,
+.usage-shell article small {
+  color: var(--muted-foreground);
+}
+.usage-shell progress {
+  width: 100%;
+  height: 9px;
+  accent-color: var(--primary);
+}

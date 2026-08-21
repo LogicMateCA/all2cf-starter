@@ -15,6 +15,14 @@ function RouteLoading() {
 
 export function App() {
   const path = window.location.pathname;
+  const localSetupSave =
+    new Set(["localhost", "127.0.0.1", "[::1]"]).has(window.location.hostname) &&
+    (sessionStorage.getItem("starter.setup.savePending") ||
+      sessionStorage.getItem("starter.setup.saved"));
+  if (path === "/" && localSetupSave) {
+    window.location.replace("/setup?result=saved");
+    return <RouteLoading />;
+  }
   let page;
   if (path === "/login") page = <AuthPage />;
   else if (path === "/app" || path === "/app/settings" || path === "/app/notifications") page = <ProtectedApp />;

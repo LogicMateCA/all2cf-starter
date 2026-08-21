@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { Button } from "@tamagui/button";
 import { Input } from "@tamagui/input";
@@ -11,6 +11,7 @@ import { apiUrl, appScheme } from "../lib/runtime";
 
 type Step = "email" | "password" | "register" | "password-setup" | "check-email" | "reset" | "complete";
 type Lookup = { publicLookupRestricted?: boolean; exists?: boolean; name?: string; hasPassword?: boolean };
+type SocialMethod = { key: "google" | "github" | "apple"; label: string; enabled: boolean };
 
 export default function SignInScreen() {
   const parameters = useLocalSearchParams<{ token?: string }>();
@@ -23,6 +24,14 @@ export default function SignInScreen() {
   const [lookup, setLookup] = useState<Lookup | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [socialMethods, setSocialMethods] = useState<SocialMethod[]>([]);
+
+  useEffect(() => {
+    void fetch(`${apiUrl}/api/auth-methods`, { headers: { Accept: "application/json" } })
+      .then(async (response) => response.ok ? response.json() : Promise.reject(new Error("methods unavailable")))
+      .then((payload: { methods?: SocialMethod[] }) => setSocialMethods((payload.methods || []).filter(({ enabled }) => enabled)))
+      .catch(() => setSocialMethods([]));
+  }, []);
 
   async function continueWithEmail() {
     setBusy(true); setError("");
@@ -65,10 +74,10 @@ export default function SignInScreen() {
     else setStep("check-email");
   }
 
-  async function signInGoogle() {
+  async function signInSocial(provider: SocialMethod["key"]) {
     setBusy(true); setError("");
-    const result = await authClient.signIn.social({ provider: "google" });
-    if (result?.error) { setBusy(false); setError("Google sign-in could not be started."); }
+    const result = await authClient.signIn.social({ provider });
+    if (result?.error) { setBusy(false); setError(`${provider} sign-in could not be started.`); }
   }
 
   async function resetPassword() {
@@ -84,12 +93,12 @@ export default function SignInScreen() {
 
   return <YStack flex={1} justify="center" gap="$4" p="$6" bg="$background" maxW={480} width="100%" self="center">
     {step !== "email" && step !== "check-email" ? <Button chromeless self="flex-start" p={0} onPress={reset}>Back</Button> : null}
-    <YStack gap="$2" mb="$3"><H1>{step === "email" ? "Sign in or create an account" : step === "password" ? `Welcome${lookup?.name ? `, ${lookup.name}` : " back"}` : step === "register" ? "Create your account" : step === "password-setup" ? "Finish account setup" : step === "reset" ? "Choose a new password" : step === "complete" ? "Password updated" : "Check your email"}</H1><Paragraph color="$color10">{step === "email" ? "Use your work email or continue with Google." : step === "check-email" ? `Instructions were sent to ${email}.` : step === "reset" ? "Use at least 8 characters." : step === "complete" ? "You can now sign in with your new password." : email}</Paragraph></YStack>
+    <YStack gap="$2" mb="$3"><H1>{step === "email" ? "Sign in or create an account" : step === "password" ? `Welcome${lookup?.name ? `, ${lookup.name}` : " back"}` : step === "register" ? "Create your account" : step === "password-setup" ? "Finish account setup" : step === "reset" ? "Choose a new password" : step === "complete" ? "Password updated" : "Check your email"}</H1><Paragraph color="$color10">{step === "email" ? `Use your work email${socialMethods.length ? " or a configured social provider" : ""}.` : step === "check-email" ? `Instructions were sent to ${email}.` : step === "reset" ? "Use at least 8 characters." : step === "complete" ? "You can now sign in with your new password." : email}</Paragraph></YStack>
 
-    {step === "email" ? <><Field label="Email address"><Input value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" /></Field><Button onPress={() => void continueWithEmail()} disabled={busy || !email.trim()}>{busy ? <Spinner /> : "Continue"}</Button><Button chromeless borderWidth={1} borderColor="$borderColor" onPress={() => void signInGoogle()} disabled={busy}>Continue with Google</Button></> : null}
+    {step === "email" ? <><Field label="Email address"><Input value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" /></Field><Button onPress={() => void continueWithEmail()} disabled={busy || !email.trim()}>{busy ? <Spinner /> : "Continue"}</Button>{socialMethods.map((method) => <Button key={method.key} chromeless borderWidth={1} borderColor="$borderColor" onPress={() => void signInSocial(method.key)} disabled={busy}>Continue with {method.label}</Button>)}</> : null}
     {step === "password" ? <><Field label="Password"><Input value={password} onChangeText={setPassword} secureTextEntry autoComplete="current-password" /></Field><Button onPress={() => void signIn()} disabled={busy || !password}>{busy ? <Spinner /> : "Sign in"}</Button></> : null}
     {step === "register" ? <><Field label="Name"><Input value={name} onChangeText={setName} autoComplete="name" /></Field><Field label="Password"><Input value={password} onChangeText={setPassword} secureTextEntry autoComplete="new-password" /></Field><Field label="Confirm password"><Input value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry autoComplete="new-password" /></Field><Button onPress={() => void register()} disabled={busy || !name || !password || !confirmPassword}>{busy ? <Spinner /> : "Create account"}</Button></> : null}
-    {step === "password-setup" ? <><Paragraph>This email already uses a linked sign-in method.</Paragraph><Button onPress={() => void signInGoogle()} disabled={busy}>Continue with Google</Button><Button chromeless borderWidth={1} borderColor="$borderColor" onPress={() => void sendPasswordSetup()} disabled={busy}>Set a password by email</Button></> : null}
+    {step === "password-setup" ? <><Paragraph>This email already uses a linked sign-in method.</Paragraph>{socialMethods.map((method) => <Button key={method.key} onPress={() => void signInSocial(method.key)} disabled={busy}>Continue with {method.label}</Button>)}<Button chromeless borderWidth={1} borderColor="$borderColor" onPress={() => void sendPasswordSetup()} disabled={busy}>Set a password by email</Button></> : null}
     {step === "check-email" ? <Button chromeless borderWidth={1} borderColor="$borderColor" onPress={reset}>Return to sign in</Button> : null}
     {step === "reset" ? <><Field label="New password"><Input value={password} onChangeText={setPassword} secureTextEntry autoComplete="new-password" /></Field><Field label="Confirm password"><Input value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry autoComplete="new-password" /></Field><Button onPress={() => void resetPassword()} disabled={busy || !password || !confirmPassword}>{busy ? <Spinner /> : "Update password"}</Button></> : null}
     {step === "complete" ? <Button onPress={() => { router.setParams({ token: undefined }); reset(); }}>Sign in</Button> : null}

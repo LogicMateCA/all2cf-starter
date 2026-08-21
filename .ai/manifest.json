@@ -16,7 +16,11 @@
     "reasoning": {
       "mode": "adaptive",
       "default": "medium",
-      "allowed": ["light", "medium", "high"]
+      "allowed": [
+        "light",
+        "medium",
+        "high"
+      ]
     },
     "workerModel": "Luna",
     "workerReasoning": "medium",
@@ -45,6 +49,7 @@
   },
   "data": {
     "postgresql": "sql-first",
+    "provider": "native-postgresql-or-cfpg",
     "orm": "not-default",
     "initialState": "empty",
     "schemaSource": "selected-pack-baseline",

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, ArrowLeft, ArrowRight, Check, Save } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight, Check, ExternalLink, Save } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { providerSetupLinks } from "../lib/provider-setup-links";
 
 type Lifecycle = {
   selected: boolean;
@@ -25,10 +26,25 @@ type Pack = {
 };
 type DatabasePolicy = {
   engine: "postgresql";
+  provider: "native-postgresql" | "cfpg";
   access: "sql-first";
   initialState: "empty";
   schemaSource: "selected-pack-baseline";
   existingDataPolicy: "out-of-scope";
+  cfpg: {
+    development: CfpgConnection | null;
+    production: CfpgConnection | null;
+  };
+};
+type CfpgConnection = {
+  connectCommand: string;
+  databaseId: string;
+  databaseWorker: string;
+  entrypoint: "All2CFDatabase";
+  package: "@all2cf/database-connect";
+  version: "0.2.0-rc.2";
+  sha256: string;
+  alias: "@all2cf/database-connect/pg";
 };
 type Blueprint = {
   schemaVersion: string;
@@ -211,8 +227,52 @@ type SetupPayload = {
       gaps?: string[];
     }>;
   };
+  providerCredentials: Record<
+    "google" | "github" | "apple" | "cfsend" | "resend" | "cloudflare-email-service" | "stripe",
+    {
+      configured: boolean;
+      source: "project" | "shared" | "mixed" | "missing";
+      missing: string[];
+    }
+  >;
   config: StarterConfig;
 };
+
+const providerSecretFields = {
+  google: [
+    { name: "GOOGLE_CLIENT_ID", label: "Client ID", secret: false },
+    { name: "GOOGLE_CLIENT_SECRET", label: "Client secret", secret: true },
+  ],
+  github: [
+    { name: "GITHUB_CLIENT_ID", label: "Client ID", secret: false },
+    { name: "GITHUB_CLIENT_SECRET", label: "Client secret", secret: true },
+  ],
+  apple: [
+    { name: "APPLE_CLIENT_ID", label: "Services ID", secret: false },
+    { name: "APPLE_TEAM_ID", label: "Team ID", secret: false },
+    { name: "APPLE_KEY_ID", label: "Key ID", secret: false },
+    { name: "APPLE_PRIVATE_KEY_BASE64", label: "P8 private key (base64)", secret: true },
+    { name: "APPLE_APP_BUNDLE_IDENTIFIER", label: "iOS bundle identifier", secret: false },
+  ],
+  cfsend: [
+    { name: "CFSEND_API_URL", label: "Runtime URL", secret: false },
+    { name: "CFSEND_API_KEY", label: "API key", secret: true },
+    { name: "CFSEND_FROM", label: "Verified sender", secret: false },
+  ],
+  resend: [
+    { name: "RESEND_API_KEY", label: "API key", secret: true },
+    { name: "RESEND_FROM", label: "Verified sender", secret: false },
+  ],
+  "cloudflare-email-service": [
+    { name: "CLOUDFLARE_EMAIL_FROM", label: "Verified sender", secret: false },
+  ],
+  stripe: [
+    { name: "STRIPE_SECRET_KEY", label: "Test secret key", secret: true },
+    { name: "STRIPE_PUBLISHABLE_KEY", label: "Test publishable key", secret: false },
+    { name: "STRIPE_WEBHOOK_SECRET", label: "Webhook signing secret", secret: true },
+    { name: "STRIPE_PRICE_PRO", label: "Pro Price ID", secret: false },
+  ],
+} as const;
 
 const steps = [
   { id: "identity", label: "Product" },
@@ -404,6 +464,79 @@ function StylePreview({ style }: { style: StyleKitEntry }) {
   );
 }
 
+function ProviderCredentialEditor({
+  provider,
+  state,
+  editing,
+  values,
+  onEditing,
+  onChange,
+  callbackUrls = [],
+}: {
+  provider: keyof typeof providerSecretFields;
+  state: SetupPayload["providerCredentials"][keyof SetupPayload["providerCredentials"]];
+  editing: boolean;
+  values: Record<string, string>;
+  onEditing: (editing: boolean) => void;
+  onChange: (name: string, value: string) => void;
+  callbackUrls?: string[];
+}) {
+  const fields = providerSecretFields[provider];
+  return (
+    <div className="provider-credentials">
+      <div className="provider-credential-state">
+        <span className={state.configured ? "status configured" : "status deferred"}>
+          {state.configured ? "Configured" : "Configure later"}
+        </span>
+        <p>
+          {state.configured
+            ? `Using ${state.source === "shared" ? "the shared development profile" : state.source === "project" ? "project-local values" : "combined project and shared values"}.`
+            : `Missing ${state.missing.join(", ")}. The plan can be saved, but affected authentication or email flows are not ready for release.`}
+        </p>
+      </div>
+      <div className="provider-resource-links" aria-label={`${provider} setup resources`}>
+        {providerSetupLinks[provider].map((link) => (
+          <a href={link.href} target="_blank" rel="noreferrer" key={link.href}>
+            {link.label}<ExternalLink size={14} />
+          </a>
+        ))}
+      </div>
+      {callbackUrls.length ? (
+        <div className="provider-callbacks">
+          <strong>Authorized callback URLs</strong>
+          {callbackUrls.map((url) => <code key={url}>{url}</code>)}
+        </div>
+      ) : null}
+      {editing ? (
+        <div className="provider-secret-fields">
+          {fields.map((field) => (
+            <label key={field.name}>
+              <span>{field.label}</span>
+              <Input
+                type={field.secret ? "password" : "text"}
+                autoComplete="off"
+                value={values[field.name] || ""}
+                placeholder={state.configured ? "Configured — leave blank to keep" : field.name}
+                onChange={(event) => onChange(field.name, event.target.value)}
+              />
+            </label>
+          ))}
+          <div className="provider-secret-actions">
+            <Button type="button" size="sm" variant="outline" onClick={() => onEditing(false)}>
+              Configure later
+            </Button>
+            <small>Non-empty values are saved only to the project-local development environment.</small>
+          </div>
+        </div>
+      ) : (
+        <Button type="button" size="sm" variant="outline" onClick={() => onEditing(true)}>
+          {state.configured ? "Replace credentials" : "Configure now"}
+        </Button>
+      )}
+    </div>
+  );
+}
+
 export function SetupPage() {
   const [payload, setPayload] = useState<SetupPayload | null>(null);
   const [stepIndex, setStepIndex] = useState(0);
@@ -412,6 +545,10 @@ export function SetupPage() {
     "idle",
   );
   const [saveError, setSaveError] = useState("");
+  const [dirty, setDirty] = useState(false);
+  const [providerSecrets, setProviderSecrets] = useState<Record<string, string>>({});
+  const [providerEditors, setProviderEditors] = useState<Record<string, boolean>>({});
+  const [cfpgCommands, setCfpgCommands] = useState({ development: "", production: "" });
   const [stylekitQuery, setStylekitQuery] = useState("");
   const [stylekitCategory, setStylekitCategory] = useState("all");
 
@@ -424,16 +561,38 @@ export function SetupPage() {
           );
         return response.json() as Promise<SetupPayload>;
       })
-      .then((next) =>
+      .then((next) => {
+        const restoredStep = steps.findIndex(
+          ({ id }) => id === next.blueprint.setup.currentStep,
+        );
+        if (restoredStep >= 0) setStepIndex(restoredStep);
         setPayload({
           ...next,
           blueprint: hydrateSelections(next.blueprint, next.catalog.packs),
-        }),
-      )
+        });
+        setCfpgCommands({
+          development: next.blueprint.providers.database.cfpg?.development?.connectCommand || "",
+          production: next.blueprint.providers.database.cfpg?.production?.connectCommand || "",
+        });
+        const resumedSave = sessionStorage.getItem("starter.setup.savePending");
+        if (next.blueprint.setup.status === "ready" || resumedSave) setSaveState("saved");
+        sessionStorage.removeItem("starter.setup.savePending");
+        sessionStorage.removeItem("starter.setup.saved");
+      })
       .catch((error) =>
         setLoadError(error instanceof Error ? error.message : String(error)),
       );
   }, []);
+
+  useEffect(() => {
+    const warn = (event: BeforeUnloadEvent) => {
+      if (!dirty) return;
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
 
   const currentStep = steps[stepIndex];
   const selectedPacks = useMemo(
@@ -457,6 +616,9 @@ export function SetupPage() {
     [payload, selectedPacks],
   );
   const selectedPages = payload?.blueprint.pageSet.selected || [];
+  const stripeSelected = selectedPacks.some(
+    ({ id }) => id === "saas.billing-stripe",
+  );
   const stylekitStyles = payload?.stylekitCatalog.styles || [];
   const globalStyles = stylekitStyles.filter(
     (style) =>
@@ -512,14 +674,44 @@ export function SetupPage() {
       </main>
     );
 
-  const updateBlueprint = (updater: (blueprint: Blueprint) => Blueprint) =>
+  const markDirty = () => {
+    setDirty(true);
+    setSaveState("idle");
+    setSaveError("");
+  };
+  const updateBlueprint = (updater: (blueprint: Blueprint) => Blueprint) => {
+    markDirty();
     setPayload((current) =>
       current ? { ...current, blueprint: updater(current.blueprint) } : current,
     );
-  const updateConfig = (updater: (config: StarterConfig) => StarterConfig) =>
+  };
+  const updateConfig = (updater: (config: StarterConfig) => StarterConfig) => {
+    markDirty();
     setPayload((current) =>
       current ? { ...current, config: updater(current.config) } : current,
     );
+  };
+  const updateProviderSecret = (name: string, value: string) => {
+    markDirty();
+    setProviderSecrets((current) => ({ ...current, [name]: value }));
+  };
+  const updateCfpgCommand = (environment: "development" | "production", value: string) => {
+    markDirty();
+    setCfpgCommands((current) => ({ ...current, [environment]: value }));
+  };
+  const setProviderEditing = (
+    provider: keyof typeof providerSecretFields,
+    editing: boolean,
+  ) => {
+    setProviderEditors((current) => ({ ...current, [provider]: editing }));
+    if (editing) return;
+    const names = new Set<string>(
+      providerSecretFields[provider].map(({ name }) => name),
+    );
+    setProviderSecrets((current) =>
+      Object.fromEntries(Object.entries(current).filter(([name]) => !names.has(name))),
+    );
+  };
   const updateIdentity = (key: "name" | "slug", value: string) => {
     updateBlueprint((blueprint) => ({
       ...blueprint,
@@ -718,17 +910,27 @@ export function SetupPage() {
       ({ id }) => id === pack.id,
     )!;
 
-  const save = async () => {
+  const save = async ({
+    finish = false,
+    nextStepIndex,
+  }: {
+    finish?: boolean;
+    nextStepIndex?: number;
+  } = {}) => {
     setSaveState("saving");
     setSaveError("");
-    const completedSteps = steps.slice(0, -1).map(({ id }) => id);
+    sessionStorage.setItem("starter.setup.savePending", "true");
+    const targetStepIndex = nextStepIndex ?? stepIndex;
+    const completedSteps = steps
+      .slice(0, finish ? -1 : Math.min(steps.length - 1, Math.max(stepIndex + 1, targetStepIndex)))
+      .map(({ id }) => id);
     const blueprint: Blueprint = {
       ...payload.blueprint,
-      status: "ready",
+      status: finish ? "ready" : "draft",
       setup: {
         ...payload.blueprint.setup,
-        status: "ready",
-        currentStep: "review",
+        status: finish ? "ready" : "in-progress",
+        currentStep: finish ? "review" : steps[targetStepIndex].id,
         completedSteps,
       },
     };
@@ -739,7 +941,12 @@ export function SetupPage() {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify({ blueprint, config: payload.config }),
+        body: JSON.stringify({
+          blueprint,
+          config: payload.config,
+          providerSecrets,
+          cfpgCommands,
+        }),
       });
       const result = (await response.json()) as SetupPayload & {
         error?: string;
@@ -753,9 +960,23 @@ export function SetupPage() {
         ...result,
         blueprint: hydrateSelections(result.blueprint, result.catalog.packs),
       });
+      setProviderSecrets({});
+      setCfpgCommands({
+        development: result.blueprint.providers.database.cfpg?.development?.connectCommand || "",
+        production: result.blueprint.providers.database.cfpg?.production?.connectCommand || "",
+      });
+      setDirty(false);
       setSaveState("saved");
+      sessionStorage.removeItem("starter.setup.savePending");
+      sessionStorage.setItem("starter.setup.saved", finish ? "complete" : "draft");
+      window.setTimeout(
+        () => sessionStorage.removeItem("starter.setup.saved"),
+        2000,
+      );
+      if (nextStepIndex !== undefined) setStepIndex(nextStepIndex);
     } catch (error) {
       setSaveState("idle");
+      sessionStorage.removeItem("starter.setup.savePending");
       setSaveError(error instanceof Error ? error.message : String(error));
     }
   };
@@ -765,7 +986,28 @@ export function SetupPage() {
       <header className="setup-header">
         <a href="/">{payload.blueprint.project.name}</a>
         <span>Local project setup</span>
-        <a href="/dp">View plan</a>
+        <div className="setup-header-actions">
+          <span className={`setup-save-state ${dirty ? "unsaved" : saveState}`} role="status">
+            {saveState === "saving"
+              ? "Saving…"
+              : dirty
+                ? "Unsaved changes"
+                : saveState === "saved"
+                  ? "Saved"
+                  : "No changes"}
+          </span>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={saveState === "saving" || !dirty}
+            onClick={() => void save()}
+          >
+            <Save size={15} />
+            Save draft
+          </Button>
+          <a href="/dp">View plan</a>
+        </div>
       </header>
       <div className="setup-layout">
         <aside className="setup-steps">
@@ -1324,89 +1566,148 @@ export function SetupPage() {
           ) : null}
 
           {currentStep.id === "providers" ? (
-            <div className="setup-panel provider-panel">
-              <div>
-                <span>Authentication</span>
-                <strong>{payload.blueprint.providers.auth}</strong>
-                <small>Stable aligned core and plugins</small>
-              </div>
-              <div>
-                <span>Social sign-in</span>
-                <div className="provider-checks">
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={payload.blueprint.providers.socialAuth.includes(
-                        "google",
-                      )}
-                      onChange={(event) =>
-                        updateBlueprint((blueprint) => ({
+            <div className="setup-stack provider-setup">
+              <section className="setup-panel provider-summary">
+                <div><span>Authentication</span><strong>{payload.blueprint.providers.auth}</strong><small>Better Auth core and selected official plugins</small></div>
+                <div><span>Database</span><strong>{payload.blueprint.providers.database.provider === "cfpg" ? "CFPG" : "Native PostgreSQL"}</strong><small>{payload.blueprint.providers.database.initialState} / {payload.blueprint.providers.database.access}</small></div>
+                <div><span>Billing</span><strong>{payload.blueprint.providers.billing}</strong><small>Activated only when the Billing pack is materialized</small></div>
+              </section>
+
+              <section className="setup-panel provider-section">
+                <header><h2>Database runtime</h2><p>Both choices keep PostgreSQL SQL and the SQL-first application layer. Native PostgreSQL uses Hyperdrive; CFPG uses the All2CF client alias and a private Worker Service Binding.</p></header>
+                <div className="provider-option-grid" role="radiogroup" aria-label="Database runtime">
+                  {[
+                    { id: "native-postgresql", name: "Native PostgreSQL", note: "PostgreSQL 18 through one isolated Hyperdrive binding per environment." },
+                    { id: "cfpg", name: "CFPG", note: "All2CF Database through @all2cf/database-connect and ALL2CF_DATABASE." },
+                  ].map(({ id, name, note }) => {
+                    const selected = payload.blueprint.providers.database.provider === id;
+                    return <div className={selected ? "provider-option selected" : "provider-option"} key={id}>
+                      <label>
+                        <input type="radio" name="database-provider" checked={selected} onChange={() => updateBlueprint((blueprint) => ({
                           ...blueprint,
-                          providers: {
-                            ...blueprint.providers,
-                            socialAuth: event.target.checked ? ["google"] : [],
-                          },
-                        }))
-                      }
-                    />
-                    google
-                  </label>
+                          providers: { ...blueprint.providers, database: { ...blueprint.providers.database, provider: id as DatabasePolicy["provider"] } },
+                        }))} />
+                        <span><strong>{name}</strong><small>{note}</small></span>
+                      </label>
+                    </div>;
+                  })}
                 </div>
-                <small>
-                  Google is the implemented social provider. Additional
-                  providers require an owned adapter before they become
-                  selectable.
-                </small>
-              </div>
-              <div>
-                <span>Database</span>
-                <strong>
-                  {payload.blueprint.providers.database.engine} /{" "}
-                  {payload.blueprint.providers.database.access}
-                </strong>
-                <small>
-                  {payload.blueprint.providers.database.initialState} database
-                  from the {payload.blueprint.providers.database.schemaSource};
-                  existing data is{" "}
-                  {payload.blueprint.providers.database.existingDataPolicy}.
-                </small>
-              </div>
-              <label>
-                <span>Email</span>
-                <select
-                  value={payload.blueprint.providers.email.default}
-                  onChange={(event) =>
-                    updateBlueprint((blueprint) => ({
-                      ...blueprint,
-                      providers: {
-                        ...blueprint.providers,
-                        email: {
-                          ...blueprint.providers.email,
-                          default: event.target.value,
-                        },
-                      },
-                    }))
-                  }
-                >
-                  <option value="cfsend">CFsend</option>
-                  <option value="resend">Resend</option>
-                  <option value="cloudflare-email-service">
-                    Cloudflare Email Service
-                  </option>
-                </select>
-                <small>CFsend is the Starter default.</small>
-              </label>
-              <div>
-                <span>Billing</span>
-                <strong>{payload.blueprint.providers.billing}</strong>
-                <small>Materialized only with Billing</small>
-              </div>
+                {payload.blueprint.providers.database.provider === "cfpg" ? (
+                  <div className="database-command-grid">
+                    {(["development", "production"] as const).map((environment) => (
+                      <label key={environment}>
+                        <span>{environment === "development" ? "Development CFPG connect command" : "Production CFPG connect command"}</span>
+                        <Input
+                          type="text"
+                          autoComplete="off"
+                          value={cfpgCommands[environment]}
+                          placeholder="npx @all2cf/database-connect@0.2.0-rc.2 db_..."
+                          onChange={(event) => updateCfpgCommand(environment, event.target.value)}
+                        />
+                        <small>{payload.blueprint.providers.database.cfpg?.[environment]?.databaseId || (cfpgCommands[environment] ? "Save to validate this command." : "Configure later; this environment cannot be materialized until provided.")}</small>
+                      </label>
+                    ))}
+                    <p>Development and Production must use different CFPG database IDs. Saving validates each command against All2CF; it does not connect or deploy automatically.</p>
+                  </div>
+                ) : null}
+              </section>
+
+              <section className="setup-panel provider-section">
+                <header><h2>Social sign-in</h2><p>Select the providers this project will support. Credentials may be inherited, entered now, or configured later from this local Setup.</p></header>
+                <div className="provider-option-grid" role="group" aria-label="Social sign-in providers">
+                  {[
+                    { id: "google", name: "Google", note: "OAuth redirect flow for Web and Expo.", href: providerSetupLinks.google[0].href },
+                    { id: "github", name: "GitHub", note: "OAuth sign-in with verified email access.", href: providerSetupLinks.github[0].href },
+                    { id: "apple", name: "Apple", note: "Web redirect and native iOS audience support.", href: providerSetupLinks.apple[0].href },
+                  ].map(({ id, name, note, href }) => {
+                    const selected = payload.blueprint.providers.socialAuth.includes(id);
+                    return <div className={selected ? "provider-option selected" : "provider-option"} key={id}>
+                      <label>
+                        <input type="checkbox" checked={selected} onChange={(event) => updateBlueprint((blueprint) => {
+                          const providers = new Set(blueprint.providers.socialAuth);
+                          if (event.target.checked) providers.add(id);
+                          else providers.delete(id);
+                          return { ...blueprint, providers: { ...blueprint.providers, socialAuth: [...providers] } };
+                        })} />
+                        <span><strong>{name}</strong><small>{note}</small></span>
+                      </label>
+                      <a href={href} target="_blank" rel="noreferrer">{name} setup<ExternalLink size={13} /></a>
+                    </div>
+                  } )}
+                </div>
+                {payload.blueprint.providers.socialAuth.map((provider) => (
+                  <ProviderCredentialEditor
+                    key={provider}
+                    provider={provider as "google" | "github" | "apple"}
+                    state={payload.providerCredentials[provider as "google" | "github" | "apple"]}
+                    editing={Boolean(providerEditors[provider])}
+                    values={providerSecrets}
+                    onEditing={(editing) => setProviderEditing(provider as "google" | "github" | "apple", editing)}
+                    onChange={updateProviderSecret}
+                    callbackUrls={[
+                      `https://${payload.config.development.domain}/api/auth/callback/${provider}`,
+                      `https://${payload.config.production.domain}/api/auth/callback/${provider}`,
+                    ]}
+                  />
+                ))}
+              </section>
+
+              <section className="setup-panel provider-section">
+                <header><h2>Authentication email</h2><p>Email verification remains mandatory. Choosing “configure later” defers only credentials and will remain a visible release blocker.</p></header>
+                <label className="provider-select">
+                  <span>Email provider</span>
+                  <select
+                    value={payload.blueprint.providers.email.default}
+                    onChange={(event) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, email: { ...blueprint.providers.email, default: event.target.value } } }))}
+                  >
+                    <option value="cfsend">CFsend</option>
+                    <option value="resend">Resend</option>
+                    <option value="cloudflare-email-service">Cloudflare Email Service</option>
+                  </select>
+                </label>
+                <ProviderCredentialEditor
+                  provider={payload.blueprint.providers.email.default as keyof typeof providerSecretFields}
+                  state={payload.providerCredentials[payload.blueprint.providers.email.default as keyof SetupPayload["providerCredentials"]]}
+                  editing={Boolean(providerEditors[payload.blueprint.providers.email.default])}
+                  values={providerSecrets}
+                  onEditing={(editing) => setProviderEditing(payload.blueprint.providers.email.default as keyof typeof providerSecretFields, editing)}
+                  onChange={updateProviderSecret}
+                />
+              </section>
+
+              <section className="setup-panel provider-section">
+                <header>
+                  <h2>Stripe Billing</h2>
+                  <p>{stripeSelected ? "The Billing pack is selected. Test keys, a signed webhook secret and a real Price ID are required before its Development release." : "The Billing pack is not selected. You may prepare Stripe Test credentials now or configure them later if Billing is added."}</p>
+                </header>
+                <ProviderCredentialEditor
+                  provider="stripe"
+                  state={payload.providerCredentials.stripe}
+                  editing={Boolean(providerEditors.stripe)}
+                  values={providerSecrets}
+                  onEditing={(editing) => setProviderEditing("stripe", editing)}
+                  onChange={updateProviderSecret}
+                />
+              </section>
             </div>
           ) : null}
 
           {currentStep.id === "review" ? (
             <div className="setup-stack">
-              <section className="setup-panel review-panel">
+              {saveState === "saved" && !dirty ? (
+                <section className="setup-panel setup-completion" role="status">
+                  <span className="setup-completion-icon"><Check size={22} /></span>
+                  <div>
+                    <h2>Project plan saved</h2>
+                    <p>Your Blueprint and project configuration are persisted. Nothing has been materialized or deployed automatically.</p>
+                  </div>
+                  <div className="setup-completion-actions">
+                    <Button asChild><a href="/dp">View saved plan</a></Button>
+                    <Button type="button" variant="outline" onClick={() => setSaveState("idle")}>Continue editing</Button>
+                  </div>
+                </section>
+              ) : null}
+              <section className="setup-panel review-panel" hidden={saveState === "saved" && !dirty}>
                 <h2>{payload.blueprint.project.name}</h2>
                 <p>{payload.blueprint.project.brief}</p>
                 <dl>
@@ -1469,7 +1770,7 @@ export function SetupPage() {
                     <dt>Database</dt>
                     <dd>
                       {payload.blueprint.providers.database.initialState}{" "}
-                      {payload.blueprint.providers.database.engine} from{" "}
+                      {payload.blueprint.providers.database.provider} from{" "}
                       {payload.blueprint.providers.database.schemaSource}
                     </dd>
                   </div>
@@ -1505,7 +1806,7 @@ export function SetupPage() {
                   ))}
                 </div>
               </section>
-              <section className="setup-panel review-contracts">
+              <section className="setup-panel review-contracts" hidden={saveState === "saved" && !dirty}>
                 <h2>Materialization plan</h2>
                 <p>
                   These are the outputs and constraints AI must review before
@@ -1538,24 +1839,17 @@ export function SetupPage() {
                   {saveError}
                 </p>
               ) : null}
-              {saveState === "saved" ? (
-                <p className="setup-success">
-                  <Check size={16} />
-                  Blueprint is saved and `/dp` is current. Ask AI to review{" "}
-                  <code>npm run starter:materialize</code>, then apply the
-                  reviewed plan.
-                </p>
-              ) : null}
-              <Button
+              {saveState !== "saved" || dirty ? <Button
+                type="button"
                 className="save-blueprint"
-                onClick={save}
+                onClick={() => void save({ finish: true })}
                 disabled={saveState === "saving"}
               >
                 <Save size={16} />
                 {saveState === "saving"
                   ? "Saving project plan"
-                  : "Save project plan"}
-              </Button>
+                  : "Save and finish"}
+              </Button> : null}
             </div>
           ) : null}
 
@@ -1570,11 +1864,10 @@ export function SetupPage() {
             </Button>
             {stepIndex < steps.length - 1 ? (
               <Button
-                onClick={() =>
-                  setStepIndex((index) => Math.min(steps.length - 1, index + 1))
-                }
+                disabled={saveState === "saving"}
+                onClick={() => void save({ nextStepIndex: Math.min(steps.length - 1, stepIndex + 1) })}
               >
-                Continue
+                {saveState === "saving" ? "Saving" : "Save and continue"}
                 <ArrowRight size={15} />
               </Button>
             ) : null}
