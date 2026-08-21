@@ -1,7 +1,7 @@
 ---
 id: auth-email-providers
 title: CFsend-default authentication email with Resend switch
-status: local-verified
+status: development-verified
 affectedModules: [auth, mobile, docs]
 docsImpact: [features/auth/MODULE.md, ARCHITECTURE.md, RELEASE.md, PROJECT.md, /dp]
 ---
@@ -35,4 +35,6 @@ Development migration `0003_auth_email_provider_evidence.sql` was applied additi
 
 # Release
 
-Implementation is local-verified only. Current Development and Production Workers remain unchanged. The existing CFsend Runtime `https://cfsend-all2cf-com.alex887885.workers.dev` is healthy at version `1.1.3` and has been recorded in the shared Development profile, but its scoped API key is still absent. The local release gate now removes parent-process provider overrides before starting its contract double. Development release remains blocked until a valid key exists and a real Gmail verification flow passes. Production still requires explicit Production wording.
+Development is verified on `dev.logicm8.com`. Functional commit `dde68f790c6ca1f4c84915e2a9f3121a5167dcb1` and artifact `ddbfabfdd62800af34ea8ac82b73f44884790775b857b9ecf2feb4d55e95f8a5` passed the complete release gate against Worker `starter-dev`, Hyperdrive `d665e59cdc9741c1898ba7c472c22abf`, database `starterdev`, and user `starterdev`. Official Cloudflare MCP read-back confirmed the custom domain, 100% deployment, required secret names, Development variables, and Hyperdrive identity.
+
+The shared Development profile now retains the valid CFsend Runtime credential and the verified sender `Starter <account@all2cf.com>`. A real Gmail registration acceptance produced provider message `mail_0c660a75-62b2-41d7-8b5c-c21e3e4f043f`; Gmail received the verification message with SPF, DKIM, and DMARC passing. The verification callback redirected to `/login?verified=1`, PostgreSQL reported `email_verified=true`, and subsequent password sign-in returned 200 with Secure, HttpOnly, host-only cookies. The local release gate also removes parent-process provider overrides before starting its contract double. Production remains unchanged and still requires explicit Production wording.
