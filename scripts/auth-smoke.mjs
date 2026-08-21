@@ -301,6 +301,17 @@ ${smokeHandlers.join("\n")}
   await writeFile(configPath, `${JSON.stringify(localConfig, null, 2)}\n`, {
     mode: 0o600,
   });
+  const smokeChildEnv = { ...process.env };
+  for (const name of [
+    "APP_ENV",
+    "CFSEND_API_URL",
+    "CFSEND_API_KEY",
+    "CFSEND_FROM",
+    "STRIPE_SECRET_KEY",
+    "STRIPE_WEBHOOK_SECRET",
+    "STRIPE_PRICE_PRO",
+    "WEBHOOK_SIGNING_KEY",
+  ]) delete smokeChildEnv[name];
   child = spawn(
     process.execPath,
     [
@@ -322,7 +333,7 @@ ${smokeHandlers.join("\n")}
     ],
     {
       cwd: root,
-      env: process.env,
+      env: smokeChildEnv,
       stdio: ["ignore", "pipe", "pipe"],
     },
   );
