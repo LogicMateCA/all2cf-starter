@@ -1,34 +1,38 @@
 {
   "$schema": "./schemas/starter-manifest.schema.json",
   "starterVersion": "0.1.0",
-  "state": "production_released",
+  "state": "locally_verified",
   "runtime": {
     "application": "cloudflare-workerd",
     "tooling": "node-24",
     "deployment": "wrangler"
   },
-  "applications": [
-    "marketing",
-    "web",
-    "worker",
-    "mobile",
-    "docs"
-  ],
+  "applications": ["marketing", "web", "worker", "mobile", "docs"],
   "modules": [
     "assembler",
     "marketing",
     "auth",
+    "account-security",
+    "api-keys",
+    "api-platform",
     "billing",
+    "entitlements",
+    "usage",
+    "webhooks",
     "organizations",
+    "product-shell",
+    "notifications",
+    "onboarding",
     "support",
     "admin",
+    "operations",
     "mobile",
     "docs"
   ],
   "technology": [
     {
       "area": "Project configuration",
-      "choice": "Local-only /setup + starter.blueprint.json + owned Design/Page/SaaS/Capability Catalog",
+      "choice": "Function-first local-only /setup + starter.blueprint.json + owned SaaS/Capability/Page/Design Catalog",
       "status": "local-verified"
     },
     {
@@ -38,13 +42,13 @@
     },
     {
       "area": "Design engine",
-      "choice": "Pinned owned profiles with semantic tokens, AI rules, provenance, and per-platform adapters",
-      "status": "implemented"
+      "choice": "Pinned 146-entry StyleKit inventory with 28 distinct selectable global systems, 35 composable style variants, 18 independent layouts, 11 enhancements, one Admin density mode, and owned immutable adapters for Web, Marketing, Docs, and Mobile",
+      "status": "local-verified"
     },
     {
       "area": "Page engine",
-      "choice": "Owned route-level Page Catalog; PowerAI structure donor; Astro static public pages, React product routes, and Starlight Docs",
-      "status": "implemented"
+      "choice": "Owned route-level Page Catalog with complete 20-file PowerAI inventory, five route families, growth details, pagination, content collections, and static Astro rendering",
+      "status": "local-verified"
     },
     {
       "area": "Web",
@@ -64,7 +68,7 @@
     {
       "area": "Connection",
       "choice": "Cloudflare Hyperdrive",
-      "status": "implemented"
+      "status": "local-verified"
     },
     {
       "area": "Authentication",
@@ -72,23 +76,73 @@
       "status": "local-verified"
     },
     {
+      "area": "Account security",
+      "choice": "Optional Better Auth Two-Factor 1.7.1 pack with verified TOTP enrollment, backup-code recovery, trusted devices, and lockout",
+      "status": "local-verified"
+    },
+    {
+      "area": "API keys",
+      "choice": "Optional @better-auth/api-key 1.7.1 pack with user-owned hashed keys, fixed read scope, rate limits, and no session impersonation",
+      "status": "local-verified"
+    },
+    {
+      "area": "API platform",
+      "choice": "Optional API SaaS preset composing Better Auth API keys, Stripe entitlements, idempotent quotas, Cloudflare Queue webhooks, Developer portal and Starlight reference",
+      "status": "local-verified"
+    },
+    {
+      "area": "SaaS product shell",
+      "choice": "Permanent responsive Sidebar/Topbar, registered-route search, workspace context seam, Bell/account actions, persisted notification-backed Dashboard activity, and product module slot",
+      "status": "local-verified"
+    },
+    {
       "area": "Product operations",
-      "choice": "Better Auth Admin user readback + lightweight PostgreSQL support/bug intake + append-only privileged audit evidence",
+      "choice": "Stable modular Admin registry + Better Auth user search, roles, bans, sessions and impersonation + lightweight support threads, transactional announcements, notifications, overview, and filtered stable-cursor audit feed",
+      "status": "local-verified"
+    },
+    {
+      "area": "Notifications",
+      "choice": "User-isolated PostgreSQL inbox + shared Product Shell Bell + unread/read APIs",
       "status": "local-verified"
     },
     {
       "area": "Organizations",
-      "choice": "Optional Better Auth Organization 1.7.1 pack with teams, verified invitations, and tenant-scoped roles",
+      "choice": "Optional Better Auth Organization 1.7.1 pack with Product Shell switching, member administration, teams, verified invitations, lifecycle notifications, and tenant-scoped roles",
       "status": "local-verified"
     },
     {
       "area": "Billing",
-      "choice": "Optional @better-auth/stripe 1.7.1 + Stripe SDK 22.5.0 user-billing pack with signed webhook replay evidence",
+      "choice": "Optional @better-auth/stripe 1.7.1 + Stripe SDK 22.5.0 Product Shell billing pack with Checkout, Portal, cancellation/restore controls and signed webhook replay evidence",
+      "status": "local-verified"
+    },
+    {
+      "area": "Entitlements",
+      "choice": "Optional server-authoritative Free/paid plan resolver over the verified Better Auth Stripe subscription projection",
+      "status": "local-verified"
+    },
+    {
+      "area": "Usage metering",
+      "choice": "Optional PostgreSQL event ledger and monthly buckets with transactional idempotency and quota enforcement",
+      "status": "local-verified"
+    },
+    {
+      "area": "Product onboarding",
+      "choice": "Optional ordered Worker-defined first-login flow with versioned PostgreSQL resume state and Product Shell redirect",
+      "status": "local-verified"
+    },
+    {
+      "area": "Outgoing webhooks",
+      "choice": "Optional Cloudflare Queue delivery with derived HMAC secrets, PostgreSQL evidence, bounded retries, and user/Admin readback",
       "status": "local-verified"
     },
     {
       "area": "Email",
       "choice": "CFsend default; Resend switch; optional Cloudflare Email Service; provider-backed auth outbox",
+      "status": "local-verified"
+    },
+    {
+      "area": "Operations health",
+      "choice": "Dependency-free public liveness plus Admin-only database, email, identity-provider, billing, and Queue evidence",
       "status": "local-verified"
     },
     {
@@ -128,7 +182,7 @@
     },
     {
       "area": "Starter bootstrap",
-      "choice": "Environment materialization + idempotent PostgreSQL/VPC/Hyperdrive provisioning",
+      "choice": "Environment materialization + idempotent PostgreSQL/VPC/Hyperdrive/selected Queue provisioning",
       "status": "verified"
     },
     {

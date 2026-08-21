@@ -2,10 +2,16 @@
   "$schema": "./schemas/starter-blueprint.schema.json",
   "schemaVersion": "starter-blueprint/v1",
   "status": "draft",
-  "preset": "basic-product",
+  "preset": "saas-foundation",
   "designProfile": {
-    "id": "owned-neutral",
-    "version": "0.1.0"
+    "id": "stylekit-neumorphism",
+    "version": "2.2.0"
+  },
+  "stylekit": {
+    "slug": "neumorphism",
+    "sourceRevision": "29141b684d5abb967558eb8083fbae91dbbc51b8",
+    "snapshotVersion": "2.2.0",
+    "snapshotHash": "98aadbb918fd0c28cb301bb11a6385d55b5a8d5f55f84068783704efc8300978"
   },
   "pageSet": {
     "selected": [
@@ -19,6 +25,7 @@
       "legal.terms",
       "auth.login",
       "auth.account",
+      "product.notifications",
       "docs.public",
       "system.not-found",
       "support.portal",
@@ -41,6 +48,19 @@
     ],
     "defaultLocale": "en"
   },
+  "productIntent": {
+    "summary": "A reusable Cloudflare-first SaaS foundation that AI can specialize around a new product workflow.",
+    "audiences": [
+      "product owner",
+      "authenticated customer"
+    ],
+    "coreObjects": [
+      "workspace",
+      "project"
+    ],
+    "tenantModel": "personal",
+    "chargingModel": "free"
+  },
   "setup": {
     "entry": "/setup",
     "status": "not-started",
@@ -52,24 +72,24 @@
       {
         "id": "design.owned-neutral",
         "lifecycle": {
-          "selected": true,
-          "materialized": true,
-          "localVerified": true,
-          "developmentVerified": false,
-          "productionReleased": false
-        },
-        "note": "Current neutral shadcn and Tamagui foundation."
-      },
-      {
-        "id": "design.stylekit-adapted",
-        "lifecycle": {
           "selected": false,
           "materialized": false,
           "localVerified": false,
           "developmentVerified": false,
           "productionReleased": false
         },
-        "note": "Selecting Precision SaaS, Editorial Signal, or Midnight Control activates this owned adapted pack."
+        "note": "Compatibility profile is derived from the selected StyleKit snapshot."
+      },
+      {
+        "id": "design.stylekit-adapted",
+        "lifecycle": {
+          "selected": true,
+          "materialized": true,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "The selected StyleKit snapshot compiles one owned cross-surface adapter; Neumorphism has current local browser evidence."
       }
     ],
     "pages": [
@@ -98,6 +118,17 @@
     ],
     "saas": [
       {
+        "id": "saas.product-shell",
+        "lifecycle": {
+          "selected": true,
+          "materialized": true,
+          "localVerified": true,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Permanent responsive product shell and module-navigation registry with current desktop/mobile browser interaction evidence."
+      },
+      {
         "id": "saas.identity-core",
         "lifecycle": {
           "selected": true,
@@ -108,11 +139,32 @@
         }
       },
       {
+        "id": "saas.notifications-core",
+        "lifecycle": {
+          "selected": true,
+          "materialized": true,
+          "localVerified": true,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Permanent signed-in Product Shell Bell and user-isolated notification inbox. Event producers remain module-owned."
+      },
+      {
         "id": "saas.product-operations-lite",
         "lifecycle": {
           "selected": true,
           "materialized": true,
           "localVerified": true,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.account-security-2fa",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
           "developmentVerified": false,
           "productionReleased": false
         }
@@ -138,7 +190,57 @@
         }
       },
       {
+        "id": "saas.entitlements",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.usage",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.api-keys",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
         "id": "saas.api-platform",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.outgoing-webhooks",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.onboarding",
         "lifecycle": {
           "selected": false,
           "materialized": false,

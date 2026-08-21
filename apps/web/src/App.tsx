@@ -77,6 +77,7 @@ type CatalogPack = {
   source?: Array<{ name: string; relationship: string }>;
 };
 type DesignProfile = { id: string; version: string; packId: string; name: string; description: string; status: string; targets: string[]; dials: { designVariance: number; motionIntensity: number; visualDensity: number }; adapters: Record<string, string> };
+type StyleKitSnapshot = { slug: string; name: string; nameEn: string; snapshotVersion: string; snapshotHash: string; immutable: boolean; classification: string; globalEligibility: string; targets: Record<string, { status: string }>; sourceFiles: Array<{ path: string; sha256: string }>; aiRules: string };
 type PageDefinition = { id: string; packId: string; name: string; route: string; group: string; renderer: string; required: boolean; defaultSelected: boolean; status: string };
 type Snapshot = {
   schemaVersion: string;
@@ -89,6 +90,7 @@ type Snapshot = {
       status: string;
       preset: string;
       designProfile: { id: string; version: string };
+      stylekit: { slug: string; sourceRevision: string; snapshotVersion: string; snapshotHash: string };
       pageSet: { selected: string[] };
       setup: { entry: string; status: string; currentStep: string; completedSteps: string[] };
       selections: Record<"design" | "pages" | "saas" | "capabilities", BlueprintSelection[]>;
@@ -96,6 +98,7 @@ type Snapshot = {
     };
     catalog: { schemaVersion: string; catalogVersion: string; policies: Record<string, string>; presets: Array<{ id: string; name: string; description: string; selections: string[] }>; packs: CatalogPack[] };
     designCatalog: { schemaVersion: string; catalogVersion: string; sourcePolicy: string; profiles: DesignProfile[] };
+    stylekit: { source: { revision: string; license: string }; styleCount: number; catalogVersion: string; classification: Record<string, number>; globalEligibleCount: number; selected: { slug: string; sourceRevision: string; snapshotVersion: string; snapshotHash: string }; snapshots: StyleKitSnapshot[] };
     pageCatalog: { schemaVersion: string; catalogVersion: string; policy: string; pages: PageDefinition[] };
     materialization: { schemaVersion: string; packs: Array<{ id: string; version: string; files: number }>; dependencyCount: number; generatedRoutesHash: string | null; generatedAuthServerHash: string | null; generatedAuthClientHash: string | null; generatedDesignWebHash?: string | null; generatedDesignMarketingHash?: string | null; generatedDesignDocsHash?: string | null; generatedDesignMobileHash?: string | null; generatedMarketingProjectHash?: string | null };
   };
@@ -137,6 +140,7 @@ const fallback: Snapshot = {
       status: "draft",
       preset: "basic-product",
       designProfile: { id: "owned-neutral", version: "0.1.0" },
+      stylekit: { slug: "unavailable", sourceRevision: "unavailable", snapshotVersion: "0.0.0", snapshotHash: "unavailable" },
       pageSet: { selected: [] },
       setup: { entry: "/setup", status: "not-started", currentStep: "identity", completedSteps: [] },
       selections: { design: [], pages: [], saas: [], capabilities: [] },
@@ -144,6 +148,7 @@ const fallback: Snapshot = {
     },
     catalog: { schemaVersion: "starter-catalog/v1", catalogVersion: "0.3.0", policies: {}, presets: [], packs: [] },
     designCatalog: { schemaVersion: "starter-design-catalog/v1", catalogVersion: "0.1.0", sourcePolicy: "Starter-owned profiles", profiles: [] },
+    stylekit: { source: { revision: "unavailable", license: "unknown" }, styleCount: 0, catalogVersion: "0.0.0", classification: {}, globalEligibleCount: 0, selected: { slug: "unavailable", sourceRevision: "unavailable", snapshotVersion: "0.0.0", snapshotHash: "unavailable" }, snapshots: [] },
     pageCatalog: { schemaVersion: "starter-page-catalog/v1", catalogVersion: "0.1.0", policy: "Starter-owned routes", pages: [] },
     materialization: { schemaVersion: "starter-materialization/v1", packs: [], dependencyCount: 0, generatedRoutesHash: null, generatedAuthServerHash: null, generatedAuthClientHash: null, generatedDesignWebHash: null, generatedDesignMarketingHash: null, generatedDesignDocsHash: null, generatedDesignMobileHash: null, generatedMarketingProjectHash: null },
   },
@@ -198,7 +203,7 @@ function AccountSlot({ compact = false }: { compact?: boolean }) {
 }
 
 function LifecycleMark({ active, label }: { active: boolean; label: string }) {
-  return <span className={active ? "lifecycle-mark active" : "lifecycle-mark inactive"} aria-label={`${label}: ${active ? "yes" : "no"}`}><span aria-hidden="true">{active ? "Yes" : "—"}</span></span>;
+  return <span className={active ? "lifecycle-mark active" : "lifecycle-mark inactive"} title={label}>{active ? "Yes" : "No"}</span>;
 }
 
 function Home() {
@@ -227,6 +232,9 @@ function DevelopmentPlan() {
     selection,
     pack: data.assembly.catalog.packs.find(({ id }) => id === selection.id),
   })));
+  const selectedStyleLifecycle = data.assembly.blueprint.selections.design.find(
+    ({ id }) => id === "design.stylekit-adapted",
+  )?.lifecycle;
 
   return <div className="plan-shell">
     <aside className={menuOpen ? "plan-nav open" : "plan-nav"}>
@@ -257,13 +265,13 @@ function DevelopmentPlan() {
 
         <Section id="blueprint" title="Project Blueprint" description="The canonical selection record behind /setup, with realization tracked separately from intent." icon={Settings2}>
           <div className="assembly-summary">
-            <Surface><span className="role-label">Setup workspace</span><h3>{data.assembly.blueprint.setup.entry}</h3><dl className="compact-facts"><div><dt>Status</dt><dd>{data.assembly.blueprint.setup.status}</dd></div><div><dt>Preset</dt><dd>{data.assembly.blueprint.preset}</dd></div><div><dt>Design</dt><dd>{data.assembly.blueprint.designProfile.id} / {data.assembly.blueprint.designProfile.version}</dd></div><div><dt>Pages</dt><dd>{data.assembly.blueprint.pageSet.selected.length}</dd></div><div><dt>Blueprint</dt><dd>{data.assembly.blueprint.status}</dd></div></dl></Surface>
+            <Surface><span className="role-label">Setup workspace</span><h3>{data.assembly.blueprint.setup.entry}</h3><dl className="compact-facts"><div><dt>Status</dt><dd>{data.assembly.blueprint.setup.status}</dd></div><div><dt>Preset</dt><dd>{data.assembly.blueprint.preset}</dd></div><div><dt>Style</dt><dd>{data.assembly.blueprint.stylekit.slug} / {data.assembly.blueprint.stylekit.snapshotVersion}</dd></div><div><dt>Style hash</dt><dd>{data.assembly.blueprint.stylekit.snapshotHash.slice(0, 12)}</dd></div><div><dt>Pages</dt><dd>{data.assembly.blueprint.pageSet.selected.length}</dd></div><div><dt>Blueprint</dt><dd>{data.assembly.blueprint.status}</dd></div></dl></Surface>
             <Surface><span className="role-label">Provider defaults</span><h3>{data.assembly.blueprint.providers.auth}</h3><dl className="compact-facts"><div><dt>Social</dt><dd>{data.assembly.blueprint.providers.socialAuth.join(", ") || "none"}</dd></div><div><dt>Database</dt><dd>{data.assembly.blueprint.providers.database.engine} / {data.assembly.blueprint.providers.database.initialState}</dd></div><div><dt>Schema</dt><dd>{data.assembly.blueprint.providers.database.schemaSource}</dd></div><div><dt>Email</dt><dd>{data.assembly.blueprint.providers.email.default}</dd></div><div><dt>Billing</dt><dd>{data.assembly.blueprint.providers.billing}</dd></div></dl></Surface>
             <Surface><span className="role-label">Materialization receipt</span><h3>{data.assembly.materialization.packs.length} materialized packs</h3><dl className="compact-facts"><div><dt>Files</dt><dd>{data.assembly.materialization.packs.reduce((total, pack) => total + pack.files, 0)}</dd></div><div><dt>Dependencies</dt><dd>{data.assembly.materialization.dependencyCount}</dd></div><div><dt>Auth</dt><dd>{data.assembly.materialization.generatedAuthServerHash && data.assembly.materialization.generatedAuthClientHash ? "tracked" : "missing"}</dd></div><div><dt>Design</dt><dd>{data.assembly.materialization.generatedDesignWebHash && data.assembly.materialization.generatedDesignMarketingHash && data.assembly.materialization.generatedDesignDocsHash && data.assembly.materialization.generatedDesignMobileHash ? "all targets tracked" : "missing"}</dd></div><div><dt>Pages</dt><dd>{data.assembly.materialization.generatedMarketingProjectHash ? "project output tracked" : "missing"}</dd></div><div><dt>Check</dt><dd>starter:materialize:check</dd></div></dl></Surface>
           </div>
           <Surface className="lifecycle-surface">
             <div className="lifecycle-heading"><div><span className="role-label">Current project realization</span><h3>Pack lifecycle</h3></div><p>Catalog readiness describes reusable code. The five lifecycle columns describe only this Blueprint.</p></div>
-            <div className="lifecycle-scroll">
+            <div className="lifecycle-scroll" role="region" aria-label="Pack lifecycle table" tabIndex={0}>
               <table className="lifecycle-table">
                 <thead><tr><th scope="col">Pack</th><th scope="col">Catalog</th><th scope="col">Delivery</th><th scope="col">Selected</th><th scope="col">Materialized</th><th scope="col">Local</th><th scope="col">Development</th><th scope="col">Production</th></tr></thead>
                 <tbody>{lifecycleRows.map(({ group, selection, pack }) => <tr key={selection.id}><th scope="row"><strong>{pack?.name || selection.id}</strong><small>{group} / {selection.id}</small></th><td><span className={`status ${pack?.status || "missing"}`}>{pack?.status || "missing"}</span></td><td><code>{pack?.delivery || "missing"}</code></td><td><LifecycleMark active={selection.lifecycle.selected} label={`${selection.id} selected`} /></td><td><LifecycleMark active={selection.lifecycle.materialized} label={`${selection.id} materialized`} /></td><td><LifecycleMark active={selection.lifecycle.localVerified} label={`${selection.id} locally verified`} /></td><td><LifecycleMark active={selection.lifecycle.developmentVerified} label={`${selection.id} Development verified`} /></td><td><LifecycleMark active={selection.lifecycle.productionReleased} label={`${selection.id} Production released`} /></td></tr>)}</tbody>
@@ -275,7 +283,24 @@ function DevelopmentPlan() {
         <Section id="catalog" title="Internal pack catalog" description="Owned assembly choices with explicit provenance, target platforms, and update behavior." icon={Library}>
           <div className="preset-grid">{data.assembly.catalog.presets.map((preset) => <Surface key={preset.id}><span className="role-label">{preset.name}</span><p>{preset.description}</p><small>{preset.selections.length} baseline packs</small></Surface>)}</div>
           <div className="preset-grid">{data.assembly.designCatalog.profiles.map((profile) => <Surface key={profile.id}><span className={`status ${profile.status}`}>{profile.status}</span><h3>{profile.name}</h3><p>{profile.description}</p><small>{profile.id} / v{profile.version} / variance {profile.dials.designVariance} / motion {profile.dials.motionIntensity} / density {profile.dials.visualDensity}</small></Surface>)}</div>
-          <Surface className="catalog-table"><div className="catalog-row catalog-header"><span>Page</span><span>Route and renderer</span><span>Pack</span><span>Status</span></div>{data.assembly.pageCatalog.pages.map((page) => <div className="catalog-row" key={page.id}><div><strong>{page.name}</strong><small>{page.id}{page.required ? " / required" : ""}</small></div><div><p>{page.route}</p><small>{page.renderer} / {page.group}</small></div><div><strong>{page.packId}</strong><small>{data.assembly.blueprint.pageSet.selected.includes(page.id) ? "selected" : "available"}</small></div><span className={`status ${page.status}`}>{page.status}</span></div>)}</Surface>
+          <div className="preset-grid">{data.assembly.stylekit.snapshots.map((snapshot) => {
+            const selected = snapshot.slug === data.assembly.blueprint.stylekit.slug;
+            const adaptersReady = Object.values(snapshot.targets).every(({ status }) => ["implemented", "local-verified", "development-verified", "production-released"].includes(status));
+            const lifecycle = selected && selectedStyleLifecycle?.localVerified
+              ? { className: "local-verified", label: "selected / local verified" }
+              : selected && selectedStyleLifecycle?.materialized
+                ? { className: "selected", label: "selected / browser evidence pending" }
+                : adaptersReady
+                  ? { className: "implemented", label: "catalog ready / not selected" }
+                  : { className: "planned", label: "adapter gaps" };
+            return <Surface key={snapshot.slug}><span className={`status ${lifecycle.className}`}>{snapshot.classification} / {lifecycle.label}</span><h3>{snapshot.name} / {snapshot.nameEn}</h3><p>StyleKit has {data.assembly.stylekit.styleCount} audited entries and {data.assembly.stylekit.globalEligibleCount} reviewed global systems. This immutable v{snapshot.snapshotVersion} snapshot is locked at {snapshot.snapshotHash.slice(0, 12)} and ships no donor runtime.</p><small>{snapshot.aiRules} / {Object.entries(data.assembly.stylekit.classification).map(([classification, count]) => `${classification}: ${count}`).join(" / ")} / {Object.entries(snapshot.targets).map(([target, state]) => `${target}: ${state.status}`).join(" / ")}</small></Surface>;
+          })}</div>
+          <Surface className="catalog-table"><div className="catalog-row catalog-header"><span>Page</span><span>Route and renderer</span><span>Pack</span><span>Reusable template</span></div>{data.assembly.pageCatalog.pages.map((page) => {
+            const selected = data.assembly.blueprint.pageSet.selected.includes(page.id);
+            const packLifecycle = data.assembly.blueprint.selections.pages.find(({ id }) => id === page.packId)?.lifecycle;
+            const currentState = selected && packLifecycle?.materialized ? "materialized in this Blueprint" : selected ? "selected, not materialized" : "available, not selected";
+            return <div className="catalog-row" key={page.id}><div><strong>{page.name}</strong><small>{page.id}{page.required ? " / required" : ""}</small></div><div><p>{page.route}</p><small>{page.renderer} / {page.group}</small></div><div><strong>{page.packId}</strong><small>{currentState}</small></div><span className={`status ${page.status}`}>{page.status}</span></div>;
+          })}</Surface>
           <Surface className="catalog-table"><div className="catalog-row catalog-header"><span>Pack</span><span>Targets and source</span><span>Ownership</span><span>Status</span></div>{data.assembly.catalog.packs.map((pack) => <div className="catalog-row" key={pack.id}><div><strong>{pack.name}</strong><small>{pack.id} / {pack.version}</small></div><div><p>{pack.targets.join(", ")}</p><small>{pack.source?.length ? pack.source.map(({ name, relationship }) => `${name}: ${relationship}`).join(", ") : "Starter original"}</small></div><div><strong>{pack.ownership}</strong><small>{pack.updatePolicy}</small></div><span className={`status ${pack.status}`}>{pack.status}</span></div>)}</Surface>
         </Section>
 
@@ -317,7 +342,7 @@ function DevelopmentPlan() {
 export function App() {
   const path = window.location.pathname;
   if (path === "/login") return <Suspense fallback={<main className="protected-loading"><span /><span /><span /></main>}><AuthPage /></Suspense>;
-  if (path === "/app" || path === "/app/settings") return <Suspense fallback={<main className="protected-loading"><span /><span /><span /></main>}><ProtectedApp /></Suspense>;
+  if (path === "/app" || path === "/app/settings" || path === "/app/notifications") return <Suspense fallback={<main className="protected-loading"><span /><span /><span /></main>}><ProtectedApp /></Suspense>;
   if (path === "/support") return <Suspense fallback={<main className="protected-loading"><span /><span /><span /></main>}><SupportPage /></Suspense>;
   if (path === "/admin") return <Suspense fallback={<main className="protected-loading"><span /><span /><span /></main>}><AdminPage /></Suspense>;
   if (path === "/setup") return <Suspense fallback={<main className="protected-loading"><span /><span /><span /></main>}><SetupPage /></Suspense>;

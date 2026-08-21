@@ -16,5 +16,18 @@ services:
       - "18787:8787"
     command: ["sleep", "infinity"]
 
+  browser-acceptance:
+    image: mcr.microsoft.com/playwright:v1.62.1-noble
+    profiles: ["qa"]
+    network_mode: "service:starter-dev"
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - starter-node-modules:/workspace/node_modules
+    environment:
+      STARTER_BROWSER_BASE_URL: http://127.0.0.1:8787
+      STARTER_BROWSER_EXECUTABLE_PATH: /ms-playwright/chromium-1234/chrome-linux64/chrome
+    command: ["sleep", "infinity"]
+
 volumes:
   starter-node-modules:

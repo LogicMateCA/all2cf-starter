@@ -11,6 +11,7 @@ const config = JSON.parse(await readFile(path.join(root, "starter.config.json"),
 const blueprint = JSON.parse(await readFile(path.join(root, "starter.blueprint.json"), "utf8"));
 const selectedPacks = new Set(Object.values(blueprint.selections).flat().filter(({ lifecycle }) => lifecycle.selected && lifecycle.materialized).map(({ id }) => id));
 const stripeSelected = selectedPacks.has("saas.billing-stripe");
+const outgoingWebhooksSelected = selectedPacks.has("saas.outgoing-webhooks");
 const env = parseEnv(await readFile(path.join(root, ".dev.vars"), "utf8"));
 const providers = JSON.parse(await readFile(path.join(root, "profiles/providers.json"), "utf8"));
 const profilePath = process.env.STARTER_DEV_PROFILE_PATH || providers.defaultPath;
@@ -57,6 +58,13 @@ function syncWorkerSecrets(environment, wranglerConfig) {
       STRIPE_SECRET_KEY: required(environment === "production" ? "STARTER_PRODUCTION_STRIPE_SECRET_KEY" : "STRIPE_SECRET_KEY"),
       STRIPE_WEBHOOK_SECRET: required(environment === "production" ? "STARTER_PRODUCTION_STRIPE_WEBHOOK_SECRET" : "STRIPE_WEBHOOK_SECRET"),
       STRIPE_PRICE_PRO: required(environment === "production" ? "STARTER_PRODUCTION_STRIPE_PRICE_PRO" : "STRIPE_PRICE_PRO"),
+    } : {}),
+    ...(outgoingWebhooksSelected ? {
+      WEBHOOK_SIGNING_KEY: required(
+        environment === "production"
+          ? "STARTER_PRODUCTION_WEBHOOK_SIGNING_KEY"
+          : "WEBHOOK_SIGNING_KEY",
+      ),
     } : {}),
   };
   const result = spawnSync("npx", ["wrangler", "secret", "bulk", "--config", wranglerConfig], {
@@ -242,12 +250,65 @@ async function writeWrangler(environment, hyperdriveId) {
     ...(emailProvider === "cloudflare-email" ? { CLOUDFLARE_EMAIL_FROM: required("CLOUDFLARE_EMAIL_FROM") } : {}),
     MOBILE_DEEP_LINK_SCHEMES: [`${config.project.slug}-dev://`, `${config.project.slug}-preview://`, `${config.project.slug}://`].join(","),
   };
-  value.secrets = { required: ["BETTER_AUTH_SECRET", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", ...(emailProvider === "cfsend" ? ["CFSEND_API_URL", "CFSEND_API_KEY", "CFSEND_FROM"] : emailProvider === "resend" ? ["RESEND_API_KEY", "RESEND_FROM"] : []), ...(stripeSelected ? ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "STRIPE_PRICE_PRO"] : [])] };
+  value.secrets = {
+    ...(value.secrets || {}),
+    required: [
+      ...new Set([
+        ...(value.secrets?.required || []),
+        "BETTER_AUTH_SECRET",
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+        ...(emailProvider === "cfsend"
+          ? ["CFSEND_API_URL", "CFSEND_API_KEY", "CFSEND_FROM"]
+          : emailProvider === "resend"
+            ? ["RESEND_API_KEY", "RESEND_FROM"]
+            : []),
+        ...(stripeSelected
+          ? ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "STRIPE_PRICE_PRO"]
+          : []),
+      ]),
+    ].sort(),
+  };
   if (emailProvider === "cloudflare-email") value.send_email = [{ name: "EMAIL" }];
   else delete value.send_email;
   value.hyperdrive = [{ binding: "HYPERDRIVE", id: hyperdriveId }];
   value.routes = [{ pattern: target.domain, custom_domain: true }];
   await writeFile(configPath, `${JSON.stringify(value, null, 2)}\n`);
+}
+
+async function ensureConfiguredQueues(environment) {
+  const target = config[environment];
+  const configPath = path.join(root, target.wranglerConfig);
+  const errors = [];
+  const value = parseJsonc(await readFile(configPath, "utf8"), errors, {
+    allowTrailingComma: true,
+  });
+  if (errors.length)
+    throw new Error(`${target.wranglerConfig} contains invalid JSONC`);
+  const names = [
+    ...(value.queues?.producers || []).map(({ queue }) => queue),
+    ...(value.queues?.consumers || []).map(({ queue }) => queue),
+  ].filter(Boolean);
+  const resources = [];
+  for (const queueName of new Set(names)) {
+    const existing = await cloudflare(
+      "GET",
+      `/accounts/${config.cloudflare.accountId}/queues?name=${encodeURIComponent(queueName)}`,
+    );
+    let queue = (Array.isArray(existing) ? existing : []).find(
+      (entry) => entry.queue_name === queueName,
+    );
+    if (!queue)
+      queue = await cloudflare(
+        "POST",
+        `/accounts/${config.cloudflare.accountId}/queues`,
+        { queue_name: queueName },
+      );
+    if (queue.queue_name !== queueName)
+      throw new Error(`Cloudflare Queue ${queueName} returned an unexpected identity`);
+    resources.push({ id: queue.queue_id, name: queue.queue_name });
+  }
+  state.resources[`${environment}Queues`] = resources;
 }
 
 async function provision() {
@@ -264,6 +325,9 @@ async function provision() {
   await saveState();
   await writeWrangler("development", developmentHyperdriveId);
   await writeWrangler("production", productionHyperdriveId);
+  await ensureConfiguredQueues("development");
+  await saveState();
+  await ensureConfiguredQueues("production");
   await saveState();
   console.log(JSON.stringify({ ok: true, resources: state.resources }, null, 2));
 }

@@ -15,6 +15,7 @@ const compact = {
     setup: context.assembly.blueprint.setup,
     preset: context.assembly.blueprint.preset,
     designProfile: context.assembly.blueprint.designProfile,
+    stylekitLock: context.assembly.blueprint.stylekit,
     pageSet: context.assembly.blueprint.pageSet,
     selections: context.assembly.blueprint.selections,
     providers: context.assembly.blueprint.providers,
@@ -23,6 +24,7 @@ const compact = {
     catalogPresets: context.assembly.catalog.presets,
     catalogPacks: context.assembly.catalog.packs.map(({ id, kind, status, ownership, updatePolicy }) => ({ id, kind, status, ownership, updatePolicy })),
     designProfiles: context.assembly.designCatalog.profiles.map(({ id, version, packId, status, targets, dials, adapters }) => ({ id, version, packId, status, targets, dials, adapters })),
+    stylekit: context.assembly.stylekit,
     pages: context.assembly.pageCatalog.pages.map(({ id, packId, route, renderer, required, status }) => ({ id, packId, route, renderer, required, status, selected: context.assembly.blueprint.pageSet.selected.includes(id) })),
   },
   modules: context.modules.map(({ id, status, summary, path: modulePath }) => ({ id, status, summary, path: modulePath })),
@@ -48,7 +50,7 @@ const compact = {
     productionMatchesCurrent: Boolean(context.source.commit && operationalState.releases?.production?.commit === context.source.commit),
     dirty: context.source.dirty
   } : null,
-  recommendedReads: ["AGENTS.md", "PROJECT.md", "starter.blueprint.json", ".starter/materialization.json", "catalog/catalog.json", "design/catalog.json", "pages/catalog.json", "packs/", "DESIGN.md", ...context.changes.map(({ path: changePath }) => changePath), ...context.modules.map(({ path: modulePath }) => modulePath)],
+  recommendedReads: ["AGENTS.md", "PROJECT.md", "starter.blueprint.json", ".starter/materialization.json", "catalog/catalog.json", "design/catalog.json", "design/stylekit/source-catalog.json", "design/stylekit/neumorphism/snapshot.json", "pages/catalog.json", "packs/", "DESIGN.md", ...context.changes.map(({ path: changePath }) => changePath), ...context.modules.map(({ path: modulePath }) => modulePath)],
 };
 
 console.log(JSON.stringify(compact, null, 2));

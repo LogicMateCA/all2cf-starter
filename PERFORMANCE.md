@@ -23,6 +23,8 @@ source: "starter"
 - The merged Worker asset artifact keeps Marketing at the root, React application assets under `/_app`, and Docs assets under `/_docs`; budget checks must inspect those exact boundaries and fail when an unselected static route is present.
 - Current auth-enabled evidence: Desktop public main route is about `63KB` gzip, Desktop auth/account code is lazy-loaded, Mobile Web is about `386KB` gzip, iOS Hermes bytecode is about `2.96MB`, and Android Hermes bytecode is about `3.27MB`.
 - Interactive reads: normally no more than two PostgreSQL round trips; writes normally no more than four.
+- Usage consumption is the explicit exception: correctness requires one checked-out Hyperdrive PostgreSQL connection, a bounded transaction, one advisory lock and indexed entitlement/event/bucket operations. Contention is isolated to one user/metric/month key; rejected and replayed calls do not write. A copied high-volume product must measure this path before replacing it with Queue-backed aggregation or another architecture.
+- Outgoing webhook HTTP calls never block the product request. The authoritative transaction performs one indexed endpoint lookup, bounded fan-out to at most 20 delivery rows, and one Queue batch write. Consumers process batches of at most 10 with at most 10 concurrent invocations, capture no more than 1KB of response text, time out HTTP after 10 seconds, and terminate after five attempts. Payloads are limited to 64KB encoded JSON; a copied high-volume product must measure fan-out and database pool pressure before raising these bounds.
 
 ## Rules
 
@@ -34,6 +36,7 @@ source: "starter"
 - Keep the focused Better Auth Metro resolver regression-tested. Removing it currently adds server-only schema and Zod locale code to all Mobile bundles and exceeds the release budgets.
 - Every Catalog pack records its own bundle, query, asset, and runtime constraints before it can move from selected to locally verified.
 - `design:contract` compiles every profile in memory and must stay free of network, database, browser, and materialization side effects. Runtime builds contain only the selected generated adapters and no StyleKit or PowerAI donor dependency.
+- Playwright, axe-core and Lighthouse are development-only QA dependencies. Browser acceptance runs from the pinned `browser-acceptance` Compose profile and never enters Worker, Marketing, React, Docs or Expo production bundles.
 
 ## Change Spec
 

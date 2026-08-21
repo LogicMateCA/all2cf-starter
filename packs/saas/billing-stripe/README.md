@@ -1,6 +1,6 @@
 # Stripe billing pack
 
-This optional pack aligns `@better-auth/stripe` 1.7.1 with Better Auth 1.7.1 and Stripe SDK 22.5.0. It provides verified-email Checkout subscriptions, the Customer Portal, signed webhook processing at `/api/auth/stripe/webhook`, and a PostgreSQL subscription projection.
+This optional pack aligns `@better-auth/stripe` 1.7.1 with Better Auth 1.7.1 and Stripe SDK 22.5.0. It provides a Product Shell billing surface for verified-email Checkout, Customer Portal, cancellation review, scheduled-renewal restore and subscription history; signed webhook processing at `/api/auth/stripe/webhook` remains the only authority for the PostgreSQL subscription projection.
 
 Stripe SDK 22.5.0 pins API `2026-07-29.dahlia`; the adapter uses Stripe's Fetch HTTP client for the Cloudflare Worker runtime.
 

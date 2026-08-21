@@ -14,7 +14,7 @@ Starter databases always begin empty from the final selected baseline. The pack 
 
 # Organization boundary
 
-Use the official Better Auth Organization plugin aligned at 1.7.1. Enable teams and verified-email invitations, deliver invitations through the existing authentication email provider, and keep tenant roles separate from Better Auth platform Admin. Do not invent product quotas in the generic Starter.
+Use the official Better Auth Organization plugin aligned at 1.7.1. Enable teams, active Product Shell workspace switching, bounded member administration and verified-email invitations, deliver invitations through the existing authentication email provider, and keep tenant roles separate from Better Auth platform Admin. Do not invent product quotas in the generic Starter.
 
 # Billing boundary
 
@@ -26,9 +26,9 @@ Deselecting either pack removes only receipt-matching code, SQL, routes, plugin 
 
 # Validation evidence
 
-- Organization-only workerd smoke passed against a newly created disposable PostgreSQL database: registration, mandatory verification, organization create/list, owner membership, default team, CFsend-backed invitation, platform Admin denial, support, reset, revocation, and sign-out.
-- Stripe-only workerd smoke passed: empty subscription projection, foreign-reference denial, invalid signature denial, valid signed webhook acceptance, replay count `2`, and all core auth/support regressions.
+- Organization-only workerd smoke passed against a newly created disposable PostgreSQL database: registration, mandatory verification, organization create/list, active workspace switching, bounded member listing, role administration, explicit member removal, default team, CFsend-backed invitation listing/cancellation/acceptance, organization lifecycle notifications, cross-organization isolation, platform Admin denial, support, reset, revocation, and sign-out.
+- Stripe-only workerd smoke passed: empty subscription projection, foreign-reference denial, invalid signature denial, valid signed webhook acceptance, replay count `2`, one idempotent recipient billing notification for repeated provider evidence, and all core auth/support regressions. The selected Product Shell billing surface compiles Checkout, Portal, cancellation-review, renewal-restore and history states without granting from client data; its 32-case browser matrix passed with 52 screenshots and zero failures at `test-results/browser-acceptance/2026-08-21T04-29-16-643Z/authenticated`.
 - Combined Organization plus Stripe selection passed the same disposable empty-database workerd flow.
-- The combined selected Web build passed. Organization and Billing route chunks measured about 1.4 KB and 0.9 KB gzip; the public main route remained about 66 KB gzip. Development and Production Worker dry runs both passed at about 582 KB gzip.
+- The selected Organization Web build passed with the complete management route at 2.36 KB gzip and the shared Product Shell at 5.87 KB gzip. Its authenticated browser matrix passed 32 desktop/mobile, light/dark cases and 52 screenshots with zero failures at `test-results/browser-acceptance/2026-08-21T04-19-50-730Z/authenticated`. Earlier combined Organization and Billing dry runs remain valid for their older pack slice; current dry-run evidence is rechecked by repository verification.
 - Deselecting all optional SaaS packs removed their application files, SQL migrations, routes, Stripe packages, and auth registry imports; the materialization drift check returned clean.
 - Real Stripe Test Checkout, Customer Portal, subscription create/update/delete/cancel/restore, real-mailbox remote invitation delivery/acceptance, Development release, and Production release remain unverified. No deployment was performed.

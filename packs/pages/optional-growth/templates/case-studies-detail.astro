@@ -1,0 +1,12 @@
+---
+import { getCollection, render, type CollectionEntry } from "astro:content";
+import Base from "../../layouts/Base.astro";
+
+export async function getStaticPaths() {
+  const cases = await getCollection("case-studies", ({ data }) => !data.draft);
+  return cases.map((item) => ({ params: { slug: item.id }, props: { item } }));
+}
+const { item } = Astro.props as { item: CollectionEntry<"case-studies"> };
+const { Content } = await render(item);
+---
+<Base title={item.data.title} description={item.data.summary} noindex={item.data.sample}><article class="content-detail"><a class="detail-back" href="/case-studies">Back to case studies</a><header><div class="growth-meta"><span>{item.data.sample ? "Starter sample" : item.data.customer}</span><span>{item.data.industry}</span></div><h1>{item.data.title}</h1><p>{item.data.summary}</p></header><dl class="detail-outcomes">{item.data.outcomes.map((outcome) => <div><dt>{outcome.label}</dt><dd><strong>{outcome.value}</strong><span>{outcome.evidence}</span></dd></div>)}</dl><div class="prose"><Content /></div></article></Base>

@@ -9,6 +9,28 @@ function required(value: string | undefined, name: string) {
   return value.trim();
 }
 
+export async function recordBillingNotification(
+  database: SelectedAuthPluginInput["database"],
+  eventId: string,
+  referenceId: string,
+  title: string,
+  body: string,
+) {
+  const owner = await database.query<{ id: string }>(
+    "select id from app_user where id = $1 limit 1",
+    [referenceId],
+  );
+  if (!owner.rows[0]) return false;
+  await database.query(
+    `insert into app_notification
+     (id, recipient_user_id, category, title, body, deep_link)
+     values ($1, $2, 'billing', $3, $4, '/app/billing')
+     on conflict (id) do nothing`,
+    [`billing:${eventId}:${referenceId}`, referenceId, title, body],
+  );
+  return true;
+}
+
 export function createStripeAuthPlugin(input: SelectedAuthPluginInput, _features: SelectedFeatures) {
   const secretKey = required(input.stripeSecretKey, "STRIPE_SECRET_KEY");
   const webhookSecret = required(input.stripeWebhookSecret, "STRIPE_WEBHOOK_SECRET");
@@ -43,6 +65,51 @@ export function createStripeAuthPlugin(input: SelectedAuthPluginInput, _features
       plans: [{ name: "pro", priceId: proPrice }],
       authorizeReference: async ({ user, referenceId }) => !referenceId || referenceId === user.id,
       getCheckoutSessionParams: async () => ({ params: { automatic_tax: { enabled: false } } }),
+      async onSubscriptionComplete({ event, subscription, plan }) {
+        await recordBillingNotification(
+          input.database,
+          event.id,
+          subscription.referenceId,
+          "Subscription activated",
+          `${plan.name} is now active for your account.`,
+        );
+      },
+      async onSubscriptionCreated({ event, subscription }) {
+        await recordBillingNotification(
+          input.database,
+          event.id,
+          subscription.referenceId,
+          "Subscription created",
+          `${subscription.plan} subscription details were received from Stripe.`,
+        );
+      },
+      async onSubscriptionUpdate({ event, subscription }) {
+        await recordBillingNotification(
+          input.database,
+          event.id,
+          subscription.referenceId,
+          "Subscription updated",
+          `${subscription.plan} is now ${subscription.status}.`,
+        );
+      },
+      async onSubscriptionCancel({ event, subscription }) {
+        await recordBillingNotification(
+          input.database,
+          event.id,
+          subscription.referenceId,
+          "Subscription cancellation updated",
+          `${subscription.plan} cancellation settings changed.`,
+        );
+      },
+      async onSubscriptionDeleted({ event, subscription }) {
+        await recordBillingNotification(
+          input.database,
+          event.id,
+          subscription.referenceId,
+          "Subscription ended",
+          `${subscription.plan} is no longer active.`,
+        );
+      },
     },
     schema: {
       user: { fields: { stripeCustomerId: "stripe_customer_id" } },

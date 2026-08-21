@@ -1,0 +1,64 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "saas.account-security-2fa",
+  "version": "0.1.0",
+  "source": {
+    "name": "Better Auth Two-Factor",
+    "url": "https://better-auth.com/docs/plugins/2fa",
+    "revision": "1.7.1",
+    "license": "MIT",
+    "relationship": "tracked-upstream"
+  },
+  "files": [
+    {
+      "source": "templates/two-factor-auth-plugin.ts",
+      "target": "workers/app/features/two-factor-auth-plugin.ts"
+    },
+    {
+      "source": "templates/two-factor-auth-client-plugin.ts",
+      "target": "apps/web/src/features/two-factor-auth-client-plugin.ts"
+    },
+    {
+      "source": "templates/two-factor-settings.tsx",
+      "target": "apps/web/src/components/features/two-factor-settings.tsx"
+    },
+    {
+      "source": "templates/two-factor-challenge.tsx",
+      "target": "apps/web/src/components/features/two-factor-challenge.tsx"
+    },
+    {
+      "source": "templates/two-factor.css",
+      "target": "apps/web/src/components/features/two-factor.css"
+    },
+    {
+      "source": "templates/0008_two_factor.sql",
+      "target": "db/migrations/0008_two_factor.sql"
+    }
+  ],
+  "dependencies": [],
+  "routes": [
+    {
+      "path": "/two-factor",
+      "module": "../components/features/two-factor-challenge",
+      "export": "TwoFactorChallenge",
+      "workerFirst": true
+    },
+    {
+      "path": "/app/security/two-factor",
+      "module": "../components/features/two-factor-settings",
+      "export": "TwoFactorSettings",
+      "workerFirst": false
+    }
+  ],
+  "authPlugins": {
+    "server": {
+      "module": "../features/two-factor-auth-plugin",
+      "export": "createTwoFactorAuthPlugin"
+    },
+    "client": {
+      "module": "../features/two-factor-auth-client-plugin",
+      "export": "createTwoFactorAuthClientPlugin"
+    }
+  }
+}

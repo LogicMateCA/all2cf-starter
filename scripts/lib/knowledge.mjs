@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { parse as parseJsonc } from "jsonc-parser";
@@ -14,7 +15,8 @@ const rootDocuments = [
 ];
 
 function splitFrontmatter(source) {
-  if (!source.startsWith("---\n")) return { attributes: {}, body: source.trim() };
+  if (!source.startsWith("---\n"))
+    return { attributes: {}, body: source.trim() };
   const end = source.indexOf("\n---\n", 4);
   if (end < 0) throw new Error("Markdown frontmatter is not closed");
   return {
@@ -24,10 +26,12 @@ function splitFrontmatter(source) {
 }
 
 function firstParagraph(markdown) {
-  return markdown
-    .split(/\n\s*\n/u)
-    .map((part) => part.replace(/^#+\s+.*$/gmu, "").trim())
-    .find(Boolean) || "";
+  return (
+    markdown
+      .split(/\n\s*\n/u)
+      .map((part) => part.replace(/^#+\s+.*$/gmu, "").trim())
+      .find(Boolean) || ""
+  );
 }
 
 async function readMarkdown(root, relativePath) {
@@ -35,7 +39,9 @@ async function readMarkdown(root, relativePath) {
   const parsed = splitFrontmatter(source);
   return {
     path: relativePath,
-    title: String(parsed.attributes.title || parsed.attributes.module || relativePath),
+    title: String(
+      parsed.attributes.title || parsed.attributes.module || relativePath,
+    ),
     status: String(parsed.attributes.status || "documented"),
     attributes: parsed.attributes,
     summary: firstParagraph(parsed.body),
@@ -47,9 +53,17 @@ async function collectModules(root) {
   const featuresRoot = path.join(root, "features");
   const entries = await readdir(featuresRoot, { withFileTypes: true });
   const modules = [];
-  for (const entry of entries.filter((item) => item.isDirectory()).sort((a, b) => a.name.localeCompare(b.name))) {
-    const document = await readMarkdown(root, `features/${entry.name}/MODULE.md`);
-    modules.push({ id: String(document.attributes.module || entry.name), ...document });
+  for (const entry of entries
+    .filter((item) => item.isDirectory())
+    .sort((a, b) => a.name.localeCompare(b.name))) {
+    const document = await readMarkdown(
+      root,
+      `features/${entry.name}/MODULE.md`,
+    );
+    modules.push({
+      id: String(document.attributes.module || entry.name),
+      ...document,
+    });
   }
   return modules;
 }
@@ -58,16 +72,32 @@ async function collectChanges(root) {
   const changesRoot = path.join(root, "changes");
   const entries = await readdir(changesRoot, { withFileTypes: true });
   const changes = [];
-  for (const entry of entries.filter((item) => item.isFile() && item.name.endsWith(".md") && !item.name.startsWith("_")).sort((a, b) => a.name.localeCompare(b.name))) {
+  for (const entry of entries
+    .filter(
+      (item) =>
+        item.isFile() &&
+        item.name.endsWith(".md") &&
+        !item.name.startsWith("_"),
+    )
+    .sort((a, b) => a.name.localeCompare(b.name))) {
     const document = await readMarkdown(root, `changes/${entry.name}`);
-    changes.push({ id: String(document.attributes.id || entry.name.replace(/\.md$/u, "")), ...document });
+    changes.push({
+      id: String(document.attributes.id || entry.name.replace(/\.md$/u, "")),
+      ...document,
+    });
   }
   return changes;
 }
 
 function gitValue(root, args, fallback = null) {
   try {
-    return execFileSync("git", args, { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim() || fallback;
+    return (
+      execFileSync("git", args, {
+        cwd: root,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      }).trim() || fallback
+    );
   } catch {
     return fallback;
   }
@@ -79,13 +109,21 @@ async function readJson(root, relativePath) {
 
 async function readJsonc(root, relativePath) {
   const errors = [];
-  const value = parseJsonc(await readFile(path.join(root, relativePath), "utf8"), errors, { allowTrailingComma: true });
+  const value = parseJsonc(
+    await readFile(path.join(root, relativePath), "utf8"),
+    errors,
+    { allowTrailingComma: true },
+  );
   if (errors.length) throw new Error(`${relativePath} contains invalid JSONC`);
   return value;
 }
 
 function environmentFromConfig(id, config, manifestEnvironment) {
-  const routes = Array.isArray(config.routes) ? config.routes : config.route ? [config.route] : [];
+  const routes = Array.isArray(config.routes)
+    ? config.routes
+    : config.route
+      ? [config.route]
+      : [];
   return {
     id,
     worker: String(config.name || manifestEnvironment?.worker || ""),
@@ -105,11 +143,29 @@ function environmentFromConfig(id, config, manifestEnvironment) {
 }
 
 export async function collectKnowledge(root) {
-  const [manifest, blueprint, catalog, designCatalog, pageCatalog, materialization, aiManifest, orchestrationSource, bindings, developmentConfig, productionConfig] = await Promise.all([
+  const [
+    manifest,
+    blueprint,
+    catalog,
+    designCatalog,
+    stylekitSourceCatalog,
+    saasSources,
+    saasCapabilities,
+    pageCatalog,
+    materialization,
+    aiManifest,
+    orchestrationSource,
+    bindings,
+    developmentConfig,
+    productionConfig,
+  ] = await Promise.all([
     readJson(root, "starter.manifest.json"),
     readJson(root, "starter.blueprint.json"),
     readJson(root, "catalog/catalog.json"),
     readJson(root, "design/catalog.json"),
+    readJson(root, "design/stylekit/source-catalog.json"),
+    readJson(root, "catalog/saas-sources.json"),
+    readJson(root, "catalog/saas-capabilities.json"),
     readJson(root, "pages/catalog.json"),
     readJson(root, ".starter/materialization.json"),
     readJson(root, ".ai/manifest.json"),
@@ -118,15 +174,65 @@ export async function collectKnowledge(root) {
     readJsonc(root, "cloudflare/wrangler.development.jsonc"),
     readJsonc(root, "cloudflare/wrangler.production.jsonc"),
   ]);
-  const documents = await Promise.all(rootDocuments.map((file) => readMarkdown(root, file)));
+  const eligibleStylekitSystems = stylekitSourceCatalog.styles.filter(
+    ({ classification, globalEligibility }) =>
+      classification === "base-visual" && globalEligibility === "eligible",
+  );
+  const stylekitSnapshots = await Promise.all(
+    eligibleStylekitSystems.map(async ({ slug }) => {
+      const snapshotPath = path.join(
+        root,
+        "design/stylekit",
+        slug,
+        "snapshot.json",
+      );
+      const source = await readFile(snapshotPath, "utf8");
+      const snapshot = JSON.parse(source);
+      return {
+        snapshot,
+        snapshotHash: createHash("sha256").update(source).digest("hex"),
+      };
+    }),
+  );
+  const selectedStylekit = stylekitSnapshots.find(
+    ({ snapshot }) => snapshot.style.slug === blueprint.stylekit.slug,
+  );
+  if (!selectedStylekit)
+    throw new Error(
+      `Selected StyleKit snapshot is missing: ${blueprint.stylekit.slug}`,
+    );
+  const documents = await Promise.all(
+    rootDocuments.map((file) => readMarkdown(root, file)),
+  );
   const project = documents.find((document) => document.path === "PROJECT.md");
-  const manifestEnvironments = new Map((manifest.environments || []).map((environment) => [environment.id, environment]));
+  const manifestEnvironments = new Map(
+    (manifest.environments || []).map((environment) => [
+      environment.id,
+      environment,
+    ]),
+  );
   const commit = gitValue(root, ["rev-parse", "HEAD"]);
   const branch = gitValue(root, ["branch", "--show-current"]);
   const dirty = Boolean(gitValue(root, ["status", "--porcelain"], ""));
-  const commitTime = commit ? gitValue(root, ["show", "-s", "--format=%cI", commit]) : null;
-  const assemblyFailures = validateAssemblyContracts(manifest, blueprint, catalog, designCatalog, pageCatalog);
-  if (assemblyFailures.length) throw new Error(`Assembly contracts are invalid:\n- ${assemblyFailures.join("\n- ")}`);
+  const commitTime = commit
+    ? gitValue(root, ["show", "-s", "--format=%cI", commit])
+    : null;
+  const assemblyFailures = validateAssemblyContracts(
+    manifest,
+    blueprint,
+    catalog,
+    designCatalog,
+    pageCatalog,
+    {
+      catalog: stylekitSourceCatalog,
+      snapshot: selectedStylekit.snapshot,
+      snapshotHash: selectedStylekit.snapshotHash,
+    },
+  );
+  if (assemblyFailures.length)
+    throw new Error(
+      `Assembly contracts are invalid:\n- ${assemblyFailures.join("\n- ")}`,
+    );
   const modules = await collectModules(root);
 
   return {
@@ -156,27 +262,105 @@ export async function collectKnowledge(root) {
         packs: catalog.packs,
       },
       designCatalog,
+      stylekit: {
+        source: stylekitSourceCatalog.source,
+        styleCount: stylekitSourceCatalog.count,
+        catalogVersion: stylekitSourceCatalog.catalogVersion,
+        classification: Object.fromEntries(
+          [
+            ...new Set(
+              stylekitSourceCatalog.styles.map(
+                ({ classification }) => classification,
+              ),
+            ),
+          ]
+            .sort()
+            .map((classification) => [
+              classification,
+              stylekitSourceCatalog.styles.filter(
+                (style) => style.classification === classification,
+              ).length,
+            ]),
+        ),
+        globalEligibleCount: stylekitSourceCatalog.styles.filter(
+          ({ classification, globalEligibility }) =>
+            classification === "base-visual" &&
+            globalEligibility === "eligible",
+        ).length,
+        selected: blueprint.stylekit,
+        adapterFamilies: Object.fromEntries(
+          [
+            ...new Set(
+              eligibleStylekitSystems.map(({ adapterFamily }) => adapterFamily),
+            ),
+          ]
+            .sort()
+            .map((family) => [
+              family,
+              eligibleStylekitSystems.filter(
+                ({ adapterFamily }) => adapterFamily === family,
+              ).length,
+            ]),
+        ),
+        snapshots: stylekitSnapshots.map(({ snapshot, snapshotHash }) => ({
+          slug: snapshot.style.slug,
+          name: snapshot.style.name,
+          nameEn: snapshot.style.nameEn,
+          adapterFamily: snapshot.style.adapterFamily,
+          snapshotVersion: snapshot.snapshotVersion,
+          snapshotHash,
+          immutable: snapshot.immutable,
+          selected: snapshot.style.slug === blueprint.stylekit.slug,
+          classification: snapshot.style.classification,
+          globalEligibility: snapshot.style.globalEligibility,
+          targets: snapshot.targets,
+          sourceFiles: snapshot.provenance.sourceFiles.map(
+            ({ path: sourcePath, sha256 }) => ({ path: sourcePath, sha256 }),
+          ),
+          aiRules: `design/stylekit/${snapshot.style.slug}/snapshot.json`,
+        })),
+      },
       pageCatalog,
+      saas: {
+        sources: saasSources,
+        capabilities: saasCapabilities,
+      },
       materialization: {
         schemaVersion: materialization.schemaVersion,
-        packs: Object.entries(materialization.packs || {}).map(([id, value]) => ({ id, version: value.version, files: Object.keys(value.files || {}).length })),
+        packs: Object.entries(materialization.packs || {}).map(
+          ([id, value]) => ({
+            id,
+            version: value.version,
+            files: Object.keys(value.files || {}).length,
+          }),
+        ),
         dependencyCount: Object.keys(materialization.dependencies || {}).length,
         generatedRoutesHash: materialization.generatedRoutesHash,
         generatedAuthServerHash: materialization.generatedAuthServerHash,
         generatedAuthClientHash: materialization.generatedAuthClientHash,
         generatedDesignWebHash: materialization.generatedDesignWebHash,
-        generatedDesignMarketingHash: materialization.generatedDesignMarketingHash,
+        generatedDesignMarketingHash:
+          materialization.generatedDesignMarketingHash,
         generatedDesignDocsHash: materialization.generatedDesignDocsHash,
         generatedDesignMobileHash: materialization.generatedDesignMobileHash,
-        generatedMarketingProjectHash: materialization.generatedMarketingProjectHash,
+        generatedMarketingProjectHash:
+          materialization.generatedMarketingProjectHash,
       },
     },
     modules,
     changes: await collectChanges(root),
     documents,
     environments: [
-      environmentFromConfig("development", developmentConfig, manifestEnvironments.get("development")),
-      environmentFromConfig("production", productionConfig, manifestEnvironments.get("production")),
+      environmentFromConfig(
+        "development",
+        developmentConfig,
+        manifestEnvironments.get("development"),
+      ),
+      environmentFromConfig(
+        "production",
+        productionConfig,
+        manifestEnvironments.get("production"),
+      ),
     ],
     cloudflare: {
       bindingsContract: bindings,

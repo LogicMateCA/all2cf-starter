@@ -2,7 +2,7 @@
   "$schema": "../../../schemas/starter-pack.schema.json",
   "schemaVersion": "starter-pack/v1",
   "id": "page.optional-growth",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "source": {
     "name": "PowerAI Astro growth structure",
     "url": "https://github.com/sitepins/powerai-astro",
@@ -10,13 +10,44 @@
     "license": "MIT",
     "relationship": "adapted-donor"
   },
-  "files": [],
-  "pageFiles": {
-    "growth.blog": [{ "source": "templates/blog-index.astro", "target": "apps/marketing/src/pages/blog/index.astro" }],
-    "growth.case-studies": [{ "source": "templates/case-studies-index.astro", "target": "apps/marketing/src/pages/case-studies/index.astro" }],
-    "growth.integrations": [{ "source": "templates/integrations-index.astro", "target": "apps/marketing/src/pages/integrations/index.astro" }],
-    "growth.careers": [{ "source": "templates/careers-index.astro", "target": "apps/marketing/src/pages/careers/index.astro" }]
+  "sourceInventory": {
+    "sourceRoot": "PowerAI Astro/src/pages",
+    "routeFiles": [
+      "src/pages/blog/[single].astro", "src/pages/blog/index.astro", "src/pages/blog/page/[page].astro", "src/pages/careers/[single].astro", "src/pages/careers/index.astro", "src/pages/case-studies/[single].astro", "src/pages/case-studies/index.astro", "src/pages/case-studies/page/[page].astro", "src/pages/integrations/[single].astro", "src/pages/integrations/index.astro"
+    ],
+    "contentCollections": ["blog", "careers", "case-studies", "integrations"],
+    "routeFamilies": ["growth.blog", "growth.case-studies", "growth.careers", "growth.integrations"]
   },
-  "dependencies": [],
+  "files": [
+    { "source": "templates/content.config.ts", "target": "apps/marketing/src/content.config.ts" }
+  ],
+  "pageFiles": {
+    "growth.blog": [
+      { "source": "templates/blog-index.astro", "target": "apps/marketing/src/pages/blog/index.astro" },
+      { "source": "templates/blog-detail.astro", "target": "apps/marketing/src/pages/blog/[slug].astro" },
+      { "source": "templates/blog-pagination.astro", "target": "apps/marketing/src/pages/blog/page/[page].astro" },
+      { "source": "templates/rss.xml.ts", "target": "apps/marketing/src/pages/rss.xml.ts" },
+      { "source": "templates/content/blog/starter-content-system.md", "target": "apps/marketing/src/content/blog/starter-content-system.md" }
+    ],
+    "growth.case-studies": [
+      { "source": "templates/case-studies-index.astro", "target": "apps/marketing/src/pages/case-studies/index.astro" },
+      { "source": "templates/case-studies-detail.astro", "target": "apps/marketing/src/pages/case-studies/[slug].astro" },
+      { "source": "templates/case-studies-pagination.astro", "target": "apps/marketing/src/pages/case-studies/page/[page].astro" },
+      { "source": "templates/content/case-studies/starter-evidence-model.md", "target": "apps/marketing/src/content/case-studies/starter-evidence-model.md" }
+    ],
+    "growth.integrations": [
+      { "source": "templates/integrations-index.astro", "target": "apps/marketing/src/pages/integrations/index.astro" },
+      { "source": "templates/integrations-detail.astro", "target": "apps/marketing/src/pages/integrations/[slug].astro" },
+      { "source": "templates/content/integrations/starter-provider.md", "target": "apps/marketing/src/content/integrations/starter-provider.md" }
+    ],
+    "growth.careers": [
+      { "source": "templates/careers-index.astro", "target": "apps/marketing/src/pages/careers/index.astro" },
+      { "source": "templates/careers-detail.astro", "target": "apps/marketing/src/pages/careers/[slug].astro" },
+      { "source": "templates/content/careers/starter-role.md", "target": "apps/marketing/src/content/careers/starter-role.md" }
+    ]
+  },
+  "dependencies": [
+    { "packageFile": "apps/marketing/package.json", "section": "dependencies", "name": "@astrojs/rss", "version": "4.0.19" }
+  ],
   "routes": []
 }

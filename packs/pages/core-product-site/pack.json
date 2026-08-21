@@ -10,6 +10,14 @@
     "license": "MIT",
     "relationship": "adapted-donor"
   },
+  "sourceInventory": {
+    "sourceRoot": "PowerAI Astro/src/pages",
+    "routeFiles": [
+      "src/pages/404.astro", "src/pages/[regular].astro", "src/pages/about.astro", "src/pages/changelog.astro", "src/pages/contact.astro", "src/pages/features.astro", "src/pages/index.astro", "src/pages/login.astro", "src/pages/pricing.astro", "src/pages/sign-up.astro"
+    ],
+    "contentCollections": ["pages", "sections"],
+    "routeFamilies": ["content.generic-markdown", "auth.login", "auth.sign-up"]
+  },
   "files": [],
   "pageFiles": {
     "marketing.home": [{ "source": "templates/index.astro", "target": "apps/marketing/src/pages/index.astro" }],

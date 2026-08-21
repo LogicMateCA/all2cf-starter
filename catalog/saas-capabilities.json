@@ -1,0 +1,390 @@
+{
+  "$schema": "../schemas/saas-capability-matrix.schema.json",
+  "schemaVersion": "starter-saas-capability-matrix/v1",
+  "statusPolicy": "A capability is selectable only when its delivery is baseline or materializer and its status is implemented or verified. Planned entries remain visible to AI and /dp but cannot be selected.",
+  "capabilities": [
+    {
+      "id": "identity.core",
+      "sourceIds": ["open-saas"],
+      "owner": "Better Auth core",
+      "delivery": "baseline",
+      "status": "development-verified",
+      "routes": ["/login", "/app/settings"],
+      "apis": ["/api/auth/*"],
+      "schema": ["user", "session", "account"],
+      "verification": ["auth:smoke:dev"]
+    },
+    {
+      "id": "shell.product",
+      "sourceIds": ["open-saas", "saasboard"],
+      "owner": "saas.product-shell",
+      "delivery": "baseline",
+      "status": "local-verified",
+      "routes": ["/app"],
+      "apis": [],
+      "schema": [],
+      "verification": [
+        "web typecheck and build",
+        "authenticated desktop/mobile light/dark browser acceptance",
+        "persisted notification-backed Dashboard recent activity"
+      ]
+    },
+    {
+      "id": "account.settings",
+      "sourceIds": ["open-saas", "saasboard"],
+      "owner": "Better Auth core plus Starter account UI",
+      "delivery": "baseline",
+      "status": "local-verified",
+      "routes": ["/app/settings"],
+      "apis": ["/api/auth/update-user", "/api/auth/list-sessions"],
+      "schema": ["user", "session", "account"],
+      "verification": ["web typecheck", "web build"],
+      "gaps": ["optional Passkey and 2FA packs"]
+    },
+    {
+      "id": "notifications.inbox",
+      "sourceIds": ["saasboard", "lastsaas"],
+      "owner": "saas.notifications-core",
+      "delivery": "baseline",
+      "status": "local-verified",
+      "routes": ["/app/notifications"],
+      "apis": [
+        "/api/notifications",
+        "/api/notifications/unread-count",
+        "/api/notifications/:id/read",
+        "/api/notifications/read-all"
+      ],
+      "schema": ["app_notification"],
+      "verification": ["auth:smoke:dev"],
+      "gaps": [
+        "copied-product event producers"
+      ]
+    },
+    {
+      "id": "account.security.2fa",
+      "sourceIds": ["lastsaas"],
+      "owner": "Better Auth Two-Factor plugin",
+      "delivery": "materializer",
+      "status": "local-verified",
+      "routes": ["/app/security/two-factor", "/two-factor"],
+      "apis": ["/api/auth/two-factor/*"],
+      "schema": ["app_user.two_factor_enabled", "app_two_factor"],
+      "verification": [
+        "selected empty-database Workerd TOTP and backup-code flow",
+        "selected desktop/mobile light/dark browser acceptance",
+        "clean deselection and default regression"
+      ],
+      "gaps": ["native Expo challenge UI", "Passkey pack", "Development release"]
+    },
+    {
+      "id": "admin.framework",
+      "sourceIds": ["open-saas", "lastsaas"],
+      "owner": "Better Auth Admin plus Starter Admin registry",
+      "delivery": "baseline",
+      "status": "local-verified",
+      "routes": ["/admin"],
+      "apis": [
+        "/api/admin/overview",
+        "/api/admin/support/tickets",
+        "/api/admin/audit",
+        "/api/admin/announcements"
+      ],
+      "schema": ["app_admin_audit_event", "app_announcement"],
+      "verification": [
+        "auth:smoke:dev",
+        "web typecheck and build",
+        "authenticated desktop/mobile light/dark browser acceptance"
+      ],
+      "gaps": ["real provider-backed health evidence in Development"]
+    },
+    {
+      "id": "admin.users",
+      "sourceIds": ["open-saas", "lastsaas"],
+      "owner": "Better Auth Admin plugin",
+      "delivery": "baseline",
+      "status": "local-verified",
+      "routes": ["/admin"],
+      "apis": [
+        "admin.listUsers",
+        "admin.setRole",
+        "admin.banUser",
+        "admin.unbanUser",
+        "admin.listUserSessions",
+        "admin.revokeUserSessions",
+        "admin.impersonateUser",
+        "admin.stopImpersonating"
+      ],
+      "schema": ["user", "session"],
+      "verification": [
+        "disposable empty-database Workerd smoke",
+        "ordinary-user mutation denial without false audit evidence",
+        "search, role, ban, unban, session and impersonation lifecycle",
+        "exact append-only audit actions",
+        "web typecheck and build"
+      ],
+      "gaps": []
+    },
+    {
+      "id": "support.tickets",
+      "sourceIds": ["saasboard", "lastsaas"],
+      "owner": "saas.product-operations-lite",
+      "delivery": "baseline",
+      "status": "local-verified",
+      "routes": ["/support", "/admin"],
+      "apis": [
+        "/api/support/tickets",
+        "/api/support/tickets/:id",
+        "/api/support/tickets/:id/messages",
+        "/api/admin/support/tickets",
+        "/api/admin/support/tickets/:id",
+        "/api/admin/support/tickets/:id/messages"
+      ],
+      "schema": [
+        "app_support_ticket",
+        "app_support_message",
+        "app_support_attachment",
+        "app_notification",
+        "app_admin_audit_event"
+      ],
+      "verification": ["auth:smoke:dev"],
+      "gaps": ["R2 upload execution", "organization scope", "email mirroring"]
+    },
+    {
+      "id": "audit.platform",
+      "sourceIds": ["lastsaas"],
+      "owner": "saas.product-operations-lite",
+      "delivery": "baseline",
+      "status": "local-verified",
+      "routes": ["/admin"],
+      "apis": ["/api/admin/audit"],
+      "schema": ["app_admin_audit_event"],
+      "verification": [
+        "auth:smoke:dev exact-action, target, search and cursor pagination",
+        "authenticated Admin filter browser acceptance"
+      ],
+      "gaps": ["cross-module event adapters"]
+    },
+    {
+      "id": "organizations.team",
+      "sourceIds": ["lastsaas"],
+      "owner": "Better Auth Organization plugin",
+      "delivery": "materializer",
+      "status": "local-verified",
+      "routes": ["/app/team"],
+      "apis": ["/api/auth/organization/*"],
+      "schema": ["organization", "member", "invitation", "team"],
+      "verification": [
+        "optional pack smoke with member administration and lifecycle notifications",
+        "selected Product Shell desktop/mobile light/dark browser acceptance"
+      ],
+      "gaps": [
+        "product-data tenant authorization",
+        "Development release"
+      ]
+    },
+    {
+      "id": "billing.subscriptions",
+      "sourceIds": ["open-saas", "saasboard", "lastsaas"],
+      "owner": "Better Auth Stripe plugin",
+      "delivery": "materializer",
+      "status": "local-verified",
+      "routes": ["/app/billing"],
+      "apis": ["/api/auth/subscription/*", "/api/auth/stripe/webhook"],
+      "schema": ["app_subscription", "app_stripe_webhook_event"],
+      "verification": [
+        "optional pack smoke",
+        "selected Product Shell desktop/mobile light/dark browser acceptance"
+      ],
+      "gaps": [
+        "provider-backed Checkout, Portal, cancellation, and restore evidence",
+        "organization billing choice"
+      ]
+    },
+    {
+      "id": "billing.entitlements",
+      "sourceIds": ["lastsaas"],
+      "owner": "saas.entitlements",
+      "delivery": "materializer",
+      "status": "local-verified",
+      "routes": ["/app/entitlements"],
+      "apis": ["/api/entitlements/me", "/api/admin/entitlements/:userId"],
+      "schema": ["app_billing_plan", "app_billing_plan_entitlement"],
+      "verification": [
+        "required-pack denial",
+        "selected materialization lifecycle",
+        "disposable empty-database Workerd smoke",
+        "anonymous and cross-account denial",
+        "Free, active, expired, and platform Admin readback",
+        "Web and Worker type checks"
+      ],
+      "gaps": [
+        "product-specific plan and feature vocabulary",
+        "usage quota enforcement",
+        "organization billing decision",
+        "Development release"
+      ]
+    },
+    {
+      "id": "usage.metering",
+      "sourceIds": ["lastsaas"],
+      "owner": "saas.usage",
+      "delivery": "materializer",
+      "status": "local-verified",
+      "routes": ["/app/usage"],
+      "apis": ["/api/usage/me", "/api/admin/usage/:userId"],
+      "schema": ["app_usage_event", "app_usage_bucket"],
+      "verification": [
+        "required-pack denial before mutation",
+        "selected materialization lifecycle",
+        "disposable empty-database Workerd smoke",
+        "concurrent idempotent replay and exact quota enforcement",
+        "rejected-write absence, user isolation and Admin read-only access",
+        "Web and Worker type checks, builds, budgets and Wrangler dry-runs",
+        "safe removal and clean default regression"
+      ],
+      "gaps": [
+        "product-specific meter vocabulary and business-route integration",
+        "credits",
+        "organization usage decision",
+        "Development release"
+      ]
+    },
+    {
+      "id": "api.keys",
+      "sourceIds": ["lastsaas"],
+      "owner": "saas.api-keys through Better Auth API Key",
+      "delivery": "materializer",
+      "status": "local-verified",
+      "routes": ["/app/api-keys"],
+      "apis": [
+        "/api/auth/api-key/create",
+        "/api/auth/api-key/list",
+        "/api/auth/api-key/verify",
+        "/api/auth/api-key/delete"
+      ],
+      "schema": ["app_api_key"],
+      "verification": [
+        "selected materialization lifecycle",
+        "disposable empty-database Workerd smoke",
+        "create, hash, list, read-scope allow, write-scope denial, no-session, and revoke checks",
+        "Web and Worker type checks"
+      ],
+      "gaps": ["project-specific permission vocabulary", "Development release"]
+    },
+    {
+      "id": "webhooks.outgoing",
+      "sourceIds": ["lastsaas"],
+      "owner": "saas.outgoing-webhooks",
+      "delivery": "materializer",
+      "status": "local-verified",
+      "routes": ["/app/webhooks", "/admin/webhooks"],
+      "apis": [
+        "/api/webhooks",
+        "/api/webhooks/endpoints/*",
+        "/api/webhooks/test",
+        "/api/admin/webhooks"
+      ],
+      "schema": [
+        "app_webhook_endpoint",
+        "app_webhook_event",
+        "app_webhook_delivery"
+      ],
+      "verification": [
+        "selected materialization lifecycle",
+        "disposable empty-database workerd Queue smoke",
+        "signed success, retry, terminal failure, isolation, rotation, archive, and Admin readback"
+      ],
+      "gaps": [
+        "project event vocabulary",
+        "real product transaction integration",
+        "Development Queue and remote receiver verification"
+      ]
+    },
+    {
+      "id": "api.platform",
+      "sourceIds": ["lastsaas"],
+      "owner": "saas.api-platform",
+      "delivery": "materializer",
+      "status": "local-verified",
+      "routes": ["/app/developer", "/docs/guides/api-platform"],
+      "apis": ["/api/v1/me"],
+      "schema": ["app_api_key", "app_usage_event", "app_usage_bucket", "app_webhook_event", "app_webhook_delivery"],
+      "verification": [
+        "API SaaS preset dependency closure",
+        "empty-database API key, scope, idempotency, quota and owner-isolation smoke",
+        "signed outgoing completion event",
+        "selected browser/build/dry-run and clean removal"
+      ],
+      "gaps": ["copied-product resource and permission vocabulary", "Development release"]
+    },
+    {
+      "id": "onboarding.product",
+      "sourceIds": ["open-saas", "lastsaas"],
+      "owner": "saas.onboarding",
+      "delivery": "materializer",
+      "status": "local-verified",
+      "routes": ["/app/onboarding"],
+      "apis": [
+        "/api/onboarding",
+        "/api/onboarding/complete",
+        "/api/admin/onboarding"
+      ],
+      "schema": ["app_onboarding_progress"],
+      "verification": [
+        "selected materialization lifecycle",
+        "disposable empty-database workerd flow",
+        "ordered completion, resume, isolation, and Admin aggregate"
+      ],
+      "gaps": [
+        "copied-product first-success definition",
+        "browser redirect and completion evidence",
+        "Development release"
+      ]
+    },
+    {
+      "id": "search.navigation",
+      "sourceIds": ["saasboard"],
+      "owner": "saas.product-shell",
+      "delivery": "baseline",
+      "status": "implemented",
+      "routes": ["/app"],
+      "apis": [],
+      "schema": [],
+      "verification": ["web typecheck", "web build"],
+      "gaps": ["product data search remains product-owned"]
+    },
+    {
+      "id": "docs.public",
+      "sourceIds": ["open-saas"],
+      "owner": "docs",
+      "delivery": "baseline",
+      "status": "local-verified",
+      "routes": ["/docs"],
+      "apis": [],
+      "schema": [],
+      "verification": ["docs typecheck", "docs build"]
+    },
+    {
+      "id": "operations.health",
+      "sourceIds": ["lastsaas"],
+      "owner": "Starter Operations",
+      "delivery": "baseline",
+      "status": "local-verified",
+      "routes": ["/admin"],
+      "apis": ["/api/health", "/api/admin/health", "/api/admin/overview"],
+      "schema": [],
+      "verification": [
+        "default disposable empty-database workerd health flow",
+        "selected Stripe webhook ledger flow",
+        "selected Cloudflare Queue delivery ledger flow",
+        "Web and Worker type checks"
+      ],
+      "gaps": [
+        "remote provider reachability evidence",
+        "alert delivery and external observability",
+        "browser accessibility acceptance",
+        "Development release"
+      ]
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "starter-materialization/v1",
   "packs": {
-    "design.owned-neutral": {
+    "design.stylekit-adapted": {
       "version": "0.1.0",
       "files": {}
     },
@@ -24,11 +24,26 @@
   "generatedRoutesHash": "b1612aea88c167b888cb954f7e856f95d608c369634aad6380f23977ee21de7a",
   "generatedWorkerFirstRoutes": [],
   "generatedWorkerCapabilityRoutesHash": "28fba3e03c7b1388b7c7efe374c3b4fa7be6b1217d987d7c33dd32b7276f3e2c",
-  "generatedAuthServerHash": "e39b4b3744e375f8920fe9e846beba207d9ac88e356aef70833d413b998e36c1",
+  "generatedAuthServerHash": "8f3cf17d803638902c5d602e97d7de1166952bde723b4f4793fc880899718d98",
   "generatedAuthClientHash": "c3c373c7264baedfe7822e00cb4b2b622e997bb94532134d333171e1d00c5919",
-  "generatedDesignWebHash": "d11a241567a9d590d686f2af61f14d7406850eea7d52309845d12d4890f6c011",
-  "generatedDesignMarketingHash": "d11a241567a9d590d686f2af61f14d7406850eea7d52309845d12d4890f6c011",
-  "generatedDesignDocsHash": "d11a241567a9d590d686f2af61f14d7406850eea7d52309845d12d4890f6c011",
-  "generatedDesignMobileHash": "4ee7b1e48cff607fe67e46ff5ead48152e8800cd43fe483c9806e32e8f703121",
-  "generatedMarketingProjectHash": "59e06a60fd65b754c0f8f38687d3eb72ab5df5d5da4c7db89e270a832dfa454f"
+  "generatedWorkerFeaturesHash": "60db8de9b330354d9576ff1bdd69bfd8b33fe3bc8b8ffc8296f098e7fa2412cc",
+  "generatedWorkerEventsHash": "053421ce0358db27dda626bb0acfafd42e8cb3ceb8a0166a2524ed10b390d562",
+  "generatedCloudflareConfigs": {
+    "cloudflare/wrangler.development.jsonc": {
+      "queues": [],
+      "requiredSecrets": []
+    },
+    "cloudflare/wrangler.production.jsonc": {
+      "queues": [],
+      "requiredSecrets": []
+    }
+  },
+  "generatedDesignWebHash": "56f98ba8f709d53c2216b5c0834b314f6a241be0221948e8c612a2223e3266e9",
+  "generatedDesignMarketingHash": "56f98ba8f709d53c2216b5c0834b314f6a241be0221948e8c612a2223e3266e9",
+  "generatedDesignDocsHash": "56f98ba8f709d53c2216b5c0834b314f6a241be0221948e8c612a2223e3266e9",
+  "generatedStyleAdapterWebHash": "7129d136d1e7191ba6c8e3361d73a31c03c6fe77f79df23bb750c5ffcb01e525",
+  "generatedStyleAdapterMarketingHash": "305c1b96bfb82eb4ba32a0e1ad439a5811ccccdfbef3717464dc1b83fb35872d",
+  "generatedStyleAdapterDocsHash": "bae4e92b149819ae97d4d0a0b16e8ca30fe868d9972ea99adb31c54c15052d80",
+  "generatedDesignMobileHash": "704c69ceb9826cb86f9c5b75f1d6923b49b80aa5b4666738bccdc1e098be6891",
+  "generatedMarketingProjectHash": "c29010a3c85c8014945aabb87c2e0b7d45fd74b882b8ce866cb462da12a5d725"
 }

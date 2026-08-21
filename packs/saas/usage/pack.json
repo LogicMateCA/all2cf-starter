@@ -1,0 +1,45 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "saas.usage",
+  "version": "0.1.0",
+  "source": {
+    "name": "Starter usage meter",
+    "url": "https://starter.logicm8.com/docs/",
+    "revision": "0.1.0",
+    "license": "UNLICENSED",
+    "relationship": "starter-original"
+  },
+  "requiresPacks": ["saas.entitlements"],
+  "files": [
+    {
+      "source": "templates/usage-worker.ts",
+      "target": "workers/app/features/usage-worker.ts"
+    },
+    {
+      "source": "templates/usage-page.tsx",
+      "target": "apps/web/src/components/features/usage-page.tsx"
+    },
+    {
+      "source": "templates/usage-page.css",
+      "target": "apps/web/src/components/features/usage-page.css"
+    },
+    {
+      "source": "templates/0009_usage.sql",
+      "target": "db/migrations/0009_usage.sql"
+    }
+  ],
+  "dependencies": [],
+  "routes": [
+    {
+      "path": "/app/usage",
+      "module": "../components/features/usage-page",
+      "export": "UsagePage",
+      "workerFirst": false
+    }
+  ],
+  "workerFeature": {
+    "module": "../features/usage-worker",
+    "export": "usageFeature"
+  }
+}

@@ -3,6 +3,7 @@ import type { Pool } from "pg";
 import type { AuthEmail } from "../auth-config";
 
 export type SelectedAuthPluginInput = {
+  appName: string;
   baseURL: string;
   appEnvironment: string;
   database: Pool;
@@ -12,7 +13,7 @@ export type SelectedAuthPluginInput = {
   stripePricePro?: string;
 };
 
-export const selectedAuthFeatures = {"organizations":false,"stripeBilling":false} as const;
+export const selectedAuthFeatures = {"organizations":false,"stripeBilling":false,"apiKeys":false,"twoFactor":false} as const;
 
 export function createSelectedAuthPlugins(input: SelectedAuthPluginInput) {
   return [

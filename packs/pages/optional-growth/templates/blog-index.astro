@@ -1,5 +1,16 @@
 ---
+import { getCollection } from "astro:content";
 import Base from "../../layouts/Base.astro";
 import PageIntro from "../../components/PageIntro.astro";
+
+const posts = (await getCollection("blog", ({ data }) => !data.draft)).sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf());
+const visible = posts.slice(0, 6);
 ---
-<Base title="Blog"><PageIntro title="Writing that helps users do the work." description="Publish useful, reviewed product guidance. Do not generate an empty stream of search-driven filler." /><section class="content-section"><div class="empty-state"><h2>No posts published.</h2><p>Add a Markdown content collection, RSS output, author ownership, and metadata before releasing this route.</p></div></section></Base>
+<Base title="Blog">
+  <PageIntro title="Writing that helps users do the work." description="Publish reviewed guidance from a schema-validated content collection. Index, detail, metadata, pagination and RSS share one source of truth." />
+  <section class="content-section" aria-labelledby="blog-heading">
+    <h2 id="blog-heading">Latest articles</h2>
+    {visible.length ? <div class="growth-grid">{visible.map((post) => <article class="growth-card"><div class="growth-meta"><span>{post.data.sample ? "Starter sample" : post.data.author}</span><time datetime={post.data.publishedAt.toISOString()}>{post.data.publishedAt.toLocaleDateString("en", { dateStyle: "medium" })}</time></div><h3><a href={`/blog/${post.id}`}>{post.data.title}</a></h3><p>{post.data.description}</p><div class="growth-tags">{post.data.tags.map((tag) => <span>{tag}</span>)}</div></article>)}</div> : <div class="empty-state"><h2>No posts published.</h2><p>Add a reviewed Markdown entry before releasing this route.</p></div>}
+    {posts.length > 6 && <a class="collection-next" href="/blog/page/2">Older articles</a>}
+  </section>
+</Base>

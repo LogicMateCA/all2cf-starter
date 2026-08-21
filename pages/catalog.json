@@ -1,7 +1,7 @@
 {
   "$schema": "../schemas/page-catalog.schema.json",
   "schemaVersion": "starter-page-catalog/v1",
-  "catalogVersion": "0.2.0",
+  "catalogVersion": "0.4.0",
   "policy": "Routes are selected explicitly in the Project Blueprint. Public pages are static-first, authenticated product routes stay in the React application, and Docs use Starlight. Unselected optional routes are not materialized.",
   "donorAudit": {
     "name": "PowerAI Astro",
@@ -18,11 +18,61 @@
       "PowerAI login and sign-up behavior",
       "eager React islands and decorative motion without product value",
       "automatic upstream synchronization"
+    ],
+    "decisions": [
+      { "sourcePath": "src/pages/[regular].astro", "disposition": "rejected", "reason": "A generic runtime Markdown route would hide ownership, authorization, and content indexing boundaries; explicit Starter routes and Docs own this surface." },
+      { "sourcePath": "src/pages/login.astro", "disposition": "replaced", "reason": "The visual entry is retained, but Better Auth owns authentication behavior and the Starter React auth route owns implementation.", "replacement": "apps/web /login Better Auth shell" },
+      { "sourcePath": "src/pages/sign-up.astro", "disposition": "replaced", "reason": "The donor signup behavior is not copied; Better Auth owns registration, email verification, and enumeration-safe responses.", "replacement": "apps/web Better Auth registration flow" }
+    ]
+  },
+  "sourceInventory": {
+    "sourceRoot": "PowerAI Astro/src/pages",
+    "routeFiles": [
+      { "path": "src/pages/404.astro", "family": "system.not-found", "kind": "not-found", "status": "adapted", "disposition": "accepted" },
+      { "path": "src/pages/[regular].astro", "family": "content.generic-markdown", "kind": "dynamic", "status": "rejected", "disposition": "rejected" },
+      { "path": "src/pages/about.astro", "family": "company.about", "kind": "static", "status": "adapted", "disposition": "accepted" },
+      { "path": "src/pages/blog/[single].astro", "family": "growth.blog", "kind": "detail", "status": "adapted", "disposition": "accepted" },
+      { "path": "src/pages/blog/index.astro", "family": "growth.blog", "kind": "index", "status": "adapted", "disposition": "accepted" },
+      { "path": "src/pages/blog/page/[page].astro", "family": "growth.blog", "kind": "pagination", "status": "adapted", "disposition": "accepted" },
+      { "path": "src/pages/careers/[single].astro", "family": "growth.careers", "kind": "detail", "status": "adapted", "disposition": "accepted" },
+      { "path": "src/pages/careers/index.astro", "family": "growth.careers", "kind": "index", "status": "adapted", "disposition": "accepted" },
+      { "path": "src/pages/case-studies/[single].astro", "family": "growth.case-studies", "kind": "detail", "status": "adapted", "disposition": "accepted" },
+      { "path": "src/pages/case-studies/index.astro", "family": "growth.case-studies", "kind": "index", "status": "adapted", "disposition": "accepted" },
+      { "path": "src/pages/case-studies/page/[page].astro", "family": "growth.case-studies", "kind": "pagination", "status": "adapted", "disposition": "accepted" },
+      { "path": "src/pages/changelog.astro", "family": "product.changelog", "kind": "static", "status": "adapted", "disposition": "accepted" },
+      { "path": "src/pages/contact.astro", "family": "company.contact", "kind": "static", "status": "adapted", "disposition": "accepted" },
+      { "path": "src/pages/features.astro", "family": "marketing.features", "kind": "static", "status": "adapted", "disposition": "accepted" },
+      { "path": "src/pages/index.astro", "family": "marketing.home", "kind": "static", "status": "adapted", "disposition": "accepted" },
+      { "path": "src/pages/integrations/[single].astro", "family": "growth.integrations", "kind": "detail", "status": "adapted", "disposition": "accepted" },
+      { "path": "src/pages/integrations/index.astro", "family": "growth.integrations", "kind": "index", "status": "adapted", "disposition": "accepted" },
+      { "path": "src/pages/login.astro", "family": "auth.login", "kind": "auth", "status": "replaced", "disposition": "replaced" },
+      { "path": "src/pages/pricing.astro", "family": "marketing.pricing", "kind": "static", "status": "adapted", "disposition": "accepted" },
+      { "path": "src/pages/sign-up.astro", "family": "auth.sign-up", "kind": "auth", "status": "replaced", "disposition": "replaced" }
+    ],
+    "contentCollections": [
+      { "name": "blog", "sourcePath": "src/content/blog", "role": "index, detail, pagination content", "status": "adapted", "disposition": "accepted" },
+      { "name": "careers", "sourcePath": "src/content/careers", "role": "role index, role detail, application content", "status": "adapted", "disposition": "accepted" },
+      { "name": "case-studies", "sourcePath": "src/content/case-studies", "role": "case index, case detail, outcomes", "status": "adapted", "disposition": "accepted" },
+      { "name": "integrations", "sourcePath": "src/content/integrations", "role": "integration index and detail", "status": "adapted", "disposition": "accepted" },
+      { "name": "pages", "sourcePath": "src/content/pages", "role": "explicit Markdown pages only", "status": "planned", "disposition": "replaced" },
+      { "name": "sections", "sourcePath": "src/content/sections", "role": "section recipes and content fragments", "status": "donor-only", "disposition": "accepted" }
+    ],
+    "routeFamilies": [
+      { "id": "growth.blog", "baseRoute": "/blog", "packId": "page.optional-growth", "index": { "sourcePath": "src/pages/blog/index.astro", "route": "/blog", "status": "adapted", "disposition": "accepted" }, "detail": { "sourcePath": "src/pages/blog/[single].astro", "route": "/blog/:slug", "status": "adapted", "disposition": "accepted" }, "pagination": { "sourcePath": "src/pages/blog/page/[page].astro", "route": "/blog/page/:page", "status": "adapted", "disposition": "accepted" }, "contentCollection": "blog", "status": "implemented" },
+      { "id": "growth.case-studies", "baseRoute": "/case-studies", "packId": "page.optional-growth", "index": { "sourcePath": "src/pages/case-studies/index.astro", "route": "/case-studies", "status": "adapted", "disposition": "accepted" }, "detail": { "sourcePath": "src/pages/case-studies/[single].astro", "route": "/case-studies/:slug", "status": "adapted", "disposition": "accepted" }, "pagination": { "sourcePath": "src/pages/case-studies/page/[page].astro", "route": "/case-studies/page/:page", "status": "adapted", "disposition": "accepted" }, "contentCollection": "case-studies", "status": "implemented" },
+      { "id": "growth.careers", "baseRoute": "/careers", "packId": "page.optional-growth", "index": { "sourcePath": "src/pages/careers/index.astro", "route": "/careers", "status": "adapted", "disposition": "accepted" }, "detail": { "sourcePath": "src/pages/careers/[single].astro", "route": "/careers/:slug", "status": "adapted", "disposition": "accepted" }, "pagination": null, "contentCollection": "careers", "status": "implemented" },
+      { "id": "growth.integrations", "baseRoute": "/integrations", "packId": "page.optional-growth", "index": { "sourcePath": "src/pages/integrations/index.astro", "route": "/integrations", "status": "adapted", "disposition": "accepted" }, "detail": { "sourcePath": "src/pages/integrations/[single].astro", "route": "/integrations/:slug", "status": "adapted", "disposition": "accepted" }, "pagination": null, "contentCollection": "integrations", "status": "implemented" },
+      { "id": "content.generic-markdown", "baseRoute": "/:slug", "packId": "page.core-product-site", "index": null, "detail": { "sourcePath": "src/pages/[regular].astro", "route": "/:slug", "status": "rejected", "disposition": "rejected" }, "pagination": null, "contentCollection": "pages", "status": "planned" }
+    ],
+    "donorDecisions": [
+      { "sourcePath": "src/pages/[regular].astro", "disposition": "rejected", "reason": "Use explicit owned routes or Starlight; do not expose an unbounded generic route." },
+      { "sourcePath": "src/pages/login.astro", "disposition": "replaced", "reason": "Use Better Auth behavior with the selected StyleKit visual adapter.", "replacement": "apps/web /login" },
+      { "sourcePath": "src/pages/sign-up.astro", "disposition": "replaced", "reason": "Use Better Auth registration and mandatory verification.", "replacement": "Better Auth registration flow" }
     ]
   },
   "pages": [
     {
-      "id": "marketing.home",
+    "id": "marketing.home",
       "packId": "page.core-product-site",
       "name": "Home",
       "route": "/",
@@ -30,13 +80,13 @@
       "renderer": "astro-static",
       "required": true,
       "defaultSelected": true,
-      "status": "implemented",
+    "status": "local-verified",
       "sourceStrategy": "powerai-structure-adapted",
       "sections": ["navigation", "hero", "trust", "value", "proof", "call-to-action", "footer"],
       "acceptance": ["clear product promise", "single primary action", "static HTML without required client JavaScript"]
     },
     {
-      "id": "marketing.features",
+    "id": "marketing.features",
       "packId": "page.core-product-site",
       "name": "Features",
       "route": "/features",
@@ -44,13 +94,13 @@
       "renderer": "astro-static",
       "required": false,
       "defaultSelected": true,
-      "status": "implemented",
+    "status": "local-verified",
       "sourceStrategy": "powerai-structure-adapted",
       "sections": ["page-intro", "feature-groups", "proof", "faq", "call-to-action"],
       "acceptance": ["capabilities grouped by user outcome", "no invented product claims"]
     },
     {
-      "id": "marketing.pricing",
+    "id": "marketing.pricing",
       "packId": "page.core-product-site",
       "name": "Pricing",
       "route": "/pricing",
@@ -58,13 +108,13 @@
       "renderer": "astro-static",
       "required": false,
       "defaultSelected": true,
-      "status": "implemented",
+    "status": "local-verified",
       "sourceStrategy": "powerai-structure-adapted",
       "sections": ["page-intro", "plan-comparison", "billing-faq", "call-to-action"],
       "acceptance": ["works without Stripe selected", "billing actions become live only with billing capability"]
     },
     {
-      "id": "company.about",
+    "id": "company.about",
       "packId": "page.core-product-site",
       "name": "About",
       "route": "/about",
@@ -72,13 +122,13 @@
       "renderer": "astro-static",
       "required": false,
       "defaultSelected": true,
-      "status": "implemented",
+    "status": "local-verified",
       "sourceStrategy": "powerai-structure-adapted",
       "sections": ["page-intro", "mission", "principles", "team-or-founder", "call-to-action"],
       "acceptance": ["content comes from project brief", "team section may be omitted"]
     },
     {
-      "id": "company.contact",
+    "id": "company.contact",
       "packId": "page.core-product-site",
       "name": "Contact",
       "route": "/contact",
@@ -86,13 +136,13 @@
       "renderer": "astro-static",
       "required": false,
       "defaultSelected": true,
-      "status": "implemented",
+    "status": "local-verified",
       "sourceStrategy": "powerai-structure-adapted",
       "sections": ["page-intro", "contact-options", "validated-form", "response-expectation"],
       "acceptance": ["server-owned submission", "spam and rate-limit contract before release"]
     },
     {
-      "id": "product.changelog",
+    "id": "product.changelog",
       "packId": "page.core-product-site",
       "name": "Changelog",
       "route": "/changelog",
@@ -100,13 +150,13 @@
       "renderer": "astro-static",
       "required": false,
       "defaultSelected": true,
-      "status": "implemented",
+    "status": "local-verified",
       "sourceStrategy": "powerai-structure-adapted",
       "sections": ["page-intro", "version-feed", "release-links"],
       "acceptance": ["Markdown-backed", "dated entries", "no dependency on the internal Change Spec format"]
     },
     {
-      "id": "legal.privacy",
+    "id": "legal.privacy",
       "packId": "page.core-product-site",
       "name": "Privacy",
       "route": "/privacy",
@@ -114,13 +164,13 @@
       "renderer": "astro-static",
       "required": true,
       "defaultSelected": true,
-      "status": "implemented",
+    "status": "local-verified",
       "sourceStrategy": "starter-original",
       "sections": ["policy-content", "effective-date", "contact"],
       "acceptance": ["project-specific placeholders are explicit", "legal review is not implied"]
     },
     {
-      "id": "legal.terms",
+    "id": "legal.terms",
       "packId": "page.core-product-site",
       "name": "Terms",
       "route": "/terms",
@@ -128,7 +178,7 @@
       "renderer": "astro-static",
       "required": true,
       "defaultSelected": true,
-      "status": "implemented",
+    "status": "local-verified",
       "sourceStrategy": "starter-original",
       "sections": ["terms-content", "effective-date", "contact"],
       "acceptance": ["project-specific placeholders are explicit", "legal review is not implied"]
@@ -162,6 +212,20 @@
       "acceptance": ["authenticated route", "theme and locale persist to the user profile"]
     },
     {
+      "id": "product.notifications",
+      "packId": "saas.notifications-core",
+      "name": "Notifications",
+      "route": "/app/notifications",
+      "group": "product",
+      "renderer": "react-app",
+      "required": true,
+      "defaultSelected": true,
+      "status": "local-verified",
+      "sourceStrategy": "starter-original",
+      "sections": ["unread-summary", "notification-list", "read-actions", "loading-empty-error-states"],
+      "acceptance": ["authenticated route", "current-user isolation", "same-origin deep links", "idempotent read mutations"]
+    },
+    {
       "id": "docs.public",
       "packId": "page.core-product-site",
       "name": "Public docs",
@@ -176,7 +240,7 @@
       "acceptance": ["Markdown source", "searchable", "separate from internal /dp"]
     },
     {
-      "id": "system.not-found",
+    "id": "system.not-found",
       "packId": "page.core-product-site",
       "name": "Not found",
       "route": "/404",
@@ -184,7 +248,7 @@
       "renderer": "astro-static",
       "required": true,
       "defaultSelected": true,
-      "status": "implemented",
+    "status": "local-verified",
       "sourceStrategy": "powerai-structure-adapted",
       "sections": ["error-message", "recovery-actions"],
       "acceptance": ["real 404 response", "route back to a useful product surface"]
@@ -218,7 +282,7 @@
       "acceptance": ["Better Auth platform admin role required", "organization roles do not grant access", "privileged support mutations are audited"]
     },
     {
-      "id": "growth.blog",
+    "id": "growth.blog",
       "packId": "page.optional-growth",
       "name": "Blog",
       "route": "/blog",
@@ -226,13 +290,13 @@
       "renderer": "astro-static",
       "required": false,
       "defaultSelected": false,
-      "status": "implemented",
+    "status": "local-verified",
       "sourceStrategy": "powerai-structure-adapted",
       "sections": ["post-index", "post-detail", "pagination"],
       "acceptance": ["content collection", "RSS and metadata before release"]
     },
     {
-      "id": "growth.case-studies",
+    "id": "growth.case-studies",
       "packId": "page.optional-growth",
       "name": "Case studies",
       "route": "/case-studies",
@@ -240,13 +304,13 @@
       "renderer": "astro-static",
       "required": false,
       "defaultSelected": false,
-      "status": "implemented",
+    "status": "local-verified",
       "sourceStrategy": "powerai-structure-adapted",
       "sections": ["case-index", "case-detail", "outcomes", "call-to-action"],
       "acceptance": ["content collection", "evidence-backed outcomes"]
     },
     {
-      "id": "growth.integrations",
+    "id": "growth.integrations",
       "packId": "page.optional-growth",
       "name": "Integrations",
       "route": "/integrations",
@@ -254,13 +318,13 @@
       "renderer": "astro-static",
       "required": false,
       "defaultSelected": false,
-      "status": "implemented",
+    "status": "local-verified",
       "sourceStrategy": "powerai-structure-adapted",
       "sections": ["integration-index", "integration-detail", "availability-state"],
       "acceptance": ["only real integrations are published", "content collection"]
     },
     {
-      "id": "growth.careers",
+    "id": "growth.careers",
       "packId": "page.optional-growth",
       "name": "Careers",
       "route": "/careers",
@@ -268,7 +332,7 @@
       "renderer": "astro-static",
       "required": false,
       "defaultSelected": false,
-      "status": "implemented",
+    "status": "local-verified",
       "sourceStrategy": "powerai-structure-adapted",
       "sections": ["role-index", "role-detail", "application-path"],
       "acceptance": ["content collection", "application destination is configured"]

@@ -2,7 +2,7 @@
   "$schema": "../../../schemas/starter-pack.schema.json",
   "schemaVersion": "starter-pack/v1",
   "id": "saas.billing-stripe",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "source": {
     "name": "Better Auth Stripe",
     "url": "https://better-auth.com/docs/plugins/stripe",

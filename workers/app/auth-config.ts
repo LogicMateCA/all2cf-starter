@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { expo } from "@better-auth/expo";
+import { createAuthMiddleware, isAPIError } from "better-auth/api";
 import { admin } from "better-auth/plugins";
 import type { Pool } from "pg";
 import { createSelectedAuthPlugins } from "./generated/auth-plugins";
@@ -30,16 +31,31 @@ type StarterAuthInput = {
 };
 
 function escapeHtml(value: string) {
-  return value.replace(/[&<>"']/gu, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character] || character);
+  return value.replace(
+    /[&<>"']/gu,
+    (character) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        character
+      ] || character,
+  );
 }
 
-function authEmailHtml(title: string, message: string, action: string, url: string) {
+function authEmailHtml(
+  title: string,
+  message: string,
+  action: string,
+  url: string,
+) {
   return `<!doctype html><html><body style="margin:0;background:#f4f7fb;font-family:Arial,sans-serif;color:#111827"><div style="max-width:560px;margin:40px auto;background:#fff;border:1px solid #dbe3ee;border-radius:16px;padding:32px"><h1 style="font-size:24px;margin:0 0 14px">${escapeHtml(title)}</h1><p style="line-height:1.65;color:#475569">${escapeHtml(message)}</p><a href="${escapeHtml(url)}" style="display:inline-block;margin-top:10px;padding:12px 18px;border-radius:9px;background:#172033;color:#fff;text-decoration:none;font-weight:700">${escapeHtml(action)}</a></div></body></html>`;
 }
 
 export function createStarterAuth(input: StarterAuthInput) {
   const secure = input.baseURL.startsWith("https://");
-  const cookiePrefix = input.appName.toLowerCase().replace(/[^a-z0-9]+/gu, "-").replace(/^-|-$/gu, "") || "starter";
+  const cookiePrefix =
+    input.appName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/gu, "-")
+      .replace(/^-|-$/gu, "") || "starter";
 
   return betterAuth({
     appName: input.appName,
@@ -47,36 +63,166 @@ export function createStarterAuth(input: StarterAuthInput) {
     basePath: "/api/auth",
     secret: input.secret,
     trustedOrigins: [input.baseURL, ...input.mobileSchemes],
-    plugins: [expo(), admin({
-      defaultRole: "user",
-      adminRoles: ["admin"],
-      impersonationSessionDuration: 60 * 60,
-      schema: {
-        user: { fields: { role: "role", banned: "banned", banReason: "ban_reason", banExpires: "ban_expires" } },
-        session: { fields: { impersonatedBy: "impersonated_by" } },
-      },
-    }), ...createSelectedAuthPlugins({
-      baseURL: input.baseURL,
-      appEnvironment: input.appEnvironment,
-      database: input.database,
-      enqueueEmail: input.enqueueEmail,
-      stripeSecretKey: input.stripeSecretKey,
-      stripeWebhookSecret: input.stripeWebhookSecret,
-      stripePricePro: input.stripePricePro,
-    })],
+    hooks: {
+      after: createAuthMiddleware(async (context) => {
+        const actions: Record<string, string> = {
+          "/admin/set-role": "admin.user.role_set",
+          "/admin/ban-user": "admin.user.banned",
+          "/admin/unban-user": "admin.user.unbanned",
+          "/admin/revoke-user-sessions": "admin.user.sessions_revoked",
+          "/admin/impersonate-user": "admin.user.impersonated",
+          "/admin/stop-impersonating": "admin.impersonation.stopped",
+          "/two-factor/enable": "security.two_factor.setup_started",
+          "/two-factor/generate-backup-codes":
+            "security.two_factor.backup_codes_rotated",
+          "/two-factor/disable": "security.two_factor.disabled",
+        };
+        const action = actions[context.path];
+        if (!action || isAPIError(context.context.returned)) return;
+        const body = (context.body || {}) as Record<string, unknown>;
+        const activeSession = context.context.session;
+        const actorId =
+          context.path === "/admin/stop-impersonating"
+            ? String(activeSession?.session.impersonatedBy || "")
+            : String(activeSession?.user.id || "");
+        const targetId = String(body.userId || activeSession?.user.id || "");
+        if (!actorId || !targetId) return;
+        const metadata =
+          context.path === "/admin/set-role"
+            ? { role: body.role }
+            : context.path === "/admin/ban-user"
+              ? {
+                  banReason: body.banReason || null,
+                  banExpiresIn: body.banExpiresIn || null,
+                }
+              : {};
+        await input.database.query(
+          `insert into app_admin_audit_event
+           (id, actor_user_id, action, target_type, target_id, metadata)
+           values ($1, $2, $3, 'user', $4, $5::jsonb)`,
+          [
+            crypto.randomUUID(),
+            actorId,
+            action,
+            targetId,
+            JSON.stringify(metadata),
+          ],
+        );
+        const securityNotifications: Record<
+          string,
+          { title: string; body: string }
+        > = {
+          "admin.user.role_set": {
+            title: "Account role changed",
+            body: "A platform administrator changed your account role.",
+          },
+          "admin.user.banned": {
+            title: "Account access suspended",
+            body: "A platform administrator suspended access to your account.",
+          },
+          "admin.user.unbanned": {
+            title: "Account access restored",
+            body: "A platform administrator restored access to your account.",
+          },
+          "admin.user.sessions_revoked": {
+            title: "Sessions revoked",
+            body: "A platform administrator signed your account out on other devices.",
+          },
+          "admin.user.impersonated": {
+            title: "Support access started",
+            body: "A platform administrator started a temporary audited support session for your account.",
+          },
+          "security.two_factor.setup_started": {
+            title: "Two-factor setup started",
+            body: "Authenticator enrollment started for your account.",
+          },
+          "security.two_factor.backup_codes_rotated": {
+            title: "Recovery codes replaced",
+            body: "New two-factor recovery codes were generated for your account.",
+          },
+          "security.two_factor.disabled": {
+            title: "Two-factor authentication disabled",
+            body: "Two-factor authentication was disabled for your account.",
+          },
+        };
+        const notification = securityNotifications[action];
+        if (notification)
+          await input.database.query(
+            `insert into app_notification
+             (id, recipient_user_id, category, title, body, deep_link)
+             values ($1, $2, 'security', $3, $4, '/app/settings')`,
+            [
+              crypto.randomUUID(),
+              targetId,
+              notification.title,
+              notification.body,
+            ],
+          );
+      }),
+    },
+    plugins: [
+      expo(),
+      admin({
+        defaultRole: "user",
+        adminRoles: ["admin"],
+        impersonationSessionDuration: 60 * 60,
+        schema: {
+          user: {
+            fields: {
+              role: "role",
+              banned: "banned",
+              banReason: "ban_reason",
+              banExpires: "ban_expires",
+            },
+          },
+          session: { fields: { impersonatedBy: "impersonated_by" } },
+        },
+      }),
+      ...createSelectedAuthPlugins({
+        appName: input.appName,
+        baseURL: input.baseURL,
+        appEnvironment: input.appEnvironment,
+        database: input.database,
+        enqueueEmail: input.enqueueEmail,
+        stripeSecretKey: input.stripeSecretKey,
+        stripeWebhookSecret: input.stripeWebhookSecret,
+        stripePricePro: input.stripePricePro,
+      }),
+    ],
     trustHost: false,
     database: input.database,
     user: {
       modelName: "app_user",
-      fields: { emailVerified: "email_verified", createdAt: "created_at", updatedAt: "updated_at" },
+      fields: {
+        emailVerified: "email_verified",
+        createdAt: "created_at",
+        updatedAt: "updated_at",
+      },
       additionalFields: {
-        theme: { type: "string", required: false, defaultValue: "system", fieldName: "theme" },
-        locale: { type: "string", required: false, defaultValue: "en", fieldName: "locale" },
+        theme: {
+          type: "string",
+          required: false,
+          defaultValue: "system",
+          fieldName: "theme",
+        },
+        locale: {
+          type: "string",
+          required: false,
+          defaultValue: "en",
+          fieldName: "locale",
+        },
       },
     },
     session: {
       modelName: "app_session",
-      fields: { expiresAt: "expires_at", createdAt: "created_at", updatedAt: "updated_at", ipAddress: "ip_address", userAgent: "user_agent", userId: "user_id" },
+      fields: {
+        expiresAt: "expires_at",
+        createdAt: "created_at",
+        updatedAt: "updated_at",
+        ipAddress: "ip_address",
+        userAgent: "user_agent",
+        userId: "user_id",
+      },
       expiresIn: 60 * 60 * 24 * 30,
       updateAge: 60 * 60 * 24,
       cookieCache: { enabled: false },
@@ -99,9 +245,19 @@ export function createStarterAuth(input: StarterAuthInput) {
       storeStateStrategy: "cookie",
       accountLinking: { enabled: true },
     },
-    verification: { modelName: "app_verification", fields: { expiresAt: "expires_at", createdAt: "created_at", updatedAt: "updated_at" } },
+    verification: {
+      modelName: "app_verification",
+      fields: {
+        expiresAt: "expires_at",
+        createdAt: "created_at",
+        updatedAt: "updated_at",
+      },
+    },
     socialProviders: {
-      google: { clientId: input.googleClientId, clientSecret: input.googleClientSecret },
+      google: {
+        clientId: input.googleClientId,
+        clientSecret: input.googleClientSecret,
+      },
     },
     emailAndPassword: {
       enabled: true,
@@ -120,7 +276,19 @@ export function createStarterAuth(input: StarterAuthInput) {
         id,
       }),
       async sendResetPassword({ user, url }) {
-        await input.enqueueEmail({ kind: "password-reset", to: user.email, subject: `Reset your ${input.appName} password`, text: `Reset your password: ${url}`, html: authEmailHtml("Reset your password", `Use this secure link to choose a new ${input.appName} password.`, "Reset password", url), url });
+        await input.enqueueEmail({
+          kind: "password-reset",
+          to: user.email,
+          subject: `Reset your ${input.appName} password`,
+          text: `Reset your password: ${url}`,
+          html: authEmailHtml(
+            "Reset your password",
+            `Use this secure link to choose a new ${input.appName} password.`,
+            "Reset password",
+            url,
+          ),
+          url,
+        });
       },
     },
     emailVerification: {
@@ -128,7 +296,19 @@ export function createStarterAuth(input: StarterAuthInput) {
       sendOnSignIn: input.requireEmailVerification,
       autoSignInAfterVerification: false,
       async sendVerificationEmail({ user, url }) {
-        await input.enqueueEmail({ kind: "email-verification", to: user.email, subject: `Verify your ${input.appName} email`, text: `Verify your email: ${url}`, html: authEmailHtml("Verify your email", `Confirm this address to finish creating your ${input.appName} account.`, "Verify email", url), url });
+        await input.enqueueEmail({
+          kind: "email-verification",
+          to: user.email,
+          subject: `Verify your ${input.appName} email`,
+          text: `Verify your email: ${url}`,
+          html: authEmailHtml(
+            "Verify your email",
+            `Confirm this address to finish creating your ${input.appName} account.`,
+            "Verify email",
+            url,
+          ),
+          url,
+        });
       },
     },
     rateLimit: {
@@ -151,11 +331,23 @@ export function createStarterAuth(input: StarterAuthInput) {
       cookies: {
         state: {
           name: `${cookiePrefix}.state`,
-          attributes: { httpOnly: true, sameSite: "lax", path: "/", secure, maxAge: 600 },
+          attributes: {
+            httpOnly: true,
+            sameSite: "lax",
+            path: "/",
+            secure,
+            maxAge: 600,
+          },
         },
         pkce_code_verifier: {
           name: `${cookiePrefix}.pkce`,
-          attributes: { httpOnly: true, sameSite: "lax", path: "/", secure, maxAge: 600 },
+          attributes: {
+            httpOnly: true,
+            sameSite: "lax",
+            path: "/",
+            secure,
+            maxAge: 600,
+          },
         },
       },
     },

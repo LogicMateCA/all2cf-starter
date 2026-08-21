@@ -1,5 +1,7 @@
 ---
+import { getCollection } from "astro:content";
 import Base from "../../layouts/Base.astro";
 import PageIntro from "../../components/PageIntro.astro";
+const integrations = (await getCollection("integrations", ({ data }) => !data.draft)).sort((a, b) => a.data.title.localeCompare(b.data.title));
 ---
-<Base title="Integrations"><PageIntro title="Only real connections are listed." description="Availability, setup requirements, and operational ownership must match the assembled product." /><section class="content-section"><div class="empty-state"><h2>No integrations published.</h2><p>Select and verify a real provider or capability before adding its public integration page.</p></div></section></Base>
+<Base title="Integrations"><PageIntro title="Only real connections are listed." description="Availability, setup requirements and operational ownership must match executable product capability." /><section class="content-section" aria-labelledby="integrations-heading"><h2 id="integrations-heading">Integration catalog</h2>{integrations.length ? <div class="growth-grid">{integrations.map((integration) => <article class="growth-card"><div class="growth-meta"><span>{integration.data.category}</span><span class={`availability ${integration.data.availability}`}>{integration.data.availability}</span></div><h3><a href={`/integrations/${integration.id}`}>{integration.data.title}</a></h3><p>{integration.data.summary}</p></article>)}</div> : <div class="empty-state"><h2>No integrations published.</h2><p>Select and verify a real provider before adding its public page.</p></div>}</section></Base>

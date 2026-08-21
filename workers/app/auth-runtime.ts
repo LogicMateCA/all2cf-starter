@@ -25,6 +25,8 @@ export type AuthRuntimeEnv = {
   RESEND_FROM?: string;
   CLOUDFLARE_EMAIL_FROM?: string;
   EMAIL?: Env extends { EMAIL: infer EmailBinding } ? EmailBinding : never;
+  OUTGOING_WEBHOOK_QUEUE?: Queue<unknown>;
+  WEBHOOK_SIGNING_KEY?: string;
 };
 
 type RequestExecutionContext = Pick<ExecutionContext, "waitUntil">;

@@ -15,8 +15,14 @@ export const project = {
     "android"
   ],
   "designProfile": {
-    "id": "owned-neutral",
-    "version": "0.1.0"
+    "id": "stylekit-neumorphism",
+    "version": "2.2.0"
+  },
+  "stylekit": {
+    "slug": "neumorphism",
+    "sourceRevision": "29141b684d5abb967558eb8083fbae91dbbc51b8",
+    "snapshotVersion": "2.2.0",
+    "snapshotHash": "98aadbb918fd0c28cb301bb11a6385d55b5a8d5f55f84068783704efc8300978"
   },
   "pages": [
     {
@@ -70,6 +76,11 @@ export const project = {
       "renderer": "react-app"
     },
     {
+      "id": "product.notifications",
+      "route": "/app/notifications",
+      "renderer": "react-app"
+    },
+    {
       "id": "docs.public",
       "route": "/docs",
       "renderer": "starlight"
@@ -91,7 +102,7 @@ export const project = {
     }
   ],
   "publicPageCount": 9,
-  "selectedPackCount": 4,
+  "selectedPackCount": 6,
   "billingSelected": false
 } as const;
 const selectedPageIds = new Set<string>(project.pages.map(({ id }) => id));
