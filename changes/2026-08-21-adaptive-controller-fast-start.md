@@ -1,7 +1,7 @@
 ---
 id: adaptive-controller-fast-start
 title: Adaptive Sol control and fast-by-default Web startup
-status: local-verified
+status: development-verified
 affectedModules: [assembler, auth, docs, marketing, product-shell]
 docsImpact: [AGENTS.md, PROJECT.md, RELEASE.md, PERFORMANCE.md, starter.manifest.json, .ai/manifest.json, .ai/orchestration.yaml, features/docs/MODULE.md, /dp]
 ---
@@ -36,4 +36,6 @@ The full repository verification passed. Public merged-Worker acceptance passed 
 
 # Release
 
-Implementation is local-verified until the optimized artifact is committed and explicitly released to Development. Production remains unchanged.
+Functional commit `9a27313db7bba33e6a52b2d9ee17c676b9b8c85c` and artifact `acfa665b2c090a6beecc3d4f34dead9a6971337d29fb70dfacd24c092ff345cd` are Development verified on Worker `starter-dev` and `dev.logicm8.com`. Cloudflare deployment `2b3ea693-04b2-49bf-ab23-7ddb539b9546` serves version `54277d80-236e-4bdd-9cb2-bdcdf32eaf1e` at 100% traffic. Official MCP read-back confirmed the exact commit annotation, custom domain, required secrets, Development variables, Hyperdrive `d665e59cdc9741c1898ba7c472c22abf`, database `starterdev`, and user `starterdev`. Live `/dp` exposed the exact clean commit, compact-index preload, and generated snapshot.
+
+Post-release Lighthouse measured Login Mobile score 93 with `2.78s` LCP, `/dp` Mobile score 91 with `3.08s` LCP and zero CLS, and `/dp` Desktop score 99 with `0.69s` LCP and `0.048` CLS. These network-bound Development results are intentionally recorded separately from the faster local production-build measurements. Production remains unchanged.
