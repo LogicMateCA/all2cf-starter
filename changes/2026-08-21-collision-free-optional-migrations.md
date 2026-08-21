@@ -1,7 +1,7 @@
 ---
 id: collision-free-optional-migrations
 title: Give optional SaaS migrations a collision-free sequence
-status: local-verified
+status: development-verified
 affectedModules: [assembler, organizations, billing, api-keys, account-security, entitlements, usage, webhooks, onboarding, api-platform]
 docsImpact: [features/assembler/MODULE.md, /dp]
 ---
@@ -24,4 +24,4 @@ Optional SaaS packs can be materialized into a Starter whose baseline migrations
 
 # Release
 
-The collision-free sequence is applied and verified on Development `starterdev`. Production database structure remains unchanged and no Worker was deployed.
+The collision-free sequence is applied on Development `starterdev`, has no pending migration, and serves the selected modules from the Development Worker. Production database structure remains unchanged.

@@ -1,7 +1,7 @@
 ---
 id: materialize-saved-saas-blueprint
 title: Materialize the saved SaaS and Growth project plan
-status: local-verified
+status: development-verified
 affectedModules: [assembler, marketing, organizations, billing, entitlements, usage, webhooks, onboarding, docs]
 docsImpact: [starter.blueprint.json, .starter/materialization.json, /dp]
 ---
@@ -27,4 +27,4 @@ The owner's saved Glassmorphism SaaS plan is no longer selection-only: Growth pa
 
 # Release
 
-Local verification only. No Worker was deployed and no Production database migration was applied.
+Development release passed exact-commit route, database identity, required-secret, Queue binding and remote authentication checks. The functional candidate `15feab177e5422b85cddfe18d6b5f47fb5324916` was the first verified deployment; this evidence-only follow-up keeps the canonical lifecycle current. No Production database migration or Worker deployment was performed.

@@ -1,7 +1,7 @@
 ---
 id: 2026-08-20-optional-auth-saas-packs
 title: Optional Better Auth Organizations and Stripe Billing packs
-status: implemented
+status: development-verified
 affectedModules: [assembler, auth, organizations, billing, web, release, docs]
 docsImpact: [AGENTS.md, PROJECT.md, ARCHITECTURE.md, PERFORMANCE.md, features/assembler/MODULE.md, features/auth/MODULE.md, features/organizations/MODULE.md, features/billing/MODULE.md, features/admin/MODULE.md, starter.manifest.json, catalog/catalog.json, cloudflare/bindings.contract.json, /setup, /dp, /docs]
 ---
@@ -33,4 +33,4 @@ Deselecting either pack removes only receipt-matching code, SQL, routes, plugin 
 - Combined Organization plus Stripe selection passed the same disposable empty-database workerd flow.
 - The selected Organization Web build passed with the complete management route at 2.36 KB gzip and the shared Product Shell at 5.87 KB gzip. Its authenticated browser matrix passed 32 desktop/mobile, light/dark cases and 52 screenshots with zero failures at `test-results/browser-acceptance/2026-08-21T04-19-50-730Z/authenticated`. Earlier combined Organization and Billing dry runs remain valid for their older pack slice; current dry-run evidence is rechecked by repository verification.
 - Deselecting all optional SaaS packs removed their application files, SQL migrations, routes, Stripe packages, and auth registry imports; the materialization drift check returned clean.
-- Real Stripe Test Checkout, Customer Portal, subscription create/update/delete/cancel/restore, real-mailbox remote invitation delivery/acceptance, Development release, and Production release remain unverified. No deployment was performed.
+- Development now serves the selected Organization and Stripe pack with required secrets, SQL, routes and remote authentication smoke evidence. Real Stripe Test Checkout, Customer Portal, subscription create/update/delete/cancel/restore, real-mailbox remote invitation delivery/acceptance, and Production release remain unverified.

@@ -31,4 +31,4 @@ Every Setup step persists before navigation, Provider credentials can be safely 
 
 # Release
 
-Implementation is not released. The user's saved Glassmorphism, Growth, hybrid tenancy/charging and selected SaaS Blueprint changes remain preserved and are not silently materialized.
+The supporting Web/Auth/Expo Provider and typography changes are released to Development. `/setup` remains intentionally local-only; its save workflow is locally browser-verified and absent from deployed Workers. Production remains unchanged.

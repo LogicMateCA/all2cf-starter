@@ -1,7 +1,7 @@
 ---
 id: development-scoped-provisioning
 title: Keep Development provisioning out of Production
-status: local-verified
+status: development-verified
 affectedModules: [assembler, release]
 docsImpact: [features/assembler/MODULE.md, skills/cloudflare-release/SKILL.md, package.json, /dp]
 ---
@@ -25,4 +25,4 @@ A Development release can reconcile newly selected Development infrastructure wi
 
 # Release
 
-Development-only provisioning created Queue `starter-dev-outgoing-webhooks` as resource `e96db5dd676c4229b84474091dbb00c1`. Official Cloudflare MCP read-back confirmed the Production deployment stayed at `d74877e3-87c9-4d05-a592-7d7a64c1017e` and no `starter-outgoing-webhooks` Production Queue was created. Development Worker release remains pending.
+Development-only provisioning created Queue `starter-dev-outgoing-webhooks` as resource `e96db5dd676c4229b84474091dbb00c1`. Official Cloudflare MCP read-back confirmed one `starter-dev` producer and consumer, while the Production deployment stayed at `d74877e3-87c9-4d05-a592-7d7a64c1017e` and no `starter-outgoing-webhooks` Production Queue was created.

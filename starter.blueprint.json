@@ -121,7 +121,7 @@
           "selected": true,
           "materialized": true,
           "localVerified": true,
-          "developmentVerified": false,
+          "developmentVerified": true,
           "productionReleased": false
         },
         "note": "Optional Astro routes are generated only when their individual Page Catalog entries are selected."
@@ -186,7 +186,7 @@
           "selected": true,
           "materialized": true,
           "localVerified": true,
-          "developmentVerified": false,
+          "developmentVerified": true,
           "productionReleased": false
         }
       },
@@ -196,7 +196,7 @@
           "selected": true,
           "materialized": true,
           "localVerified": true,
-          "developmentVerified": false,
+          "developmentVerified": true,
           "productionReleased": false
         }
       },
@@ -206,7 +206,7 @@
           "selected": true,
           "materialized": true,
           "localVerified": true,
-          "developmentVerified": false,
+          "developmentVerified": true,
           "productionReleased": false
         }
       },
@@ -216,7 +216,7 @@
           "selected": true,
           "materialized": true,
           "localVerified": true,
-          "developmentVerified": false,
+          "developmentVerified": true,
           "productionReleased": false
         }
       },
@@ -246,7 +246,7 @@
           "selected": true,
           "materialized": true,
           "localVerified": true,
-          "developmentVerified": false,
+          "developmentVerified": true,
           "productionReleased": false
         }
       },
@@ -256,7 +256,7 @@
           "selected": true,
           "materialized": true,
           "localVerified": true,
-          "developmentVerified": false,
+          "developmentVerified": true,
           "productionReleased": false
         }
       }

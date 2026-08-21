@@ -31,4 +31,4 @@ docsImpact: [PROJECT.md, ARCHITECTURE.md, features/assembler/MODULE.md, features
 
 # Release
 
-Implementation is not released. Current Development and Production Workers remain on their previously released native PostgreSQL/Hyperdrive configuration.
+The Provider-aware runtime is released to Development while the live selection remains native PostgreSQL/Hyperdrive. CFPG command capture remains local Setup behavior, and a real CFPG query/auth release is still unverified. Production remains unchanged.
