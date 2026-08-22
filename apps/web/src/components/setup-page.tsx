@@ -310,7 +310,7 @@ type SetupPayload = {
     categories: ProviderCatalogCategory[];
   };
   providerCredentials: Record<
-    "google" | "github" | "apple" | "cfsend" | "resend" | "cloudflare-email-service" | "stripe" | "s3-compatible" | "turnstile" | "expo-push" | "twilio-sms" | "cloudflare-stream",
+    "google" | "github" | "apple" | "cfsend" | "resend" | "cloudflare-email-service" | "stripe" | "s3-compatible" | "turnstile" | "expo-push" | "twilio-sms" | "cloudflare-stream" | "cloudflare-release" | "github-release" | "expo-eas" | "apple-app-store" | "google-play",
     {
       configured: boolean;
       source: "project" | "shared" | "mixed" | "missing";
@@ -324,6 +324,7 @@ type ProviderTestState = {
   provider?: string;
   message?: string;
 };
+type ReleaseProvider = "cloudflare-release" | "github-release" | "expo-eas" | "apple-app-store" | "google-play";
 
 const providerSecretFields = {
   google: [
@@ -386,6 +387,28 @@ const providerSecretFields = {
     { name: "STREAM_WEBHOOK_SECRET", label: "Development webhook secret", secret: true },
     { name: "STARTER_PRODUCTION_CLOUDFLARE_STREAM_TOKEN", label: "Production Stream token", secret: true },
     { name: "STARTER_PRODUCTION_STREAM_WEBHOOK_SECRET", label: "Production webhook secret", secret: true },
+  ],
+  "cloudflare-release": [
+    { name: "CLOUDFLARE_API_TOKEN", label: "Account API token", secret: true },
+    { name: "CLOUDFLARE_ACCOUNT_ID", label: "Account ID", secret: false },
+  ],
+  "github-release": [
+    { name: "GITHUB_TOKEN", label: "Fine-grained access token", secret: true },
+  ],
+  "expo-eas": [
+    { name: "EXPO_TOKEN", label: "Expo access token", secret: true },
+    { name: "EXPO_OWNER", label: "Expo account / organization", secret: false },
+    { name: "EXPO_PROJECT_ID", label: "EAS project ID", secret: false },
+  ],
+  "apple-app-store": [
+    { name: "ASC_KEY_ID", label: "API key ID", secret: false },
+    { name: "ASC_ISSUER_ID", label: "Issuer ID", secret: false },
+    { name: "ASC_API_KEY_BASE64", label: "P8 API key (base64)", secret: true },
+    { name: "ASC_APP_ID", label: "App Store Connect app ID", secret: false },
+  ],
+  "google-play": [
+    { name: "GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64", label: "Service account JSON (base64)", secret: true },
+    { name: "GOOGLE_PLAY_PACKAGE_NAME", label: "Android package name", secret: false },
   ],
 } as const;
 
@@ -674,6 +697,7 @@ export function SetupPage() {
   const [smsRecipient, setSmsRecipient] = useState("");
   const [smsTest, setSmsTest] = useState<ProviderTestState>({ status: "idle" });
   const [streamTest, setStreamTest] = useState<ProviderTestState>({ status: "idle" });
+  const [releaseTests, setReleaseTests] = useState<Partial<Record<ReleaseProvider, ProviderTestState>>>({});
   const [cfpgCommands, setCfpgCommands] = useState({ development: "", production: "" });
   const [stylekitQuery, setStylekitQuery] = useState("");
   const [stylekitCategory, setStylekitCategory] = useState("all");
@@ -963,6 +987,17 @@ export function SetupPage() {
       if (!response.ok || !result.result?.deleted) throw new Error(result.error || `Stream test returned HTTP ${response.status}.`);
       setStreamTest({ status: "success", provider: "cloudflare-stream", message: `Stream created direct upload ${result.result.uid} and deleted the unused draft successfully.` });
     } catch (error) { setStreamTest({ status: "error", provider: "cloudflare-stream", message: error instanceof Error ? error.message : String(error) }); }
+  };
+  const runReleasePlatformTest = async (provider: ReleaseProvider) => {
+    setReleaseTests((current) => ({ ...current, [provider]: { status: "testing", provider } }));
+    try {
+      const response = await fetch("/__starter/provider-test", { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ provider, providerSecrets }) });
+      const result = (await response.json()) as { error?: string; result?: { verified: boolean; identity: string } };
+      if (!response.ok || !result.result?.verified) throw new Error(result.error || `${provider} returned HTTP ${response.status}.`);
+      setReleaseTests((current) => ({ ...current, [provider]: { status: "success", provider, message: `Verified read-only access to ${result.result?.identity}.` } }));
+    } catch (error) {
+      setReleaseTests((current) => ({ ...current, [provider]: { status: "error", provider, message: error instanceof Error ? error.message : String(error) } }));
+    }
   };
   const updateIdentity = (key: "name" | "slug", value: string) => {
     updateBlueprint((blueprint) => ({
@@ -2279,6 +2314,22 @@ export function SetupPage() {
                 <header><h2>Realtime rooms</h2><p>Durable Objects keep one strongly consistent SQLite-backed state authority per room. Hibernatable WebSockets preserve client connections while idle without keeping the object billed as active.</p></header>
                 <div className="provider-option-grid" role="radiogroup" aria-label="Realtime Provider">{[{ id: "none", name: "None", note: "No Durable Object class, Binding, room route or WebSocket runtime." }, { id: "durable-objects", name: "Durable Objects / WebSockets", note: "Authenticated per-room messages, sequence state and hibernatable sockets." }].map(({ id, name, note }) => { const selected = payload.blueprint.providers.background.realtime.enabled === (id === "durable-objects"); return <div className={selected ? "provider-option selected" : "provider-option"} key={id}><label><input type="radio" name="realtime-provider" checked={selected} onChange={() => setRealtimeEnabled(id === "durable-objects")} /><span><strong>{name}</strong><small>{note}</small></span></label></div>; })}</div>
                 {payload.blueprint.providers.background.realtime.enabled ? <div className="storage-provider-config"><div className="provider-resource-links"><a href="https://developers.cloudflare.com/durable-objects/" target="_blank" rel="noreferrer">Durable Objects documentation<ExternalLink size={14} /></a><a href="https://developers.cloudflare.com/durable-objects/best-practices/websockets/" target="_blank" rel="noreferrer">WebSocket hibernation guide<ExternalLink size={14} /></a></div><div className="provider-live-test"><Button asChild type="button" size="sm" variant="outline"><a href={`https://${payload.config.development.domain}/admin`} target="_blank" rel="noreferrer">Test realtime room on Development<ExternalLink size={13} /></a></Button><small>The Admin test opens the real Durable Object socket, sends one bounded message, receives the broadcast and reads persisted sequence state. Deselecting removes access and the Binding but never deletes namespace data automatically.</small></div></div> : null}
+              </section>
+
+              <section className="setup-panel provider-section">
+                <header><h2>Release platforms</h2><p>These credentials belong to build and release tooling, not the deployed product runtime. Cloudflare is required for Web; EAS, Apple and Google are needed only for the corresponding mobile lanes; GitHub is optional automation.</p></header>
+                <div className="provider-test-stack">
+                  {([
+                    { id: "cloudflare-release", name: "Cloudflare Workers", note: "Verifies the active token and exact account without deploying." },
+                    { id: "github-release", name: "GitHub", note: "Verifies the token's authenticated GitHub identity without changing a repository." },
+                    { id: "expo-eas", name: "Expo / EAS", note: "Verifies that EAS CLI resolves the exact configured project." },
+                    { id: "apple-app-store", name: "Apple App Store Connect", note: "Signs a short-lived API JWT and reads the exact configured app." },
+                    { id: "google-play", name: "Google Play", note: "Exchanges the service-account JWT and reads the configured Android app's subscriptions surface." },
+                  ] satisfies Array<{ id: ReleaseProvider; name: string; note: string }>).map(({ id, name, note }) => {
+                    const test = releaseTests[id] || { status: "idle" as const };
+                    return <div className="storage-provider-config" key={id}><div><strong>{name}</strong><p>{note}</p></div><ProviderCredentialEditor provider={id} state={payload.providerCredentials[id]} editing={Boolean(providerEditors[id])} values={providerSecrets} onEditing={(editing) => setProviderEditing(id, editing)} onChange={updateProviderSecret} /><div className="provider-email-test"><Button type="button" variant="outline" disabled={test.status === "testing"} onClick={() => void runReleasePlatformTest(id)}>{test.status === "testing" ? `Testing ${name}` : `Test ${name}`}</Button>{test.message ? <p className={test.status === "success" ? "provider-test-result success" : "provider-test-result error"} role="status">{test.message}</p> : null}</div></div>;
+                  })}
+                </div>
               </section>
 
               <section className="setup-panel provider-section">

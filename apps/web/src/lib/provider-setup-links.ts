@@ -58,6 +58,25 @@ export const providerSetupLinks = {
     { label: "Stream direct uploads", href: "https://developers.cloudflare.com/stream/uploading-videos/direct-creator-uploads/" },
     { label: "Stream webhooks", href: "https://developers.cloudflare.com/stream/manage-video-library/using-webhooks/" },
   ],
+  "cloudflare-release": [
+    { label: "Cloudflare API tokens", href: "https://dash.cloudflare.com/profile/api-tokens" },
+    { label: "Wrangler deploy guide", href: "https://developers.cloudflare.com/workers/wrangler/commands/#deploy" },
+  ],
+  "github-release": [
+    { label: "GitHub fine-grained tokens", href: "https://github.com/settings/personal-access-tokens" },
+  ],
+  "expo-eas": [
+    { label: "Expo access tokens", href: "https://expo.dev/accounts" },
+    { label: "EAS project setup", href: "https://docs.expo.dev/build/setup/" },
+  ],
+  "apple-app-store": [
+    { label: "App Store Connect API", href: "https://appstoreconnect.apple.com/access/integrations/api" },
+    { label: "API key guide", href: "https://developer.apple.com/documentation/appstoreconnectapi/creating-api-keys-for-app-store-connect-api" },
+  ],
+  "google-play": [
+    { label: "Google Play Console", href: "https://play.google.com/console/" },
+    { label: "Service account setup", href: "https://developers.google.com/android-publisher/getting_started" },
+  ],
 } as const;
 
 export type ProviderSetupLinkId = keyof typeof providerSetupLinks;

@@ -11,6 +11,7 @@ Purpose: provide a touch-first Expo Router SDK 57 application shell for Mobile W
 - Development and Preview use the Development domain declared in `starter.config.json`.
 - Production uses the Production domain declared in `starter.config.json`.
 - Generic mobile release intent targets Development.
+- Local Setup owns write-only Expo/EAS, App Store Connect and Google Play release credential readiness plus read-only account/project/app tests. Those tests do not replace EAS build, installed-device, store submission or rollback evidence.
 - Production requires the explicit phrase `正式发布移动端` or `production`.
 - Native fingerprints decide Build versus Update; runtimeVersion remains appVersion.
 - Tamagui 2.7.7 is the selected Mobile UI foundation, using `@tamagui/core` and package-level component imports with a minimal owned theme/token configuration.

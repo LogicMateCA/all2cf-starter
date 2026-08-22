@@ -5,7 +5,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath, URL } from "node:url";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
-import { createHash, randomUUID } from "node:crypto";
+import { createHash, createPrivateKey, randomUUID, sign as cryptoSign } from "node:crypto";
 import path from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { validateAssemblyContracts } from "../../scripts/lib/assembly.mjs";
@@ -47,6 +47,11 @@ const providerCredentialFields = {
   "expo-push": ["EXPO_PUSH_ACCESS_TOKEN", "STARTER_PRODUCTION_EXPO_PUSH_ACCESS_TOKEN"],
   "twilio-sms": ["TWILIO_ACCOUNT_SID", "TWILIO_API_KEY", "TWILIO_API_SECRET", "TWILIO_FROM", "STARTER_PRODUCTION_TWILIO_ACCOUNT_SID", "STARTER_PRODUCTION_TWILIO_API_KEY", "STARTER_PRODUCTION_TWILIO_API_SECRET", "STARTER_PRODUCTION_TWILIO_FROM"],
   "cloudflare-stream": ["CLOUDFLARE_STREAM_TOKEN", "STREAM_WEBHOOK_SECRET", "STARTER_PRODUCTION_CLOUDFLARE_STREAM_TOKEN", "STARTER_PRODUCTION_STREAM_WEBHOOK_SECRET"],
+  "cloudflare-release": ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"],
+  "github-release": ["GITHUB_TOKEN"],
+  "expo-eas": ["EXPO_TOKEN", "EXPO_OWNER", "EXPO_PROJECT_ID"],
+  "apple-app-store": ["ASC_KEY_ID", "ASC_ISSUER_ID", "ASC_API_KEY_BASE64", "ASC_APP_ID"],
+  "google-play": ["GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64", "GOOGLE_PLAY_PACKAGE_NAME"],
 } as const;
 const allowedProviderSecrets = new Set<string>(
   Object.values(providerCredentialFields).flat(),
@@ -478,6 +483,90 @@ async function testCloudflareStreamProvider(input: unknown) {
   return { provider: "cloudflare-stream", uid, uploadUrlCreated: true, deleted: true };
 }
 
+const encodedJson = (value: unknown) => Buffer.from(JSON.stringify(value)).toString("base64url");
+
+async function testReleasePlatformProvider(input: unknown) {
+  if (!input || typeof input !== "object") throw new Error("Provider test payload is required.");
+  const body = input as { provider?: unknown; providerSecrets?: unknown };
+  const provider = String(body.provider || "").trim().toLowerCase();
+  if (!new Set(["cloudflare-release", "github-release", "expo-eas", "apple-app-store", "google-play"]).has(provider))
+    throw new Error("Unknown release platform.");
+  const profiles = JSON.parse(await readFile(path.join(repositoryRoot, "profiles/providers.json"), "utf8")) as { defaultPath: string };
+  const profilePath = process.env.STARTER_DEV_PROFILE_PATH || profiles.defaultPath;
+  const [project, shared] = await Promise.all([readOptionalEnv(path.join(repositoryRoot, ".dev.vars")), readOptionalEnv(profilePath)]);
+  const values = new Map([...shared, ...project]);
+  if (body.providerSecrets && typeof body.providerSecrets === "object")
+    for (const name of providerCredentialFields[provider as keyof typeof providerCredentialFields]) {
+      const replacement = (body.providerSecrets as Record<string, unknown>)[name];
+      if (typeof replacement === "string" && replacement.trim()) values.set(name, replacement.trim());
+    }
+  const requiredValue = (name: string) => {
+    const value = String(values.get(name) || "").trim();
+    if (!value) throw new Error(`${name} is required.`);
+    return value;
+  };
+
+  if (provider === "cloudflare-release") {
+    const token = requiredValue("CLOUDFLARE_API_TOKEN");
+    const accountId = requiredValue("CLOUDFLARE_ACCOUNT_ID");
+    const headers = { Authorization: `Bearer ${token}` };
+    const [tokenResponse, accountResponse] = await Promise.all([
+      fetch(`https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(accountId)}/tokens/verify`, { headers }),
+      fetch(`https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(accountId)}`, { headers }),
+    ]);
+    const tokenPayload = await tokenResponse.json() as { success?: boolean; result?: { status?: string }; errors?: Array<{ message?: string }> };
+    const accountPayload = await accountResponse.json() as { success?: boolean; result?: { id?: string; name?: string }; errors?: Array<{ message?: string }> };
+    if (!tokenResponse.ok || !tokenPayload.success || tokenPayload.result?.status !== "active" || !accountResponse.ok || !accountPayload.success || accountPayload.result?.id !== accountId)
+      throw new Error([...tokenPayload.errors || [], ...accountPayload.errors || []].map(({ message }) => message).filter(Boolean).join("; ") || "Cloudflare token or account access failed.");
+    return { provider, identity: accountPayload.result.name || accountId, verified: true };
+  }
+  if (provider === "github-release") {
+    const response = await fetch("https://api.github.com/user", { headers: { Authorization: `Bearer ${requiredValue("GITHUB_TOKEN")}`, Accept: "application/vnd.github+json", "User-Agent": "starter-setup" } });
+    const payload = await response.json() as { login?: string; id?: number; message?: string };
+    if (!response.ok || !payload.login) throw new Error(payload.message || `GitHub returned HTTP ${response.status}.`);
+    return { provider, identity: payload.login, verified: true };
+  }
+  if (provider === "expo-eas") {
+    const output = execFileSync("npx", ["--yes", "eas-cli@22.0.0", "project:info", "--json", "--non-interactive"], {
+      cwd: path.join(repositoryRoot, "apps/mobile"),
+      encoding: "utf8",
+      timeout: 120_000,
+      maxBuffer: 2 * 1024 * 1024,
+      env: { ...process.env, EXPO_TOKEN: requiredValue("EXPO_TOKEN"), EXPO_OWNER: requiredValue("EXPO_OWNER"), EXPO_PROJECT_ID: requiredValue("EXPO_PROJECT_ID") },
+    });
+    const payload = JSON.parse(output.slice(output.indexOf("{"))) as { id?: string; name?: string; ownerAccount?: { name?: string } };
+    if (payload.id !== requiredValue("EXPO_PROJECT_ID")) throw new Error("EAS returned a different project ID.");
+    return { provider, identity: `${payload.ownerAccount?.name || requiredValue("EXPO_OWNER")}/${payload.name || payload.id}`, verified: true };
+  }
+  if (provider === "apple-app-store") {
+    const now = Math.floor(Date.now() / 1000);
+    const header = encodedJson({ alg: "ES256", kid: requiredValue("ASC_KEY_ID"), typ: "JWT" });
+    const claims = encodedJson({ iss: requiredValue("ASC_ISSUER_ID"), iat: now - 5, exp: now + 600, aud: "appstoreconnect-v1" });
+    const signingInput = `${header}.${claims}`;
+    const key = createPrivateKey(Buffer.from(requiredValue("ASC_API_KEY_BASE64"), "base64").toString("utf8"));
+    const signature = cryptoSign("sha256", Buffer.from(signingInput), { key, dsaEncoding: "ieee-p1363" }).toString("base64url");
+    const appId = requiredValue("ASC_APP_ID");
+    const response = await fetch(`https://api.appstoreconnect.apple.com/v1/apps/${encodeURIComponent(appId)}`, { headers: { Authorization: `Bearer ${signingInput}.${signature}` } });
+    const payload = await response.json() as { data?: { id?: string; attributes?: { name?: string; bundleId?: string } }; errors?: Array<{ detail?: string }> };
+    if (!response.ok || payload.data?.id !== appId) throw new Error(payload.errors?.map(({ detail }) => detail).filter(Boolean).join("; ") || `App Store Connect returned HTTP ${response.status}.`);
+    return { provider, identity: payload.data.attributes?.name || payload.data.attributes?.bundleId || appId, verified: true };
+  }
+  const serviceAccount = JSON.parse(Buffer.from(requiredValue("GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64"), "base64").toString("utf8")) as { client_email?: string; private_key?: string; token_uri?: string };
+  if (!serviceAccount.client_email || !serviceAccount.private_key) throw new Error("Google Play service account JSON is incomplete.");
+  const now = Math.floor(Date.now() / 1000);
+  const tokenUri = serviceAccount.token_uri || "https://oauth2.googleapis.com/token";
+  const signingInput = `${encodedJson({ alg: "RS256", typ: "JWT" })}.${encodedJson({ iss: serviceAccount.client_email, scope: "https://www.googleapis.com/auth/androidpublisher", aud: tokenUri, iat: now - 5, exp: now + 600 })}`;
+  const assertion = `${signingInput}.${cryptoSign("RSA-SHA256", Buffer.from(signingInput), serviceAccount.private_key).toString("base64url")}`;
+  const tokenResponse = await fetch(tokenUri, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion }) });
+  const tokenPayload = await tokenResponse.json() as { access_token?: string; error_description?: string };
+  if (!tokenResponse.ok || !tokenPayload.access_token) throw new Error(tokenPayload.error_description || "Google service-account token exchange failed.");
+  const packageName = requiredValue("GOOGLE_PLAY_PACKAGE_NAME");
+  const appResponse = await fetch(`https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${encodeURIComponent(packageName)}/subscriptions?pageSize=1`, { headers: { Authorization: `Bearer ${tokenPayload.access_token}` } });
+  const appPayload = await appResponse.json() as { error?: { message?: string } };
+  if (!appResponse.ok) throw new Error(appPayload.error?.message || `Google Play returned HTTP ${appResponse.status}.`);
+  return { provider, identity: packageName, verified: true };
+}
+
 async function normalizedCfpgConnection(input: unknown, command: unknown) {
   const desiredCommand = String(
     command || (input && typeof input === "object" && "connectCommand" in input
@@ -599,6 +688,8 @@ function localSetupApi(): Plugin {
                       ? String(payload.recipient || "").trim()
                       : provider === "cloudflare-stream"
                         ? String(payload.accountId || "").trim()
+                      : provider.endsWith("-release") || new Set(["expo-eas", "apple-app-store", "google-play"]).has(provider)
+                        ? provider
                 : String(payload.recipient || "").trim().toLowerCase();
               const key = `${provider}:${discriminator}`;
               const lastTest = recentProviderTests.get(key) || 0;
@@ -619,6 +710,8 @@ function localSetupApi(): Plugin {
                         ? await testTwilioSmsProvider(payload)
                         : provider === "cloudflare-stream"
                           ? await testCloudflareStreamProvider(payload)
+                          : provider.endsWith("-release") || new Set(["expo-eas", "apple-app-store", "google-play"]).has(provider)
+                            ? await testReleasePlatformProvider(payload)
                   : await testEmailProvider(payload);
               recentProviderTests.set(key, Date.now());
               response.statusCode = 200;

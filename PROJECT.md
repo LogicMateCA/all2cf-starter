@@ -28,6 +28,7 @@ Blueprint-driven project assembler for AI-led Cloudflare SaaS products. The reus
 - `/dp` presents Catalog readiness and current-project lifecycle as separate facts, so an available or reusable verified pack cannot be mistaken for a selected or released project capability.
 - Unselected routes, dependencies, bindings, secrets, and database objects are absent rather than hidden behind runtime flags. Every copied Starter database begins empty from the final selected baseline; this repository never carries legacy-data migration or backfill logic.
 - Generic release intent targets Development; only explicit Production intent promotes the same verified artifact.
+- Release credentials are configured only from local `/setup`: Cloudflare account/token, optional GitHub automation, Expo/EAS project, App Store Connect app and Google Play package can inherit the shared profile, accept project-local replacements or remain deferred. Their test actions are read-only identity/resource checks and never deploy or submit.
 
 ## Assembly sources
 
