@@ -49,6 +49,9 @@ export type AuthRuntimeEnv = {
   S3_FORCE_PATH_STYLE?: string;
   S3_ACCESS_KEY_ID?: string;
   S3_SECRET_ACCESS_KEY?: string;
+  TURNSTILE_PROVIDER?: string;
+  TURNSTILE_SITE_KEY?: string;
+  TURNSTILE_SECRET_KEY?: string;
 };
 
 type RequestExecutionContext = Pick<ExecutionContext, "waitUntil">;
@@ -99,6 +102,7 @@ export async function withRequestAuth<T>(env: AuthRuntimeEnv, ctx: RequestExecut
     stripeSecretKey: env.STRIPE_SECRET_KEY,
     stripeWebhookSecret: env.STRIPE_WEBHOOK_SECRET,
     stripePricePro: env.STRIPE_PRICE_PRO,
+    turnstileSecretKey: env.TURNSTILE_SECRET_KEY,
   });
 
   try {

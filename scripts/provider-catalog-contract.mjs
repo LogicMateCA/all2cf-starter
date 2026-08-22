@@ -76,18 +76,13 @@ for (const [categoryId, optionId] of [
   ["billing", "stripe"],
   ["object-storage", "cloudflare-r2"],
   ["object-storage", "s3-compatible"],
+  ["anti-abuse", "turnstile"],
   ["maps", "mapcn"],
   ["background-realtime", "queues"],
   ["release-platforms", "cloudflare"],
 ])
   if (!option(categoryId, optionId)?.selectable)
     failures.push(`Executable Provider ${categoryId}.${optionId} must be selectable`);
-for (const [categoryId, optionId] of [
-  ["anti-abuse", "turnstile"],
-])
-  if (option(categoryId, optionId)?.selectable)
-    failures.push(`Unimplemented Provider ${categoryId}.${optionId} must stay disabled`);
-
 const result = {
   ok: failures.length === 0,
   schemaVersion: catalog.schemaVersion,

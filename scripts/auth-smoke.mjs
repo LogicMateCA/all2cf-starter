@@ -42,6 +42,7 @@ const outgoingWebhooksSelected = selectedPacks.has(
 );
 const onboardingSelected = selectedPacks.has("saas.onboarding");
 const objectStorageSelected = selectedPacks.has("capability.object-storage");
+const turnstileSelected = selectedPacks.has("capability.turnstile");
 const origin = remote
   ? `https://${starter.development.domain}`
   : `http://127.0.0.1:${port}`;
@@ -262,6 +263,11 @@ ${smokeHandlers.join("\n")}
       "WEBHOOK_SIGNING_KEY",
       "starter-smoke-webhook-signing-root-at-least-32-bytes",
     );
+  if (turnstileSelected)
+    smokeValues.set(
+      "TURNSTILE_SECRET_KEY",
+      "1x0000000000000000000000000000000AA",
+    );
   await writeFile(
     smokeEnvPath,
     renderEnv([...smokeValues.keys()], smokeValues),
@@ -312,6 +318,7 @@ ${smokeHandlers.join("\n")}
     "STRIPE_WEBHOOK_SECRET",
     "STRIPE_PRICE_PRO",
     "WEBHOOK_SIGNING_KEY",
+    "TURNSTILE_SECRET_KEY",
   ]) delete smokeChildEnv[name];
   child = spawn(
     process.execPath,
@@ -375,10 +382,18 @@ function stripeSignature(
 }
 
 async function request(pathname, init = {}) {
+  const turnstileProtected =
+    turnstileSelected &&
+    (pathname === "/api/auth-flow/register" ||
+      pathname === "/api/auth/sign-in/email" ||
+      pathname === "/api/auth/request-password-reset");
   const response = await fetch(`${origin}${pathname}`, {
     ...init,
     headers: {
       ...(!remote ? { "CF-Connecting-IP": smokeIp } : {}),
+      ...(turnstileProtected
+        ? { "x-captcha-response": "XXXX.DUMMY.TOKEN.XXXX" }
+        : {}),
       ...(init.headers || {}),
     },
   });
@@ -540,6 +555,26 @@ const checks = [];
 try {
   await waitUntilReady();
   await database.connect();
+
+  if (turnstileSelected) {
+    const missingCaptcha = await fetch(`${origin}/api/auth/sign-in/email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Origin: origin,
+        ...(!remote ? { "CF-Connecting-IP": smokeIp } : {}),
+      },
+      body: JSON.stringify({
+        email: "turnstile-missing@example.test",
+        password: "Not-A-Real-Password-1!",
+      }),
+    });
+    assert(
+      missingCaptcha.status >= 400,
+      "Better Auth Captcha accepted a credential request without a Turnstile token",
+    );
+    checks.push("turnstile-missing-token-denial-live-siteverify-pass");
+  }
 
   const unknown = await request("/api/auth-flow/check-email", {
     method: "POST",
@@ -2218,6 +2253,7 @@ try {
   const googleHealth = healthComponents.get("google");
   const stripeHealth = healthComponents.get("stripe");
   const queueHealth = healthComponents.get("outgoing-webhooks");
+  const turnstileHealth = healthComponents.get("turnstile");
   assert(
     operationsHealth.response.status === 200 &&
       operationsHealth.payload?.data?.service === "starter" &&
@@ -2228,6 +2264,15 @@ try {
       emailHealth?.details?.sent24h >= 1 &&
       googleHealth?.details?.configured === true,
     "operations health omitted active database, CFsend, or Google evidence",
+  );
+  assert(
+    turnstileSelected
+      ? turnstileHealth?.status === "ok" &&
+          turnstileHealth?.details?.selected === true &&
+          turnstileHealth?.details?.configured === true
+      : turnstileHealth?.status === "not-selected" &&
+          turnstileHealth?.details?.selected === false,
+    "operations health returned incorrect Turnstile selection or configuration evidence",
   );
   assert(
     stripeSelected

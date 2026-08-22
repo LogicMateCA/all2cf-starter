@@ -114,6 +114,24 @@ export function validateAssemblyContracts(
     failures.push("Blueprint is missing capability.object-storage selection state");
   else if (storageSelection.lifecycle.selected !== (storagePolicy.provider !== "none"))
     failures.push("Object Storage Pack selection must match the storage Provider");
+  const antiAbuse = blueprint.providers?.antiAbuse || {};
+  if (!new Set(["none", "turnstile"]).has(antiAbuse.provider))
+    failures.push("Blueprint anti-abuse provider must be none or turnstile");
+  if (antiAbuse.provider === "turnstile") {
+    const developmentSiteKey = String(antiAbuse.development?.siteKey || "").trim();
+    const productionSiteKey = String(antiAbuse.production?.siteKey || "").trim();
+    if (!developmentSiteKey || !productionSiteKey)
+      failures.push("Turnstile requires Development and Production site keys");
+    if (developmentSiteKey && developmentSiteKey === productionSiteKey)
+      failures.push("Development and Production Turnstile site keys must be different");
+  }
+  const turnstileSelection = Object.values(blueprint.selections || {})
+    .flat()
+    .find(({ id }) => id === "capability.turnstile");
+  if (!turnstileSelection)
+    failures.push("Blueprint is missing capability.turnstile selection state");
+  else if (turnstileSelection.lifecycle.selected !== (antiAbuse.provider === "turnstile"))
+    failures.push("Turnstile Pack selection must match the anti-abuse Provider");
 
   const packIds = new Set();
   const packs = new Map();

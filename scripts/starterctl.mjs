@@ -20,6 +20,7 @@ const socialSecretNames = new Set(Object.values(socialSecretRequirements).flat()
 const stripeSelected = selectedPacks.has("saas.billing-stripe");
 const outgoingWebhooksSelected = selectedPacks.has("saas.outgoing-webhooks");
 const storageProvider = blueprint.providers?.storage?.provider || "none";
+const antiAbuseProvider = blueprint.providers?.antiAbuse?.provider || "none";
 const env = parseEnv(await readFile(path.join(root, ".dev.vars"), "utf8"));
 const providers = JSON.parse(await readFile(path.join(root, "profiles/providers.json"), "utf8"));
 const profilePath = process.env.STARTER_DEV_PROFILE_PATH || providers.defaultPath;
@@ -98,6 +99,13 @@ function syncWorkerSecrets(environment, wranglerConfig) {
         environment === "production"
           ? "STARTER_PRODUCTION_S3_SECRET_ACCESS_KEY"
           : "S3_SECRET_ACCESS_KEY",
+      ),
+    } : {}),
+    ...(antiAbuseProvider === "turnstile" ? {
+      TURNSTILE_SECRET_KEY: required(
+        environment === "production"
+          ? "STARTER_PRODUCTION_TURNSTILE_SECRET_KEY"
+          : "TURNSTILE_SECRET_KEY",
       ),
     } : {}),
   };

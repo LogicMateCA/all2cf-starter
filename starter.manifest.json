@@ -93,6 +93,11 @@
       "status": "local-verified"
     },
     {
+      "area": "Anti-abuse",
+      "choice": "Optional Cloudflare Turnstile through Better Auth Captcha with separate environment widgets, client challenge tokens, mandatory server Siteverify and receipt-safe removal",
+      "status": "local-verified"
+    },
+    {
       "area": "API keys",
       "choice": "Optional @better-auth/api-key 1.7.1 pack with user-owned hashed keys, fixed read scope, rate limits, and no session impersonation",
       "status": "local-verified"

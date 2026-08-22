@@ -964,6 +964,46 @@
       "documentation": ["ARCHITECTURE.md", "features/storage/MODULE.md"]
     },
     {
+      "id": "capability.turnstile",
+      "kind": "capability",
+      "name": "Cloudflare Turnstile anti-abuse",
+      "version": "0.1.0",
+      "status": "local-verified",
+      "delivery": "materializer",
+      "targets": ["desktop-web", "worker"],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth Captcha",
+          "url": "https://better-auth.com/docs/plugins/captcha",
+          "revision": "1.7.1",
+          "license": "MIT",
+          "relationship": "tracked-upstream"
+        },
+        {
+          "name": "Cloudflare Turnstile",
+          "url": "https://developers.cloudflare.com/turnstile/",
+          "relationship": "platform-provider"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": [
+        "credential sign-up challenge",
+        "credential sign-in challenge",
+        "password-reset challenge",
+        "mandatory server-side Siteverify through Better Auth Captcha"
+      ],
+      "requires": [
+        "separate Development and Production widgets",
+        "public site key and write-only secret key",
+        "server-side validation"
+      ],
+      "conflicts": ["client-only captcha", "shared Production test keys", "bypass on protected endpoints"],
+      "performance": ["widget script loads only on protected credential steps", "no package dependency beyond aligned Better Auth"],
+      "verification": ["official pass/fail test keys", "missing-token denial", "valid-token acceptance", "pack clean removal"],
+      "documentation": ["ARCHITECTURE.md", "features/auth/MODULE.md"]
+    },
+    {
       "id": "capability.mapcn-web",
       "kind": "capability",
       "name": "MapCN Web maps",

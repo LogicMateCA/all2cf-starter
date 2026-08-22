@@ -109,6 +109,12 @@
       "status": "optional-billing-pack",
       "requiredPerEnvironment": false
     },
+    "TURNSTILE_SECRET_KEY": {
+      "kind": "secret",
+      "status": "optional-anti-abuse-pack",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "antiAbuse.provider=turnstile"
+    },
     "AUTH": {
       "kind": "service_binding",
       "status": "future",

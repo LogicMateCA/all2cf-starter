@@ -43,6 +43,7 @@ const providerCredentialFields = {
     "STRIPE_PRICE_PRO",
   ],
   "s3-compatible": ["S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY"],
+  turnstile: ["TURNSTILE_SECRET_KEY", "STARTER_PRODUCTION_TURNSTILE_SECRET_KEY"],
 } as const;
 const allowedProviderSecrets = new Set<string>(
   Object.values(providerCredentialFields).flat(),
@@ -210,6 +211,56 @@ async function testEmailProvider(input: unknown) {
   };
 }
 
+async function testTurnstileProvider(input: unknown) {
+  if (!input || typeof input !== "object")
+    throw new Error("Provider test payload is required.");
+  const body = input as { token?: unknown; providerSecrets?: unknown };
+  const token = String(body.token || "").trim();
+  if (!token || token.length > 2048)
+    throw new Error("Complete the Turnstile challenge before testing.");
+  const providers = JSON.parse(
+    await readFile(path.join(repositoryRoot, "profiles/providers.json"), "utf8"),
+  ) as { defaultPath: string };
+  const profilePath = process.env.STARTER_DEV_PROFILE_PATH || providers.defaultPath;
+  const [project, shared] = await Promise.all([
+    readOptionalEnv(path.join(repositoryRoot, ".dev.vars")),
+    readOptionalEnv(profilePath),
+  ]);
+  const replacement =
+    body.providerSecrets && typeof body.providerSecrets === "object"
+      ? (body.providerSecrets as Record<string, unknown>).TURNSTILE_SECRET_KEY
+      : undefined;
+  const secret =
+    (typeof replacement === "string" ? replacement.trim() : "") ||
+    project.get("TURNSTILE_SECRET_KEY") ||
+    shared.get("TURNSTILE_SECRET_KEY") ||
+    "";
+  if (!secret) throw new Error("Development Turnstile secret key is missing.");
+  const form = new FormData();
+  form.set("secret", secret);
+  form.set("response", token);
+  const response = await fetch(
+    "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+    { method: "POST", body: form },
+  );
+  const result = (await response.json()) as {
+    success?: boolean;
+    hostname?: string;
+    action?: string;
+    "error-codes"?: string[];
+  };
+  if (!response.ok || !result.success)
+    throw new Error(
+      `Turnstile rejected the token${result["error-codes"]?.length ? `: ${result["error-codes"].join(", ")}` : "."}`,
+    );
+  return {
+    provider: "turnstile",
+    verified: true,
+    hostname: result.hostname || "unknown",
+    action: result.action || "unspecified",
+  };
+}
+
 async function normalizedCfpgConnection(input: unknown, command: unknown) {
   const desiredCommand = String(
     command || (input && typeof input === "object" && "connectCommand" in input
@@ -302,7 +353,7 @@ function localSetupApi(): Plugin {
           response.setHeader("Cache-Control", "no-store");
           if (
             !isLoopbackHost(request.headers.host) ||
-            (request.method === "PUT" &&
+            (new Set(["PUT", "POST"]).has(request.method || "") &&
               !isLoopbackOrigin(request.headers.origin))
           ) {
             response.statusCode = 403;
@@ -320,14 +371,17 @@ function localSetupApi(): Plugin {
                 return;
               }
               const payload = await readRequestJson(request);
-              const key = `${String(payload.provider || "")}:${String(payload.recipient || "").trim().toLowerCase()}`;
+              const provider = String(payload.provider || "").trim().toLowerCase();
+              const key = `${provider}:${String(payload.recipient || "").trim().toLowerCase()}`;
               const lastTest = recentProviderTests.get(key) || 0;
               if (Date.now() - lastTest < 10_000) {
                 response.statusCode = 429;
                 response.end(json({ error: "Wait 10 seconds before repeating this provider test." }));
                 return;
               }
-              const result = await testEmailProvider(payload);
+              const result = provider === "turnstile"
+                ? await testTurnstileProvider(payload)
+                : await testEmailProvider(payload);
               recentProviderTests.set(key, Date.now());
               response.statusCode = 200;
               response.end(json({ ok: true, result }));

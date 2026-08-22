@@ -435,6 +435,11 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
       throw new Error(`${path.relative(root, configPath)} changed materializer-owned storage variable ${name}`);
     delete model.vars[name];
   }
+  for (const [name, value] of Object.entries(previousRuntime?.antiAbuseVars || {})) {
+    if (model.vars[name] !== value)
+      throw new Error(`${path.relative(root, configPath)} changed materializer-owned anti-abuse variable ${name}`);
+    delete model.vars[name];
+  }
   const storage = blueprint.providers.storage;
   const storageEnvironment = storage[environment];
   const storageVars = {};
@@ -462,6 +467,13 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
   }
   if (r2Buckets.length) model.r2_buckets = r2Buckets;
   else delete model.r2_buckets;
+  const antiAbuseVars = {};
+  if (blueprint.providers.antiAbuse.provider === "turnstile") {
+    model.vars.TURNSTILE_PROVIDER = "turnstile";
+    model.vars.TURNSTILE_SITE_KEY = blueprint.providers.antiAbuse[environment].siteKey;
+    antiAbuseVars.TURNSTILE_PROVIDER = "turnstile";
+    antiAbuseVars.TURNSTILE_SITE_KEY = blueprint.providers.antiAbuse[environment].siteKey;
+  }
   const queues = model.queues || { producers: [], consumers: [] };
   queues.producers ||= [];
   queues.consumers ||= [];
@@ -498,6 +510,7 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
     queues: [],
     requiredSecrets: [],
     database: receiptDatabase,
+    antiAbuseVars,
     r2Buckets: receiptR2Buckets,
     storageVars,
   };
@@ -571,6 +584,7 @@ function renderServerAuthPlugins(entries, features) {
     "  stripeSecretKey?: string;",
     "  stripeWebhookSecret?: string;",
     "  stripePricePro?: string;",
+    "  turnstileSecretKey?: string;",
     "};",
     "",
     `export const selectedAuthFeatures = ${JSON.stringify(features)} as const;`,
@@ -866,6 +880,11 @@ if (blueprint.providers.storage.provider === "s3-compatible") {
   for (const secret of ["S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY"])
     desiredCloudflareSecrets.set(secret, "capability.object-storage");
 }
+const turnstilePackSelected = selected.has("capability.turnstile");
+if (turnstilePackSelected !== (blueprint.providers.antiAbuse.provider === "turnstile"))
+  throw new Error(
+    "Turnstile Pack selection must match the Blueprint anti-abuse Provider.",
+  );
 
 desiredRoutes.sort((left, right) => left.path.localeCompare(right.path));
 const desiredWorkerFirstRoutes = desiredRoutes
@@ -880,6 +899,7 @@ const desiredAuthFeatures = {
   stripeBilling: selected.has("saas.billing-stripe"),
   apiKeys: selected.has("saas.api-keys"),
   twoFactor: selected.has("saas.account-security-2fa"),
+  turnstile: selected.has("capability.turnstile"),
 };
 const desiredServerAuthSource = renderServerAuthPlugins(
   desiredServerAuthPlugins,
@@ -1080,6 +1100,8 @@ const generatedRegistries = [
       organizations: false,
       stripeBilling: false,
       apiKeys: false,
+      twoFactor: false,
+      turnstile: false,
     }),
   },
   {

@@ -13,9 +13,10 @@ export type SelectedAuthPluginInput = {
   stripeSecretKey?: string;
   stripeWebhookSecret?: string;
   stripePricePro?: string;
+  turnstileSecretKey?: string;
 };
 
-export const selectedAuthFeatures = {"organizations":true,"stripeBilling":true,"apiKeys":false,"twoFactor":false} as const;
+export const selectedAuthFeatures = {"organizations":true,"stripeBilling":true,"apiKeys":false,"twoFactor":false,"turnstile":false} as const;
 
 export function createSelectedAuthPlugins(input: SelectedAuthPluginInput) {
   return [

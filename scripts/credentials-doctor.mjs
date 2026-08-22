@@ -40,6 +40,8 @@ const optionalGroups = {
   cloudflareEmail: ["CLOUDFLARE_EMAIL_FROM"],
   s3Development: ["S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY"],
   s3Production: ["STARTER_PRODUCTION_S3_ACCESS_KEY_ID", "STARTER_PRODUCTION_S3_SECRET_ACCESS_KEY"],
+  turnstileDevelopment: ["TURNSTILE_SECRET_KEY"],
+  turnstileProduction: ["STARTER_PRODUCTION_TURNSTILE_SECRET_KEY"],
 };
 const inspect = (groups) => Object.fromEntries(Object.entries(groups).map(([name, keys]) => [name, keys.every((key) => Boolean(value(key))) ? "ready" : "not-configured"]));
 const required = inspect(requiredGroups);

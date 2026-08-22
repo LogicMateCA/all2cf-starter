@@ -274,15 +274,26 @@
         "note": "Optional Web-only map pack is locally verified through plan/apply, Worker routing, browser WebGL, keyboard/accessibility, budgets, and complete removal. A real map provider remains a copied-project release gate. Mobile mapping uses a separate native-aware pack."
       },
       {
-      "id": "capability.object-storage",
-      "lifecycle": {
-        "selected": true,
-        "materialized": true,
-        "localVerified": true,
+        "id": "capability.object-storage",
+        "lifecycle": {
+          "selected": true,
+          "materialized": true,
+          "localVerified": true,
           "developmentVerified": false,
           "productionReleased": false
         },
-      "note": "Cloudflare R2 is selected and locally verified through authenticated private/public exact-byte Workerd round trips; Development and Production remain unreleased."
+        "note": "Cloudflare R2 is selected and locally verified through authenticated private/public exact-byte Workerd round trips; Development and Production remain unreleased."
+      },
+      {
+        "id": "capability.turnstile",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Optional Better Auth Captcha integration for Cloudflare Turnstile."
       }
     ]
   },
@@ -330,6 +341,15 @@
         "s3Endpoint": "",
         "s3Region": "auto",
         "s3ForcePathStyle": false
+      }
+    },
+    "antiAbuse": {
+      "provider": "none",
+      "development": {
+        "siteKey": ""
+      },
+      "production": {
+        "siteKey": ""
       }
     },
     "email": {

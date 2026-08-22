@@ -74,6 +74,10 @@ app.get("/api/auth-methods", (c) => {
   return c.json(
     {
       methods: socialProviderMethods(c.env),
+      antiAbuse: {
+        provider: c.env.TURNSTILE_PROVIDER === "turnstile" ? "turnstile" : "none",
+        siteKey: c.env.TURNSTILE_PROVIDER === "turnstile" ? c.env.TURNSTILE_SITE_KEY || "" : "",
+      },
     },
     200,
     { "Cache-Control": "no-store" },

@@ -37,6 +37,7 @@ type StarterAuthInput = {
   stripeSecretKey?: string;
   stripeWebhookSecret?: string;
   stripePricePro?: string;
+  turnstileSecretKey?: string;
 };
 
 function escapeHtml(value: string) {
@@ -210,6 +211,7 @@ export function createStarterAuth(input: StarterAuthInput) {
         stripeSecretKey: input.stripeSecretKey,
         stripeWebhookSecret: input.stripeWebhookSecret,
         stripePricePro: input.stripePricePro,
+        turnstileSecretKey: input.turnstileSecretKey,
       }),
     ],
     trustHost: false,

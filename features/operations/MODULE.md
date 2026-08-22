@@ -10,7 +10,7 @@ Purpose: give platform operators a truthful, bounded view of runtime readiness w
 
 - Public `/api/health` is a dependency-free Worker liveness endpoint. It does not claim PostgreSQL or provider health.
 - Platform Admin `/api/admin/health` actively checks PostgreSQL through the selected native-Hyperdrive or CFPG runtime and reports query latency. It never exposes secrets.
-- Authentication email and Google report configuration completeness. Email adds bounded 24-hour outbox evidence and last success/failure timestamps.
+- Authentication email, selected social sign-in providers and optional Turnstile report configuration completeness. Email adds bounded 24-hour outbox evidence and last success/failure timestamps; Turnstile health remains read-only and never generates a challenge.
 - Stripe and outgoing-webhook Queue appear only when their optional pack/runtime evidence exists. Their status combines configuration with persisted webhook/delivery records; an unselected capability reports `not-selected`.
 - The dashboard is read-only and lazy. It never sends test email, creates provider resources, or enqueues synthetic events.
 

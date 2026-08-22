@@ -192,6 +192,35 @@ export async function collectOperationsHealth(
     });
   }
 
+  const turnstileSelected = env.TURNSTILE_PROVIDER === "turnstile";
+  if (!turnstileSelected) {
+    components.push({
+      id: "turnstile",
+      label: "Cloudflare Turnstile",
+      status: "not-selected",
+      summary: "Turnstile anti-abuse is not materialized.",
+      details: { selected: false },
+    });
+  } else {
+    const turnstileConfiguration = requiredConfiguration([
+      ["TURNSTILE_SITE_KEY", env.TURNSTILE_SITE_KEY],
+      ["TURNSTILE_SECRET_KEY", env.TURNSTILE_SECRET_KEY],
+    ]);
+    components.push({
+      id: "turnstile",
+      label: "Cloudflare Turnstile",
+      status: turnstileConfiguration.configured ? "ok" : "attention",
+      summary: turnstileConfiguration.configured
+        ? "The selected environment widget and server verification secret are configured."
+        : "Selected Turnstile configuration is incomplete.",
+      details: {
+        selected: true,
+        configured: turnstileConfiguration.configured,
+        missing: turnstileConfiguration.missing.join(", ") || null,
+      },
+    });
+  }
+
   const stripeTable = await relationExists(database, "app_stripe_webhook_event");
   const stripeSelected =
     stripeTable ||

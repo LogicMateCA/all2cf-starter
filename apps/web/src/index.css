@@ -1326,6 +1326,7 @@ dd {
   color: var(--subtle);
   font-size: 12px;
 }
+.turnstile-challenge { min-height: 65px; width: 100%; overflow: hidden; }
 .spin {
   animation: auth-spin 0.8s linear infinite;
 }

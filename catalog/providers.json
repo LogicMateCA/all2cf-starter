@@ -58,7 +58,7 @@
       "id": "anti-abuse", "name": "Anti-abuse", "kind": "provider", "required": false, "selection": "single", "defaultOptionIds": ["none"], "capabilityIds": ["security.turnstile"],
       "options": [
         { "id": "none", "name": "None", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "none" }, "setupLinks": [], "notes": "Public write endpoints remain unprotected by a challenge provider." },
-        { "id": "turnstile", "name": "Cloudflare Turnstile", "status": "planned", "delivery": "planned", "selectable": false, "credentials": ["TURNSTILE_SITE_KEY", "TURNSTILE_SECRET_KEY"], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "live-binding" }, "setupLinks": ["https://dash.cloudflare.com/?to=/:account/turnstile"], "notes": "Server-side Siteverify is required for registration and public forms." }
+        { "id": "turnstile", "name": "Cloudflare Turnstile", "status": "local-verified", "delivery": "materializer", "selectable": true, "credentials": ["TURNSTILE_SITE_KEY", "TURNSTILE_SECRET_KEY"], "bindings": [], "dependencies": ["better-auth/captcha"], "verification": { "available": true, "mode": "round-trip" }, "setupLinks": ["https://dash.cloudflare.com/?to=/:account/turnstile"], "notes": "Better Auth Captcha enforces server-side Siteverify for credential sign-up, sign-in and password reset; Development and Production use separate widgets." }
       ]
     },
     {

@@ -30,6 +30,10 @@ export const providerSetupLinks = {
   apple: [
     { label: "Configure Sign in with Apple", href: "https://developer.apple.com/documentation/signinwithapple/configuring-your-environment-for-sign-in-with-apple" },
   ],
+  turnstile: [
+    { label: "Create Turnstile widgets", href: "https://dash.cloudflare.com/?to=/:account/turnstile" },
+    { label: "Turnstile setup guide", href: "https://developers.cloudflare.com/turnstile/get-started/" },
+  ],
 } as const;
 
 export type ProviderSetupLinkId = keyof typeof providerSetupLinks;

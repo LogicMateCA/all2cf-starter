@@ -3,6 +3,7 @@ import { AlertCircle, ArrowLeft, ArrowRight, Check, ExternalLink, Save } from "l
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { providerSetupLinks } from "../lib/provider-setup-links";
+import { TurnstileChallenge } from "./turnstile-challenge";
 
 type Lifecycle = {
   selected: boolean;
@@ -50,6 +51,11 @@ type StoragePolicy = {
   maxUploadBytes: number;
   development: StorageEnvironment;
   production: StorageEnvironment;
+};
+type AntiAbusePolicy = {
+  provider: "none" | "turnstile";
+  development: { siteKey: string };
+  production: { siteKey: string };
 };
 type CfpgConnection = {
   connectCommand: string;
@@ -106,6 +112,7 @@ type Blueprint = {
     socialAuth: string[];
     database: DatabasePolicy;
     storage: StoragePolicy;
+    antiAbuse: AntiAbusePolicy;
     email: { default: string; alternatives: string[] };
     billing: string;
     release: string;
@@ -271,7 +278,7 @@ type SetupPayload = {
     categories: ProviderCatalogCategory[];
   };
   providerCredentials: Record<
-    "google" | "github" | "apple" | "cfsend" | "resend" | "cloudflare-email-service" | "stripe" | "s3-compatible",
+    "google" | "github" | "apple" | "cfsend" | "resend" | "cloudflare-email-service" | "stripe" | "s3-compatible" | "turnstile",
     {
       configured: boolean;
       source: "project" | "shared" | "mixed" | "missing";
@@ -323,6 +330,10 @@ const providerSecretFields = {
   "s3-compatible": [
     { name: "S3_ACCESS_KEY_ID", label: "Access Key ID", secret: false },
     { name: "S3_SECRET_ACCESS_KEY", label: "Secret Access Key", secret: true },
+  ],
+  turnstile: [
+    { name: "TURNSTILE_SECRET_KEY", label: "Development secret key", secret: true },
+    { name: "STARTER_PRODUCTION_TURNSTILE_SECRET_KEY", label: "Production secret key", secret: true },
   ],
 } as const;
 
@@ -602,6 +613,8 @@ export function SetupPage() {
   const [providerEditors, setProviderEditors] = useState<Record<string, boolean>>({});
   const [testRecipient, setTestRecipient] = useState("");
   const [providerTest, setProviderTest] = useState<ProviderTestState>({ status: "idle" });
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileTest, setTurnstileTest] = useState<ProviderTestState>({ status: "idle" });
   const [cfpgCommands, setCfpgCommands] = useState({ development: "", production: "" });
   const [stylekitQuery, setStylekitQuery] = useState("");
   const [stylekitCategory, setStylekitCategory] = useState("all");
@@ -794,6 +807,26 @@ export function SetupPage() {
       });
     }
   };
+  const runTurnstileTest = async () => {
+    setTurnstileTest({ status: "testing", provider: "turnstile" });
+    try {
+      const response = await fetch("/__starter/provider-test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ provider: "turnstile", token: turnstileToken, providerSecrets }),
+      });
+      const result = (await response.json()) as {
+        error?: string;
+        result?: { verified: boolean; hostname: string; action: string };
+      };
+      if (!response.ok || !result.result?.verified)
+        throw new Error(result.error || `Turnstile test returned HTTP ${response.status}.`);
+      setTurnstileTest({ status: "success", provider: "turnstile", message: `Siteverify accepted the challenge for ${result.result.hostname}; action: ${result.result.action}.` });
+      setTurnstileToken("");
+    } catch (error) {
+      setTurnstileTest({ status: "error", provider: "turnstile", message: error instanceof Error ? error.message : String(error) });
+    }
+  };
   const updateIdentity = (key: "name" | "slug", value: string) => {
     updateBlueprint((blueprint) => ({
       ...blueprint,
@@ -888,6 +921,14 @@ export function SetupPage() {
                   provider: selected ? "cloudflare-r2" : "none",
                 },
               }
+            : pack.id === "capability.turnstile"
+              ? {
+                  ...blueprint.providers,
+                  antiAbuse: {
+                    ...blueprint.providers.antiAbuse,
+                    provider: selected ? "turnstile" : "none",
+                  },
+                }
             : blueprint.providers,
       };
     });
@@ -908,6 +949,29 @@ export function SetupPage() {
                 lifecycle: selectLifecycle(
                   selection.lifecycle,
                   provider !== "none",
+                ),
+              }
+            : selection,
+        ),
+      },
+    }));
+  const setAntiAbuseProvider = (provider: AntiAbusePolicy["provider"]) =>
+    updateBlueprint((blueprint) => ({
+      ...blueprint,
+      preset: "custom",
+      providers: {
+        ...blueprint.providers,
+        antiAbuse: { ...blueprint.providers.antiAbuse, provider },
+      },
+      selections: {
+        ...blueprint.selections,
+        capabilities: blueprint.selections.capabilities.map((selection) =>
+          selection.id === "capability.turnstile"
+            ? {
+                ...selection,
+                lifecycle: selectLifecycle(
+                  selection.lifecycle,
+                  provider === "turnstile",
                 ),
               }
             : selection,
@@ -1789,6 +1853,40 @@ export function SetupPage() {
               </section>
 
               <section className="setup-panel provider-section">
+                <header><h2>Anti-abuse</h2><p>Turnstile protects credential registration, sign-in and password reset through the official Better Auth Captcha plugin. The browser widget and server-side Siteverify are both mandatory.</p></header>
+                <div className="provider-option-grid" role="radiogroup" aria-label="Anti-abuse Provider">
+                  {[
+                    { id: "none", name: "None", note: "No challenge Provider. Better Auth rate limits still apply." },
+                    { id: "turnstile", name: "Cloudflare Turnstile", note: "Recommended for public credential flows; no puzzle for most legitimate users." },
+                  ].map(({ id, name, note }) => {
+                    const selected = payload.blueprint.providers.antiAbuse.provider === id;
+                    return <div className={selected ? "provider-option selected" : "provider-option"} key={id}><label><input type="radio" name="anti-abuse-provider" checked={selected} onChange={() => setAntiAbuseProvider(id as AntiAbusePolicy["provider"])} /><span><strong>{name}</strong><small>{note}</small></span></label></div>;
+                  })}
+                </div>
+                {payload.blueprint.providers.antiAbuse.provider === "turnstile" ? (
+                  <div className="storage-provider-config">
+                    <div className="storage-environment-grid">
+                      {(["development", "production"] as const).map((environment) => (
+                        <div key={environment}>
+                          <h3>{environment === "development" ? "Development widget" : "Production widget"}</h3>
+                          <Field
+                            label="Public site key"
+                            value={payload.blueprint.providers.antiAbuse[environment].siteKey}
+                            onChange={(siteKey) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, antiAbuse: { ...blueprint.providers.antiAbuse, [environment]: { siteKey } } } }))}
+                          />
+                          <p>Use a different widget and hostname allowlist for this environment.</p>
+                        </div>
+                      ))}
+                    </div>
+                    <ProviderCredentialEditor provider="turnstile" state={payload.providerCredentials.turnstile} editing={Boolean(providerEditors.turnstile)} values={providerSecrets} onEditing={(editing) => setProviderEditing("turnstile", editing)} onChange={updateProviderSecret} />
+                    <div className="provider-resource-links">{providerSetupLinks.turnstile.map((link) => <a href={link.href} target="_blank" rel="noreferrer" key={link.href}>{link.label}<ExternalLink size={14} /></a>)}</div>
+                    {payload.blueprint.providers.antiAbuse.development.siteKey ? <div className="provider-email-test"><div><strong>Real Siteverify test</strong><p>Complete the Development widget, then validate its one-time token with the saved or newly entered Development secret.</p></div><TurnstileChallenge siteKey={payload.blueprint.providers.antiAbuse.development.siteKey} action="starter_setup_test" onToken={(token) => { setTurnstileToken(token); if (token) setTurnstileTest({ status: "idle" }); }} onError={(message) => setTurnstileTest({ status: "error", provider: "turnstile", message })} /><Button type="button" variant="outline" disabled={!turnstileToken || turnstileTest.status === "testing"} onClick={() => void runTurnstileTest()}>{turnstileTest.status === "testing" ? "Validating challenge" : "Validate Turnstile"}</Button>{turnstileTest.message ? <p className={turnstileTest.status === "success" ? "provider-test-result success" : "provider-test-result error"} role="status">{turnstileTest.message}</p> : null}</div> : <p className="provider-test-unavailable">Enter the Development site key to load the validation widget.</p>}
+                    <div className="provider-live-test"><Button asChild type="button" size="sm" variant="outline"><a href={`https://${payload.config.development.domain}/login`} target="_blank" rel="noreferrer">Test protected auth on Development<ExternalLink size={13} /></a></Button><small>After a Development release, this opens the real Better Auth sign-up, sign-in and password-reset enforcement path.</small></div>
+                  </div>
+                ) : null}
+              </section>
+
+              <section className="setup-panel provider-section">
                 <header><h2>Social sign-in</h2><p>Select the providers this project will support. Credentials may be inherited, entered now, or configured later from this local Setup.</p></header>
                 <div className="provider-option-grid" role="group" aria-label="Social sign-in providers">
                   {[
@@ -2040,6 +2138,10 @@ export function SetupPage() {
                     <dd>
                       {payload.blueprint.providers.storage.provider} / {payload.blueprint.providers.storage.access} / {payload.blueprint.providers.storage.uploadMode}
                     </dd>
+                  </div>
+                  <div>
+                    <dt>Anti-abuse</dt>
+                    <dd>{payload.blueprint.providers.antiAbuse.provider}</dd>
                   </div>
                   <div>
                     <dt>Social sign-in</dt>

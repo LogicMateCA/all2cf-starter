@@ -4,10 +4,12 @@ import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { TurnstileChallenge } from "@/components/turnstile-challenge";
 
 type AuthStep = "email" | "password" | "register" | "password-setup" | "forgot" | "check-email" | "reset" | "complete";
 type EmailLookup = { publicLookupRestricted?: boolean; exists?: boolean; name?: string; emailVerified?: boolean; hasPassword?: boolean; linkedProviders?: string[] };
 type SocialMethod = { key: "google" | "github" | "apple"; label: string; enabled: boolean };
+type AntiAbuse = { provider: "none" | "turnstile"; siteKey: string };
 
 function safeReturnTo() {
   const raw = new URLSearchParams(window.location.search).get("returnTo") || "/app";
@@ -32,14 +34,21 @@ export function AuthPage() {
   const [error, setError] = useState("");
   const [lookup, setLookup] = useState<EmailLookup | null>(null);
   const [socialMethods, setSocialMethods] = useState<SocialMethod[]>([]);
+  const [antiAbuse, setAntiAbuse] = useState<AntiAbuse>({ provider: "none", siteKey: "" });
+  const [captchaToken, setCaptchaToken] = useState("");
   const returnTo = safeReturnTo();
 
   useEffect(() => {
     void fetch("/api/auth-methods", { headers: { Accept: "application/json" } })
       .then(async (response) => response.ok ? response.json() : Promise.reject(new Error("methods unavailable")))
-      .then((payload: { methods?: SocialMethod[] }) => setSocialMethods((payload.methods || []).filter(({ enabled }) => enabled)))
+      .then((payload: { methods?: SocialMethod[]; antiAbuse?: AntiAbuse }) => {
+        setSocialMethods((payload.methods || []).filter(({ enabled }) => enabled));
+        setAntiAbuse(payload.antiAbuse?.provider === "turnstile" && payload.antiAbuse.siteKey ? payload.antiAbuse : { provider: "none", siteKey: "" });
+      })
       .catch(() => setSocialMethods([]));
   }, []);
+
+  useEffect(() => setCaptchaToken(""), [step]);
 
   const resetTransientState = () => { setError(""); setPassword(""); setConfirmPassword(""); };
   const goBack = () => { resetTransientState(); setStep("email"); };
@@ -63,7 +72,7 @@ export function AuthPage() {
   async function signIn(event: FormEvent) {
     event.preventDefault();
     setBusy(true); setError("");
-    const result = await authClient.signIn.email({ email: email.trim().toLowerCase(), password, callbackURL: returnTo });
+    const result = await authClient.signIn.email({ email: email.trim().toLowerCase(), password, callbackURL: returnTo, fetchOptions: antiAbuse.provider === "turnstile" ? { headers: { "x-captcha-response": captchaToken } } : undefined });
     setBusy(false);
     if (result.error?.code === "EMAIL_NOT_VERIFIED") setStep("check-email");
     else if (result.error) setError("Email or password is incorrect.");
@@ -74,7 +83,7 @@ export function AuthPage() {
     event.preventDefault();
     setBusy(true); setError("");
     try {
-      const response = await fetch("/api/auth-flow/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, password, confirmPassword }) });
+      const response = await fetch("/api/auth-flow/register", { method: "POST", headers: { "Content-Type": "application/json", ...(antiAbuse.provider === "turnstile" ? { "x-captcha-response": captchaToken } : {}) }, body: JSON.stringify({ email, name, password, confirmPassword }) });
       const payload = await response.json() as { error?: { message?: string } };
       if (!response.ok) throw new Error(payload.error?.message || "Unable to create the account.");
       setStep("check-email");
@@ -85,7 +94,7 @@ export function AuthPage() {
   async function sendReset(event?: FormEvent) {
     event?.preventDefault();
     setBusy(true); setError("");
-    const result = await authClient.requestPasswordReset({ email: email.trim().toLowerCase(), redirectTo: `${window.location.origin}/login` });
+    const result = await authClient.requestPasswordReset({ email: email.trim().toLowerCase(), redirectTo: `${window.location.origin}/login`, fetchOptions: antiAbuse.provider === "turnstile" ? { headers: { "x-captcha-response": captchaToken } } : undefined });
     setBusy(false);
     if (result.error) setError("Unable to send password instructions right now.");
     else setStep("check-email");
@@ -126,8 +135,9 @@ export function AuthPage() {
 
       {step === "password" ? <form onSubmit={signIn} className="auth-form">
         <PasswordField value={password} setValue={setPassword} show={showPassword} setShow={setShowPassword} autoFocus />
+        {antiAbuse.provider === "turnstile" ? <TurnstileChallenge siteKey={antiAbuse.siteKey} action="credential_sign_in" onToken={setCaptchaToken} onError={setError} /> : null}
         {error ? <p className="form-error" role="alert">{error}</p> : null}
-        <Button type="submit" size="lg" disabled={busy || !password}>{busy ? <Loader2 className="spin" /> : null}Sign in</Button>
+        <Button type="submit" size="lg" disabled={busy || !password || (antiAbuse.provider === "turnstile" && !captchaToken)}>{busy ? <Loader2 className="spin" /> : null}Sign in</Button>
         <button type="button" className="text-action" onClick={() => { resetTransientState(); setStep("forgot"); }}>Forgot password?</button>
         {lookup?.publicLookupRestricted ? <button type="button" className="text-action secondary" onClick={() => { resetTransientState(); setStep("register"); }}>Create an account</button> : null}
       </form> : null}
@@ -136,12 +146,13 @@ export function AuthPage() {
         <div className="field"><Label htmlFor="name">Name</Label><Input id="name" name="name" autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} required autoFocus /></div>
         <PasswordField value={password} setValue={setPassword} show={showPassword} setShow={setShowPassword} autoComplete="new-password" />
         <div className="field"><Label htmlFor="confirm-password">Confirm password</Label><Input id="confirm-password" type={showPassword ? "text" : "password"} autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required /></div>
+        {antiAbuse.provider === "turnstile" ? <TurnstileChallenge siteKey={antiAbuse.siteKey} action="credential_sign_up" onToken={setCaptchaToken} onError={setError} /> : null}
         {error ? <p className="form-error" role="alert">{error}</p> : null}
-        <Button type="submit" size="lg" disabled={busy || !name || !password || !confirmPassword}>{busy ? <Loader2 className="spin" /> : null}Create account</Button>
+        <Button type="submit" size="lg" disabled={busy || !name || !password || !confirmPassword || (antiAbuse.provider === "turnstile" && !captchaToken)}>{busy ? <Loader2 className="spin" /> : null}Create account</Button>
       </form> : null}
 
       {step === "password-setup" ? <div className="auth-form"><p className="auth-note">Continue with a configured linked provider, or request an email to create a password.</p>{socialMethods.map((method) => <Button key={method.key} size="lg" onClick={() => void signInSocial(method.key)} disabled={busy}>Continue with {method.label}</Button>)}<Button size="lg" variant="outline" onClick={() => void sendReset()} disabled={busy}>Set a password by email</Button></div> : null}
-      {step === "forgot" ? <form onSubmit={sendReset} className="auth-form">{error ? <p className="form-error" role="alert">{error}</p> : null}<Button type="submit" size="lg" disabled={busy}>{busy ? <Loader2 className="spin" /> : <Mail />}Send reset instructions</Button></form> : null}
+      {step === "forgot" ? <form onSubmit={sendReset} className="auth-form">{antiAbuse.provider === "turnstile" ? <TurnstileChallenge siteKey={antiAbuse.siteKey} action="credential_password_reset" onToken={setCaptchaToken} onError={setError} /> : null}{error ? <p className="form-error" role="alert">{error}</p> : null}<Button type="submit" size="lg" disabled={busy || (antiAbuse.provider === "turnstile" && !captchaToken)}>{busy ? <Loader2 className="spin" /> : <Mail />}Send reset instructions</Button></form> : null}
       {step === "reset" ? <form onSubmit={resetPassword} className="auth-form"><PasswordField value={password} setValue={setPassword} show={showPassword} setShow={setShowPassword} autoComplete="new-password" autoFocus /><div className="field"><Label htmlFor="confirm-reset-password">Confirm password</Label><Input id="confirm-reset-password" type={showPassword ? "text" : "password"} autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required /></div>{error ? <p className="form-error" role="alert">{error}</p> : null}<Button type="submit" size="lg" disabled={busy}>{busy ? <Loader2 className="spin" /> : null}Update password</Button></form> : null}
       {step === "check-email" ? <div className="auth-result"><span><Mail size={23} /></span><p>The response is intentionally the same whether or not an account exists.</p><Button variant="outline" onClick={goBack}>Return to sign in</Button></div> : null}
       {step === "complete" ? <div className="auth-result"><span><CheckCircle2 size={23} /></span><Button asChild><a href={`/login?email=${encodeURIComponent(email)}&returnTo=${encodeURIComponent(returnTo)}`}>Sign in</a></Button></div> : null}
