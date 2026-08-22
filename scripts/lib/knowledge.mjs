@@ -154,7 +154,9 @@ function environmentFromConfig(id, config, manifestEnvironment) {
 }
 
 export async function collectKnowledge(root) {
-  let sourceRoot = root;
+  let sourceRoot = process.env.STARTER_FACTORY_BUILD_SOURCE_ROOT
+    ? path.resolve(process.env.STARTER_FACTORY_BUILD_SOURCE_ROOT)
+    : root;
   try {
     const sourceReceipt = await readJson(root, ".starter/source.json");
     if (sourceReceipt.sourceRoot) sourceRoot = path.resolve(sourceReceipt.sourceRoot);

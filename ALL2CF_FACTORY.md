@@ -37,6 +37,8 @@ All2CF executes a SHA-256-verified Git archive without `.git` history and inject
 
 All2CF also sets `STARTER_FACTORY_PORTABLE=true`. Portable output removes canonical account, zone, domain and database-host topology, uses non-routable `example.invalid` identities, and leaves the generated product's local `/setup` responsible for binding customer infrastructure later.
 
+Portable output must also receive `STARTER_FACTORY_SOURCE_URL`. Its source receipt sets `sourceRoot: null` and `updateMode: all2cf-managed`; it never serializes the temporary Runner extraction path. Local linked-source projects retain their real source root and direct lifecycle commands.
+
 The capsule generation hot path has no project `node_modules`. It uses Node-only identity and knowledge parsing. When an optional Pack changes dependencies, All2CF sets `STARTER_FACTORY_PACKAGE_LOCK_ONLY=true` so npm resolves the exact lockfile without installing the dependency tree; full installation remains an optional Verify job.
 
 ## Current evidence

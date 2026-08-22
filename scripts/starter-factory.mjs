@@ -12,6 +12,7 @@ const json = (value) => `${JSON.stringify(value, null, 2)}\n`;
 const sha256 = (value) => createHash("sha256").update(value).digest("hex");
 const outputRoot = path.join(sourceRoot, ".factory-output");
 const portable = process.env.STARTER_FACTORY_PORTABLE === "true";
+const portableSourceUrl = process.env.STARTER_FACTORY_SOURCE_URL?.trim() || "";
 
 async function readJson(root, file) {
   return JSON.parse(await readFile(path.join(root, file), "utf8"));
@@ -132,11 +133,15 @@ async function writeProductHandoff(target, source) {
   const humanMap = await readFile(humanMapPath, "utf8");
   await writeFile(humanMapPath, humanMap.replace(
     "Reusable optional capability: start at `packs/<kind>/<pack>/pack.json`, then its templates. Apply through the materializer.",
-    "Reusable optional capability: inspect with `npm run starter:status`, preview with `npm run starter:diff`, and apply from the pinned source using `npm run starter:add -- <pack-id>` or `npm run starter:update`. The product does not carry the complete Pack library.",
+    source.portable
+      ? "Reusable optional capabilities and source updates are managed through the pinned All2CF source URL in `.starter/source.json`. This portable product does not carry the complete Pack library or a mutable source checkout."
+      : "Reusable optional capability: inspect with `npm run starter:status`, preview with `npm run starter:diff`, and apply from the pinned source using `npm run starter:add -- <pack-id>` or `npm run starter:update`. The product does not carry the complete Pack library.",
   ));
   const machineMapPath = path.join(target, ".ai/agent-map.json");
   const machineMap = await readJson(target, ".ai/agent-map.json");
-  machineMap.rules.packs = "Generated products do not carry the complete Pack library. Use starter:status/diff/add/update through the pinned source receipt; never fabricate local Pack templates.";
+  machineMap.rules.packs = source.portable
+    ? "This portable product uses all2cf-managed updates through .starter/source.json.sourceUrl. Never fabricate local Pack templates or treat the unavailable sourceRoot as a local path."
+    : "Generated products do not carry the complete Pack library. Use starter:status/diff/add/update through the pinned source receipt; never fabricate local Pack templates.";
   await writeFile(machineMapPath, json(machineMap));
   const template = await readFile(path.join(target, "changes/_template.md"), "utf8");
   await rm(path.join(target, "changes"), { recursive: true, force: true });
@@ -194,8 +199,11 @@ async function createProject() {
     }
     await writeIdentity(target, name, slug);
     await mkdir(path.join(target, ".starter"), { recursive: true });
-    const source = { schemaVersion: "starter-source/v1", sourceRoot, sourceCommit: sourceVersion(), sourceDirty: dirty, portable, generatedAt: new Date().toISOString(), project: { name, slug } };
+    if (portable && !/^https:\/\//u.test(portableSourceUrl))
+      throw new Error("Portable Factory generation requires STARTER_FACTORY_SOURCE_URL");
+    const source = { schemaVersion: "starter-source/v1", sourceRoot: portable ? null : sourceRoot, sourceUrl: portable ? portableSourceUrl : null, updateMode: portable ? "all2cf-managed" : "linked-source", sourceCommit: sourceVersion(), sourceDirty: dirty, portable, generatedAt: new Date().toISOString(), project: { name, slug } };
     await writeFile(path.join(target, ".starter/source.json"), json(source));
+    if (portable) process.env.STARTER_FACTORY_BUILD_SOURCE_ROOT = sourceRoot;
     run("scripts/sync-project-identity.mjs", ["--reset", `--project-root=${target}`], target);
     const materialization = await materialize(target, "--apply");
     await writeProjectScripts(target);

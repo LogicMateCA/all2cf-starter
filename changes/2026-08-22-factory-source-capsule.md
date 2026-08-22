@@ -17,6 +17,7 @@ All2CF can execute the exact canonical Factory source from a hash-verified Git a
 - Treat an injected immutable source capsule as clean; artifact SHA-256 validation remains the caller's responsibility.
 - Add a hosted portable mode that removes canonical infrastructure identity before project handoff.
 - Remove external parser dependencies from the capsule hot path and support package-lock-only dependency resolution.
+- Replace temporary Runner source paths in portable receipts with an All2CF-managed immutable source URL.
 - Extend the Factory contract to prove the injected receipt identity.
 
 # Verification
