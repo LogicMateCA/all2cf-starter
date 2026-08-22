@@ -8,6 +8,9 @@ source: starter
 
 Purpose: give platform operators a truthful, bounded view of runtime readiness without turning the Starter into a monitoring product.
 
+- Release checks verify immutable cache rules in the merged artifact and complete route/CSS chunk budgets before upload.
+- Recent notification and audit counts use created-time indexes; rate-limit queries use their actor/time indexes before the baseline is considered growth-ready.
+
 - Public `/api/health` is a dependency-free Worker liveness endpoint. It does not claim PostgreSQL or provider health.
 - Platform Admin `/api/admin/health` actively checks PostgreSQL through the selected native-Hyperdrive or CFPG runtime and reports query latency. It never exposes secrets.
 - Authentication email, selected social sign-in providers and optional Turnstile report configuration completeness. Email adds bounded 24-hour outbox evidence and last success/failure timestamps; Turnstile health remains read-only and never generates a challenge.

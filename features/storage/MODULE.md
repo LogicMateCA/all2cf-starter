@@ -11,6 +11,7 @@ Purpose: provide one optional, provider-neutral file-byte boundary without makin
 - Providers: `none` is the default; Cloudflare R2 is Development-verified; S3-compatible is implemented and selectable but requires a real endpoint round trip in the copied project.
 - Assembly: selecting storage also selects `capability.object-storage`. Materialization owns the Worker/Web/SQL files, generated adapter, Wrangler variables and R2 binding or S3 dependency/secrets. Deselecting it removes those receipt-owned assets safely.
 - Runtime: PostgreSQL owns object metadata and soft-deletion state. R2 or S3 owns bytes. Object keys are server-generated under the authenticated user ID; clients cannot choose a bucket or key.
+- Discoverability: when the Object Storage Pack is materialized, Product Shell registers the `/app/storage` Files destination; deselection removes both the route and navigation entry.
 - Access: objects are private by default. Authenticated users can list, download and delete only their own metadata. A public read route returns only rows explicitly marked public.
 - Upload policy: Worker-mediated uploads default to 10 MiB, reject empty bodies, invalid filenames and active HTML/SVG content, and compensate by deleting bytes if metadata insertion fails.
 - Infrastructure: R2 uses the `OBJECTS` binding with distinct `starter-dev-objects` and `starter-objects` buckets. Environment-scoped provisioning reconciles only the requested bucket. S3 credentials are write-only and separate for Development and Production.

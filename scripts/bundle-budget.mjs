@@ -37,6 +37,19 @@ if (target === "all" || target === "web") {
   for (const file of await files(directory, /^auth-page-.*\.js$/u)) await measure(file, 15_000, "gzip");
   for (const file of await files(directory, /^development-plan-page-.*\.js$/u)) await measure(file, 80_000, "gzip");
   for (const file of await files(directory, /^technology-status-chart-.*\.js$/u)) await measure(file, 130_000, "gzip");
+  for (const [pattern, budget] of [
+    [/^setup-page-.*\.js$/u, 30_000],
+    [/^account-control-.*\.js$/u, 40_000],
+    [/^product-shell-.*\.js$/u, 15_000],
+    [/^admin-page-.*\.js$/u, 20_000],
+  ])
+    for (const file of await files(directory, pattern)) await measure(file, budget, "gzip");
+  for (const file of await files(directory, /^index-.*\.css$/u)) await measure(file, 25_000, "gzip");
+  const reviewedLargeChunks = /^(?:react-vendor|account-control|technology-status-chart)-/u;
+  for (const file of await files(directory, /\.js$/u)) {
+    if (reviewedLargeChunks.test(path.basename(file))) continue;
+    await measure(file, 50_000, "gzip");
+  }
   const blueprint = JSON.parse(await readFile(path.join(root, "starter.blueprint.json"), "utf8"));
   const mapSelected = blueprint.selections.capabilities.some(({ id, lifecycle }) => id === "capability.mapcn-web" && lifecycle.selected && lifecycle.materialized);
   const mapScripts = await files(directory, /^maplibre-gl-.*\.js$/u);

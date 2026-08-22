@@ -110,6 +110,12 @@ if (!remote && !isolatedDatabaseUrl) {
     await migrationClient.end().catch(() => undefined);
   }
 }
+if (remote && !isolatedDatabaseUrl) {
+  databaseSource.hostname = starter.development.database.host;
+  databaseSource.port = String(starter.development.database.port);
+  databaseSource.searchParams.set("sslmode", "require");
+  databaseSource.searchParams.set("uselibpqcompat", "true");
+}
 
 let child = null;
 let mailServer = null;
@@ -604,6 +610,7 @@ async function waitForWebhookDelivery(deliveryId, expectedStatus, attempts = 1) 
 
 if (remote) {
   await waitUntilReady();
+  const socialCheckStartedAt = Date.now() - 5_000;
   const methods = await request("/api/auth-methods", {
     headers: { Origin: origin },
   });
@@ -645,6 +652,25 @@ if (remote) {
     google.response.status === 200 && secureState,
     "edge Google authorization state cookie is not secure and host-only",
   );
+  await database.connect();
+  try {
+    await database.query(
+      `delete from app_auth_rate_limit
+        where key like '%|/sign-in/social'
+          and "lastRequest" >= $1
+          and "lastRequest" <= $2`,
+      [socialCheckStartedAt, Date.now() + 5_000],
+    );
+    const residue = await database.query(
+      `select count(*)::int as count from app_auth_rate_limit
+        where key like '%|/sign-in/social'
+          and "lastRequest" >= $1`,
+      [socialCheckStartedAt],
+    );
+    assert(residue.rows[0]?.count === 0, "edge Google authorization left rate-limit test residue");
+  } finally {
+    await database.end().catch(() => undefined);
+  }
   console.log(
     JSON.stringify(
       {
@@ -655,6 +681,7 @@ if (remote) {
           "anonymous-session-denial",
           "google-authorization",
           "secure-host-only-state-cookie",
+          "rate-limit-test-residue-cleanup",
         ],
       },
       null,

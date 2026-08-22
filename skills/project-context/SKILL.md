@@ -10,7 +10,7 @@ Keep Markdown/frontmatter and machine-readable manifests authoritative. Generate
 ## Inspect
 
 1. Read `AGENTS.md`, `PROJECT.md`, active files under `changes/`, affected `features/*/MODULE.md`, `starter.manifest.json`, `.ai/manifest.json`, `.ai/orchestration.yaml`, and applicable architecture/design/performance/release documents.
-2. Run `npm run ai:context -- --json` in the project container. Treat `.all2cf` infrastructure/release data as a local evidence cache that requires live MCP read-back for current Cloudflare claims.
+2. Run `npm run ai:context -- --task "<request>"` or `--module <id>` in the project container. Default map context is intentionally bounded. Use `--full` only for first initialization, whole-project architecture, or release/cutover audit. Treat `.all2cf` infrastructure/release data as a local evidence cache that requires live MCP read-back for current Cloudflare claims.
 3. Map the requested behavior to owners, modules, routes, data, bindings, clients, docs, release lanes, and rollback. Do not infer an implemented or released status from a plan.
 
 ## Change contract
@@ -22,7 +22,7 @@ Keep Markdown/frontmatter and machine-readable manifests authoritative. Generate
 ## Synchronize and verify
 
 1. Run `npm run knowledge:check` before synchronization when diagnosing drift; a stale snapshot must fail.
-2. Run `npm run knowledge:sync`, then `npm run knowledge:check` and `npm run ai:context -- --json`.
+2. Run `npm run knowledge:sync`, then `npm run knowledge:check`, `npm run agent-map:check`, and the appropriate task-scoped `npm run ai:context -- --task "<request>"`.
 3. Verify the context reports the correct project/commit/dirty state, module statuses, environments, active changes, orchestration, recommended reads, evidence-cache warning, and explicit Dev/Production commit alignment. A project may have a production-released baseline while the current commit or dirty worktree is not released.
 4. For a user-requested Development release, use `cloudflare-release`, then fetch `/dp/project.snapshot.json` and `/dp` from the live domain and verify the exact commit/change appears. Production still requires explicit Production intent.
 5. Mark a Change Spec `development-verified` or `production-released` only after the corresponding live evidence exists. Never let generated JSON overwrite Markdown decisions.

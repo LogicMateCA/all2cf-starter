@@ -30,6 +30,9 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     const apply = () => {
       document.documentElement.dataset.theme = theme === "system" ? (media.matches ? "dark" : "light") : theme;
       document.documentElement.style.colorScheme = document.documentElement.dataset.theme;
+      const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+      const canvas = getComputedStyle(document.documentElement).getPropertyValue("--canvas").trim();
+      if (themeColor && canvas) themeColor.content = canvas;
     };
     apply();
     media.addEventListener("change", apply);

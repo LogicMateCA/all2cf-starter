@@ -6,6 +6,14 @@ source: "starter"
 
 # Performance
 
+Verification avoids duplicate generation: `/dp` is synchronized once, site builds reuse it, and Cloudflare Types are check-only in the release gate. Independent future gates may be parallelized only after all shared generated artifacts are complete.
+
+Authenticated request fan-out is a budget: shared Shell state must not issue duplicate notification or preference writes, and Admin modules load their own data only when active.
+
+Baseline rate-limit and recent-operations queries require matching composite/partial indexes. New product indexes need a real query shape and `EXPLAIN` evidence rather than speculative broad indexing.
+
+Local Setup payloads use task-ready projections. Reference-only StyleKit entries and full audit ledgers stay out of the initial configuration response unless the user opens their advanced surface.
+
 ## Budgets
 
 - Largest contentful paint: `< 2.5s` at the 75th percentile.
@@ -16,6 +24,9 @@ source: "starter"
 - Default Astro Marketing routes require `0KB` initial JavaScript; an individual Page Pack may add a route-specific island only with a measured reason and a `< 20KB` gzip route budget before project-specific changes.
 - Desktop Chart code must be lazy-loaded outside the main route bundle.
 - Below-fold charts must wait until they approach the viewport. Their loading frame reserves final chart height so deferred code cannot introduce layout shift.
+- Small internal status summaries use semantic HTML/CSS rather than importing the product-chart runtime. Recharts/shadcn charts remain available for selected product visualizations that justify their bundle.
+- Content-hashed Web, Marketing and Docs assets use one-year immutable browser caching. Mutable `/dp` and Pagefind outputs retain revalidation semantics.
+- Shared Web CSS stays below `25KB` gzip. Setup stays below `30KB`, Account Control below `40KB`, Product Shell below `15KB`, Admin below `20KB`, and any unreviewed Web chunk below `50KB` gzip.
 - Capability packs with heavy clients, including MapLibre, editors, and advanced charts, must be dynamically imported and excluded from routes that do not select or render them.
 - The MapCN Web pack caps its route-only MapLibre main module at `300KB` gzip, shared worker module at `180KB`, worker entry at `20KB`, and route CSS, including MapLibre's required stylesheet, at `20KB`. The locally verified selected build measured about `247KB`, `134KB`, `6KB`, and `11KB` respectively; none loaded on the public home route. The deselected rebuild contained no MapLibre or MapCN asset.
 - Production-build Lighthouse for every owned Marketing profile scored 100 for Performance, Accessibility, Best Practices, and SEO in both the desktop and mobile runs used for local acceptance. Those local measurements do not replace field Core Web Vitals after a copied project adds real content, fonts, analytics, and third-party providers.

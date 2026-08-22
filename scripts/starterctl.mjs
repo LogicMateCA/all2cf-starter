@@ -601,6 +601,8 @@ async function release(environment) {
   run("npm", ["run", environment === "production" ? "db:migrate:production" : "db:migrate:dev"], { inherit: true });
   run("npm", ["run", "verify"], { inherit: true });
   if (environment === "development") run("npm", ["run", "auth:smoke:dev"], { inherit: true });
+  const dirtyAfterVerification = run("git", ["status", "--porcelain"]).trim();
+  if (dirtyAfterVerification) throw new Error("Release verification changed tracked files; review and commit generated output before deploying");
   const hash = await artifactHash();
   if (environment === "production" && state.releases.development?.artifactHash !== hash) throw new Error("Production requires the exact artifact already verified in Development");
   const target = config[environment];

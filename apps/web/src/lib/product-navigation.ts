@@ -5,6 +5,7 @@ import {
   Code2,
   CreditCard,
   Gauge,
+  HardDrive,
   KeyRound,
   LayoutDashboard,
   LifeBuoy,
@@ -79,6 +80,15 @@ export const productNavigation: ProductNavigationItem[] = [
     icon: Gauge,
     keywords: ["meter", "quota", "limit", "consumption"],
     module: "saas.usage",
+  },
+  {
+    id: "storage",
+    label: "Files",
+    description: "Private and shared objects",
+    href: "/app/storage",
+    icon: HardDrive,
+    keywords: ["files", "storage", "upload", "objects", "r2", "s3"],
+    module: "capability.object-storage",
   },
   {
     id: "developer",

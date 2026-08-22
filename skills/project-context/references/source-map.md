@@ -7,6 +7,7 @@
 | Material change outcome and gates | `changes/<id>.md` | `/dp` current changes |
 | Runtime topology and boundaries | `ARCHITECTURE.md`, `cloudflare/bindings.contract.json`, Wrangler configs | `/dp` topology and MCP read-back |
 | AI roles and permissions | `AGENTS.md`, `.ai/manifest.json`, `.ai/orchestration.yaml` | `ai:context` orchestration |
+| Routine AI file and check routing | `AGENT_MAP.md`, `.ai/agent-map.json` | task/module-scoped `ai:context` |
 | UI rules and templates | `DESIGN.md` and selected template assets | built Web/Expo UI |
 | Performance requirements | `PERFORMANCE.md` | measurements and release evidence |
 | Release authorization and gates | `RELEASE.md`, operational release skills | `.all2cf/*.local.json` and live provider IDs |

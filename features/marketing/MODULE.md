@@ -8,6 +8,8 @@ source: starter
 
 Purpose: own the static-first public product site assembled from the Page Catalog and the selected Design Profile.
 
+- Content-hashed Marketing assets are immutable in the browser; HTML remains revalidated so a release can change references atomically.
+
 - `apps/marketing` is an Astro application whose generated route files come only from selected Page Pack entries. The default Core Product pack produces Home, Features, Pricing, About, Contact, Changelog, Privacy, Terms, and a real 404 page.
 - PowerAI Astro is a pinned information-architecture donor. Starter keeps provenance and license evidence but owns the resulting route templates, content boundaries, components, tokens, and maintenance.
 - Public pages contain no required client JavaScript in the default build. Product authentication and application routes remain in the separate React application and are served through the same Worker under explicit route boundaries.

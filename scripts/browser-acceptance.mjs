@@ -182,8 +182,16 @@ async function exercisePage({ page, route, viewport, outputRoot, caseId }) {
 
   if (route === "/app/settings") {
     await page.getByRole("group", { name: "Theme" }).waitFor();
-    await page.getByRole("group", { name: "Language" }).waitFor();
-    interactions.push("settings-theme-language");
+    await page.getByRole("group", { name: "Shell language" }).waitFor();
+    await page.getByRole("button", { name: "简体中文", exact: true }).click();
+    await page.getByText("工作区", { exact: true }).first().waitFor();
+    await page.waitForFunction(() => document.documentElement.lang === "zh-CN");
+    interactions.push("settings-theme-language-zh-shell");
+    stateScreenshots.push(
+      await takeStateScreenshot(page, outputRoot, caseId, "chinese-shell"),
+    );
+    await page.getByRole("button", { name: "English", exact: true }).click();
+    await page.waitForFunction(() => document.documentElement.lang === "en");
   }
 
   if (route === "/app/team") {

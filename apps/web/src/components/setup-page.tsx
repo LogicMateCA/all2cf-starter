@@ -2460,11 +2460,12 @@ export function SetupPage() {
                 />
               </section>
 
-              <section className="setup-panel provider-section provider-catalog-section">
-                <header>
-                  <h2>Provider and capability catalog</h2>
-                  <p>Every common category is accounted for. Available options have executable code and verification; Planned options remain visible but disabled until their Pack is real.</p>
-                </header>
+              <details className="setup-panel provider-section provider-catalog-section">
+                <summary>
+                  <span><strong>Advanced Provider catalog</strong><small>Inspect all 17 categories and Planned choices</small></span>
+                  <span>Optional reference</span>
+                </summary>
+                <p>Every common category is accounted for. Available options have executable code and verification; Planned options remain visible but disabled until their Pack is real.</p>
                 <div className="provider-catalog-grid">
                   {payload.providerCatalog.categories.map((category) => (
                     <article key={category.id}>
@@ -2493,7 +2494,7 @@ export function SetupPage() {
                     </article>
                   ))}
                 </div>
-              </section>
+              </details>
             </div>
           ) : null}
 

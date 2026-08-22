@@ -686,6 +686,42 @@ dd {
   font-size: 12px;
   line-height: 1.55;
 }
+.technology-status-bars {
+  width: 100%;
+  margin: 0;
+}
+.technology-status-bars ul {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.technology-status-bars li > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 5px;
+  font-size: 12px;
+}
+.technology-status-track {
+  display: block;
+  height: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surface-soft);
+}
+.technology-status-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+.technology-status-bars figcaption {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
 .chart-loading {
   display: grid;
   min-height: 220px;
@@ -741,6 +777,11 @@ dd {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
+.relationship-layout > *,
+.orchestration-grid > *,
+.environment-grid > * {
+  min-width: 0;
+}
 .runtime-flow {
   display: flex;
   flex-wrap: wrap;
@@ -764,7 +805,7 @@ dd {
 }
 .binding-list div {
   display: grid;
-  grid-template-columns: 1fr 1fr 60px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 60px;
   gap: 10px;
   padding: 8px 0;
   border-top: 1px solid var(--border);
@@ -773,6 +814,7 @@ dd {
   color: var(--accent);
   font-size: 12px;
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 .binding-list span,
 .binding-list small {
@@ -915,7 +957,7 @@ dd {
   height: 15px;
   padding: 0 3px;
   border-radius: 999px;
-  color: white;
+  color: var(--canvas);
   background: var(--danger);
   font-size: 12px;
   font-weight: 800;
@@ -2430,6 +2472,34 @@ dd {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin-top: 18px;
+}
+.provider-catalog-section > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+  list-style: none;
+}
+.provider-catalog-section > summary::-webkit-details-marker {
+  display: none;
+}
+.provider-catalog-section > summary span:first-child {
+  display: grid;
+  gap: 4px;
+}
+.provider-catalog-section > summary small,
+.provider-catalog-section > summary span:last-child,
+.provider-catalog-section > p {
+  color: var(--muted);
+  font-size: 12px;
+}
+.provider-catalog-section > p {
+  margin: 16px 0 0;
+}
+.provider-catalog-section[open] > summary {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
 }
 .provider-catalog-grid > article {
   display: grid;

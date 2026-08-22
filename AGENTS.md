@@ -5,6 +5,7 @@ This repository is a reusable starter. Replace neutral placeholders during proje
 ## Operating rules
 
 - Inspect existing code and constraints before changing anything. Keep changes surgical and verifiable.
+- After first project setup, begin ordinary work with `AGENT_MAP.md` and `npm run ai:context -- --task "<request>"`. Do not load every Module, Change Spec, Catalog, or Pack by default. Use `--full` only for first initialization, whole-project architecture, or release/cutover audit.
 - Cloudflare facts, APIs, configuration, and operations must be checked through official Cloudflare MCP first. If MCP is unavailable, record the limitation before using another authoritative source.
 - Detect Worker Studio MCP capabilities at runtime; never assume a Worker Studio tool or binding exists.
 - Sol is the sole controller and chooses reasoning per task: light for bounded inspection or mechanical work, medium for normal implementation and integration, and high for architecture, release, ambiguous cross-module decisions, or high-risk changes. It may raise or lower the level as evidence changes. Luna medium workers receive bounded, independent tasks. Child workers cannot commit or deploy; the controller owns integration and release.

@@ -136,61 +136,43 @@ export function AdminPage() {
     return payload.data;
   };
 
-  const load = async () => {
+  const loadOverview = async () => {
+    const response = await fetch("/api/admin/overview", { credentials: "include" });
+    const payload = (await response.json()) as { data?: Overview; error?: { message?: string } };
+    if (!response.ok) throw new Error(payload.error?.message || "Unable to load Admin overview.");
+    setOverview(payload.data || null);
+  };
+
+  const loadSupport = async () => {
+    const [ticketsResponse, usersResult] = await Promise.all([
+      fetch("/api/admin/support/tickets", { credentials: "include" }),
+      authClient.admin.listUsers({ query: { limit: 50, sortBy: "createdAt", sortDirection: "desc" } }),
+    ]);
+    const payload = (await ticketsResponse.json()) as { data?: Ticket[]; error?: { message?: string } };
+    if (!ticketsResponse.ok) throw new Error(payload.error?.message || "Unable to load Admin inbox.");
+    if (usersResult.error) throw new Error(usersResult.error.message || "Unable to load users.");
+    setTickets(payload.data || []);
+    setUsers((usersResult.data?.users || []) as UserRow[]);
+  };
+
+  const loadAnnouncements = async () => {
+    const response = await fetch("/api/admin/announcements", { credentials: "include" });
+    const payload = (await response.json()) as { data?: Announcement[]; error?: { message?: string } };
+    if (!response.ok) throw new Error(payload.error?.message || "Unable to load announcements.");
+    setAnnouncements(payload.data || []);
+  };
+
+  const loadActiveModule = async () => {
     setError("");
     try {
-      const [
-        ticketsResponse,
-        overviewResponse,
-        auditResult,
-        announcementsResponse,
-        usersResult,
-      ] = await Promise.all([
-          fetch("/api/admin/support/tickets", { credentials: "include" }),
-          fetch("/api/admin/overview", { credentials: "include" }),
-          requestAudit(auditFilters),
-          fetch("/api/admin/announcements", { credentials: "include" }),
-          authClient.admin.listUsers({
-            query: {
-              limit: 50,
-              sortBy: "createdAt",
-              sortDirection: "desc",
-            },
-          }),
-        ]);
-      const ticketPayload = (await ticketsResponse.json()) as {
-        data?: Ticket[];
-        error?: { message?: string };
-      };
-      const overviewPayload = (await overviewResponse.json()) as {
-        data?: Overview;
-        error?: { message?: string };
-      };
-      const announcementsPayload = (await announcementsResponse.json()) as {
-        data?: Announcement[];
-        error?: { message?: string };
-      };
-      if (!ticketsResponse.ok)
-        throw new Error(
-          ticketPayload.error?.message || "Unable to load Admin inbox.",
-        );
-      if (!overviewResponse.ok)
-        throw new Error(
-          overviewPayload.error?.message || "Unable to load Admin overview.",
-        );
-      if (!announcementsResponse.ok)
-        throw new Error(
-          announcementsPayload.error?.message ||
-            "Unable to load announcements.",
-        );
-      if (usersResult.error)
-        throw new Error(usersResult.error.message || "Unable to load users.");
-      setTickets(ticketPayload.data || []);
-      setOverview(overviewPayload.data || null);
-      setAudit(auditResult.events);
-      setAuditNextCursor(auditResult.nextCursor);
-      setAnnouncements(announcementsPayload.data || []);
-      setUsers((usersResult.data?.users || []) as UserRow[]);
+      if (activeModule === "overview") await loadOverview();
+      else if (activeModule === "support") await loadSupport();
+      else if (activeModule === "notifications") await loadAnnouncements();
+      else if (activeModule === "audit") {
+        const result = await requestAudit(auditFilters);
+        setAudit(result.events);
+        setAuditNextCursor(result.nextCursor);
+      }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
     }
@@ -247,8 +229,8 @@ export function AdminPage() {
       window.location.replace(
         `/login?returnTo=${encodeURIComponent("/admin")}`,
       );
-    else if (!isPending && admin) void load();
-  }, [admin, isPending, session?.user?.id]);
+    else if (!isPending && admin) void loadActiveModule();
+  }, [activeModule, admin, isPending, session?.user?.id]);
 
   useEffect(() => {
     if (selectedTicketId)
@@ -286,7 +268,7 @@ export function AdminPage() {
       return;
     }
     await Promise.all([
-      load(),
+      loadSupport(),
       selectedTicketId ? loadThread(selectedTicketId) : Promise.resolve(),
     ]);
   };
@@ -313,7 +295,7 @@ export function AdminPage() {
       return;
     }
     setReply("");
-    await Promise.all([load(), loadThread(selectedTicketId)]);
+    await Promise.all([loadSupport(), loadThread(selectedTicketId)]);
   };
 
   const publishAnnouncement = async () => {
@@ -339,7 +321,7 @@ export function AdminPage() {
     setAnnouncementTitle("");
     setAnnouncementBody("");
     setAnnouncementDeepLink("/app/notifications");
-    await load();
+    await loadAnnouncements();
   };
 
   if (isPending || !session?.user)
@@ -377,7 +359,7 @@ export function AdminPage() {
               gaps.
             </p>
           </div>
-          <Button variant="outline" onClick={() => void load()}>
+          <Button variant="outline" onClick={() => void loadActiveModule()}>
             <RefreshCw size={15} /> Refresh
           </Button>
         </section>

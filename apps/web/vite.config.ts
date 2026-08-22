@@ -3,10 +3,11 @@ import type { Plugin, ViteDevServer } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath, URL } from "node:url";
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
-import { execFileSync } from "node:child_process";
+import { mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
+import { execFile } from "node:child_process";
 import { createHash, createPrivateKey, randomUUID, sign as cryptoSign } from "node:crypto";
 import path from "node:path";
+import { promisify } from "node:util";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { validateAssemblyContracts } from "../../scripts/lib/assembly.mjs";
 import {
@@ -19,9 +20,14 @@ import {
 } from "../../workers/app/auth-email-provider.ts";
 
 const repositoryRoot = fileURLToPath(new URL("../../", import.meta.url));
+const execFileAsync = promisify(execFile);
 const json = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`;
 const sha256 = (value: string) =>
   createHash("sha256").update(value).digest("hex");
+
+function providerFetch(input: string | URL | Request, init: RequestInit = {}) {
+  return fetch(input, { ...init, signal: init.signal || AbortSignal.timeout(30_000) });
+}
 
 const providerCredentialFields = {
   google: ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"],
@@ -123,20 +129,22 @@ async function providerCredentialStatus() {
   );
 }
 
-async function writeProviderSecrets(input: unknown) {
-  if (!input || typeof input !== "object") return;
+async function writeProviderSecrets(input: unknown): Promise<() => Promise<void>> {
+  if (!input || typeof input !== "object") return async () => {};
   const entries = Object.entries(input as Record<string, unknown>)
     .filter(([name, value]) => allowedProviderSecrets.has(name) && typeof value === "string" && value.trim())
     .map(([name, value]) => [name, String(value).trim()] as const);
-  if (!entries.length) return;
+  if (!entries.length) return async () => {};
   if (entries.some(([, value]) => /[\r\n\0]/u.test(value)))
     throw new Error("Provider credentials cannot contain line breaks.");
   const envPath = path.join(repositoryRoot, ".dev.vars");
   let source = "";
+  let existed = true;
   try {
     source = await readFile(envPath, "utf8");
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    existed = false;
   }
   const lines = source ? source.replace(/\n?$/u, "").split(/\r?\n/u) : [];
   for (const [name, value] of entries) {
@@ -145,7 +153,13 @@ async function writeProviderSecrets(input: unknown) {
     if (index >= 0) lines[index] = next;
     else lines.push(next);
   }
-  await writeFile(envPath, `${lines.join("\n")}\n`, { encoding: "utf8", mode: 0o600 });
+  const temporaryPath = `${envPath}.setup-${process.pid}.tmp`;
+  await writeFile(temporaryPath, `${lines.join("\n")}\n`, { encoding: "utf8", mode: 0o600 });
+  await rename(temporaryPath, envPath);
+  return async () => {
+    if (existed) await writeFile(envPath, source, { encoding: "utf8", mode: 0o600 });
+    else await unlink(envPath).catch((error) => { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error; });
+  };
 }
 
 async function readRequestJson(request: IncomingMessage, maximum = 32768) {
@@ -247,7 +261,7 @@ async function testTurnstileProvider(input: unknown) {
   const form = new FormData();
   form.set("secret", secret);
   form.set("response", token);
-  const response = await fetch(
+  const response = await providerFetch(
     "https://challenges.cloudflare.com/turnstile/v0/siteverify",
     { method: "POST", body: form },
   );
@@ -291,7 +305,7 @@ async function testWorkersAiProvider(input: unknown) {
   const accountId = project.get("CLOUDFLARE_ACCOUNT_ID") || shared.get("CLOUDFLARE_ACCOUNT_ID") || "";
   if (!token || !accountId)
     throw new Error("Cloudflare API token and account ID are required for the real Workers AI test.");
-  const response = await fetch(
+  const response = await providerFetch(
     `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(accountId)}/ai/run/${model}`,
     {
       method: "POST",
@@ -354,7 +368,7 @@ async function testVectorizeProvider(input: unknown) {
     throw new Error("Cloudflare API token and account ID are required for the real Vectorize test.");
   const base = `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(accountId)}/vectorize/v2/indexes/${encodeURIComponent(indexName)}`;
   const headers = { Authorization: `Bearer ${token}` };
-  const indexResponse = await fetch(base, { headers });
+  const indexResponse = await providerFetch(base, { headers });
   const indexPayload = (await indexResponse.json()) as { success?: boolean; result?: { name?: string; config?: { dimensions?: number; metric?: string } }; errors?: Array<{ code?: number; message?: string }> };
   if (!indexResponse.ok || !indexPayload.success || !indexPayload.result)
     throw new Error(indexPayload.errors?.map(({ code, message }) => `${code || "error"}: ${message || "unknown"}`).join("; ") || "Development Vectorize index is not provisioned.");
@@ -365,13 +379,13 @@ async function testVectorizeProvider(input: unknown) {
   vector[0] = 1;
   const form = new FormData();
   form.set("vectors", new Blob([`${JSON.stringify({ id, values: vector, metadata: { purpose: "starter-setup-test" } })}\n`], { type: "application/x-ndjson" }), "vector.ndjson");
-  const upsertResponse = await fetch(`${base}/upsert`, { method: "POST", headers, body: form });
+  const upsertResponse = await providerFetch(`${base}/upsert`, { method: "POST", headers, body: form });
   const upsertPayload = (await upsertResponse.json()) as { success?: boolean; result?: { mutationId?: string }; errors?: Array<{ message?: string }> };
   if (!upsertResponse.ok || !upsertPayload.success)
     throw new Error(upsertPayload.errors?.map(({ message }) => message).join("; ") || "Vectorize upsert failed.");
   try {
     for (let attempt = 0; attempt < 80; attempt += 1) {
-      const queryResponse = await fetch(`${base}/query`, { method: "POST", headers: { ...headers, "Content-Type": "application/json" }, body: JSON.stringify({ vector, topK: 1, returnMetadata: "all" }) });
+      const queryResponse = await providerFetch(`${base}/query`, { method: "POST", headers: { ...headers, "Content-Type": "application/json" }, body: JSON.stringify({ vector, topK: 1, returnMetadata: "all" }) });
       const queryPayload = (await queryResponse.json()) as { success?: boolean; result?: { matches?: Array<{ id?: string; score?: number }> } };
       const match = queryPayload.result?.matches?.find((entry) => entry.id === id);
       if (queryResponse.ok && queryPayload.success && match)
@@ -380,7 +394,7 @@ async function testVectorizeProvider(input: unknown) {
     }
     throw new Error("Vectorize mutation did not become queryable in time.");
   } finally {
-    await fetch(`${base}/delete_by_ids`, { method: "POST", headers: { ...headers, "Content-Type": "application/json" }, body: JSON.stringify({ ids: [id] }) }).catch(() => undefined);
+    await providerFetch(`${base}/delete_by_ids`, { method: "POST", headers: { ...headers, "Content-Type": "application/json" }, body: JSON.stringify({ ids: [id] }) }).catch(() => undefined);
   }
 }
 
@@ -405,7 +419,7 @@ async function testExpoPushProvider(input: unknown) {
   const accessToken = (typeof replacement === "string" ? replacement.trim() : "") || project.get("EXPO_PUSH_ACCESS_TOKEN") || shared.get("EXPO_PUSH_ACCESS_TOKEN") || "";
   if (body.accessTokenRequired && !accessToken)
     throw new Error("Expo Push access token is required by this project configuration.");
-  const response = await fetch("https://exp.host/--/api/v2/push/send", {
+  const response = await providerFetch("https://exp.host/--/api/v2/push/send", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -443,7 +457,7 @@ async function testTwilioSmsProvider(input: unknown) {
   const from = values.get("TWILIO_FROM") || "";
   if (!/^AC[0-9a-f]{32}$/iu.test(account) || !/^SK[0-9a-f]{32}$/iu.test(key) || !secret || !/^\+[1-9][0-9]{7,14}$/u.test(from))
     throw new Error("Development Twilio Account SID, API Key, API Secret or sender is incomplete.");
-  const response = await fetch(`${apiBaseUrl}/2010-04-01/Accounts/${account}/Messages.json`, {
+  const response = await providerFetch(`${apiBaseUrl}/2010-04-01/Accounts/${account}/Messages.json`, {
     method: "POST",
     headers: { Authorization: `Basic ${btoa(`${key}:${secret}`)}`, "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({ To: recipient, From: from, Body: "Starter Twilio SMS delivery is configured." }),
@@ -469,7 +483,7 @@ async function testCloudflareStreamProvider(input: unknown) {
   const token = (typeof replacement === "string" ? replacement.trim() : "") || project.get("CLOUDFLARE_STREAM_TOKEN") || shared.get("CLOUDFLARE_STREAM_TOKEN") || "";
   if (!token) throw new Error("Development Cloudflare Stream token is missing.");
   const endpoint = `${apiBaseUrl}/accounts/${accountId}/stream/direct_upload`;
-  const response = await fetch(endpoint, {
+  const response = await providerFetch(endpoint, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", "Upload-Creator": "starter-setup-test" },
     body: JSON.stringify({ maxDurationSeconds: 1, allowedOrigins, creator: "starter-setup-test", expiry: new Date(Date.now() + 10 * 60_000).toISOString(), meta: { name: "starter-setup-test.mp4" }, requireSignedURLs: false }),
@@ -478,7 +492,7 @@ async function testCloudflareStreamProvider(input: unknown) {
   const uid = String(payload.result?.uid || "");
   if (!response.ok || !payload.success || !uid || !payload.result?.uploadURL)
     throw new Error(payload.errors?.map(({ code, message }) => `${code || "error"}: ${message || "unknown"}`).join("; ") || `Stream returned HTTP ${response.status}.`);
-  const deleted = await fetch(`${apiBaseUrl}/accounts/${accountId}/stream/${encodeURIComponent(uid)}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+  const deleted = await providerFetch(`${apiBaseUrl}/accounts/${accountId}/stream/${encodeURIComponent(uid)}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
   if (!deleted.ok) throw new Error(`Stream test upload ${uid} could not be deleted.`);
   return { provider: "cloudflare-stream", uid, uploadUrlCreated: true, deleted: true };
 }
@@ -511,8 +525,8 @@ async function testReleasePlatformProvider(input: unknown) {
     const accountId = requiredValue("CLOUDFLARE_ACCOUNT_ID");
     const headers = { Authorization: `Bearer ${token}` };
     const [tokenResponse, accountResponse] = await Promise.all([
-      fetch(`https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(accountId)}/tokens/verify`, { headers }),
-      fetch(`https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(accountId)}`, { headers }),
+      providerFetch(`https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(accountId)}/tokens/verify`, { headers }),
+      providerFetch(`https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(accountId)}`, { headers }),
     ]);
     const tokenPayload = await tokenResponse.json() as { success?: boolean; result?: { status?: string }; errors?: Array<{ message?: string }> };
     const accountPayload = await accountResponse.json() as { success?: boolean; result?: { id?: string; name?: string }; errors?: Array<{ message?: string }> };
@@ -521,13 +535,13 @@ async function testReleasePlatformProvider(input: unknown) {
     return { provider, identity: accountPayload.result.name || accountId, verified: true };
   }
   if (provider === "github-release") {
-    const response = await fetch("https://api.github.com/user", { headers: { Authorization: `Bearer ${requiredValue("GITHUB_TOKEN")}`, Accept: "application/vnd.github+json", "User-Agent": "starter-setup" } });
+    const response = await providerFetch("https://api.github.com/user", { headers: { Authorization: `Bearer ${requiredValue("GITHUB_TOKEN")}`, Accept: "application/vnd.github+json", "User-Agent": "starter-setup" } });
     const payload = await response.json() as { login?: string; id?: number; message?: string };
     if (!response.ok || !payload.login) throw new Error(payload.message || `GitHub returned HTTP ${response.status}.`);
     return { provider, identity: payload.login, verified: true };
   }
   if (provider === "expo-eas") {
-    const output = execFileSync("npx", ["--yes", "eas-cli@22.0.0", "project:info", "--json", "--non-interactive"], {
+    const { stdout: output } = await execFileAsync("npx", ["--yes", "eas-cli@22.0.0", "project:info", "--json", "--non-interactive"], {
       cwd: path.join(repositoryRoot, "apps/mobile"),
       encoding: "utf8",
       timeout: 120_000,
@@ -546,7 +560,7 @@ async function testReleasePlatformProvider(input: unknown) {
     const key = createPrivateKey(Buffer.from(requiredValue("ASC_API_KEY_BASE64"), "base64").toString("utf8"));
     const signature = cryptoSign("sha256", Buffer.from(signingInput), { key, dsaEncoding: "ieee-p1363" }).toString("base64url");
     const appId = requiredValue("ASC_APP_ID");
-    const response = await fetch(`https://api.appstoreconnect.apple.com/v1/apps/${encodeURIComponent(appId)}`, { headers: { Authorization: `Bearer ${signingInput}.${signature}` } });
+    const response = await providerFetch(`https://api.appstoreconnect.apple.com/v1/apps/${encodeURIComponent(appId)}`, { headers: { Authorization: `Bearer ${signingInput}.${signature}` } });
     const payload = await response.json() as { data?: { id?: string; attributes?: { name?: string; bundleId?: string } }; errors?: Array<{ detail?: string }> };
     if (!response.ok || payload.data?.id !== appId) throw new Error(payload.errors?.map(({ detail }) => detail).filter(Boolean).join("; ") || `App Store Connect returned HTTP ${response.status}.`);
     return { provider, identity: payload.data.attributes?.name || payload.data.attributes?.bundleId || appId, verified: true };
@@ -557,11 +571,11 @@ async function testReleasePlatformProvider(input: unknown) {
   const tokenUri = serviceAccount.token_uri || "https://oauth2.googleapis.com/token";
   const signingInput = `${encodedJson({ alg: "RS256", typ: "JWT" })}.${encodedJson({ iss: serviceAccount.client_email, scope: "https://www.googleapis.com/auth/androidpublisher", aud: tokenUri, iat: now - 5, exp: now + 600 })}`;
   const assertion = `${signingInput}.${cryptoSign("RSA-SHA256", Buffer.from(signingInput), serviceAccount.private_key).toString("base64url")}`;
-  const tokenResponse = await fetch(tokenUri, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion }) });
+  const tokenResponse = await providerFetch(tokenUri, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion }) });
   const tokenPayload = await tokenResponse.json() as { access_token?: string; error_description?: string };
   if (!tokenResponse.ok || !tokenPayload.access_token) throw new Error(tokenPayload.error_description || "Google service-account token exchange failed.");
   const packageName = requiredValue("GOOGLE_PLAY_PACKAGE_NAME");
-  const appResponse = await fetch(`https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${encodeURIComponent(packageName)}/subscriptions?pageSize=1`, { headers: { Authorization: `Bearer ${tokenPayload.access_token}` } });
+  const appResponse = await providerFetch(`https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${encodeURIComponent(packageName)}/subscriptions?pageSize=1`, { headers: { Authorization: `Bearer ${tokenPayload.access_token}` } });
   const appPayload = await appResponse.json() as { error?: { message?: string } };
   if (!appResponse.ok) throw new Error(appPayload.error?.message || `Google Play returned HTTP ${appResponse.status}.`);
   return { provider, identity: packageName, verified: true };
@@ -777,6 +791,13 @@ function localSetupApi(): Plugin {
             const pageCatalog = JSON.parse(pageCatalogSource);
             const config = JSON.parse(configSource);
             const stylekitCatalog = JSON.parse(stylekitCatalogSource);
+            const setupStylekitCatalog = {
+              ...stylekitCatalog,
+              styles: stylekitCatalog.styles.filter(
+                ({ classification, globalEligibility }: { classification: string; globalEligibility: string }) =>
+                  classification === "base-visual" && globalEligibility === "eligible",
+              ),
+            };
             const saasSources = JSON.parse(saasSourcesSource);
             const saasCapabilities = JSON.parse(saasCapabilitiesSource);
             const providerCatalog = JSON.parse(providerCatalogSource);
@@ -802,7 +823,7 @@ function localSetupApi(): Plugin {
                   catalog,
                   designCatalog,
                   pageCatalog,
-                  stylekitCatalog,
+                  stylekitCatalog: setupStylekitCatalog,
                   stylekitSnapshots,
                   stylekitSnapshot: {
                     ...JSON.parse(initialSnapshotSource),
@@ -923,36 +944,38 @@ function localSetupApi(): Plugin {
             ]);
             await rename(blueprintTemporaryPath, blueprintPath);
             await rename(configTemporaryPath, configPath);
+            let rollbackProviderSecrets: () => Promise<void> = async () => {};
             try {
-              execFileSync(
+              rollbackProviderSecrets = await writeProviderSecrets(payload.providerSecrets);
+              await execFileAsync(
                 process.execPath,
                 [
                   "scripts/sync-project-identity.mjs",
                   ...(resetIdentity ? ["--reset"] : []),
                 ],
-                { cwd: repositoryRoot, stdio: "pipe" },
+                { cwd: repositoryRoot, maxBuffer: 2 * 1024 * 1024 },
               );
-              execFileSync(process.execPath, ["scripts/build-dp.mjs"], {
+              await execFileAsync(process.execPath, ["scripts/build-dp.mjs"], {
                 cwd: repositoryRoot,
-                stdio: "pipe",
+                maxBuffer: 2 * 1024 * 1024,
               });
             } catch (error) {
+              await rollbackProviderSecrets();
               await Promise.all([
                 writeFile(blueprintPath, blueprintSource, "utf8"),
                 writeFile(configPath, configSource, "utf8"),
               ]);
-              execFileSync(
+              await execFileAsync(
                 process.execPath,
                 ["scripts/sync-project-identity.mjs"],
-                { cwd: repositoryRoot, stdio: "pipe" },
+                { cwd: repositoryRoot, maxBuffer: 2 * 1024 * 1024 },
               );
-              execFileSync(process.execPath, ["scripts/build-dp.mjs"], {
+              await execFileAsync(process.execPath, ["scripts/build-dp.mjs"], {
                 cwd: repositoryRoot,
-                stdio: "pipe",
+                maxBuffer: 2 * 1024 * 1024,
               });
               throw error;
             }
-            await writeProviderSecrets(payload.providerSecrets);
             response.statusCode = 200;
             response.end(
               json({
@@ -960,7 +983,7 @@ function localSetupApi(): Plugin {
                 catalog,
                 designCatalog,
                 pageCatalog,
-                stylekitCatalog,
+                stylekitCatalog: setupStylekitCatalog,
                 stylekitSnapshots,
                 stylekitSnapshot: {
                   ...JSON.parse(snapshotSource),

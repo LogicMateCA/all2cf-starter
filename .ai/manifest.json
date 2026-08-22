@@ -9,7 +9,8 @@
     "designProfiles": "design/catalog.json",
     "pages": "pages/catalog.json",
     "materialization": ".starter/materialization.json",
-    "packTemplates": "packs/"
+    "packTemplates": "packs/",
+    "agentMap": ".ai/agent-map.json"
   },
   "controller": {
     "model": "Sol",

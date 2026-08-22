@@ -10,6 +10,8 @@ source: "starter"
 
 `Desktop Web / Mobile Web / iOS / Android / Docs` → `Cloudflare Worker API` → `Hyperdrive or CFPG Service Binding / Queues / R2 / CFsend` → `PostgreSQL-compatible data and provider services`
 
+The always-running `starter-dev` container has only project, dependency and shared-provider-profile mounts. Docker Socket and Production SSH material exist only in the explicit `starter-ops` Compose profile used for scoped provisioning or Production operations.
+
 Assembly control flow:
 
 `product brief` → `/setup` → `starter.blueprint.json` → `catalog/catalog.json` → `AI materialization` → `owned project code` → `local verification` → `Development release` → explicit `Production release`
@@ -102,6 +104,7 @@ Each Catalog pack declares targets, ownership, provenance and license, update po
 - Operations Health separates liveness from dependency evidence. Public `/api/health` has no PostgreSQL or provider dependency. Better Auth platform Admin `/api/admin/health` actively queries PostgreSQL and exposes only configuration completeness plus bounded persisted evidence for authentication email, each selected Google/GitHub/Apple provider, selected Stripe webhooks, and selected outgoing-webhook Queue deliveries. Unselected optional providers are `not-selected`; selected-but-incomplete configuration and recent terminal delivery failures are `attention`. The read-only dashboard never sends test email, creates Stripe resources, or enqueues product events.
 - Theme and locale are user-profile fields exposed through an authenticated preferences contract; product authorization remains separate from these presentation preferences.
 - `/support` stores verified-user support and bug submissions in PostgreSQL and limits each account to five new tickets and twenty replies per hour. Users read only their own ticket and public thread messages. `/admin` requires the Better Auth platform `admin` role and uses the official Admin plugin for bounded search, role, ban, unban, session and impersonation behavior rather than duplicating identity SQL. A Better Auth after hook records only successful privileged identity mutations in the append-only audit table; failed authorization produces no audit event. The same Admin shell handles ticket priority/status/admin-only assignment/public replies/internal notes, transactional announcements to verified active users, bounded Overview, and exact-filtered stable-cursor Audit reads. Support attachment metadata may reference the selected Object Storage Pack, but attachment-specific scanning and ticket APIs remain separate product work.
+- Baseline PostgreSQL indexes match normalized email lookup, recipient notification reads, global recent-notification counts, support author/time limits, announcement creator/time limits, ticket/status ordering and audit cursors. Product-specific queries still require measured plans before adding indexes.
 
 ## Change Spec
 

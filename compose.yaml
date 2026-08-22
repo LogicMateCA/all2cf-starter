@@ -8,14 +8,26 @@ services:
       - .:/workspace
       - starter-node-modules:/workspace/node_modules
       - /opt/1panel/apps/_starter_profile:/opt/1panel/apps/_starter_profile:ro
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /root/.ssh/id_1panel_root_192_168_0_91:/run/starter-secrets/production-ssh-key:ro
-      - /root/.ssh/known_hosts:/run/starter-secrets/known_hosts:ro
     ports:
       - "15173:5173"
       - "18787:8787"
     restart: unless-stopped
     command: ["npm", "run", "setup"]
+
+  starter-ops:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    profiles: ["ops"]
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - starter-node-modules:/workspace/node_modules
+      - /opt/1panel/apps/_starter_profile:/opt/1panel/apps/_starter_profile:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /root/.ssh/id_1panel_root_192_168_0_91:/run/starter-secrets/production-ssh-key:ro
+      - /root/.ssh/known_hosts:/run/starter-secrets/known_hosts:ro
+    command: ["sleep", "infinity"]
 
   browser-acceptance:
     image: mcr.microsoft.com/playwright:v1.62.1-noble

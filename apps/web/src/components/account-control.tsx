@@ -13,6 +13,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import { message } from "@/lib/i18n";
 import {
   usePreferences,
   type LocalePreference,
@@ -62,6 +63,7 @@ export function AccountControl({ compact = false }: { compact?: boolean }) {
   const { data: session, isPending } = authClient.useSession();
   const { theme, locale, setTheme, setLocale } = usePreferences();
   const hydratedUser = useRef<string | null>(null);
+  const persistedPreferences = useRef<{ theme: ThemePreference; locale: LocalePreference } | null>(null);
 
   useEffect(() => {
     const userId = session?.user?.id;
@@ -77,6 +79,7 @@ export function AccountControl({ compact = false }: { compact?: boolean }) {
       )
       .then((payload) => {
         if (!active || !payload) return;
+        persistedPreferences.current = payload.data;
         setTheme(payload.data.theme);
         setLocale(payload.data.locale);
         hydratedUser.current = userId;
@@ -89,11 +92,14 @@ export function AccountControl({ compact = false }: { compact?: boolean }) {
 
   useEffect(() => {
     if (!session?.user?.id || hydratedUser.current !== session.user.id) return;
+    if (persistedPreferences.current?.theme === theme && persistedPreferences.current?.locale === locale) return;
     void fetch("/api/preferences", {
       method: "PUT",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ theme, locale }),
+    }).then((response) => {
+      if (response.ok) persistedPreferences.current = { theme, locale };
     }).catch(() => undefined);
   }, [locale, session?.user?.id, theme]);
 
@@ -105,7 +111,7 @@ export function AccountControl({ compact = false }: { compact?: boolean }) {
         <a
           href={`/login?returnTo=${encodeURIComponent(window.location.pathname)}`}
         >
-          Sign in
+          {message(locale, "account.sign-in", "Sign in")}
         </a>
       </Button>
     );
@@ -123,7 +129,7 @@ export function AccountControl({ compact = false }: { compact?: boolean }) {
         <Button
           variant="ghost"
           className="account-trigger"
-          aria-label="Open account menu"
+          aria-label={message(locale, "account.open", "Open account menu")}
         >
           <Avatar size="sm">
             <AvatarImage src={user.image || undefined} alt="" />
@@ -134,7 +140,7 @@ export function AccountControl({ compact = false }: { compact?: boolean }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="account-menu">
         <DropdownMenuLabel className="account-identity">
-          <strong>{user.name || "Account"}</strong>
+          <strong>{user.name || message(locale, "account.account", "Account")}</strong>
           <span>{user.email}</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -162,33 +168,33 @@ export function AccountControl({ compact = false }: { compact?: boolean }) {
         <DropdownMenuItem asChild>
           <a href="/app">
             <UserRound />
-            Account
+            {message(locale, "account.account", "Account")}
           </a>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <a href="/app/settings">
             <Settings />
-            Settings
+            {message(locale, "account.settings", "Settings")}
           </a>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <a href="/support">
             <LifeBuoy />
-            Support
+            {message(locale, "account.support", "Support")}
           </a>
         </DropdownMenuItem>
         {isAdmin ? (
           <DropdownMenuItem asChild>
             <a href="/admin">
               <ShieldCheck />
-              Admin
+              {message(locale, "account.admin", "Admin")}
             </a>
           </DropdownMenuItem>
         ) : null}
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
             <Sun />
-            Theme
+            {message(locale, "account.appearance", "Theme")}
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
             <DropdownMenuRadioGroup
@@ -198,7 +204,7 @@ export function AccountControl({ compact = false }: { compact?: boolean }) {
               {themeItems.map(({ value, label, icon: Icon }) => (
                 <DropdownMenuRadioItem key={value} value={value}>
                   <Icon />
-                  {label}
+                  {message(locale, `account.${value}`, label)}
                 </DropdownMenuRadioItem>
               ))}
             </DropdownMenuRadioGroup>
@@ -207,7 +213,7 @@ export function AccountControl({ compact = false }: { compact?: boolean }) {
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
             <Languages />
-            Language
+            {message(locale, "account.language", "Shell language")}
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
             {localeItems.map(({ value, label }) => (
@@ -236,7 +242,7 @@ export function AccountControl({ compact = false }: { compact?: boolean }) {
           }
         >
           <LogOut />
-          Sign out
+          {message(locale, "account.sign-out", "Sign out")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

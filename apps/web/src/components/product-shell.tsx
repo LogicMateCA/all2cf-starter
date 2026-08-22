@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ChevronDown, CircleDot, Menu, Search } from "lucide-react";
 import { AccountControl } from "@/components/account-control";
-import { NotificationBell } from "@/components/notification-bell";
+import { NotificationBell, NotificationsProvider } from "@/components/notification-bell";
 import { authClient } from "@/lib/auth-client";
+import { message } from "@/lib/i18n";
+import { usePreferences } from "@/lib/preferences";
 import { capabilityRoutes } from "@/generated/capability-routes";
 import {
   isProductNavigationActive,
@@ -35,6 +37,7 @@ export function ProductShell({
   enabledModules?: string[];
 }) {
   const { data: session } = authClient.useSession();
+  const { locale } = usePreferences();
   const pathname = activePath || window.location.pathname;
   const isAdmin = String(
     session?.user && "role" in session.user ? session.user.role || "" : "",
@@ -49,6 +52,7 @@ export function ProductShell({
       if (route.path === "/app/billing") modules.add("saas.billing-stripe");
       if (route.path === "/app/entitlements") modules.add("saas.entitlements");
       if (route.path === "/app/usage") modules.add("saas.usage");
+      if (route.path === "/app/storage") modules.add("capability.object-storage");
       if (route.path === "/app/api-keys") modules.add("saas.api-keys");
       if (route.path === "/app/developer") modules.add("saas.api-platform");
       if (route.path === "/app/webhooks")
@@ -62,8 +66,12 @@ export function ProductShell({
       visibleProductNavigation({
         isAdmin,
         enabledModules: materializedModules,
-      }),
-    [isAdmin, materializedModules],
+      }).map((item) => ({
+        ...item,
+        label: message(locale, `nav.${item.id}.label`, item.label),
+        description: message(locale, `nav.${item.id}.description`, item.description),
+      })),
+    [isAdmin, locale, materializedModules],
   );
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
@@ -216,6 +224,7 @@ export function ProductShell({
   };
 
   return (
+    <NotificationsProvider limit={pathname === "/app/notifications" ? 50 : 8}>
     <div className="saas-shell">
       {drawerOpen ? (
         <button
@@ -248,7 +257,7 @@ export function ProductShell({
           >
             <span>
               <strong>
-                {activeOrganization?.name || "Personal workspace"}
+                {activeOrganization?.name || message(locale, "shell.personal-workspace", "Personal workspace")}
               </strong>
               <small>
                 {materializedModules.has("saas.team-organizations")
@@ -266,7 +275,7 @@ export function ProductShell({
                 onClick={() => void switchWorkspace(null)}
               >
                 <span>
-                  <strong>Personal workspace</strong>
+                  <strong>{message(locale, "shell.personal-workspace", "Personal workspace")}</strong>
                   <small>
                     {activeOrganization ? "Use personal context" : "Current workspace"}
                   </small>
@@ -324,7 +333,7 @@ export function ProductShell({
           ) : null}
         </div>
         <nav className="saas-sidebar-nav" aria-label="Product navigation">
-          <span className="saas-nav-label">Product</span>
+          <span className="saas-nav-label">{message(locale, "shell.product", "Product")}</span>
           {navigation.map((item, index) => {
             const Icon = item.icon;
             return (
@@ -345,7 +354,7 @@ export function ProductShell({
           })}
         </nav>
         <div className="saas-sidebar-footer">
-          Product modules add their own navigation through the same registry.
+          {message(locale, "shell.module-note", "Product modules add their own navigation through the same registry.")}
         </div>
       </aside>
       <div className="saas-main-column">
@@ -362,7 +371,7 @@ export function ProductShell({
           </button>
           <div className="saas-topbar-title">
             <strong>{currentTitle(navigation, pathname)}</strong>
-            <small>{activeOrganization?.name || "Personal workspace"}</small>
+            <small>{activeOrganization?.name || message(locale, "shell.personal-workspace", "Personal workspace")}</small>
           </div>
           <div className="saas-search">
             <label htmlFor="product-navigation-search">
@@ -371,7 +380,7 @@ export function ProductShell({
             <input
               id="product-navigation-search"
               type="search"
-              placeholder="Search product"
+              placeholder={message(locale, "shell.search", "Search product")}
               value={query}
               aria-label="Search registered product routes"
               onChange={(event) => setQuery(event.target.value)}
@@ -401,7 +410,7 @@ export function ProductShell({
                   ))
                 ) : (
                   <small className="saas-search-empty">
-                    No registered product route matches.
+                    {message(locale, "shell.no-search-results", "No registered product route matches.")}
                   </small>
                 )}
               </div>
@@ -422,5 +431,6 @@ export function ProductShell({
         </div>
       </div>
     </div>
+    </NotificationsProvider>
   );
 }

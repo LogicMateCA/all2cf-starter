@@ -1,5 +1,6 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { capabilityRoutes } from "./generated/capability-routes";
+import { productNavigation } from "./lib/product-navigation";
 
 const AuthPage = lazy(async () => ({ default: (await import("./components/auth-page")).AuthPage }));
 const ProtectedApp = lazy(async () => ({ default: (await import("./components/protected-app")).ProtectedApp }));
@@ -15,6 +16,21 @@ function RouteLoading() {
 
 export function App() {
   const path = window.location.pathname;
+  useEffect(() => {
+    const fixedTitles: Record<string, string> = {
+      "/": "Workspace",
+      "/login": "Sign in",
+      "/app": "Workspace",
+      "/app/settings": "Settings",
+      "/app/notifications": "Notifications",
+      "/support": "Support",
+      "/admin": "Admin",
+      "/setup": "Local Setup",
+      "/dp": "Development Plan",
+    };
+    const navigationTitle = productNavigation.find(({ href }) => href === path)?.label;
+    document.title = `${fixedTitles[path] || navigationTitle || "Starter"} · Starter`;
+  }, [path]);
   const localSetupSave =
     new Set(["localhost", "127.0.0.1", "[::1]"]).has(window.location.hostname) &&
     (sessionStorage.getItem("starter.setup.savePending") ||

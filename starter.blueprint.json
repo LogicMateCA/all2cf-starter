@@ -100,7 +100,7 @@
           "developmentVerified": false,
           "productionReleased": false
         },
-        "note": "The selected StyleKit snapshot compiles one owned cross-surface adapter; Neumorphism has current local browser evidence."
+        "note": "The selected Editorial snapshot compiles one owned cross-surface adapter and passes deterministic contracts. Neumorphism remains the historical full-surface browser acceptance reference; Editorial still needs its own visual acceptance."
       }
     ],
     "pages": [

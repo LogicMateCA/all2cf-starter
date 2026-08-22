@@ -1,0 +1,178 @@
+{
+  "schemaVersion": "starter-agent-map/v1",
+  "version": "1.0.0",
+  "defaultReads": [
+    "AGENTS.md",
+    "AGENT_MAP.md",
+    "starter.blueprint.json",
+    ".starter/materialization.json"
+  ],
+  "firstRunReads": [
+    "PROJECT.md",
+    "starter.config.json",
+    "catalog/catalog.json",
+    "catalog/providers.json",
+    "pages/catalog.json",
+    "design/stylekit/source-catalog.json",
+    "skills/starter-bootstrap/SKILL.md"
+  ],
+  "rules": {
+    "routine": "Start with the default reads and one matched route. Do not read every module or Change Spec.",
+    "history": "Search changes/ by task terms and affectedModules; read only the newest directly relevant specs.",
+    "packs": "For reusable Pack behavior, edit the Pack template/manifest and materialize. Never patch only a receipt-owned target.",
+    "product": "For copied-product business behavior, edit the product-owned target and update its module contract; do not generalize it back into Starter without an explicit decision.",
+    "release": "Read the exact release Skill only for build, deploy, rollback, or provider operations. Production still requires explicit wording."
+  },
+  "routes": [
+    {
+      "id": "project-assembly",
+      "summary": "Setup, Blueprint selection, presets, Pack materialization, identity synchronization, and /dp generation.",
+      "triggers": ["setup", "blueprint", "preset", "materialize", "assembler", "identity sync", "初始化", "配置", "模板", "选择模块"],
+      "moduleIds": ["assembler"],
+      "primaryFiles": ["apps/web/src/components/setup-page.tsx", "apps/web/vite.config.ts", "scripts/materialize-blueprint.mjs", "scripts/sync-project-identity.mjs", "starter.blueprint.json", "catalog/catalog.json"],
+      "docs": ["features/assembler/MODULE.md", "PROJECT.md"],
+      "checks": ["npm run starter:materialize:check", "npm run saas:contract", "npm run knowledge:check"],
+      "skills": ["skills/project-context/SKILL.md", "skills/starter-bootstrap/SKILL.md"]
+    },
+    {
+      "id": "auth-account",
+      "summary": "Better Auth, social login, email verification, sessions, account preferences, 2FA, and account menu.",
+      "triggers": ["auth", "login", "session", "password", "google", "github", "apple", "email verification", "account", "preferences", "2fa", "登录", "鉴权", "邮箱验证", "账号"],
+      "moduleIds": ["auth", "account-security"],
+      "primaryFiles": ["workers/app/auth-config.ts", "workers/app/auth-runtime.ts", "workers/app/index.ts", "apps/web/src/components/auth-page.tsx", "apps/web/src/components/account-control.tsx", "apps/web/src/components/account-settings.tsx"],
+      "docs": ["features/auth/MODULE.md", "features/account-security/MODULE.md"],
+      "checks": ["npm run auth:social:contract", "npm run auth:email:contract", "npm run auth:smoke:dev"],
+      "skills": []
+    },
+    {
+      "id": "product-shell",
+      "summary": "Authenticated navigation, workspace shell, notifications, onboarding, settings, search, and recent activity.",
+      "triggers": ["product shell", "dashboard", "navigation", "notification", "onboarding", "settings", "workspace", "sidebar", "topbar", "后台首页", "通知", "导航"],
+      "moduleIds": ["product-shell", "notifications", "onboarding"],
+      "primaryFiles": ["apps/web/src/components/product-shell.tsx", "apps/web/src/components/protected-app.tsx", "apps/web/src/components/notification-bell.tsx", "apps/web/src/lib/product-navigation.ts", "packs/saas/onboarding/pack.json"],
+      "docs": ["features/product-shell/MODULE.md", "features/notifications/MODULE.md", "features/onboarding/MODULE.md"],
+      "checks": ["npm run typecheck", "npm run auth:smoke:dev", "npm run bundle:check:web"],
+      "skills": []
+    },
+    {
+      "id": "organizations-billing",
+      "summary": "Organizations, teams, invitations, Stripe Billing, entitlements, and usage metering.",
+      "triggers": ["organization", "team", "invitation", "stripe", "billing", "subscription", "entitlement", "usage", "quota", "组织", "团队", "订阅", "计费"],
+      "moduleIds": ["organizations", "billing", "entitlements", "usage"],
+      "primaryFiles": ["packs/saas/team-organizations/pack.json", "packs/saas/billing-stripe/pack.json", "packs/saas/entitlements/pack.json", "packs/saas/usage/pack.json", "workers/app/features/stripe-auth-plugin.ts"],
+      "docs": ["features/organizations/MODULE.md", "features/billing/MODULE.md", "features/entitlements/MODULE.md", "features/usage/MODULE.md"],
+      "checks": ["npm run saas:contract", "npm run auth:smoke:dev"],
+      "skills": []
+    },
+    {
+      "id": "api-webhooks",
+      "summary": "API keys, developer API composition, signed outgoing webhooks, Queues, retries, and idempotency.",
+      "triggers": ["api key", "api platform", "developer portal", "webhook", "queue", "signature", "idempotency", "API密钥", "开发者", "回调"],
+      "moduleIds": ["api-keys", "api-platform", "webhooks"],
+      "primaryFiles": ["packs/saas/api-keys/pack.json", "packs/saas/api-platform/pack.json", "packs/saas/outgoing-webhooks/pack.json", "workers/app/features/outgoing-webhooks-worker.ts"],
+      "docs": ["features/api-keys/MODULE.md", "features/api-platform/MODULE.md", "features/webhooks/MODULE.md"],
+      "checks": ["npm run saas:contract", "npm run auth:smoke:dev"],
+      "skills": []
+    },
+    {
+      "id": "support-admin-operations",
+      "summary": "Support tickets, bug reports, Admin users, announcements, audit log, and operations health.",
+      "triggers": ["support", "ticket", "bug", "admin", "announcement", "audit", "health", "operator", "工单", "错误提交", "管理后台", "审计", "健康"],
+      "moduleIds": ["support", "admin", "operations"],
+      "primaryFiles": ["workers/app/index.ts", "workers/app/operations-health.ts", "apps/web/src/components/support-page.tsx", "apps/web/src/components/admin-page.tsx", "apps/web/src/components/admin-health.tsx"],
+      "docs": ["features/support/MODULE.md", "features/admin/MODULE.md", "features/operations/MODULE.md"],
+      "checks": ["npm run auth:smoke:dev", "npm run typecheck", "npm run bundle:check:web"],
+      "skills": []
+    },
+    {
+      "id": "database",
+      "summary": "SQL-first PostgreSQL, native Hyperdrive, CFPG Service Binding, schema, migrations, and query performance.",
+      "triggers": ["database", "postgres", "sql", "migration", "hyperdrive", "cfpg", "index", "query", "数据库", "迁移", "查询", "索引"],
+      "moduleIds": [],
+      "primaryFiles": ["workers/app/database-runtime.ts", "scripts/database-migrate.mjs", "scripts/lib/cfpg.mjs", "db/migrations", "starter.config.json"],
+      "docs": ["ARCHITECTURE.md", "features/assembler/MODULE.md"],
+      "checks": ["npm run database:provider:contract", "npm run db:migrate:status", "npm run db:empty:check"],
+      "skills": []
+    },
+    {
+      "id": "storage-media",
+      "summary": "R2/S3 object storage, metadata ownership, Images transformations, Stream uploads, and media lifecycle.",
+      "triggers": ["storage", "r2", "s3", "upload", "image", "stream", "video", "media", "存储", "上传", "图片", "视频"],
+      "moduleIds": ["storage", "media"],
+      "primaryFiles": ["packs/capabilities/object-storage/pack.json", "workers/app/features/object-storage-worker.ts", "packs/capabilities/cloudflare-images/pack.json", "packs/capabilities/cloudflare-stream/pack.json"],
+      "docs": ["features/storage/MODULE.md", "features/media/MODULE.md"],
+      "checks": ["npm run starter:materialize:check", "npm run auth:smoke:dev", "npm run cf:dry-run:dev"],
+      "skills": []
+    },
+    {
+      "id": "ai-search-maps",
+      "summary": "Workers AI, AI Gateway, PostgreSQL/Vectorize search, and MapCN/MapLibre maps.",
+      "triggers": ["workers ai", "ai gateway", "vectorize", "search", "rag", "embedding", "mapcn", "maplibre", "map", "AI", "搜索", "向量", "地图"],
+      "moduleIds": ["ai", "search"],
+      "primaryFiles": ["packs/capabilities/workers-ai/pack.json", "packs/capabilities/vectorize/pack.json", "packs/capabilities/mapcn-web/pack.json", "apps/web/src/components/setup-page.tsx"],
+      "docs": ["features/ai/MODULE.md", "features/search/MODULE.md"],
+      "checks": ["npm run vectorize:contract", "npm run starter:materialize:check", "npm run bundle:check:web"],
+      "skills": []
+    },
+    {
+      "id": "background-realtime",
+      "summary": "Cron, Workflows, Durable Objects, WebSockets, Queue event handlers, and retained resource lifecycle.",
+      "triggers": ["cron", "workflow", "durable object", "websocket", "realtime", "scheduled", "background", "定时", "工作流", "实时", "后台任务"],
+      "moduleIds": ["background"],
+      "primaryFiles": ["packs/capabilities/cron/pack.json", "packs/capabilities/workflows/pack.json", "packs/capabilities/durable-objects/pack.json", "workers/app/generated/worker-events.ts"],
+      "docs": ["features/background/MODULE.md", "ARCHITECTURE.md"],
+      "checks": ["npm run starter:materialize:check", "npm run auth:smoke:dev", "npm run cf:dry-run:dev"],
+      "skills": []
+    },
+    {
+      "id": "public-pages-docs",
+      "summary": "Astro marketing pages, PowerAI page families, Starlight Docs, Pagefind, and static site merge.",
+      "triggers": ["marketing", "landing", "powerai", "page", "astro", "docs", "starlight", "pagefind", "seo", "营销页", "落地页", "文档", "页面"],
+      "moduleIds": ["marketing", "docs"],
+      "primaryFiles": ["apps/marketing/src", "apps/docs/src", "pages/catalog.json", "packs/pages", "scripts/merge-sites-build.mjs"],
+      "docs": ["features/marketing/MODULE.md", "features/docs/MODULE.md"],
+      "checks": ["npm run pages:contract", "npm run build:marketing", "npm run build:docs", "npm run bundle:check:marketing", "npm run bundle:check:docs"],
+      "skills": []
+    },
+    {
+      "id": "design-stylekit",
+      "summary": "StyleKit selection, semantic tokens, design adapters, typography, visual acceptance, and cross-surface style locks.",
+      "triggers": ["stylekit", "design", "theme", "dark mode", "typography", "shadcn", "chart", "visual", "样式", "设计", "主题", "亮暗", "字体"],
+      "moduleIds": [],
+      "primaryFiles": ["DESIGN.md", "design/stylekit/source-catalog.json", "design/stylekit/editorial/snapshot.json", "scripts/lib/design-engine.mjs", "apps/web/src/generated/design-profile.css"],
+      "docs": ["DESIGN.md", "features/assembler/MODULE.md"],
+      "checks": ["npm run design:contract", "npm run typography:contract", "npm run stylekit:contract", "npm run stylekit:boundary"],
+      "skills": []
+    },
+    {
+      "id": "mobile-expo",
+      "summary": "Expo Router, Tamagui, Better Auth Expo, native configuration, EAS builds/updates/submissions, and push devices.",
+      "triggers": ["expo", "mobile", "ios", "android", "tamagui", "eas", "app store", "google play", "push", "移动端", "苹果", "安卓", "发布APP"],
+      "moduleIds": ["mobile"],
+      "primaryFiles": ["apps/mobile/app.config.ts", "apps/mobile/eas.json", "apps/mobile/tamagui.config.ts", "apps/mobile/app", "scripts/mobile-release.mjs"],
+      "docs": ["features/mobile/MODULE.md", "RELEASE.md"],
+      "checks": ["npm run mobile:doctor", "npm run mobile:verify", "npm run bundle:check:mobile"],
+      "skills": ["skills/expo-release/SKILL.md"]
+    },
+    {
+      "id": "cloudflare-release",
+      "summary": "Cloudflare bindings, scoped provisioning, Worker build/deploy, live identity, rollback, and Development/Production authorization.",
+      "triggers": ["cloudflare", "wrangler", "binding", "provision", "deploy", "release", "rollback", "worker", "发布", "正式发布", "回滚", "绑定"],
+      "moduleIds": [],
+      "primaryFiles": ["cloudflare/wrangler.development.jsonc", "cloudflare/wrangler.production.jsonc", "cloudflare/bindings.contract.json", "scripts/starterctl.mjs", "RELEASE.md"],
+      "docs": ["RELEASE.md", "ARCHITECTURE.md"],
+      "checks": ["npm run verify", "npm run cf:dry-run:dev", "npm run cf:dry-run:production"],
+      "skills": ["skills/cloudflare-release/SKILL.md"]
+    },
+    {
+      "id": "performance",
+      "summary": "Web/mobile/Worker budgets, request fan-out, caching, Core Web Vitals, database query plans, and startup cost.",
+      "triggers": ["performance", "speed", "bundle", "cache", "lighthouse", "web vitals", "latency", "性能", "速度", "秒开", "包体", "缓存"],
+      "moduleIds": [],
+      "primaryFiles": ["PERFORMANCE.md", "scripts/bundle-budget.mjs", "apps/web/vite.config.ts", "apps/mobile/metro.config.cjs", "workers/app/database-runtime.ts"],
+      "docs": ["PERFORMANCE.md", "features/operations/MODULE.md"],
+      "checks": ["npm run bundle:check:web", "npm run bundle:check:marketing", "npm run bundle:check:docs", "npm run bundle:check:mobile"],
+      "skills": []
+    }
+  ]
+}
