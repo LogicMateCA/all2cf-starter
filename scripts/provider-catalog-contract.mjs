@@ -81,6 +81,7 @@ for (const [categoryId, optionId] of [
   ["search-vector", "vectorize"],
   ["notification-channels", "expo-push"],
   ["notification-channels", "twilio-sms"],
+  ["media", "cloudflare-images"],
   ["maps", "mapcn"],
   ["background-realtime", "queues"],
   ["release-platforms", "cloudflare"],

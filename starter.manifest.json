@@ -33,6 +33,7 @@
     "storage",
     "ai",
     "search",
+    "media",
     "admin",
     "operations",
     "mobile",
@@ -143,6 +144,11 @@
       "area": "SMS",
       "choice": "Optional Twilio Programmable Messaging Pack with API-key authentication, SQL idempotency, privacy-bounded evidence, real test action and no SDK dependency",
       "status": "implemented"
+    },
+    {
+      "area": "Media",
+      "choice": "Optional Cloudflare Images Worker Binding with bounded raw-byte resize/transcode, local PNG-WebP evidence and complete separation from Object Storage and Stream",
+      "status": "local-verified"
     },
     {
       "area": "Organizations",

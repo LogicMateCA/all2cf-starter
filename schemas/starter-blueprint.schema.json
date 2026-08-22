@@ -275,6 +275,7 @@
         "search",
         "push",
         "sms",
+        "media",
         "email",
         "billing",
         "release"
@@ -404,6 +405,23 @@
             "provider": { "enum": ["none", "twilio"] },
             "development": { "$ref": "#/$defs/twilioEnvironment" },
             "production": { "$ref": "#/$defs/twilioEnvironment" }
+          }
+        },
+        "media": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["images"],
+          "properties": {
+            "images": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["provider", "maxInputBytes", "defaultFormat"],
+              "properties": {
+                "provider": { "enum": ["none", "cloudflare-images"] },
+                "maxInputBytes": { "type": "integer", "minimum": 1, "maximum": 20971520 },
+                "defaultFormat": { "enum": ["image/webp", "image/avif", "image/jpeg", "image/png"] }
+              }
+            }
           }
         },
         "email": {

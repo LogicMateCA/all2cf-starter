@@ -78,6 +78,9 @@ type SmsPolicy = {
   development: { apiBaseUrl: string };
   production: { apiBaseUrl: string };
 };
+type MediaPolicy = {
+  images: { provider: "none" | "cloudflare-images"; maxInputBytes: number; defaultFormat: "image/webp" | "image/avif" | "image/jpeg" | "image/png" };
+};
 type CfpgConnection = {
   connectCommand: string;
   databaseId: string;
@@ -138,6 +141,7 @@ type Blueprint = {
     search: SearchPolicy;
     push: PushPolicy;
     sms: SmsPolicy;
+    media: MediaPolicy;
     email: { default: string; alternatives: string[] };
     billing: string;
     release: string;
@@ -1065,6 +1069,8 @@ export function SetupPage() {
                 }
             : pack.id === "capability.twilio-sms"
               ? { ...blueprint.providers, sms: { ...blueprint.providers.sms, provider: selected ? "twilio" : "none" } }
+            : pack.id === "capability.cloudflare-images"
+              ? { ...blueprint.providers, media: { ...blueprint.providers.media, images: { ...blueprint.providers.media.images, provider: selected ? "cloudflare-images" : "none" } } }
             : blueprint.providers,
       };
     });
@@ -1178,6 +1184,20 @@ export function SetupPage() {
         capabilities: blueprint.selections.capabilities.map((selection) =>
           selection.id === "capability.twilio-sms"
             ? { ...selection, lifecycle: selectLifecycle(selection.lifecycle, provider === "twilio") }
+            : selection,
+        ),
+      },
+    }));
+  const setImagesProvider = (provider: MediaPolicy["images"]["provider"]) =>
+    updateBlueprint((blueprint) => ({
+      ...blueprint,
+      preset: "custom",
+      providers: { ...blueprint.providers, media: { ...blueprint.providers.media, images: { ...blueprint.providers.media.images, provider } } },
+      selections: {
+        ...blueprint.selections,
+        capabilities: blueprint.selections.capabilities.map((selection) =>
+          selection.id === "capability.cloudflare-images"
+            ? { ...selection, lifecycle: selectLifecycle(selection.lifecycle, provider === "cloudflare-images") }
             : selection,
         ),
       },
@@ -2168,6 +2188,17 @@ export function SetupPage() {
               </section>
 
               <section className="setup-panel provider-section">
+                <header><h2>Image optimization</h2><p>Cloudflare Images transforms raw image bytes inside the Worker. R2 or S3 remains the original-file authority; this Pack adds resize/transcode behavior only.</p></header>
+                <div className="provider-option-grid" role="radiogroup" aria-label="Image Provider">
+                  {[
+                    { id: "none", name: "None", note: "Ordinary files still use Object Storage; no image transformation Binding." },
+                    { id: "cloudflare-images", name: "Cloudflare Images", note: "Worker-native image info, resize and modern-format output." },
+                  ].map(({ id, name, note }) => { const selected = payload.blueprint.providers.media.images.provider === id; return <div className={selected ? "provider-option selected" : "provider-option"} key={id}><label><input type="radio" name="images-provider" checked={selected} onChange={() => setImagesProvider(id as MediaPolicy["images"]["provider"])} /><span><strong>{name}</strong><small>{note}</small></span></label></div>; })}
+                </div>
+                {payload.blueprint.providers.media.images.provider === "cloudflare-images" ? <div className="storage-provider-config"><div className="setup-fields"><label className="setup-field"><span>Maximum input</span><select value={payload.blueprint.providers.media.images.maxInputBytes} onChange={(event) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, media: { ...blueprint.providers.media, images: { ...blueprint.providers.media.images, maxInputBytes: Number(event.target.value) } } } }))}><option value={5_242_880}>5 MiB</option><option value={10_485_760}>10 MiB</option><option value={20_971_520}>20 MiB platform maximum</option></select></label><label className="setup-field"><span>Default output</span><select value={payload.blueprint.providers.media.images.defaultFormat} onChange={(event) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, media: { ...blueprint.providers.media, images: { ...blueprint.providers.media.images, defaultFormat: event.target.value as MediaPolicy["images"]["defaultFormat"] } } } }))}><option value="image/webp">WebP</option><option value="image/avif">AVIF</option><option value="image/jpeg">JPEG</option><option value="image/png">PNG</option></select></label></div><div className="provider-resource-links">{providerSetupLinks["cloudflare-images"].map((link) => <a href={link.href} target="_blank" rel="noreferrer" key={link.href}>{link.label}<ExternalLink size={14} /></a>)}</div><div className="provider-live-test"><Button asChild type="button" size="sm" variant="outline"><a href={`https://${payload.config.development.domain}/admin`} target="_blank" rel="noreferrer">Test Images Binding on Development<ExternalLink size={13} /></a></Button><small>The Pack exposes an Admin-only fixed 2×2 PNG → 1×1 WebP round trip. Local Workerd uses Cloudflare's low-fidelity binding; Development verifies the high-fidelity Binding.</small></div></div> : null}
+              </section>
+
+              <section className="setup-panel provider-section">
                 <header><h2>Social sign-in</h2><p>Select the providers this project will support. Credentials may be inherited, entered now, or configured later from this local Setup.</p></header>
                 <div className="provider-option-grid" role="group" aria-label="Social sign-in providers">
                   {[
@@ -2439,6 +2470,10 @@ export function SetupPage() {
                   <div>
                     <dt>SMS</dt>
                     <dd>{payload.blueprint.providers.sms.provider}</dd>
+                  </div>
+                  <div>
+                    <dt>Images</dt>
+                    <dd>{payload.blueprint.providers.media.images.provider}</dd>
                   </div>
                   <div>
                     <dt>Social sign-in</dt>

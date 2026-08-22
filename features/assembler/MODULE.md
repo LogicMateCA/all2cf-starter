@@ -36,6 +36,7 @@ Purpose: turn a product brief into a complete SaaS platform plus the smallest ow
 - Search offers `None`, PostgreSQL and Vectorize. Only Vectorize selects a Pack; it owns isolated index declarations, scoped provisioning, generated Binding/variables, a real round-trip action and safe removal.
 - Expo Push uses the same receipt for Worker/Mobile/SQL files, the Expo-compatible dependency, generated native config plugin, environment variables and optional secret requirements. Deselecting it restores an empty optional-mobile-plugin registry.
 - Twilio SMS receipt-owns its Worker/SQL files, regional API variable and exact four environment secrets. No SDK dependency is needed; deselection removes the complete channel.
+- Cloudflare Images receipt-owns its Worker helper, `IMAGES` Binding and bounded policy variables. Original-file storage remains independently selectable and is never added implicitly.
 - AI may recommend and prefill selections, but it must show conflicts and consequences before changing the Blueprint. The controller owns integration and release.
 - `/dp` is a read-only projection of the Blueprint, Catalog, Markdown contracts, code status, and release evidence. Its lifecycle matrix separates reusable Catalog readiness and delivery mode from the current Blueprint's selected, materialized, locally verified, Development verified, and Production released states. It never edits the Blueprint.
 

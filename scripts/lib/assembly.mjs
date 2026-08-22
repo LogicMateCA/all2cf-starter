@@ -210,6 +210,20 @@ export function validateAssemblyContracts(
     failures.push("Blueprint is missing capability.twilio-sms selection state");
   else if (twilioSmsSelection.lifecycle.selected !== (smsPolicy.provider === "twilio"))
     failures.push("Twilio SMS Pack selection must match the SMS Provider");
+  const imagesPolicy = blueprint.providers?.media?.images || {};
+  if (!new Set(["none", "cloudflare-images"]).has(imagesPolicy.provider))
+    failures.push("Blueprint image Provider must be none or cloudflare-images");
+  if (!Number.isInteger(imagesPolicy.maxInputBytes) || imagesPolicy.maxInputBytes < 1 || imagesPolicy.maxInputBytes > 20_971_520)
+    failures.push("Blueprint Images max input must be between 1 and 20971520 bytes");
+  if (!new Set(["image/webp", "image/avif", "image/jpeg", "image/png"]).has(imagesPolicy.defaultFormat))
+    failures.push("Blueprint Images default format is invalid");
+  const imagesSelection = Object.values(blueprint.selections || {})
+    .flat()
+    .find(({ id }) => id === "capability.cloudflare-images");
+  if (!imagesSelection)
+    failures.push("Blueprint is missing capability.cloudflare-images selection state");
+  else if (imagesSelection.lifecycle.selected !== (imagesPolicy.provider === "cloudflare-images"))
+    failures.push("Cloudflare Images Pack selection must match the image Provider");
 
   const packIds = new Set();
   const packs = new Map();

@@ -475,6 +475,16 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
       throw new Error(`${path.relative(root, configPath)} changed materializer-owned SMS variable ${name}`);
     delete model.vars[name];
   }
+  for (const [name, value] of Object.entries(previousRuntime?.imagesVars || {})) {
+    if (model.vars[name] !== value)
+      throw new Error(`${path.relative(root, configPath)} changed materializer-owned Images variable ${name}`);
+    delete model.vars[name];
+  }
+  if (previousRuntime?.imagesBinding) {
+    if (model.images?.binding !== previousRuntime.imagesBinding.binding)
+      throw new Error(`${path.relative(root, configPath)} changed materializer-owned Images binding`);
+    delete model.images;
+  }
   const vectorize = Array.isArray(model.vectorize) ? structuredClone(model.vectorize) : [];
   if (previousRuntime?.vectorizeBinding) {
     const index = vectorize.findIndex(
@@ -567,6 +577,20 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
     smsVars.SMS_PROVIDER = "twilio";
     smsVars.TWILIO_API_BASE_URL = blueprint.providers.sms[environment].apiBaseUrl;
   }
+  const imagesVars = {};
+  let imagesBinding = null;
+  if (blueprint.providers.media.images.provider === "cloudflare-images") {
+    if (model.images)
+      throw new Error(`${path.relative(root, configPath)} already owns an Images binding`);
+    model.images = { binding: "IMAGES" };
+    imagesBinding = { binding: "IMAGES" };
+    model.vars.IMAGES_PROVIDER = "cloudflare-images";
+    model.vars.IMAGES_MAX_INPUT_BYTES = String(blueprint.providers.media.images.maxInputBytes);
+    model.vars.IMAGES_DEFAULT_FORMAT = blueprint.providers.media.images.defaultFormat;
+    imagesVars.IMAGES_PROVIDER = "cloudflare-images";
+    imagesVars.IMAGES_MAX_INPUT_BYTES = String(blueprint.providers.media.images.maxInputBytes);
+    imagesVars.IMAGES_DEFAULT_FORMAT = blueprint.providers.media.images.defaultFormat;
+  }
   const queues = model.queues || { producers: [], consumers: [] };
   queues.producers ||= [];
   queues.consumers ||= [];
@@ -610,6 +634,8 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
     vectorizeVars,
     pushVars,
     smsVars,
+    imagesBinding,
+    imagesVars,
     r2Buckets: receiptR2Buckets,
     storageVars,
   };
@@ -1008,6 +1034,11 @@ const twilioSmsPackSelected = selected.has("capability.twilio-sms");
 if (twilioSmsPackSelected !== (blueprint.providers.sms.provider === "twilio"))
   throw new Error(
     "Twilio SMS Pack selection must match the Blueprint SMS Provider.",
+  );
+const cloudflareImagesPackSelected = selected.has("capability.cloudflare-images");
+if (cloudflareImagesPackSelected !== (blueprint.providers.media.images.provider === "cloudflare-images"))
+  throw new Error(
+    "Cloudflare Images Pack selection must match the Blueprint image Provider.",
   );
 
 desiredRoutes.sort((left, right) => left.path.localeCompare(right.path));

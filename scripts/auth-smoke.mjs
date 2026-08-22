@@ -49,6 +49,7 @@ const vectorizeSelected = selectedPacks.has("capability.vectorize");
 const searchProvider = blueprint.providers?.search?.provider || "none";
 const expoPushSelected = selectedPacks.has("capability.expo-push");
 const twilioSmsSelected = selectedPacks.has("capability.twilio-sms");
+const cloudflareImagesSelected = selectedPacks.has("capability.cloudflare-images");
 const origin = remote
   ? `https://${starter.development.domain}`
   : `http://127.0.0.1:${port}`;
@@ -2034,6 +2035,12 @@ try {
   const deniedOperationsHealth = await request("/api/admin/health", {
     headers: { Cookie: cookie, Origin: origin },
   });
+  const deniedImagesTest = cloudflareImagesSelected
+    ? await request("/api/admin/images/test", {
+        method: "POST",
+        headers: { Cookie: cookie, Origin: origin },
+      })
+    : null;
   assert(
     anonymousOperationsHealth.response.status === 401 &&
       deniedOperationsHealth.response.status === 403,
@@ -2044,6 +2051,20 @@ try {
   await database.query("update app_user set role = 'admin' where email = $1", [
     email,
   ]);
+  if (cloudflareImagesSelected) {
+    const imagesTest = await request("/api/admin/images/test", {
+      method: "POST",
+      headers: { Cookie: cookie, Origin: origin },
+    });
+    assert(
+      deniedImagesTest?.response.status === 403 &&
+        imagesTest.response.status === 200 &&
+        imagesTest.response.headers.get("content-type")?.startsWith("image/webp") &&
+        imagesTest.response.headers.get("x-starter-images-test") === "passed",
+      "Cloudflare Images Admin authority or local transform round trip failed",
+    );
+    checks.push("cloudflare-images-admin-denial-local-png-webp-transform");
+  }
   const announcementRecipients = await database.query(
     `select count(*)::int as count from app_user
      where email_verified = true and coalesce(banned, false) = false`,
@@ -2390,6 +2411,7 @@ try {
   const searchHealth = healthComponents.get("product-search");
   const expoPushHealth = healthComponents.get("expo-push");
   const twilioSmsHealth = healthComponents.get("twilio-sms");
+  const cloudflareImagesHealth = healthComponents.get("cloudflare-images");
   assert(
     operationsHealth.response.status === 200 &&
       operationsHealth.payload?.data?.service === "starter" &&
@@ -2400,6 +2422,16 @@ try {
       emailHealth?.details?.sent24h >= 1 &&
       googleHealth?.details?.configured === true,
     "operations health omitted active database, CFsend, or Google evidence",
+  );
+  assert(
+    cloudflareImagesSelected
+      ? cloudflareImagesHealth?.status === "ok" &&
+          cloudflareImagesHealth?.details?.selected === true &&
+          cloudflareImagesHealth?.details?.configured === true &&
+          cloudflareImagesHealth?.details?.bindingReady === true
+      : cloudflareImagesHealth?.status === "not-selected" &&
+          cloudflareImagesHealth?.details?.selected === false,
+    "operations health returned incorrect Cloudflare Images readiness evidence",
   );
   assert(
     twilioSmsSelected

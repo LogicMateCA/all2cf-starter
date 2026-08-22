@@ -1091,6 +1091,24 @@
       "documentation": ["ARCHITECTURE.md", "features/notifications/MODULE.md", "features/admin/MODULE.md"]
     },
     {
+      "id": "capability.cloudflare-images",
+      "kind": "capability",
+      "name": "Cloudflare Images optimization",
+      "version": "0.1.0",
+      "status": "local-verified",
+      "delivery": "materializer",
+      "targets": ["worker", "admin"],
+      "ownership": "starter-owned",
+      "source": [{ "name": "Cloudflare Images binding", "url": "https://developers.cloudflare.com/images/optimization/binding/", "relationship": "platform-provider" }],
+      "updatePolicy": "runtime-stable",
+      "provides": ["raw-byte image info/resize/transcode helper", "bounded output formats and dimensions", "Admin fixed-image binding test"],
+      "requires": ["Cloudflare Images Binding", "product-owned source authorization", "cache policy for repeated transforms"],
+      "conflicts": ["using Images as original-file authority", "unbounded transform parameters", "public arbitrary-origin proxy"],
+      "performance": ["20 MB platform ceiling with lower Starter default", "4096 pixel dimension cap", "no Images Binding when deselected"],
+      "verification": ["local low-fidelity binding transform", "selected types/dry-run", "deployed high-fidelity test", "clean removal"],
+      "documentation": ["ARCHITECTURE.md", "features/media/MODULE.md", "features/admin/MODULE.md"]
+    },
+    {
       "id": "capability.mapcn-web",
       "kind": "capability",
       "name": "MapCN Web maps",

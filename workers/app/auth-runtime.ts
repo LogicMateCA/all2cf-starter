@@ -71,6 +71,10 @@ export type AuthRuntimeEnv = {
   TWILIO_API_KEY?: string;
   TWILIO_API_SECRET?: string;
   TWILIO_FROM?: string;
+  IMAGES?: ImagesBinding;
+  IMAGES_PROVIDER?: string;
+  IMAGES_MAX_INPUT_BYTES?: string;
+  IMAGES_DEFAULT_FORMAT?: string;
 };
 
 type RequestExecutionContext = Pick<ExecutionContext, "waitUntil">;

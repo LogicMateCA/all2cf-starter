@@ -47,6 +47,12 @@
       "requiredWhen": "search.provider=vectorize",
       "resourceIsolation": "Use distinct Development and Production indexes with immutable dimensions and metric."
     },
+    "IMAGES": {
+      "kind": "images",
+      "status": "optional-cloudflare-images-pack",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "media.images.provider=cloudflare-images"
+    },
     "STARTER_QUEUE": {
       "kind": "queue",
       "status": "future",

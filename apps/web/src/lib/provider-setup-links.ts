@@ -50,6 +50,10 @@ export const providerSetupLinks = {
     { label: "Twilio API keys", href: "https://console.twilio.com/us1/account/keys-credentials/api-keys" },
     { label: "Twilio phone numbers", href: "https://console.twilio.com/us1/develop/phone-numbers/manage/incoming" },
   ],
+  "cloudflare-images": [
+    { label: "Images binding guide", href: "https://developers.cloudflare.com/images/optimization/binding/" },
+    { label: "Images dashboard", href: "https://dash.cloudflare.com/?to=/:account/images" },
+  ],
 } as const;
 
 export type ProviderSetupLinkId = keyof typeof providerSetupLinks;

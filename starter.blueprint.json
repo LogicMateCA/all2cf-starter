@@ -338,6 +338,17 @@
           "productionReleased": false
         },
         "note": "Optional server-only Twilio SMS delivery with provider evidence."
+      },
+      {
+        "id": "capability.cloudflare-images",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Optional Cloudflare Images Binding for server-side image optimization."
       }
     ]
   },
@@ -437,6 +448,13 @@
       },
       "production": {
         "apiBaseUrl": "https://api.twilio.com"
+      }
+    },
+    "media": {
+      "images": {
+        "provider": "none",
+        "maxInputBytes": 10485760,
+        "defaultFormat": "image/webp"
       }
     },
     "email": {

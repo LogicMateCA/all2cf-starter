@@ -16,6 +16,7 @@ Purpose: give platform operators a truthful, bounded view of runtime readiness w
 - Product search reports `not-selected`, PostgreSQL, or Vectorize Binding/index readiness without running a query; explicit Setup/Admin tests own real Vectorize traffic.
 - Expo Push reports project/access-token configuration, registry readiness, active device count and bounded ticket failures without sending a notification from the health dashboard.
 - Twilio SMS reports API-key/sender configuration, idempotency-ledger readiness, accepted/error counts and last provider SID without exposing recipients or sending from health.
+- Cloudflare Images reports Binding, input ceiling and default output-format readiness without performing a billable transform from health.
 - The dashboard is read-only and lazy. It never sends test email, creates provider resources, or enqueues synthetic events.
 
 Disposable empty-database workerd verification proves anonymous and ordinary-user denial, platform Admin readback, active database latency, configured CFsend and Google state, real authentication-email delivery counts, and truthful unselected optional providers. Separate Stripe-only and Outgoing-Webhook-only flows prove webhook-ledger and real local Queue binding/delivery evidence. Web and Worker type checks pass. Remote provider reachability, browser accessibility, alert routing, retention, external observability, and Development release remain open.

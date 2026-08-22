@@ -384,6 +384,39 @@ export async function collectOperationsHealth(
     });
   }
 
+  const cloudflareImagesSelected = env.IMAGES_PROVIDER === "cloudflare-images";
+  if (!cloudflareImagesSelected) {
+    components.push({
+      id: "cloudflare-images",
+      label: "Cloudflare Images",
+      status: "not-selected",
+      summary: "Image optimization is not materialized.",
+      details: { selected: false },
+    });
+  } else {
+    const imagesConfiguration = requiredConfiguration([
+      ["IMAGES", env.IMAGES],
+      ["IMAGES_MAX_INPUT_BYTES", env.IMAGES_MAX_INPUT_BYTES],
+      ["IMAGES_DEFAULT_FORMAT", env.IMAGES_DEFAULT_FORMAT],
+    ]);
+    components.push({
+      id: "cloudflare-images",
+      label: "Cloudflare Images",
+      status: imagesConfiguration.configured ? "ok" : "attention",
+      summary: imagesConfiguration.configured
+        ? "Images Binding and bounded output policy are configured."
+        : "Selected Images configuration is incomplete.",
+      details: {
+        selected: true,
+        configured: imagesConfiguration.configured,
+        bindingReady: Boolean(env.IMAGES),
+        maxInputBytes: Number(env.IMAGES_MAX_INPUT_BYTES || 0) || null,
+        defaultFormat: env.IMAGES_DEFAULT_FORMAT || null,
+        missing: imagesConfiguration.missing.join(", ") || null,
+      },
+    });
+  }
+
   const stripeTable = await relationExists(database, "app_stripe_webhook_event");
   const stripeSelected =
     stripeTable ||

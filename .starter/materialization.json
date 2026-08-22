@@ -173,6 +173,8 @@
       "vectorizeVars": {},
       "pushVars": {},
       "smsVars": {},
+      "imagesBinding": null,
+      "imagesVars": {},
       "r2Buckets": [
         {
           "binding": "OBJECTS",
@@ -210,6 +212,8 @@
       "vectorizeVars": {},
       "pushVars": {},
       "smsVars": {},
+      "imagesBinding": null,
+      "imagesVars": {},
       "r2Buckets": [
         {
           "binding": "OBJECTS",
