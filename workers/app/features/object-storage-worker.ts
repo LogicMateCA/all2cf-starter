@@ -21,6 +21,16 @@ type ObjectRow = {
 
 const feature = new Hono<{ Bindings: AuthRuntimeEnv }>();
 const safeContentType = /^[a-z0-9][a-z0-9!#$&^_.+-]*\/[a-z0-9][a-z0-9!#$&^_.+-]*$/iu;
+const releaseVerificationLabel = "starter-storage-binding-round-trip";
+
+async function validReleaseProof(secret: string, proof: string) {
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const expected = [...new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(releaseVerificationLabel)))].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+  if (proof.length !== expected.length) return false;
+  let mismatch = 0;
+  for (let index = 0; index < expected.length; index += 1) mismatch |= expected.charCodeAt(index) ^ proof.charCodeAt(index);
+  return mismatch === 0;
+}
 
 function unauthorized(c: { json: (value: unknown, status: 401 | 403 | 404 | 413 | 422 | 500) => Response }, status: 401 | 403 | 404 = 401) {
   const messages = { 401: "Authentication required.", 403: "Permission denied.", 404: "Object not found." } as const;
@@ -143,5 +153,24 @@ feature.delete("/api/storage/objects/:id", (c) =>
     return c.body(null, 204);
   }),
 );
+
+feature.post("/api/__verification/storage", async (c) => {
+  if (!await validReleaseProof(c.env.BETTER_AUTH_SECRET, c.req.header("x-starter-release-proof") || ""))
+    return c.json({ error: { code: "FORBIDDEN", message: "Release verification proof required." } }, 403);
+  const storage = createStorageAdapter(c.env as StorageBindings);
+  const key = `_starter/verification/${crypto.randomUUID()}`;
+  const bytes = new TextEncoder().encode(`STARTER_STORAGE_OK:${key}`);
+  try {
+    const stored = await storage.put(key, bytes, "application/octet-stream");
+    const loaded = await storage.get(key);
+    if (!loaded || loaded.size !== bytes.byteLength) throw new Error("Storage verification returned the wrong byte length.");
+    const actual = new Uint8Array(await new Response(loaded.body).arrayBuffer());
+    if (actual.length !== bytes.length || actual.some((byte, index) => byte !== bytes[index]))
+      throw new Error("Storage verification returned different bytes.");
+    return c.json({ data: { provider: storage.provider, bucket: storage.bucket, bytes: actual.length, etag: stored.etag || loaded.etag || null, cleaned: true } }, 200, { "Cache-Control": "no-store" });
+  } finally {
+    await storage.delete(key).catch(() => undefined);
+  }
+});
 
 export const objectStorageFeature = feature;

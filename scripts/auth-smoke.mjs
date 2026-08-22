@@ -1060,6 +1060,14 @@ try {
     checks.push("expo-push-auth-project-validation-register-list-delete");
   }
   if (objectStorageSelected) {
+    const deniedReleaseVerification = await request("/api/__verification/storage", { method: "POST", headers: { Origin: origin } });
+    const releaseProof = createHmac("sha256", values.get("BETTER_AUTH_SECRET") || "").update("starter-storage-binding-round-trip").digest("hex");
+    const releaseVerification = await request("/api/__verification/storage", { method: "POST", headers: { Origin: origin, "X-Starter-Release-Proof": releaseProof } });
+    assert(
+      deniedReleaseVerification.response.status === 403 && releaseVerification.response.status === 200 &&
+        releaseVerification.payload?.data?.provider === "cloudflare-r2" && releaseVerification.payload?.data?.cleaned === true && releaseVerification.payload?.data?.bytes > 0,
+      "storage release proof denial or exact-byte adapter round trip failed",
+    );
     const anonymousObjects = await request("/api/storage/objects", {
       headers: { Origin: origin },
     });
@@ -1174,7 +1182,7 @@ try {
       "R2 deletion did not remove bytes and retain soft-deleted metadata",
     );
     checks.push(
-      "object-storage-r2-auth-private-public-exact-byte-roundtrip-active-content-denial-delete",
+      "object-storage-r2-release-proof-auth-private-public-exact-byte-roundtrip-active-content-denial-delete",
     );
   }
   const otherUserId = randomUUID();

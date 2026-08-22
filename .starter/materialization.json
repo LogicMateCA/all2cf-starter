@@ -4,7 +4,7 @@
     "capability.object-storage": {
       "version": "0.1.0",
       "files": {
-        "workers/app/features/object-storage-worker.ts": "daaf353bb8e9495b3874ce08ceac4c81b8072ea41e319d7af00f1d2fea6270f3",
+        "workers/app/features/object-storage-worker.ts": "af371b5eaf409b0a034e917ae65e21ea632a4627f95893326bb3fb0cd795a233",
         "apps/web/src/components/features/object-storage-page.tsx": "67f1480cec7e52ea305aa8c7f8b2d829ec9052bd1f37a02afc6ce9d552933f87",
         "apps/web/src/components/features/object-storage-page.css": "d1a80e2a323f6f69a6a2edbaa75e8e4deac50d248dcf2df353ac7efbcb911bcc",
         "db/migrations/1101_object_storage.sql": "34b97227383c14b2536971dfc9c770427d4788a053437be939f33de31c0e1225"

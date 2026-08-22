@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 import { execFileSync, spawnSync } from "node:child_process";
 import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -563,6 +563,16 @@ async function verifyUrl(environment, baseUrl) {
     }
     results.push(result);
   }
+  if (storageProvider !== "none") {
+    const pathname = "/api/__verification/storage";
+    const proof = createHmac("sha256", required("BETTER_AUTH_SECRET")).update("starter-storage-binding-round-trip").digest("hex");
+    const response = await fetch(`${baseUrl}${pathname}`, { method: "POST", headers: { Accept: "application/json", "x-starter-release-proof": proof } });
+    const payload = await response.json();
+    const expectedBucket = blueprint.providers.storage?.[environment]?.bucket;
+    if (!response.ok || payload.data?.provider !== storageProvider || payload.data?.bucket !== expectedBucket || payload.data?.cleaned !== true || !Number.isInteger(payload.data?.bytes) || payload.data.bytes < 1)
+      throw new Error(`${baseUrl}${pathname} storage round trip failed`);
+    results.push({ path: pathname, status: response.status, contentType: response.headers.get("content-type"), identity: payload.data });
+  }
   return results;
 }
 
@@ -587,7 +597,11 @@ async function release(environment) {
   syncWorkerSecrets(environment, target.wranglerConfig);
   run("npx", ["wrangler", "deploy", "--config", target.wranglerConfig, "--message", `${environment} ${commit.slice(0, 12)}`], { inherit: true, env: { ...process.env, CLOUDFLARE_API_TOKEN: required("CLOUDFLARE_API_TOKEN") } });
   const deployedConfig = parseJsonc(await readFile(path.join(root, target.wranglerConfig), "utf8"));
+  if (storageProvider === "cloudflare-r2") await ensureConfiguredR2Buckets(environment);
+  if (searchProvider === "vectorize") await ensureConfiguredVectorize(environment);
+  if ((deployedConfig.queues?.producers || []).length || (deployedConfig.queues?.consumers || []).length) await ensureConfiguredQueues(environment);
   await reconcileWorkflowResource(environment, deployedConfig);
+  await saveState();
   const checks = await verifyUrl(environment, `https://${target.domain}`);
   if (environment === "development") run("npm", ["run", "auth:smoke:dev:remote"], { inherit: true });
   const deployment = await latestDeployment(target.worker);

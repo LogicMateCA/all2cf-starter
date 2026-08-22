@@ -193,7 +193,7 @@
     },
     {
       "area": "Object storage",
-      "choice": "Optional receipt-owned Cloudflare R2 or S3-compatible adapter with PostgreSQL metadata, private-by-default ownership, isolated environment resources, exact-byte round-trip contract, and no dependency when unselected",
+      "choice": "Optional receipt-owned Cloudflare R2 or S3-compatible adapter with PostgreSQL metadata, private-by-default ownership, isolated environment resources, local plus release-bound exact-byte round trips, post-deploy resource identity reconciliation, and no dependency when unselected",
       "status": "local-verified"
     },
     {
