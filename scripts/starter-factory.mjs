@@ -182,18 +182,24 @@ async function writeProductHandoff(target, source) {
   machineMap.rules.packs = source.portable
     ? "This portable product uses all2cf-managed updates through .starter/source.json.sourceUrl. Never fabricate local Pack templates or treat the unavailable sourceRoot as a local path."
     : "Generated products do not carry the complete Pack template library. Use starter:status/diff/add/update through the pinned source receipt; never fabricate local Pack templates.";
+  const present = async (relative) => stat(path.join(target, relative)).then(() => true, () => false);
+  const productPackage = await readJson(target, "package.json");
+  machineMap.firstRunReads = (await Promise.all((machineMap.firstRunReads || []).map(async (relative) => [relative, await present(relative)]))).filter(([, fileExists]) => fileExists).map(([relative]) => relative);
+  for (const route of machineMap.routes || []) {
+    for (const key of ["primaryFiles", "docs", "skills"])
+      route[key] = (await Promise.all((route[key] || []).map(async (relative) => [relative, await present(relative)]))).filter(([, fileExists]) => fileExists).map(([relative]) => relative);
+    route.checks = (route.checks || []).filter((check) => {
+      const match = check.match(/^npm run ([^ ]+)/u);
+      return !match || Boolean(productPackage.scripts?.[match[1]]);
+    });
+    if (!route.primaryFiles.length) route.primaryFiles = ["PROJECT.md"];
+    if (!route.docs.length) route.docs = ["PROJECT.md"];
+    if (!route.checks.length) route.checks = ["npm run typecheck"];
+  }
   if (source.portable) {
     const changePolicy = await readJson(target, ".ai/change-policy.json");
     changePolicy.enforcedAfter = "root";
     await writeFile(path.join(target, ".ai/change-policy.json"), json(changePolicy));
-    const present = async (relative) => stat(path.join(target, relative)).then(() => true, () => false);
-    machineMap.firstRunReads = (await Promise.all((machineMap.firstRunReads || []).map(async (relative) => [relative, await present(relative)]))).filter(([, exists]) => exists).map(([relative]) => relative);
-    for (const route of machineMap.routes || []) {
-      for (const key of ["primaryFiles", "docs", "skills"])
-        route[key] = (await Promise.all((route[key] || []).map(async (relative) => [relative, await present(relative)]))).filter(([, exists]) => exists).map(([relative]) => relative);
-      if (!route.primaryFiles.length) route.primaryFiles = ["PROJECT.md"];
-      if (!route.docs.length) route.docs = ["PROJECT.md"];
-    }
   }
   await writeFile(machineMapPath, json(machineMap));
   const template = await readFile(path.join(target, "changes/_template.md"), "utf8");

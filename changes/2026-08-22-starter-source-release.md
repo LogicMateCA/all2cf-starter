@@ -23,6 +23,8 @@ The canonical Starter source will own a repeatable release-candidate workflow in
 
 Pre-commit `npm run verify`, Factory contract, Agent Map, materialization, knowledge and Change Spec checks pass in `starter-dev`. The controller correctly reports the working tree as ineligible while this Change Spec is dirty. A clean-commit `2.0.0-dev.9` candidate replay, two-build plus independent check-time archive reproducibility, SQL/Drizzle portable verification and dry registration against the isolated All2CF integration worktree remain the post-commit acceptance gates.
 
+The first clean candidate attempt correctly stopped when the generated Agent Map retained the canonical-only `source:status` check after source-release commands were pruned. Project handoff now filters unavailable checks as well as unavailable files and Skills; no verification gate was bypassed.
+
 # Release
 
 No Cloudflare, All2CF Development, Production, Expo or store release is authorized by this source-candidate workflow.
