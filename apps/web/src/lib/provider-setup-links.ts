@@ -20,6 +20,10 @@ export const providerSetupLinks = {
     { label: "Stripe test webhooks", href: "https://dashboard.stripe.com/test/webhooks" },
     { label: "Stripe test products", href: "https://dashboard.stripe.com/test/products" },
   ],
+  "s3-compatible": [
+    { label: "AWS S3 credentials", href: "https://console.aws.amazon.com/iam/home#/security_credentials" },
+    { label: "R2 S3 API tokens", href: "https://dash.cloudflare.com/?to=/:account/r2/api-tokens" },
+  ],
   github: [
     { label: "Create a GitHub OAuth app", href: "https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app" },
   ],

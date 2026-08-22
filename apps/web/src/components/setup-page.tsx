@@ -36,6 +36,21 @@ type DatabasePolicy = {
     production: CfpgConnection | null;
   };
 };
+type StorageEnvironment = {
+  bucket: string;
+  publicDomain: string;
+  s3Endpoint: string;
+  s3Region: string;
+  s3ForcePathStyle: boolean;
+};
+type StoragePolicy = {
+  provider: "none" | "cloudflare-r2" | "s3-compatible";
+  access: "private" | "public";
+  uploadMode: "worker";
+  maxUploadBytes: number;
+  development: StorageEnvironment;
+  production: StorageEnvironment;
+};
 type CfpgConnection = {
   connectCommand: string;
   databaseId: string;
@@ -90,6 +105,7 @@ type Blueprint = {
     auth: string;
     socialAuth: string[];
     database: DatabasePolicy;
+    storage: StoragePolicy;
     email: { default: string; alternatives: string[] };
     billing: string;
     release: string;
@@ -255,7 +271,7 @@ type SetupPayload = {
     categories: ProviderCatalogCategory[];
   };
   providerCredentials: Record<
-    "google" | "github" | "apple" | "cfsend" | "resend" | "cloudflare-email-service" | "stripe",
+    "google" | "github" | "apple" | "cfsend" | "resend" | "cloudflare-email-service" | "stripe" | "s3-compatible",
     {
       configured: boolean;
       source: "project" | "shared" | "mixed" | "missing";
@@ -303,6 +319,10 @@ const providerSecretFields = {
     { name: "STRIPE_PUBLISHABLE_KEY", label: "Test publishable key", secret: false },
     { name: "STRIPE_WEBHOOK_SECRET", label: "Webhook signing secret", secret: true },
     { name: "STRIPE_PRICE_PRO", label: "Pro Price ID", secret: false },
+  ],
+  "s3-compatible": [
+    { name: "S3_ACCESS_KEY_ID", label: "Access Key ID", secret: false },
+    { name: "S3_SECRET_ACCESS_KEY", label: "Secret Access Key", secret: true },
   ],
 } as const;
 
@@ -793,6 +813,23 @@ export function SetupPage() {
     const database = slug.replaceAll("-", "_");
     const zone = payload.config.cloudflare.zoneName;
     updateIdentity("slug", slug);
+    updateBlueprint((blueprint) => ({
+      ...blueprint,
+      providers: {
+        ...blueprint.providers,
+        storage: {
+          ...blueprint.providers.storage,
+          development: {
+            ...blueprint.providers.storage.development,
+            bucket: `${slug}-dev-objects`,
+          },
+          production: {
+            ...blueprint.providers.storage.production,
+            bucket: `${slug}-objects`,
+          },
+        },
+      },
+    }));
     updateConfig((config) => ({
       ...config,
       development: {
@@ -842,8 +879,41 @@ export function SetupPage() {
         ...blueprint,
         preset: requiredPacks.has(pack.id) ? blueprint.preset : "custom",
         selections: { ...blueprint.selections, [group]: selections },
+        providers:
+          pack.id === "capability.object-storage"
+            ? {
+                ...blueprint.providers,
+                storage: {
+                  ...blueprint.providers.storage,
+                  provider: selected ? "cloudflare-r2" : "none",
+                },
+              }
+            : blueprint.providers,
       };
     });
+  const setStorageProvider = (provider: StoragePolicy["provider"]) =>
+    updateBlueprint((blueprint) => ({
+      ...blueprint,
+      preset: "custom",
+      providers: {
+        ...blueprint.providers,
+        storage: { ...blueprint.providers.storage, provider },
+      },
+      selections: {
+        ...blueprint.selections,
+        capabilities: blueprint.selections.capabilities.map((selection) =>
+          selection.id === "capability.object-storage"
+            ? {
+                ...selection,
+                lifecycle: selectLifecycle(
+                  selection.lifecycle,
+                  provider !== "none",
+                ),
+              }
+            : selection,
+        ),
+      },
+    }));
   const setDesignProfile = (profile: DesignProfile) =>
     updateBlueprint((blueprint) => ({
       ...blueprint,
@@ -1689,6 +1759,36 @@ export function SetupPage() {
               </section>
 
               <section className="setup-panel provider-section">
+                <header><h2>Object storage</h2><p>Keep file bytes outside PostgreSQL. None adds no runtime; R2 uses a native Worker Binding and local simulation; S3-compatible adds its SDK only when selected.</p></header>
+                <div className="provider-option-grid" role="radiogroup" aria-label="Object storage Provider">
+                  {[
+                    { id: "none", name: "None", note: "No upload API, storage dependency, bucket or Binding." },
+                    { id: "cloudflare-r2", name: "Cloudflare R2", note: "Recommended: local R2 simulation plus isolated cloud buckets." },
+                    { id: "s3-compatible", name: "S3-compatible", note: "AWS S3, MinIO, R2 S3 API, Backblaze or Wasabi." },
+                  ].map(({ id, name, note }) => {
+                    const selected = payload.blueprint.providers.storage.provider === id;
+                    return <div className={selected ? "provider-option selected" : "provider-option"} key={id}><label><input type="radio" name="storage-provider" checked={selected} onChange={() => setStorageProvider(id as StoragePolicy["provider"])} /><span><strong>{name}</strong><small>{note}</small></span></label></div>;
+                  })}
+                </div>
+                {payload.blueprint.providers.storage.provider !== "none" ? (
+                  <div className="storage-provider-config">
+                    <div className="setup-fields">
+                      <label className="setup-field"><span>Default access</span><select value={payload.blueprint.providers.storage.access} onChange={(event) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, storage: { ...blueprint.providers.storage, access: event.target.value as StoragePolicy["access"] } } }))}><option value="private">Private</option><option value="public">Public through authorized Worker route</option></select></label>
+                      <label className="setup-field"><span>Maximum upload</span><select value={payload.blueprint.providers.storage.maxUploadBytes} onChange={(event) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, storage: { ...blueprint.providers.storage, maxUploadBytes: Number(event.target.value) } } }))}><option value={1_048_576}>1 MiB</option><option value={5_242_880}>5 MiB</option><option value={10_485_760}>10 MiB</option></select></label>
+                    </div>
+                    <div className="storage-environment-grid">
+                      {(["development", "production"] as const).map((environment) => {
+                        const value = payload.blueprint.providers.storage[environment];
+                        const update = (patch: Partial<StorageEnvironment>) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, storage: { ...blueprint.providers.storage, [environment]: { ...blueprint.providers.storage[environment], ...patch } } } }));
+                        return <div key={environment}><h3>{environment === "development" ? "Development" : "Production"}</h3><Field label="Bucket" value={value.bucket} onChange={(bucket) => update({ bucket })} /><Field label="Public domain (optional)" value={value.publicDomain} onChange={(publicDomain) => update({ publicDomain })} />{payload.blueprint.providers.storage.provider === "s3-compatible" ? <><Field label="S3 endpoint" value={value.s3Endpoint} onChange={(s3Endpoint) => update({ s3Endpoint })} /><Field label="Region" value={value.s3Region} onChange={(s3Region) => update({ s3Region })} /><label className="platform-option"><input type="checkbox" checked={value.s3ForcePathStyle} onChange={(event) => update({ s3ForcePathStyle: event.target.checked })} />Force path-style URLs</label></> : <p>Local Worker development uses an empty simulated R2 bucket; cloud provisioning creates this environment's real bucket.</p>}</div>;
+                      })}
+                    </div>
+                    {payload.blueprint.providers.storage.provider === "s3-compatible" ? <ProviderCredentialEditor provider="s3-compatible" state={payload.providerCredentials["s3-compatible"]} editing={Boolean(providerEditors["s3-compatible"])} values={providerSecrets} onEditing={(editing) => setProviderEditing("s3-compatible", editing)} onChange={updateProviderSecret} /> : <div className="provider-resource-links"><a href="https://dash.cloudflare.com/?to=/:account/r2/overview" target="_blank" rel="noreferrer">Open Cloudflare R2<ExternalLink size={14} /></a><a href="https://developers.cloudflare.com/r2/" target="_blank" rel="noreferrer">R2 documentation<ExternalLink size={14} /></a></div>}
+                  </div>
+                ) : null}
+              </section>
+
+              <section className="setup-panel provider-section">
                 <header><h2>Social sign-in</h2><p>Select the providers this project will support. Credentials may be inherited, entered now, or configured later from this local Setup.</p></header>
                 <div className="provider-option-grid" role="group" aria-label="Social sign-in providers">
                   {[
@@ -1933,6 +2033,12 @@ export function SetupPage() {
                       {payload.blueprint.providers.database.initialState}{" "}
                       {payload.blueprint.providers.database.provider} from{" "}
                       {payload.blueprint.providers.database.schemaSource}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Storage</dt>
+                    <dd>
+                      {payload.blueprint.providers.storage.provider} / {payload.blueprint.providers.storage.access} / {payload.blueprint.providers.storage.uploadMode}
                     </dd>
                   </div>
                   <div>

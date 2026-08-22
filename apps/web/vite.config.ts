@@ -42,6 +42,7 @@ const providerCredentialFields = {
     "STRIPE_WEBHOOK_SECRET",
     "STRIPE_PRICE_PRO",
   ],
+  "s3-compatible": ["S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY"],
 } as const;
 const allowedProviderSecrets = new Set<string>(
   Object.values(providerCredentialFields).flat(),

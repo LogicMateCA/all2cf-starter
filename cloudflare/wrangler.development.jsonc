@@ -19,7 +19,12 @@
     "AUTH_EMAIL_PROVIDER": "cfsend",
     "RESEND_API_URL": "https://api.resend.com",
     "MOBILE_DEEP_LINK_SCHEMES": "starter-dev://,starter-preview://,starter://",
-    "AUTH_SOCIAL_PROVIDERS": "google"
+    "AUTH_SOCIAL_PROVIDERS": "google",
+    "STORAGE_PROVIDER": "cloudflare-r2",
+    "STORAGE_BUCKET": "starter-dev-objects",
+    "STORAGE_ACCESS": "private",
+    "STORAGE_MAX_UPLOAD_BYTES": "10485760",
+    "STORAGE_PUBLIC_DOMAIN": ""
   },
   "secrets": {
     "required": [
@@ -84,5 +89,11 @@
         "max_concurrency": 10
       }
     ]
-  }
+  },
+  "r2_buckets": [
+    {
+      "binding": "OBJECTS",
+      "bucket_name": "starter-dev-objects"
+    }
+  ]
 }

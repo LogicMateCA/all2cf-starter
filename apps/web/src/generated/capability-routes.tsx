@@ -32,16 +32,21 @@ const CapabilityRoute4 = lazy(async () => {
 });
 
 const CapabilityRoute5 = lazy(async () => {
+  const module = await import("../components/features/object-storage-page");
+  return { default: module.ObjectStoragePage };
+});
+
+const CapabilityRoute6 = lazy(async () => {
   const module = await import("../components/features/organization-page");
   return { default: module.OrganizationPage };
 });
 
-const CapabilityRoute6 = lazy(async () => {
+const CapabilityRoute7 = lazy(async () => {
   const module = await import("../components/features/usage-page");
   return { default: module.UsagePage };
 });
 
-const CapabilityRoute7 = lazy(async () => {
+const CapabilityRoute8 = lazy(async () => {
   const module = await import("../components/features/outgoing-webhooks-page");
   return { default: module.OutgoingWebhooksPage };
 });
@@ -52,7 +57,8 @@ export const capabilityRoutes: CapabilityRoute[] = [
   { path: "/app/entitlements", Component: CapabilityRoute2 },
   { path: "/app/invitation", Component: CapabilityRoute3 },
   { path: "/app/onboarding", Component: CapabilityRoute4 },
-  { path: "/app/team", Component: CapabilityRoute5 },
-  { path: "/app/usage", Component: CapabilityRoute6 },
-  { path: "/app/webhooks", Component: CapabilityRoute7 },
+  { path: "/app/storage", Component: CapabilityRoute5 },
+  { path: "/app/team", Component: CapabilityRoute6 },
+  { path: "/app/usage", Component: CapabilityRoute7 },
+  { path: "/app/webhooks", Component: CapabilityRoute8 },
 ];

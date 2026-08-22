@@ -83,8 +83,8 @@
       {
         "id": "design.owned-neutral",
         "lifecycle": {
-          "selected": false,
-          "materialized": false,
+          "selected": true,
+          "materialized": true,
           "localVerified": false,
           "developmentVerified": false,
           "productionReleased": false
@@ -272,6 +272,17 @@
           "productionReleased": false
         },
         "note": "Optional Web-only map pack is locally verified through plan/apply, Worker routing, browser WebGL, keyboard/accessibility, budgets, and complete removal. A real map provider remains a copied-project release gate. Mobile mapping uses a separate native-aware pack."
+      },
+      {
+      "id": "capability.object-storage",
+      "lifecycle": {
+        "selected": true,
+        "materialized": true,
+        "localVerified": true,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+      "note": "Cloudflare R2 is selected and locally verified through authenticated private/public exact-byte Workerd round trips; Development and Production remain unreleased."
       }
     ]
   },
@@ -299,6 +310,26 @@
           "alias": "@all2cf/database-connect/pg"
         },
         "production": null
+      }
+    },
+    "storage": {
+      "provider": "cloudflare-r2",
+      "access": "private",
+      "uploadMode": "worker",
+      "maxUploadBytes": 10485760,
+      "development": {
+        "bucket": "starter-dev-objects",
+        "publicDomain": "",
+        "s3Endpoint": "",
+        "s3Region": "auto",
+        "s3ForcePathStyle": false
+      },
+      "production": {
+        "bucket": "starter-objects",
+        "publicDomain": "",
+        "s3Endpoint": "",
+        "s3Region": "auto",
+        "s3ForcePathStyle": false
       }
     },
     "email": {

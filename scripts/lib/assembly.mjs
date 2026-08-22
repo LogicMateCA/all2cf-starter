@@ -85,6 +85,35 @@ export function validateAssemblyContracts(
   const productionCfpgId = databasePolicy.cfpg?.production?.databaseId;
   if (developmentCfpgId && developmentCfpgId === productionCfpgId)
     failures.push("Development and Production CFPG databases must be different");
+  const storagePolicy = blueprint.providers?.storage || {};
+  if (!new Set(["none", "cloudflare-r2", "s3-compatible"]).has(storagePolicy.provider))
+    failures.push("Blueprint storage provider must be none, cloudflare-r2, or s3-compatible");
+  if (!new Set(["private", "public"]).has(storagePolicy.access))
+    failures.push("Blueprint storage access must be private or public");
+  if (storagePolicy.uploadMode !== "worker")
+    failures.push("Blueprint storage uploadMode must remain worker until presigned upload is implemented");
+  if (!Number.isInteger(storagePolicy.maxUploadBytes) || storagePolicy.maxUploadBytes < 1 || storagePolicy.maxUploadBytes > 10_485_760)
+    failures.push("Blueprint storage maxUploadBytes must be between 1 and 10485760");
+  const storageBuckets = [storagePolicy.development?.bucket, storagePolicy.production?.bucket];
+  if (storageBuckets.some((bucket) => !/^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$/u.test(bucket || "")))
+    failures.push("Blueprint storage buckets must use safe S3-compatible names");
+  if (storageBuckets[0] === storageBuckets[1])
+    failures.push("Development and Production storage buckets must be different");
+  if (storagePolicy.provider === "s3-compatible")
+    for (const environment of ["development", "production"])
+      try {
+        const endpoint = new URL(storagePolicy[environment]?.s3Endpoint || "");
+        if (endpoint.protocol !== "https:") throw new Error("not https");
+      } catch {
+        failures.push(`Blueprint ${environment} S3 endpoint must use HTTPS`);
+      }
+  const storageSelection = Object.values(blueprint.selections || {})
+    .flat()
+    .find(({ id }) => id === "capability.object-storage");
+  if (!storageSelection)
+    failures.push("Blueprint is missing capability.object-storage selection state");
+  else if (storageSelection.lifecycle.selected !== (storagePolicy.provider !== "none"))
+    failures.push("Object Storage Pack selection must match the storage Provider");
 
   const packIds = new Set();
   const packs = new Map();

@@ -1,6 +1,19 @@
 {
   "schemaVersion": "starter-materialization/v1",
   "packs": {
+    "capability.object-storage": {
+      "version": "0.1.0",
+      "files": {
+        "workers/app/features/object-storage-worker.ts": "daaf353bb8e9495b3874ce08ceac4c81b8072ea41e319d7af00f1d2fea6270f3",
+        "apps/web/src/components/features/object-storage-page.tsx": "67f1480cec7e52ea305aa8c7f8b2d829ec9052bd1f37a02afc6ce9d552933f87",
+        "apps/web/src/components/features/object-storage-page.css": "d1a80e2a323f6f69a6a2edbaa75e8e4deac50d248dcf2df353ac7efbcb911bcc",
+        "db/migrations/1101_object_storage.sql": "34b97227383c14b2536971dfc9c770427d4788a053437be939f33de31c0e1225"
+      }
+    },
+    "design.owned-neutral": {
+      "version": "0.1.0",
+      "files": {}
+    },
     "design.stylekit-adapted": {
       "version": "0.1.0",
       "files": {}
@@ -127,13 +140,14 @@
       "packId": "saas.billing-stripe"
     }
   },
-  "generatedRoutesHash": "97bfd65e415b430c0ee1eb580174e67355060631dded880403eb9a5c07a26739",
+  "generatedRoutesHash": "564dcb025815d9e111bf28c8607dcb120eb9b5e0eaa7a4ff65018688dbc1a728",
   "generatedWorkerFirstRoutes": [],
   "generatedWorkerCapabilityRoutesHash": "28fba3e03c7b1388b7c7efe374c3b4fa7be6b1217d987d7c33dd32b7276f3e2c",
   "generatedAuthServerHash": "101d5afebc41eaafa1c29ef2c54f5cbb8e0a39ad1f50b438a936c1f0e14053fe",
   "generatedAuthClientHash": "86d1309af948e4f853a14cda593c04b2ba16a6fd92407fd67861051fef873cd9",
-  "generatedWorkerFeaturesHash": "7637d3a57bcd15cf25e0c81b3fd6460fc684f191c51dd1b533ce9969d55ff66b",
+  "generatedWorkerFeaturesHash": "8ce3eaf9ac612f33faf693013bdbf40e1e6b1bd6e7a380723ea0b6eb1aa5dfc5",
   "generatedWorkerEventsHash": "6f2abb47f75f18333e4b93bc5ff0a2a207a434246041ba2c8dd82f9013828123",
+  "generatedStorageAdapterHash": "fe2cb36c76e3aa69970b8b7838e61a8a366d6e81535c151e2e2ca02a9d034a9e",
   "generatedCloudflareConfigs": {
     "cloudflare/wrangler.development.jsonc": {
       "queues": [
@@ -150,6 +164,19 @@
       ],
       "database": {
         "provider": "native-postgresql"
+      },
+      "r2Buckets": [
+        {
+          "binding": "OBJECTS",
+          "bucket": "starter-dev-objects"
+        }
+      ],
+      "storageVars": {
+        "STORAGE_PROVIDER": "cloudflare-r2",
+        "STORAGE_BUCKET": "starter-dev-objects",
+        "STORAGE_ACCESS": "private",
+        "STORAGE_MAX_UPLOAD_BYTES": "10485760",
+        "STORAGE_PUBLIC_DOMAIN": ""
       }
     },
     "cloudflare/wrangler.production.jsonc": {
@@ -167,6 +194,19 @@
       ],
       "database": {
         "provider": "native-postgresql"
+      },
+      "r2Buckets": [
+        {
+          "binding": "OBJECTS",
+          "bucket": "starter-objects"
+        }
+      ],
+      "storageVars": {
+        "STORAGE_PROVIDER": "cloudflare-r2",
+        "STORAGE_BUCKET": "starter-objects",
+        "STORAGE_ACCESS": "private",
+        "STORAGE_MAX_UPLOAD_BYTES": "10485760",
+        "STORAGE_PUBLIC_DOMAIN": ""
       }
     }
   },
@@ -177,5 +217,5 @@
   "generatedStyleAdapterMarketingHash": "e961c2786c60ad928d281de4f46be9dc5c3c4464e0bcfe122769816986dd3a0c",
   "generatedStyleAdapterDocsHash": "1ba0db06e657c210171b2537575d6915490ef863dc533e079f90a32d520ef5bb",
   "generatedDesignMobileHash": "5f59cd732c9dcb719456a40296653291aa28345bdb48319668793556a2b6d9e5",
-  "generatedMarketingProjectHash": "fbcb6ce9cd24cada0f3fe95ec3e76499853743a67800d091e517aea572986988"
+  "generatedMarketingProjectHash": "4e6a796e30d5385dd441f594dfd6f72d23af2a42b6cd0e5b5769a081385fd686"
 }

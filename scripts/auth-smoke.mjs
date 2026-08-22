@@ -41,6 +41,7 @@ const outgoingWebhooksSelected = selectedPacks.has(
   "saas.outgoing-webhooks",
 );
 const onboardingSelected = selectedPacks.has("saas.onboarding");
+const objectStorageSelected = selectedPacks.has("capability.object-storage");
 const origin = remote
   ? `https://${starter.development.domain}`
   : `http://127.0.0.1:${port}`;
@@ -794,6 +795,124 @@ try {
     "anonymous user could access notifications",
   );
   const currentUserId = session.payload.data.user.id;
+  if (objectStorageSelected) {
+    const anonymousObjects = await request("/api/storage/objects", {
+      headers: { Origin: origin },
+    });
+    assert(
+      anonymousObjects.response.status === 401,
+      "anonymous user could list stored objects",
+    );
+    const privateBytes = Buffer.from(`starter-r2-private-${randomUUID()}`);
+    const privateUpload = await request("/api/storage/objects", {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain",
+        "X-File-Name": "private-smoke.txt",
+        Cookie: cookie,
+        Origin: origin,
+      },
+      body: privateBytes,
+    });
+    assert(
+      privateUpload.response.status === 201 &&
+        privateUpload.payload?.data?.provider === "cloudflare-r2" &&
+        privateUpload.payload?.data?.id,
+      `private R2 upload failed (${privateUpload.response.status}: ${JSON.stringify(privateUpload.payload)})`,
+    );
+    const privateObjectId = privateUpload.payload.data.id;
+    const objectList = await request("/api/storage/objects", {
+      headers: { Cookie: cookie, Origin: origin },
+    });
+    assert(
+      objectList.response.status === 200 &&
+        objectList.payload?.data?.objects?.some(
+          (item) =>
+            item.id === privateObjectId &&
+            item.byteSize === privateBytes.byteLength &&
+            item.visibility === "private",
+        ),
+      "uploaded R2 object was missing from the owner list",
+    );
+    const privateDownload = await fetch(
+      `${origin}/api/storage/objects/${encodeURIComponent(privateObjectId)}`,
+      { headers: { Cookie: cookie, Origin: origin } },
+    );
+    assert(
+      privateDownload.status === 200 &&
+        Buffer.from(await privateDownload.arrayBuffer()).equals(privateBytes),
+      "private R2 download did not preserve exact bytes",
+    );
+    const deniedPublicRead = await request(
+      `/api/public/storage/${encodeURIComponent(privateObjectId)}`,
+      { headers: { Origin: origin } },
+    );
+    assert(
+      deniedPublicRead.response.status === 404,
+      "private R2 object was exposed by the public route",
+    );
+    const publicBytes = Buffer.from(`starter-r2-public-${randomUUID()}`);
+    const publicUpload = await request("/api/storage/objects", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/octet-stream",
+        "X-File-Name": "public-smoke.bin",
+        "X-Object-Visibility": "public",
+        Cookie: cookie,
+        Origin: origin,
+      },
+      body: publicBytes,
+    });
+    const publicObjectId = publicUpload.payload?.data?.id;
+    const publicDownload = await fetch(
+      `${origin}/api/public/storage/${encodeURIComponent(publicObjectId || "")}`,
+      { headers: { Origin: origin } },
+    );
+    assert(
+      publicUpload.response.status === 201 &&
+        publicObjectId &&
+        publicDownload.status === 200 &&
+        Buffer.from(await publicDownload.arrayBuffer()).equals(publicBytes),
+      "public R2 object did not complete an anonymous exact-byte round trip",
+    );
+    const unsafeUpload = await request("/api/storage/objects", {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/html",
+        "X-File-Name": "unsafe.html",
+        Cookie: cookie,
+        Origin: origin,
+      },
+      body: Buffer.from("<script>alert(1)</script>"),
+    });
+    assert(
+      unsafeUpload.response.status === 422,
+      "unsafe active-content upload was not rejected",
+    );
+    for (const objectId of [privateObjectId, publicObjectId]) {
+      const deleted = await request(
+        `/api/storage/objects/${encodeURIComponent(objectId)}`,
+        { method: "DELETE", headers: { Cookie: cookie, Origin: origin } },
+      );
+      assert(deleted.response.status === 204, "R2 object deletion failed");
+    }
+    const deletedRead = await request(
+      `/api/storage/objects/${encodeURIComponent(privateObjectId)}`,
+      { headers: { Cookie: cookie, Origin: origin } },
+    );
+    const deletedMetadata = await database.query(
+      "select count(*)::int as count from app_object_storage where id = any($1::text[]) and deleted_at is not null",
+      [[privateObjectId, publicObjectId]],
+    );
+    assert(
+      deletedRead.response.status === 404 &&
+        deletedMetadata.rows[0]?.count === 2,
+      "R2 deletion did not remove bytes and retain soft-deleted metadata",
+    );
+    checks.push(
+      "object-storage-r2-auth-private-public-exact-byte-roundtrip-active-content-denial-delete",
+    );
+  }
   const otherUserId = randomUUID();
   const currentNotificationId = randomUUID();
   const otherNotificationId = randomUUID();

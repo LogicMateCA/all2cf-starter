@@ -19,6 +19,7 @@ const socialSecretRequirements = {
 const socialSecretNames = new Set(Object.values(socialSecretRequirements).flat());
 const stripeSelected = selectedPacks.has("saas.billing-stripe");
 const outgoingWebhooksSelected = selectedPacks.has("saas.outgoing-webhooks");
+const storageProvider = blueprint.providers?.storage?.provider || "none";
 const env = parseEnv(await readFile(path.join(root, ".dev.vars"), "utf8"));
 const providers = JSON.parse(await readFile(path.join(root, "profiles/providers.json"), "utf8"));
 const profilePath = process.env.STARTER_DEV_PROFILE_PATH || providers.defaultPath;
@@ -85,6 +86,18 @@ function syncWorkerSecrets(environment, wranglerConfig) {
         environment === "production"
           ? "STARTER_PRODUCTION_WEBHOOK_SIGNING_KEY"
           : "WEBHOOK_SIGNING_KEY",
+      ),
+    } : {}),
+    ...(storageProvider === "s3-compatible" ? {
+      S3_ACCESS_KEY_ID: required(
+        environment === "production"
+          ? "STARTER_PRODUCTION_S3_ACCESS_KEY_ID"
+          : "S3_ACCESS_KEY_ID",
+      ),
+      S3_SECRET_ACCESS_KEY: required(
+        environment === "production"
+          ? "STARTER_PRODUCTION_S3_SECRET_ACCESS_KEY"
+          : "S3_SECRET_ACCESS_KEY",
       ),
     } : {}),
   };
@@ -333,6 +346,37 @@ async function ensureConfiguredQueues(environment) {
   state.resources[`${environment}Queues`] = resources;
 }
 
+async function ensureConfiguredR2Buckets(environment) {
+  if (storageProvider !== "cloudflare-r2") {
+    state.resources[`${environment}R2Buckets`] = [];
+    return;
+  }
+  const targetStorage = blueprint.providers.storage?.[environment];
+  const bucketName = targetStorage?.bucket;
+  if (!bucketName)
+    throw new Error(`Blueprint is missing the ${environment} R2 bucket name`);
+  const listed = await cloudflare(
+    "GET",
+    `/accounts/${config.cloudflare.accountId}/r2/buckets?name_contains=${encodeURIComponent(bucketName)}`,
+  );
+  const buckets = Array.isArray(listed?.buckets) ? listed.buckets : [];
+  let bucket = buckets.find((entry) => entry.name === bucketName);
+  if (!bucket)
+    bucket = await cloudflare(
+      "POST",
+      `/accounts/${config.cloudflare.accountId}/r2/buckets`,
+      { name: bucketName },
+    );
+  if (bucket?.name !== bucketName)
+    throw new Error(`Cloudflare R2 bucket ${bucketName} returned an unexpected identity`);
+  state.resources[`${environment}R2Buckets`] = [{
+    name: bucket.name,
+    jurisdiction: bucket.jurisdiction || "default",
+    location: bucket.location || null,
+    storageClass: bucket.storage_class || "Standard",
+  }];
+}
+
 async function provision(environment = "all") {
   if (!new Set(["all", "development", "production"]).has(environment))
     throw new Error("provision environment must be development, production, or all");
@@ -345,6 +389,8 @@ async function provision(environment = "all") {
     const developmentHyperdriveId = await ensureHyperdrive("development", developmentServiceId);
     await saveState();
     await writeWrangler("development", developmentHyperdriveId);
+    await ensureConfiguredR2Buckets("development");
+    await saveState();
     await ensureConfiguredQueues("development");
     await saveState();
   }
@@ -354,6 +400,8 @@ async function provision(environment = "all") {
     const productionHyperdriveId = await ensureHyperdrive("production", config.production.database.vpcServiceId);
     await saveState();
     await writeWrangler("production", productionHyperdriveId);
+    await ensureConfiguredR2Buckets("production");
+    await saveState();
     await ensureConfiguredQueues("production");
     await saveState();
   }

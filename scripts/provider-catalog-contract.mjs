@@ -74,6 +74,8 @@ for (const [categoryId, optionId] of [
   ["social-auth", "google"],
   ["email", "cfsend"],
   ["billing", "stripe"],
+  ["object-storage", "cloudflare-r2"],
+  ["object-storage", "s3-compatible"],
   ["maps", "mapcn"],
   ["background-realtime", "queues"],
   ["release-platforms", "cloudflare"],
@@ -81,8 +83,6 @@ for (const [categoryId, optionId] of [
   if (!option(categoryId, optionId)?.selectable)
     failures.push(`Executable Provider ${categoryId}.${optionId} must be selectable`);
 for (const [categoryId, optionId] of [
-  ["object-storage", "cloudflare-r2"],
-  ["object-storage", "s3-compatible"],
   ["anti-abuse", "turnstile"],
 ])
   if (option(categoryId, optionId)?.selectable)

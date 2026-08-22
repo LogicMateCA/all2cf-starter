@@ -38,6 +38,17 @@ export type AuthRuntimeEnv = {
   EMAIL?: Env extends { EMAIL: infer EmailBinding } ? EmailBinding : never;
   OUTGOING_WEBHOOK_QUEUE?: Queue<unknown>;
   WEBHOOK_SIGNING_KEY?: string;
+  OBJECTS?: R2Bucket;
+  STORAGE_PROVIDER?: string;
+  STORAGE_BUCKET?: string;
+  STORAGE_ACCESS?: string;
+  STORAGE_MAX_UPLOAD_BYTES?: string;
+  STORAGE_PUBLIC_DOMAIN?: string;
+  S3_ENDPOINT?: string;
+  S3_REGION?: string;
+  S3_FORCE_PATH_STYLE?: string;
+  S3_ACCESS_KEY_ID?: string;
+  S3_SECRET_ACCESS_KEY?: string;
 };
 
 type RequestExecutionContext = Pick<ExecutionContext, "waitUntil">;

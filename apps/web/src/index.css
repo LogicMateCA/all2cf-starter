@@ -2234,6 +2234,45 @@ dd {
   font-size: 13px;
   line-height: 1.5;
 }
+.storage-provider-config {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+.storage-environment-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.storage-environment-grid > div {
+  display: grid;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-soft);
+}
+.storage-environment-grid h3,
+.storage-environment-grid p {
+  margin: 0;
+}
+.storage-environment-grid h3 {
+  color: var(--text);
+  font-size: 15px;
+  text-transform: capitalize;
+}
+.storage-environment-grid p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.platform-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  font-size: 14px;
+}
 .provider-credentials {
   display: grid;
   gap: 13px;
@@ -3817,6 +3856,7 @@ dd {
   .provider-option-grid,
   .provider-email-test,
   .provider-catalog-grid,
+  .storage-environment-grid,
   .provider-secret-fields {
     grid-template-columns: 1fr;
   }

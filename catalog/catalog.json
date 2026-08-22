@@ -926,6 +926,44 @@
       ]
     },
     {
+      "id": "capability.object-storage",
+      "kind": "capability",
+      "name": "Object storage",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": ["desktop-web", "worker", "admin"],
+      "ownership": "starter-owned",
+      "source": [
+        {
+          "name": "Cloudflare R2",
+          "url": "https://developers.cloudflare.com/r2/",
+          "relationship": "platform-provider"
+        },
+        {
+          "name": "Amazon S3 API",
+          "url": "https://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html",
+          "relationship": "compatibility-contract"
+        }
+      ],
+      "updatePolicy": "runtime-stable",
+      "provides": [
+        "user-owned private/public object metadata",
+        "bounded Worker upload/download/delete APIs",
+        "Cloudflare R2 or S3-compatible runtime adapter",
+        "local and remote round-trip verification"
+      ],
+      "requires": [
+        "explicit storage Provider selection",
+        "isolated Development and Production buckets",
+        "new empty Starter database"
+      ],
+      "conflicts": ["unbounded uploads", "public-by-default objects", "client-supplied owner or object key"],
+      "performance": ["10 MiB bounded Worker upload", "streamed downloads", "lazy storage page", "no AWS SDK in R2 mode"],
+      "verification": ["put/head/get/delete round trip", "owner isolation", "public/private access", "provider switch and clean removal"],
+      "documentation": ["ARCHITECTURE.md", "features/storage/MODULE.md"]
+    },
+    {
       "id": "capability.mapcn-web",
       "kind": "capability",
       "name": "MapCN Web maps",

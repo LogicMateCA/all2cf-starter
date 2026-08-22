@@ -27,10 +27,12 @@
       "entrypoint": "All2CFDatabase",
       "mutuallyExclusiveWith": "HYPERDRIVE"
     },
-    "STARTER_R2": {
+    "OBJECTS": {
       "kind": "r2_bucket",
-      "status": "future",
-      "requiredPerEnvironment": true
+      "status": "selected-object-storage",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "storage.provider=cloudflare-r2",
+      "resourceIsolation": "Use distinct Development and Production buckets."
     },
     "STARTER_QUEUE": {
       "kind": "queue",
