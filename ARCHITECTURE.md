@@ -44,6 +44,7 @@ The permanent Product Shell owns responsive navigation, global search seam, work
 - Catalog delivery is explicit: `baseline` is permanently present, `materializer` requires a matching receipt-backed pack manifest, and `planned` is informational only. Planned packs cannot enter a preset, a saved selected Blueprint, or a materialization run.
 - `starter.blueprint.json` answers what this project selected and how far each selection has progressed.
 - `catalog/catalog.json` answers what Starter can assemble and the contract for each pack.
+- `catalog/providers.json` answers which Provider, infrastructure and release-platform options exist, which are currently selectable, and what credentials, Bindings, dependencies and verification each option owns. A visible Planned option is not an availability claim.
 - The StyleKit source catalog and selected owned snapshot answer which style/revision is selected, its version and hashes, complete tokens/recipes/AI rules, and readiness of every Web, Marketing, Docs, and Mobile adapter.
 - `pages/catalog.json` answers which complete PowerAI-derived page families and content models exist, which renderer owns each route, which routes are mandatory, and which source patterns were accepted, replaced or rejected.
 - `starter.manifest.json` answers what the repository itself currently contains and supports.

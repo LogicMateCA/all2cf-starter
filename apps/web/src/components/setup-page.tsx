@@ -194,6 +194,29 @@ type StyleKitSnapshotSummary = {
   targets: Record<string, { status: string }>;
   style: StyleKitEntry;
 };
+type ProviderCatalogOption = {
+  id: string;
+  name: string;
+  status: "implemented" | "local-verified" | "development-verified" | "production-released" | "planned";
+  delivery: "baseline" | "materializer" | "platform" | "planned";
+  selectable: boolean;
+  credentials: string[];
+  bindings: string[];
+  dependencies: string[];
+  verification: { available: boolean; mode: string };
+  setupLinks: string[];
+  notes: string;
+};
+type ProviderCatalogCategory = {
+  id: string;
+  name: string;
+  kind: "provider" | "infrastructure" | "platform";
+  required: boolean;
+  selection: "single" | "multiple";
+  defaultOptionIds: string[];
+  capabilityIds: string[];
+  options: ProviderCatalogOption[];
+};
 type SetupPayload = {
   blueprint: Blueprint;
   catalog: { catalogVersion: string; presets: Preset[]; packs: Pack[] };
@@ -226,6 +249,10 @@ type SetupPayload = {
       status: string;
       gaps?: string[];
     }>;
+  };
+  providerCatalog: {
+    catalogVersion: string;
+    categories: ProviderCatalogCategory[];
   };
   providerCredentials: Record<
     "google" | "github" | "apple" | "cfsend" | "resend" | "cloudflare-email-service" | "stripe",
@@ -1787,6 +1814,41 @@ export function SetupPage() {
                   onEditing={(editing) => setProviderEditing("stripe", editing)}
                   onChange={updateProviderSecret}
                 />
+              </section>
+
+              <section className="setup-panel provider-section provider-catalog-section">
+                <header>
+                  <h2>Provider and capability catalog</h2>
+                  <p>Every common category is accounted for. Available options have executable code and verification; Planned options remain visible but disabled until their Pack is real.</p>
+                </header>
+                <div className="provider-catalog-grid">
+                  {payload.providerCatalog.categories.map((category) => (
+                    <article key={category.id}>
+                      <header>
+                        <div>
+                          <strong>{category.name}</strong>
+                          <small>{category.kind} / {category.selection}</small>
+                        </div>
+                        <span className={`status ${category.required ? "defined" : "available"}`}>
+                          {category.required ? "required" : "optional / None"}
+                        </span>
+                      </header>
+                      <p>Default: {category.defaultOptionIds.join(", ")}.</p>
+                      <div className="provider-catalog-options">
+                        {category.options.map((option) => (
+                          <span
+                            key={option.id}
+                            className={option.selectable ? "provider-catalog-option available" : "provider-catalog-option planned"}
+                            title={option.notes}
+                          >
+                            {option.name}
+                            <small>{option.selectable ? option.status : "planned"}</small>
+                          </span>
+                        ))}
+                      </div>
+                    </article>
+                  ))}
+                </div>
               </section>
             </div>
           ) : null}

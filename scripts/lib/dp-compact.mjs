@@ -38,6 +38,7 @@ export function compactDevelopmentPlan(snapshot) {
           updatePolicy: pack.updatePolicy,
         })),
       },
+      providerCatalog: snapshot.assembly.providerCatalog,
       designCatalog: {
         schemaVersion: snapshot.assembly.designCatalog.schemaVersion,
         catalogVersion: snapshot.assembly.designCatalog.catalogVersion,

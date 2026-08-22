@@ -42,6 +42,11 @@
       "status": "local-verified"
     },
     {
+      "area": "Provider catalog",
+      "choice": "Schema-validated Provider/Capability registry with required None options, executable selection gates, credentials, Bindings, dependencies, setup links, verification modes, and Setup/DP projections",
+      "status": "local-verified"
+    },
+    {
       "area": "Project materialization",
       "choice": "Executable baseline/materializer/planned Catalog contract plus receipt-backed plan/apply/check with collision-safe removal",
       "status": "local-verified"

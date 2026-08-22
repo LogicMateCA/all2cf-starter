@@ -53,6 +53,23 @@ type CatalogPack = {
 type DesignProfile = { id: string; version: string; packId: string; name: string; description: string; status: string; targets: string[]; dials: { designVariance: number; motionIntensity: number; visualDensity: number }; adapters: Record<string, string> };
 type StyleKitSnapshot = { slug: string; name: string; nameEn: string; snapshotVersion: string; snapshotHash: string; immutable: boolean; classification: string; globalEligibility: string; targets: Record<string, { status: string }>; sourceFiles: Array<{ path: string; sha256: string }>; aiRules: string };
 type PageDefinition = { id: string; packId: string; name: string; route: string; group: string; renderer: string; required: boolean; defaultSelected: boolean; status: string };
+type ProviderCatalogCategory = {
+  id: string;
+  name: string;
+  kind: "provider" | "infrastructure" | "platform";
+  required: boolean;
+  selection: "single" | "multiple";
+  defaultOptionIds: string[];
+  capabilityIds: string[];
+  options: Array<{
+    id: string;
+    name: string;
+    status: string;
+    delivery: string;
+    selectable: boolean;
+    verification: { available: boolean; mode: string };
+  }>;
+};
 type Snapshot = {
   schemaVersion: string;
   generatedAt: string;
@@ -71,6 +88,7 @@ type Snapshot = {
       providers: { auth: string; socialAuth: string[]; database: DatabasePolicy; email: { default: string; alternatives: string[] }; billing: string; release: string };
     };
     catalog: { schemaVersion: string; catalogVersion: string; policies: Record<string, string>; presets: Array<{ id: string; name: string; description: string; selections: string[] }>; packs: CatalogPack[] };
+    providerCatalog: { schemaVersion: string; catalogVersion: string; categories: ProviderCatalogCategory[] };
     designCatalog: { schemaVersion: string; catalogVersion: string; sourcePolicy: string; profiles: DesignProfile[] };
     stylekit: { source: { revision: string; license: string }; styleCount: number; catalogVersion: string; classification: Record<string, number>; globalEligibleCount: number; selected: { slug: string; sourceRevision: string; snapshotVersion: string; snapshotHash: string }; snapshots: StyleKitSnapshot[] };
     pageCatalog: { schemaVersion: string; catalogVersion: string; policy: string; pages: PageDefinition[] };
@@ -121,6 +139,7 @@ const fallback: Snapshot = {
       providers: { auth: "better-auth", socialAuth: ["google"], database: { engine: "postgresql", provider: "native-postgresql", access: "sql-first", initialState: "empty", schemaSource: "selected-pack-baseline", existingDataPolicy: "out-of-scope", cfpg: { development: null, production: null } }, email: { default: "cfsend", alternatives: ["resend", "cloudflare-email-service"] }, billing: "better-auth-stripe", release: "cloudflare-workers" },
     },
     catalog: { schemaVersion: "starter-catalog/v1", catalogVersion: "0.3.0", policies: {}, presets: [], packs: [] },
+    providerCatalog: { schemaVersion: "starter-provider-catalog/v1", catalogVersion: "1.0.0", categories: [] },
     designCatalog: { schemaVersion: "starter-design-catalog/v1", catalogVersion: "0.1.0", sourcePolicy: "Starter-owned profiles", profiles: [] },
     stylekit: { source: { revision: "unavailable", license: "unknown" }, styleCount: 0, catalogVersion: "0.0.0", classification: {}, globalEligibleCount: 0, selected: { slug: "unavailable", sourceRevision: "unavailable", snapshotVersion: "0.0.0", snapshotHash: "unavailable" }, snapshots: [] },
     pageCatalog: { schemaVersion: "starter-page-catalog/v1", catalogVersion: "0.1.0", policy: "Starter-owned routes", pages: [] },
@@ -282,6 +301,11 @@ export function DevelopmentPlanPage() {
 
         <Section id="catalog" title="Internal pack catalog" description="Owned assembly choices with explicit provenance, target platforms, and update behavior." icon={Library}>
           <div className="preset-grid">{data.assembly.catalog.presets.map((preset) => <Surface key={preset.id}><span className="role-label">{preset.name}</span><p>{preset.description}</p><small>{preset.selections.length} baseline packs</small></Surface>)}</div>
+          <Surface className="catalog-table"><div className="catalog-row catalog-header"><span>Provider category</span><span>Default and selection</span><span>Options</span><span>Coverage</span></div>{data.assembly.providerCatalog.categories.map((category) => {
+            const selectable = category.options.filter((option) => option.selectable);
+            const planned = category.options.filter((option) => !option.selectable);
+            return <div className="catalog-row" key={category.id}><div><strong>{category.name}</strong><small>{category.id} / {category.kind}</small></div><div><p>{category.defaultOptionIds.join(", ")}</p><small>{category.required ? "required" : "optional with None"} / {category.selection}</small></div><div><strong>{selectable.map((option) => option.name).join(", ") || "None only"}</strong><small>{planned.length ? `Planned: ${planned.map((option) => option.name).join(", ")}` : "No planned options"}</small></div><span className={`status ${planned.length ? "implemented" : "local-verified"}`}>{selectable.length} ready / {planned.length} planned</span></div>;
+          })}</Surface>
           <div className="preset-grid">{data.assembly.designCatalog.profiles.map((profile) => <Surface key={profile.id}><span className={`status ${profile.status}`}>{profile.status}</span><h3>{profile.name}</h3><p>{profile.description}</p><small>{profile.id} / v{profile.version} / variance {profile.dials.designVariance} / motion {profile.dials.motionIntensity} / density {profile.dials.visualDensity}</small></Surface>)}</div>
           <div className="preset-grid">{data.assembly.stylekit.snapshots.map((snapshot) => {
             const selected = snapshot.slug === data.assembly.blueprint.stylekit.slug;

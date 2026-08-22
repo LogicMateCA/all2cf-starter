@@ -342,6 +342,7 @@ function localSetupApi(): Plugin {
               stylekitCatalogSource,
               saasSourcesSource,
               saasCapabilitiesSource,
+              providerCatalogSource,
             ] = await Promise.all([
               readFile(
                 path.join(repositoryRoot, "starter.manifest.json"),
@@ -379,6 +380,10 @@ function localSetupApi(): Plugin {
                 path.join(repositoryRoot, "catalog/saas-capabilities.json"),
                 "utf8",
               ),
+              readFile(
+                path.join(repositoryRoot, "catalog/providers.json"),
+                "utf8",
+              ),
             ]);
             const manifest = JSON.parse(manifestSource);
             const catalog = JSON.parse(catalogSource);
@@ -388,6 +393,7 @@ function localSetupApi(): Plugin {
             const stylekitCatalog = JSON.parse(stylekitCatalogSource);
             const saasSources = JSON.parse(saasSourcesSource);
             const saasCapabilities = JSON.parse(saasCapabilitiesSource);
+            const providerCatalog = JSON.parse(providerCatalogSource);
             const stylekitSnapshots =
               await loadStylekitSnapshots(stylekitCatalog);
             const initialBlueprint = JSON.parse(blueprintSource);
@@ -418,6 +424,7 @@ function localSetupApi(): Plugin {
                   },
                   saasSources,
                   saasCapabilities,
+                  providerCatalog,
                   providerCredentials: await providerCredentialStatus(),
                   config,
                 }),
@@ -575,6 +582,7 @@ function localSetupApi(): Plugin {
                 },
                 saasSources,
                 saasCapabilities,
+                providerCatalog,
                 providerCredentials: await providerCredentialStatus(),
                 config: nextConfig,
               }),

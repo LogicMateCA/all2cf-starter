@@ -147,6 +147,7 @@ export async function collectKnowledge(root) {
     manifest,
     blueprint,
     catalog,
+    providerCatalog,
     designCatalog,
     stylekitSourceCatalog,
     saasSources,
@@ -162,6 +163,7 @@ export async function collectKnowledge(root) {
     readJson(root, "starter.manifest.json"),
     readJson(root, "starter.blueprint.json"),
     readJson(root, "catalog/catalog.json"),
+    readJson(root, "catalog/providers.json"),
     readJson(root, "design/catalog.json"),
     readJson(root, "design/stylekit/source-catalog.json"),
     readJson(root, "catalog/saas-sources.json"),
@@ -261,6 +263,7 @@ export async function collectKnowledge(root) {
         presets: catalog.presets,
         packs: catalog.packs,
       },
+      providerCatalog,
       designCatalog,
       stylekit: {
         source: stylekitSourceCatalog.source,
