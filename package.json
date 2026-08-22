@@ -63,6 +63,7 @@
     "factory:status": "node scripts/starter-factory.mjs status",
     "factory:diff": "node scripts/starter-factory.mjs diff",
     "factory:contract": "node scripts/factory-contract.mjs",
+    "starter:init": "node scripts/initialize-generated-git.mjs",
     "data-layer:drizzle:contract": "node scripts/drizzle-pack-contract.mjs",
     "release:dev": "node scripts/starterctl.mjs release development",
     "release:production": "node scripts/starterctl.mjs release production",

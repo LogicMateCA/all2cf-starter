@@ -32,9 +32,13 @@ async function validateWorkingTree() {
 }
 
 function validateCommits() {
-  try { runGit(["cat-file", "-e", `${policy.enforcedAfter}^{commit}`]); }
-  catch { return [`Change policy baseline ${policy.enforcedAfter} does not exist`]; }
-  const commits = runGit(["rev-list", "--reverse", `${policy.enforcedAfter}..HEAD`]).split("\n").filter(Boolean);
+  if (policy.enforcedAfter !== "root") {
+    try { runGit(["cat-file", "-e", `${policy.enforcedAfter}^{commit}`]); }
+    catch { return [`Change policy baseline ${policy.enforcedAfter} does not exist`]; }
+  }
+  let commits;
+  try { commits = runGit(["rev-list", "--reverse", policy.enforcedAfter === "root" ? "HEAD" : `${policy.enforcedAfter}..HEAD`]).split("\n").filter(Boolean); }
+  catch { return ["Generated project Git baseline is missing; run npm run starter:init once"] }
   const failures = [];
   for (const commit of commits) {
     const files = runGit(["diff-tree", "--no-commit-id", "--name-only", "-r", commit]).split("\n").filter(Boolean);

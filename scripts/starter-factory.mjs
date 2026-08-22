@@ -39,6 +39,26 @@ function runProjectScript(projectRoot, script, scriptArgs = []) {
   return result.stdout.trim();
 }
 
+function generateWorkerTypes(target) {
+  const configured = process.env.STARTER_FACTORY_WRANGLER_BIN?.trim();
+  const executable = configured || path.join(sourceRoot, "node_modules", ".bin", process.platform === "win32" ? "wrangler.cmd" : "wrangler");
+  for (const environment of ["development", "production"]) {
+    const result = spawnSync(executable, [
+      "types",
+      "--config",
+      `cloudflare/wrangler.${environment}.jsonc`,
+      `workers/app/worker-configuration.${environment}.d.ts`,
+    ], { cwd: target, encoding: "utf8" });
+    if (result.status !== 0) throw new Error(result.stderr || result.stdout || `Wrangler type generation failed for ${environment}`);
+  }
+}
+
+function refreshPortablePackageLock(target) {
+  if (!portable) return;
+  const result = spawnSync("npm", ["install", "--package-lock-only", "--ignore-scripts", "--no-audit", "--no-fund"], { cwd: target, encoding: "utf8" });
+  if (result.status !== 0) throw new Error(result.stderr || result.stdout || "Portable package-lock refresh failed");
+}
+
 async function ensureNewDirectory(target) {
   try {
     if ((await readdir(target)).length) throw new Error(`Target directory is not empty: ${target}`);
@@ -129,13 +149,15 @@ async function writeProjectScripts(target) {
     "starter:add": "node scripts/starter-link.mjs add",
     "starter:update": "node scripts/starter-link.mjs update",
   });
+  if (portable) {
+    manifest.scripts.verify = "npm run starter:init && npm run ai:doctor && npm run agent-map:check && npm run release:contract && npm run database:provider:contract && npm run auth:social:contract && npm run knowledge:sync && npm run knowledge:check && npm run change:check && npm run cf:types:check && npm run typecheck && npm run build:sites && npm run cache:contract && npm run bundle:check:marketing && npm run bundle:check:web && npm run bundle:check:docs && npm run cf:dry-run:dev && npm run cf:dry-run:production";
+  }
   await writeFile(path.join(target, "package.json"), json(manifest));
 }
 
 async function pruneSourceLibrary(target) {
-  for (const relative of ["packs", "catalog", "design/stylekit", "node_modules", "dist", "test-results", "cloudflare/.wrangler", "cloudflare/dist"])
+  for (const relative of ["packs", "node_modules", "dist", "test-results", "cloudflare/.wrangler", "cloudflare/dist"])
     await rm(path.join(target, relative), { recursive: true, force: true });
-  await rm(path.join(target, "pages/catalog.json"), { force: true });
 }
 
 async function writeProductHandoff(target, source) {
@@ -151,13 +173,26 @@ async function writeProductHandoff(target, source) {
   const machineMap = await readJson(target, ".ai/agent-map.json");
   machineMap.rules.packs = source.portable
     ? "This portable product uses all2cf-managed updates through .starter/source.json.sourceUrl. Never fabricate local Pack templates or treat the unavailable sourceRoot as a local path."
-    : "Generated products do not carry the complete Pack library. Use starter:status/diff/add/update through the pinned source receipt; never fabricate local Pack templates.";
+    : "Generated products do not carry the complete Pack template library. Use starter:status/diff/add/update through the pinned source receipt; never fabricate local Pack templates.";
+  if (source.portable) {
+    const changePolicy = await readJson(target, ".ai/change-policy.json");
+    changePolicy.enforcedAfter = "root";
+    await writeFile(path.join(target, ".ai/change-policy.json"), json(changePolicy));
+    const present = async (relative) => stat(path.join(target, relative)).then(() => true, () => false);
+    machineMap.firstRunReads = (await Promise.all((machineMap.firstRunReads || []).map(async (relative) => [relative, await present(relative)]))).filter(([, exists]) => exists).map(([relative]) => relative);
+    for (const route of machineMap.routes || []) {
+      for (const key of ["primaryFiles", "docs", "skills"])
+        route[key] = (await Promise.all((route[key] || []).map(async (relative) => [relative, await present(relative)]))).filter(([, exists]) => exists).map(([relative]) => relative);
+      if (!route.primaryFiles.length) route.primaryFiles = ["PROJECT.md"];
+      if (!route.docs.length) route.docs = ["PROJECT.md"];
+    }
+  }
   await writeFile(machineMapPath, json(machineMap));
   const template = await readFile(path.join(target, "changes/_template.md"), "utf8");
   await rm(path.join(target, "changes"), { recursive: true, force: true });
   await mkdir(path.join(target, "changes"), { recursive: true });
   await writeFile(path.join(target, "changes/_template.md"), template);
-  await writeFile(path.join(target, "changes/generated-project.md"), `---\nid: generated-project\ntitle: Initialize ${source.project.name}\nstatus: implemented\naffectedModules: [assembler]\ndocsImpact: [PROJECT.md, AGENT_MAP.md, /dp]\n---\n\n# Outcome\n\nThis independent product was generated from Starter source commit \`${source.sourceCommit}\`. It retains selected runtime code and a source receipt, but not the complete reusable Catalog, Pack or StyleKit source library.\n\n# Verification\n\nGenerated identity, materialization receipt, Agent Map and Development Plan are present. Project-local dependency installation, type/build checks and provider/release evidence remain product gates.\n\n# Release\n\nNot released.\n`);
+  await writeFile(path.join(target, "changes/generated-project.md"), `---\nid: generated-project\ntitle: Initialize ${source.project.name}\nstatus: implemented\naffectedModules: [assembler]\ndocsImpact: [PROJECT.md, AGENT_MAP.md, /dp]\n---\n\n# Outcome\n\nThis independent product was generated from Starter source commit \`${source.sourceCommit}\`. It retains selected runtime code, compact Catalog and StyleKit reference snapshots, and a source receipt, but not the reusable Pack template library.\n\n# Verification\n\nGenerated identity, materialization receipt, Agent Map and Development Plan are present. Project-local dependency installation, type/build checks and provider/release evidence remain product gates.\n\n# Release\n\nNot released.\n`);
 }
 
 function initializeGit(target, slug) {
@@ -216,6 +251,8 @@ async function createProject() {
     if (portable) process.env.STARTER_FACTORY_BUILD_SOURCE_ROOT = sourceRoot;
     run("scripts/sync-project-identity.mjs", ["--reset", `--project-root=${target}`], target);
     const materialization = await materialize(target, "--apply");
+    refreshPortablePackageLock(target);
+    if (portable) generateWorkerTypes(target);
     await writeProjectScripts(target);
     await pruneSourceLibrary(target);
     await writeProductHandoff(target, source);
@@ -287,7 +324,9 @@ async function addProject() {
   await selectPackClosure(blueprint, packId);
   await writeFile(blueprintPath, json(blueprint));
   try {
-    console.log(await materialize(target, "--apply"));
+    const result = await materialize(target, "--apply");
+    generateWorkerTypes(target);
+    console.log(result);
   } catch (error) {
     await writeFile(blueprintPath, original);
     throw error;
@@ -297,6 +336,7 @@ async function addProject() {
 async function updateProject() {
   const target = await lifecycleProjectRoot();
   const result = await materialize(target, "--apply");
+  generateWorkerTypes(target);
   const receiptPath = path.join(target, ".starter/source.json");
   const receipt = await readJson(target, ".starter/source.json");
   receipt.sourceCommit = sourceVersion();
