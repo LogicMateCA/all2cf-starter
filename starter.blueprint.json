@@ -360,6 +360,17 @@
           "productionReleased": false
         },
         "note": "Optional Cloudflare Stream direct video upload and signed webhook lifecycle."
+      },
+      {
+        "id": "capability.cron",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Optional environment-specific Cloudflare Cron Trigger with heartbeat evidence."
       }
     ]
   },
@@ -483,6 +494,17 @@
             "starter.logicm8.com"
           ],
           "apiBaseUrl": "https://api.cloudflare.com/client/v4"
+        }
+      }
+    },
+    "background": {
+      "cron": {
+        "enabled": false,
+        "development": {
+          "expression": "*/15 * * * *"
+        },
+        "production": {
+          "expression": "0 * * * *"
         }
       }
     },

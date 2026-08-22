@@ -34,6 +34,7 @@
     "ai",
     "search",
     "media",
+    "background",
     "admin",
     "operations",
     "mobile",
@@ -178,6 +179,11 @@
     {
       "area": "Outgoing webhooks",
       "choice": "Optional Cloudflare Queue delivery with derived HMAC secrets, PostgreSQL evidence, bounded retries, and user/Admin readback",
+      "status": "local-verified"
+    },
+    {
+      "area": "Background scheduling",
+      "choice": "Optional environment-specific Cloudflare Cron Trigger with generated scheduled dispatch, SQL heartbeat, explicit empty-trigger removal and independent Queue ownership",
       "status": "local-verified"
     },
     {

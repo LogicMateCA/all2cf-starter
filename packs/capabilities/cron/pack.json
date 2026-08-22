@@ -1,0 +1,15 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "capability.cron",
+  "version": "0.1.0",
+  "source": { "name": "Cloudflare Cron Triggers", "url": "https://developers.cloudflare.com/workers/configuration/cron-triggers/", "relationship": "platform-provider" },
+  "files": [
+    { "source": "templates/cron-worker.ts", "target": "workers/app/features/cron-worker.ts" },
+    { "source": "templates/1105_cron.sql", "target": "db/migrations/1105_cron.sql" }
+  ],
+  "dependencies": [],
+  "routes": [],
+  "workerFeature": { "module": "../features/cron-worker", "export": "cronFeature" },
+  "workerEvents": { "module": "../features/cron-worker", "export": "cronEvents" }
+}

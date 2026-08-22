@@ -239,6 +239,13 @@ export function validateAssemblyContracts(
   const streamSelection = Object.values(blueprint.selections || {}).flat().find(({ id }) => id === "capability.cloudflare-stream");
   if (!streamSelection) failures.push("Blueprint is missing capability.cloudflare-stream selection state");
   else if (streamSelection.lifecycle.selected !== (streamPolicy.provider === "cloudflare-stream")) failures.push("Cloudflare Stream Pack selection must match the video Provider");
+  const cronPolicy = blueprint.providers?.background?.cron || {};
+  for (const environment of ["development", "production"])
+    if (!/^(\S+\s+){4}\S+$/u.test(cronPolicy[environment]?.expression || ""))
+      failures.push(`Blueprint ${environment} Cron expression must contain five fields`);
+  const cronSelection = Object.values(blueprint.selections || {}).flat().find(({ id }) => id === "capability.cron");
+  if (!cronSelection) failures.push("Blueprint is missing capability.cron selection state");
+  else if (cronSelection.lifecycle.selected !== Boolean(cronPolicy.enabled)) failures.push("Cron Pack selection must match the background Cron setting");
 
   const packIds = new Set();
   const packs = new Map();

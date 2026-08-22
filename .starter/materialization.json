@@ -188,7 +188,9 @@
         "STORAGE_ACCESS": "private",
         "STORAGE_MAX_UPLOAD_BYTES": "10485760",
         "STORAGE_PUBLIC_DOMAIN": ""
-      }
+      },
+      "crons": [],
+      "cronVars": {}
     },
     "cloudflare/wrangler.production.jsonc": {
       "queues": [
@@ -228,7 +230,9 @@
         "STORAGE_ACCESS": "private",
         "STORAGE_MAX_UPLOAD_BYTES": "10485760",
         "STORAGE_PUBLIC_DOMAIN": ""
-      }
+      },
+      "crons": [],
+      "cronVars": {}
     }
   },
   "generatedDesignWebHash": "59c08ee8aec948cd506b25b26cd3c5f70000a236003b80fd5d405b161991a3de",

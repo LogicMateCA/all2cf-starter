@@ -435,6 +435,16 @@ export async function collectOperationsHealth(
     });
   }
 
+  const cronTable = await relationExists(database, "app_cron_heartbeat");
+  const cronSelected = env.CRON_PROVIDER === "cloudflare-cron" || cronTable;
+  if (!cronSelected) {
+    components.push({ id: "cron", label: "Cloudflare Cron", status: "not-selected", summary: "Scheduled background work is not materialized.", details: { selected: false } });
+  } else {
+    const configuration = requiredConfiguration([["CRON_EXPRESSION", env.CRON_EXPRESSION]]);
+    const evidence = cronTable ? await database.query<{ run_count: string; last_run_at: string | null }>(`select coalesce(sum(run_count),0)::text as run_count, max(last_run_at)::text as last_run_at from app_cron_heartbeat`) : null;
+    components.push({ id: "cron", label: "Cloudflare Cron", status: configuration.configured && cronTable ? "ok" : "attention", summary: configuration.configured && cronTable ? "Scheduled handler and heartbeat ledger are configured." : "Selected Cron configuration is incomplete.", details: { selected: true, configured: configuration.configured, ledgerReady: cronTable, expression: env.CRON_EXPRESSION || null, runCount: Number(evidence?.rows[0]?.run_count || 0), lastRunAt: evidence?.rows[0]?.last_run_at || null, missing: configuration.missing.join(", ") || null } });
+  }
+
   const stripeTable = await relationExists(database, "app_stripe_webhook_event");
   const stripeSelected =
     stripeTable ||

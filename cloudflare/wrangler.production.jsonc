@@ -95,5 +95,8 @@
       "binding": "OBJECTS",
       "bucket_name": "starter-objects"
     }
-  ]
+  ],
+  "triggers": {
+    "crons": []
+  }
 }

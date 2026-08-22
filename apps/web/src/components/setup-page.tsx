@@ -82,6 +82,7 @@ type MediaPolicy = {
   images: { provider: "none" | "cloudflare-images"; maxInputBytes: number; defaultFormat: "image/webp" | "image/avif" | "image/jpeg" | "image/png" };
   stream: { provider: "none" | "cloudflare-stream"; maxDurationSeconds: number; development: { accountId: string; allowedOrigins: string[]; apiBaseUrl: string }; production: { accountId: string; allowedOrigins: string[]; apiBaseUrl: string } };
 };
+type BackgroundPolicy = { cron: { enabled: boolean; development: { expression: string }; production: { expression: string } } };
 type CfpgConnection = {
   connectCommand: string;
   databaseId: string;
@@ -143,6 +144,7 @@ type Blueprint = {
     push: PushPolicy;
     sms: SmsPolicy;
     media: MediaPolicy;
+    background: BackgroundPolicy;
     email: { default: string; alternatives: string[] };
     billing: string;
     release: string;
@@ -1091,6 +1093,8 @@ export function SetupPage() {
               ? { ...blueprint.providers, media: { ...blueprint.providers.media, images: { ...blueprint.providers.media.images, provider: selected ? "cloudflare-images" : "none" } } }
             : pack.id === "capability.cloudflare-stream"
               ? { ...blueprint.providers, media: { ...blueprint.providers.media, stream: { ...blueprint.providers.media.stream, provider: selected ? "cloudflare-stream" : "none" } } }
+            : pack.id === "capability.cron"
+              ? { ...blueprint.providers, background: { ...blueprint.providers.background, cron: { ...blueprint.providers.background.cron, enabled: selected } } }
             : blueprint.providers,
       };
     });
@@ -1231,6 +1235,13 @@ export function SetupPage() {
         ...blueprint.selections,
         capabilities: blueprint.selections.capabilities.map((selection) => selection.id === "capability.cloudflare-stream" ? { ...selection, lifecycle: selectLifecycle(selection.lifecycle, provider === "cloudflare-stream") } : selection),
       },
+    }));
+  const setCronEnabled = (enabled: boolean) =>
+    updateBlueprint((blueprint) => ({
+      ...blueprint,
+      preset: "custom",
+      providers: { ...blueprint.providers, background: { ...blueprint.providers.background, cron: { ...blueprint.providers.background.cron, enabled } } },
+      selections: { ...blueprint.selections, capabilities: blueprint.selections.capabilities.map((selection) => selection.id === "capability.cron" ? { ...selection, lifecycle: selectLifecycle(selection.lifecycle, enabled) } : selection) },
     }));
   const setDesignProfile = (profile: DesignProfile) =>
     updateBlueprint((blueprint) => ({
@@ -2235,6 +2246,12 @@ export function SetupPage() {
               </section>
 
               <section className="setup-panel provider-section">
+                <header><h2>Scheduled background work</h2><p>Cron Triggers run in UTC and should start only bounded, idempotent product jobs. The Starter Pack records a heartbeat; copied products register their own work explicitly.</p></header>
+                <div className="provider-option-grid" role="radiogroup" aria-label="Cron Provider">{[{ id: "none", name: "None", note: "No scheduled handler or deployed Cron Trigger." }, { id: "cron", name: "Cloudflare Cron", note: "Environment-specific schedule with SQL run evidence." }].map(({ id, name, note }) => { const selected = payload.blueprint.providers.background.cron.enabled === (id === "cron"); return <div className={selected ? "provider-option selected" : "provider-option"} key={id}><label><input type="radio" name="cron-provider" checked={selected} onChange={() => setCronEnabled(id === "cron")} /><span><strong>{name}</strong><small>{note}</small></span></label></div>; })}</div>
+                {payload.blueprint.providers.background.cron.enabled ? <div className="storage-provider-config"><div className="storage-environment-grid">{(["development", "production"] as const).map((environment) => <div key={environment}><h3>{environment === "development" ? "Development schedule" : "Production schedule"}</h3><Field label="UTC Cron expression" value={payload.blueprint.providers.background.cron[environment].expression} onChange={(expression) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, background: { ...blueprint.providers.background, cron: { ...blueprint.providers.background.cron, [environment]: { expression } } } } }))} /><p>The expression is copied exactly to Wrangler and is available as <code>controller.cron</code>.</p></div>)}</div><div className="provider-resource-links"><a href="https://developers.cloudflare.com/workers/configuration/cron-triggers/" target="_blank" rel="noreferrer">Cron Trigger documentation<ExternalLink size={14} /></a></div><div className="provider-live-test"><Button asChild type="button" size="sm" variant="outline"><a href={`https://${payload.config.development.domain}/admin`} target="_blank" rel="noreferrer">View Development Cron evidence<ExternalLink size={13} /></a></Button><small>Local verification invokes Wrangler's scheduled test route and reads the heartbeat; Development release verifies the deployed trigger after propagation.</small></div></div> : null}
+              </section>
+
+              <section className="setup-panel provider-section">
                 <header><h2>Social sign-in</h2><p>Select the providers this project will support. Credentials may be inherited, entered now, or configured later from this local Setup.</p></header>
                 <div className="provider-option-grid" role="group" aria-label="Social sign-in providers">
                   {[
@@ -2514,6 +2531,10 @@ export function SetupPage() {
                   <div>
                     <dt>Video</dt>
                     <dd>{payload.blueprint.providers.media.stream.provider}</dd>
+                  </div>
+                  <div>
+                    <dt>Cron</dt>
+                    <dd>{payload.blueprint.providers.background.cron.enabled ? payload.blueprint.providers.background.cron.development.expression : "none"}</dd>
                   </div>
                   <div>
                     <dt>Social sign-in</dt>

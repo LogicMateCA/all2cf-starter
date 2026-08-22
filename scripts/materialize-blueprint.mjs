@@ -485,6 +485,11 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
       throw new Error(`${path.relative(root, configPath)} changed materializer-owned Stream variable ${name}`);
     delete model.vars[name];
   }
+  for (const [name, value] of Object.entries(previousRuntime?.cronVars || {})) {
+    if (model.vars[name] !== value)
+      throw new Error(`${path.relative(root, configPath)} changed materializer-owned Cron variable ${name}`);
+    delete model.vars[name];
+  }
   if (previousRuntime?.imagesBinding) {
     if (model.images?.binding !== previousRuntime.imagesBinding.binding)
       throw new Error(`${path.relative(root, configPath)} changed materializer-owned Images binding`);
@@ -613,6 +618,28 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
   const queues = model.queues || { producers: [], consumers: [] };
   queues.producers ||= [];
   queues.consumers ||= [];
+  const crons = Array.isArray(model.triggers?.crons) ? [...model.triggers.crons] : [];
+  for (const previous of previousRuntime?.crons || []) {
+    const index = crons.indexOf(previous);
+    if (index < 0) throw new Error(`${path.relative(root, configPath)} changed materializer-owned Cron Trigger ${previous}`);
+    crons.splice(index, 1);
+  }
+  const receiptCrons = [];
+  const cronVars = {};
+  if (blueprint.providers.background.cron.enabled) {
+    const expression = blueprint.providers.background.cron[environment].expression;
+    if (crons.includes(expression)) throw new Error(`${path.relative(root, configPath)} already owns Cron Trigger ${expression}`);
+    crons.push(expression);
+    receiptCrons.push(expression);
+    model.vars.CRON_PROVIDER = "cloudflare-cron";
+    model.vars.CRON_EXPRESSION = expression;
+    cronVars.CRON_PROVIDER = "cloudflare-cron";
+    cronVars.CRON_EXPRESSION = expression;
+  }
+  if (crons.length || model.triggers?.crons || (previousRuntime?.crons || []).length) {
+    model.triggers ||= {};
+    model.triggers.crons = crons;
+  }
   const requiredSecrets = new Set(model.secrets?.required || []);
 
   for (const previous of previousRuntime?.queues || []) {
@@ -658,6 +685,8 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
     streamVars,
     r2Buckets: receiptR2Buckets,
     storageVars,
+    crons: receiptCrons,
+    cronVars,
   };
   for (const [binding, declaration] of desiredCloudflareQueues) {
     if (queues.producers.some((entry) => entry.binding === binding))
@@ -1063,6 +1092,9 @@ if (cloudflareImagesPackSelected !== (blueprint.providers.media.images.provider 
 const cloudflareStreamPackSelected = selected.has("capability.cloudflare-stream");
 if (cloudflareStreamPackSelected !== (blueprint.providers.media.stream.provider === "cloudflare-stream"))
   throw new Error("Cloudflare Stream Pack selection must match the Blueprint video Provider.");
+const cronPackSelected = selected.has("capability.cron");
+if (cronPackSelected !== Boolean(blueprint.providers.background.cron.enabled))
+  throw new Error("Cron Pack selection must match the Blueprint background Cron setting.");
 
 desiredRoutes.sort((left, right) => left.path.localeCompare(right.path));
 const desiredWorkerFirstRoutes = desiredRoutes

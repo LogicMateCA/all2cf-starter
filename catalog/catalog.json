@@ -1127,6 +1127,24 @@
       "documentation": ["ARCHITECTURE.md", "features/media/MODULE.md", "features/admin/MODULE.md"]
     },
     {
+      "id": "capability.cron",
+      "kind": "capability",
+      "name": "Cloudflare Cron Trigger",
+      "version": "0.1.0",
+      "status": "local-verified",
+      "delivery": "materializer",
+      "targets": ["worker", "admin"],
+      "ownership": "starter-owned",
+      "source": [{ "name": "Cloudflare Cron Triggers", "url": "https://developers.cloudflare.com/workers/configuration/cron-triggers/", "relationship": "platform-provider" }],
+      "updatePolicy": "runtime-stable",
+      "provides": ["environment-specific UTC schedule", "generated scheduled event registration", "SQL run heartbeat and Admin readback"],
+      "requires": ["explicit cron expression", "product-owned job registration", "idempotent task behavior"],
+      "conflicts": ["business work in the generic heartbeat", "local timezone assumptions", "untracked dashboard-only schedules"],
+      "performance": ["single heartbeat upsert", "no cron handler when deselected"],
+      "verification": ["local scheduled HTTP trigger", "scheduled time/cron/readback", "selected dry-run", "clean removal"],
+      "documentation": ["ARCHITECTURE.md", "features/background/MODULE.md", "features/admin/MODULE.md"]
+    },
+    {
       "id": "capability.mapcn-web",
       "kind": "capability",
       "name": "MapCN Web maps",

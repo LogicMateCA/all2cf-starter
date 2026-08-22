@@ -1425,4 +1425,12 @@ export default {
     for (const feature of selectedWorkerEvents)
       if (feature.queue) await feature.queue(batch, env, ctx);
   },
+  async scheduled(
+    controller: ScheduledController,
+    env: AppBindings,
+    ctx: ExecutionContext,
+  ) {
+    for (const feature of selectedWorkerEvents)
+      if (feature.scheduled) await feature.scheduled(controller, env, ctx);
+  },
 } satisfies ExportedHandler<AppBindings, unknown>;

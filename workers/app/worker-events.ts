@@ -6,4 +6,9 @@ export type WorkerEventFeature = {
     env: AuthRuntimeEnv,
     ctx: ExecutionContext,
   ) => Promise<void>;
+  scheduled?: (
+    controller: ScheduledController,
+    env: AuthRuntimeEnv,
+    ctx: ExecutionContext,
+  ) => Promise<void>;
 };

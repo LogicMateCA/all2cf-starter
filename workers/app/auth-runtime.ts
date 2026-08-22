@@ -82,6 +82,8 @@ export type AuthRuntimeEnv = {
   STREAM_ALLOWED_ORIGINS?: string;
   CLOUDFLARE_STREAM_TOKEN?: string;
   STREAM_WEBHOOK_SECRET?: string;
+  CRON_PROVIDER?: string;
+  CRON_EXPRESSION?: string;
 };
 
 type RequestExecutionContext = Pick<ExecutionContext, "waitUntil">;

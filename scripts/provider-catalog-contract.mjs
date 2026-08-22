@@ -83,6 +83,7 @@ for (const [categoryId, optionId] of [
   ["notification-channels", "twilio-sms"],
   ["media", "cloudflare-images"],
   ["media", "cloudflare-stream"],
+  ["background-realtime", "cron"],
   ["maps", "mapcn"],
   ["background-realtime", "queues"],
   ["release-platforms", "cloudflare"],

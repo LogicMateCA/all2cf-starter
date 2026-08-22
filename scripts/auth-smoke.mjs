@@ -52,6 +52,7 @@ const expoPushSelected = selectedPacks.has("capability.expo-push");
 const twilioSmsSelected = selectedPacks.has("capability.twilio-sms");
 const cloudflareImagesSelected = selectedPacks.has("capability.cloudflare-images");
 const cloudflareStreamSelected = selectedPacks.has("capability.cloudflare-stream");
+const cronSelected = selectedPacks.has("capability.cron");
 const origin = remote
   ? `https://${starter.development.domain}`
   : `http://127.0.0.1:${port}`;
@@ -225,6 +226,9 @@ ${smokeHandlers.join("\n")}
   },
   async queue(batch: MessageBatch<unknown>, env: Env, ctx: ExecutionContext) {
     if (app.queue) return app.queue(batch, env, ctx);
+  },
+  async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext) {
+    if (app.scheduled) return app.scheduled(controller, env, ctx);
   },
 };
 `,
@@ -438,6 +442,7 @@ ${smokeHandlers.join("\n")}
       "false",
       "--log-level",
       "info",
+      ...(cronSelected ? ["--test-scheduled"] : []),
     ],
     {
       cwd: root,
@@ -655,6 +660,18 @@ const checks = [];
 try {
   await waitUntilReady();
   await database.connect();
+
+  if (cronSelected) {
+    const scheduledTime = Date.now() - 1_000;
+    const expression = blueprint.providers.background.cron.development.expression;
+    const scheduledResponse = await fetch(`${origin}/cdn-cgi/handler/scheduled?format=json&cron=${encodeURIComponent(expression)}&time=${scheduledTime}`);
+    const heartbeat = await database.query(`select cron_expression, run_count::int, extract(epoch from last_scheduled_at) * 1000 as scheduled_ms from app_cron_heartbeat where cron_expression = $1`, [expression]);
+    assert(
+      scheduledResponse.ok && heartbeat.rows[0]?.cron_expression === expression && heartbeat.rows[0]?.run_count === 1 && Math.abs(Number(heartbeat.rows[0]?.scheduled_ms) - scheduledTime) < 2,
+      "local Cron scheduled handler did not record exact expression and scheduled time",
+    );
+    checks.push("cloudflare-cron-local-scheduled-expression-time-heartbeat");
+  }
 
   if (turnstileSelected) {
     const missingCaptcha = await fetch(`${origin}/api/auth/sign-in/email`, {
@@ -2483,6 +2500,7 @@ try {
   const twilioSmsHealth = healthComponents.get("twilio-sms");
   const cloudflareImagesHealth = healthComponents.get("cloudflare-images");
   const cloudflareStreamHealth = healthComponents.get("cloudflare-stream");
+  const cronHealth = healthComponents.get("cron");
   assert(
     operationsHealth.response.status === 200 &&
       operationsHealth.payload?.data?.service === "starter" &&
@@ -2493,6 +2511,12 @@ try {
       emailHealth?.details?.sent24h >= 1 &&
       googleHealth?.details?.configured === true,
     "operations health omitted active database, CFsend, or Google evidence",
+  );
+  assert(
+    cronSelected
+      ? cronHealth?.status === "ok" && cronHealth?.details?.selected === true && cronHealth?.details?.configured === true && cronHealth?.details?.ledgerReady === true && cronHealth?.details?.runCount >= 1
+      : cronHealth?.status === "not-selected" && cronHealth?.details?.selected === false,
+    "operations health returned incorrect Cron readiness evidence",
   );
   assert(
     cloudflareStreamSelected

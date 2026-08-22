@@ -38,6 +38,7 @@ Purpose: turn a product brief into a complete SaaS platform plus the smallest ow
 - Twilio SMS receipt-owns its Worker/SQL files, regional API variable and exact four environment secrets. No SDK dependency is needed; deselection removes the complete channel.
 - Cloudflare Images receipt-owns its Worker helper, `IMAGES` Binding and bounded policy variables. Original-file storage remains independently selectable and is never added implicitly.
 - Cloudflare Stream receipt-owns its Worker/SQL lifecycle, exact environment variables and two secrets. Selection never implies signed/private playback, because that path is not yet executable.
+- Cron receipt-owns its Worker/SQL event feature, exact environment trigger and variables. Empty trigger arrays are intentional removal state, not stale configuration.
 - AI may recommend and prefill selections, but it must show conflicts and consequences before changing the Blueprint. The controller owns integration and release.
 - `/dp` is a read-only projection of the Blueprint, Catalog, Markdown contracts, code status, and release evidence. Its lifecycle matrix separates reusable Catalog readiness and delivery mode from the current Blueprint's selected, materialized, locally verified, Development verified, and Production released states. It never edits the Blueprint.
 
