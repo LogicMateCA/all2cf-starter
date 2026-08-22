@@ -32,6 +32,7 @@ Blueprint-driven project assembler for AI-led Cloudflare SaaS products. The reus
 ## Assembly sources
 
 - `starter.blueprint.json` is the canonical project selection and realization record.
+- The reusable Starter's fixed default visual system is StyleKit `editorial@2.2.0`: a restrained white/light-gray and black/dark-gray SaaS foundation chosen once during initialization. Ordinary Setup sessions do not rotate styles; later changes require an explicit owner choice, save, materialization and Development release.
 - Its structured database policy fixes the PostgreSQL engine, SQL-first access, an empty initial state, the final selected-pack schema baseline, and no existing-data compatibility scope. `/setup` separately selects native PostgreSQL through Hyperdrive or CFPG through `@all2cf/database-connect`; AI must not infer migration or backfill work for a new Starter project.
 - `catalog/catalog.json` is the internal Design, Page, SaaS, and Capability pack catalog used by AI and `/setup`; `catalog/saas-sources.json` pins donor evidence and accepted adaptation paths, while `catalog/saas-capabilities.json` is the baseline/materializer/planned capability ledger.
 - Each Catalog pack declares `baseline`, `materializer`, or `planned` delivery. `/setup` may display planned work, but executable presets, saved selections, and AI materialization reject it until a real delivery path exists.

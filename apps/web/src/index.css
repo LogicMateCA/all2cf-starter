@@ -1747,7 +1747,7 @@ dd {
 }
 .setup-steps button.active > span {
   border-color: var(--accent);
-  color: white;
+  color: var(--design-on-accent);
   background: var(--accent);
 }
 .setup-steps button.complete > span {
@@ -1954,7 +1954,7 @@ dd {
 }
 .pack-choice.selected .pack-check {
   border-color: var(--accent);
-  color: white;
+  color: var(--design-on-accent);
   background: var(--accent);
 }
 .profile-grid {
@@ -1998,6 +1998,16 @@ dd {
   object-position: center;
 }
 /* STYLEKIT_PREVIEW_END */
+.stylekit-materialization-note {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  color: var(--text);
+  background: var(--surface-soft);
+  font-size: 14px;
+  line-height: 1.55;
+}
 .profile-swatches {
   height: 34px;
   display: grid;

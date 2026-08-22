@@ -799,7 +799,8 @@ export function SetupPage() {
     }));
   const setStyleKit = (style: StyleKitEntry) => {
     const snapshot = payload.stylekitSnapshots[style.slug];
-    if (!snapshot) return;
+    if (!snapshot || payload.blueprint.stylekit.slug === style.slug) return;
+    markDirty();
     setPayload((current) =>
       current
         ? {
@@ -1322,6 +1323,12 @@ export function SetupPage() {
                     {payload.blueprint.stylekit.snapshotHash.slice(0, 12)}…
                   </small>
                 </div>
+                <p className="stylekit-materialization-note">
+                  Selecting a style updates the Blueprint after you save. Existing
+                  surfaces keep the currently materialized style until the saved
+                  plan is materialized locally; Development changes only after a
+                  separate release.
+                </p>
                 <div className="setup-fields">
                   <Field
                     label="Search styles"

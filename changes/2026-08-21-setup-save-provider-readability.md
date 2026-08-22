@@ -23,6 +23,8 @@ Every Setup step persists before navigation, Provider credentials can be safely 
 - Keep `/admin` Provider health read-only and direct operators back to local `npm run setup` for changes.
 - Establish a `12px` absolute typography floor, raise existing smaller Web/Marketing text, and enforce the rule mechanically across application and pack source.
 - Allow a saved executable `custom` Blueprint to pass the SaaS contract; the repository default remains `saas-foundation`, while Setup customization is validated through the ordinary assembly/dependency contracts instead of being rejected by a hard-coded preset name.
+- Treat every changed StyleKit selection as an unsaved Blueprint edit so Save draft/Save and finish cannot remain hidden, and explain that materialization plus Development release are separate steps.
+- Render selected-step and selected-pack checkmarks with the selected style's semantic `on-accent` color instead of hard-coded white, preserving contrast when a dark-mode style uses a light accent.
 
 # Verification
 
