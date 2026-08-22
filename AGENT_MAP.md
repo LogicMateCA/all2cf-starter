@@ -22,7 +22,7 @@ The machine-readable route table is `.ai/agent-map.json`. `npm run agent-map:che
 
 | Route | Owns |
 | --- | --- |
-| `project-assembly` | Factory, generated-project Setup, Blueprint, lifecycle commands, materializer, identity sync, `/dp` generation |
+| `project-assembly` | Factory, source Engine candidates, generated-project Setup, Blueprint, lifecycle commands, materializer, identity sync, `/dp` generation |
 | `auth-account` | Better Auth, OAuth, email verification, sessions, preferences, 2FA |
 | `product-shell` | Dashboard shell, navigation, notifications, onboarding, settings |
 | `organizations-billing` | Organizations, Stripe, subscriptions, entitlements, usage |

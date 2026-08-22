@@ -19,6 +19,7 @@ This repository is a reusable starter. Replace neutral placeholders during proje
 - For Cloudflare build, deploy, inspection, or rollback work, read and follow `skills/cloudflare-release/SKILL.md`.
 - For copying or initializing this Starter, read and follow `skills/starter-bootstrap/SKILL.md`.
 - For generating a new independent project, read and follow `skills/starter-factory/SKILL.md`.
+- For building, checking or registering a canonical Starter Engine candidate, read and follow `skills/starter-source-release/SKILL.md`.
 - For checking, adding or updating reusable Packs in a generated project, read and follow `skills/starter-maintenance/SKILL.md`.
 - For Expo/EAS build, update, Apple App Store, Google Play, or rollback work, read and follow `skills/expo-release/SKILL.md`.
 - For dependency checks or upgrades, read and follow `skills/runtime-upgrade/SKILL.md`; use current stable compatible versions, not unreviewed prereleases.

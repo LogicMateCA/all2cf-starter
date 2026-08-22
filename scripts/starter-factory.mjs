@@ -143,6 +143,8 @@ async function writeIdentity(target, name, slug) {
 
 async function writeProjectScripts(target) {
   const manifest = await readJson(target, "package.json");
+  for (const script of Object.keys(manifest.scripts || {}))
+    if (script.startsWith("source:") || script.startsWith("engine:")) delete manifest.scripts[script];
   Object.assign(manifest.scripts, {
     "starter:status": "node scripts/starter-link.mjs status",
     "starter:diff": "node scripts/starter-link.mjs diff",
@@ -156,7 +158,7 @@ async function writeProjectScripts(target) {
 }
 
 async function pruneSourceLibrary(target) {
-  for (const relative of ["packs", "node_modules", "dist", "test-results", "cloudflare/.wrangler", "cloudflare/dist"])
+  for (const relative of ["packs", "skills/starter-source-release", "scripts/source-release.mjs", "ALL2CF_FACTORY.md", "node_modules", "dist", "test-results", "cloudflare/.wrangler", "cloudflare/dist"])
     await rm(path.join(target, relative), { recursive: true, force: true });
 }
 
@@ -169,6 +171,12 @@ async function writeProductHandoff(target, source) {
       ? "Reusable optional capabilities and source updates are managed through the pinned All2CF source URL in `.starter/source.json`. This portable product does not carry the complete Pack library or a mutable source checkout."
       : "Reusable optional capability: inspect with `npm run starter:status`, preview with `npm run starter:diff`, and apply from the pinned source using `npm run starter:add -- <pack-id>` or `npm run starter:update`. The product does not carry the complete Pack library.",
   ));
+  const agentsPath = path.join(target, "AGENTS.md");
+  const agents = await readFile(agentsPath, "utf8");
+  await writeFile(agentsPath, agents.replace("- For building, checking or registering a canonical Starter Engine candidate, read and follow `skills/starter-source-release/SKILL.md`.\n", ""));
+  const projectPath = path.join(target, "PROJECT.md");
+  const project = await readFile(projectPath, "utf8");
+  await writeFile(projectPath, project.replace("- `skills/starter-source-release/SKILL.md` owns clean-source SQL/Drizzle verification, reproducible immutable Engine candidates and guarded All2CF registration plans. It never deploys.\n", ""));
   const machineMapPath = path.join(target, ".ai/agent-map.json");
   const machineMap = await readJson(target, ".ai/agent-map.json");
   machineMap.rules.packs = source.portable

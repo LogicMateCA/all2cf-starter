@@ -9,7 +9,7 @@ source: "starter"
 
 ## Purpose
 
-Blueprint-driven project factory for AI-led Cloudflare SaaS products. The reusable baseline owns the normal SaaS platform, application shell, administration, account, notification, support, documentation and operations behavior. Source-only `/factory` captures what a new SaaS does and generates an independent product; that product retains `/setup` for its later configuration without carrying the complete Catalog, Pack or StyleKit source library.
+Blueprint-driven project factory for AI-led Cloudflare SaaS products. The reusable baseline owns the normal SaaS platform, application shell, administration, account, notification, support, documentation and operations behavior. Source-only `/factory` captures what a new SaaS does and generates an independent product; that product retains `/setup`, compact Catalog and StyleKit reference snapshots for later configuration and AI context, but not the reusable Pack template library.
 
 ## Users and boundaries
 
@@ -73,6 +73,7 @@ Every material change records intent, affected contracts, migration or rollback 
 - `skills/cloudflare-release/SKILL.md` owns verified Cloudflare builds, Development releases, explicit Production releases, and rollback evidence.
 - `skills/starter-bootstrap/SKILL.md` owns copied-project identity replacement, environment materialization, infrastructure idempotency, and the first Development release.
 - `skills/starter-factory/SKILL.md` owns clean-source independent project generation, portable packaging, initial Git/AI handoff and creation evidence.
+- `skills/starter-source-release/SKILL.md` owns clean-source SQL/Drizzle verification, reproducible immutable Engine candidates and guarded All2CF registration plans. It never deploys.
 - `skills/starter-maintenance/SKILL.md` owns generated-product Pack status, diff, dependency-closure addition, source update and receipt-owned conflict refusal.
 - `skills/expo-release/SKILL.md` owns Expo verification, Development/Preview updates and builds, and separate Apple App Store and Google Play submission evidence.
 - `skills/runtime-upgrade/SKILL.md` owns stable-version discovery, compatibility decisions, Better Auth/plugin alignment, upgrade verification, and Development release evidence.
@@ -80,6 +81,8 @@ Every material change records intent, affected contracts, migration or rollback 
 - Visual systems, Web/Expo component sets, and chart choices remain reusable templates selected per product; they are not release skills.
 
 The remaining planned operational skill is `cloudflare-infrastructure`. Create it only after its topology-change workflow has been exercised end to end. The Better Auth database and release workflow is now implemented in project scripts; per the Starter policy, extract it into a Skill only after Development deployment and repeatable live evidence are stable. Stripe and broader CFsend operations still wait for their complete product flows. Agent Map and new Codex plugins are deliberately deferred until the assembler's real workflows expose stable boundaries worth packaging.
+
+StyleKit upstream synchronization is deliberately frozen. The source catalog remains research evidence, while Engine candidates carry the current Starter-owned curated snapshots and compiled adapters. New upstream entries never enter a source release automatically; the owner will deliberately improve and visually accept a smaller high-quality owned set.
 
 Authentication email is a product contract rather than an environment convenience: CFsend is the default provider, Resend is switchable, and Cloudflare Email Service is opt-in. Copied projects must configure one real provider before credential registration can be released.
 

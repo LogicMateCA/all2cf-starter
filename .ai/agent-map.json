@@ -26,13 +26,13 @@
   "routes": [
     {
       "id": "project-assembly",
-      "summary": "Source Factory, generated-project Setup, Blueprint selection, lifecycle commands, Pack materialization, identity synchronization, and /dp generation.",
-      "triggers": ["factory", "create project", "setup", "blueprint", "preset", "materialize", "starter add", "starter update", "assembler", "identity sync", "生成项目", "初始化", "配置", "模板", "选择模块"],
+      "summary": "Source Factory, reproducible Engine candidates, generated-project Setup, Blueprint selection, lifecycle commands, Pack materialization, identity synchronization, and /dp generation.",
+      "triggers": ["factory", "source release", "engine candidate", "capsule", "engine register", "create project", "setup", "blueprint", "preset", "materialize", "starter add", "starter update", "assembler", "identity sync", "源库发布", "生成项目", "初始化", "配置", "模板", "选择模块"],
       "moduleIds": ["assembler"],
-      "primaryFiles": ["apps/web/src/components/setup-page.tsx", "apps/web/vite.config.ts", "scripts/starter-factory.mjs", "scripts/materialize-blueprint.mjs", "scripts/sync-project-identity.mjs", "starter.blueprint.json", "catalog/catalog.json"],
+      "primaryFiles": ["apps/web/src/components/setup-page.tsx", "apps/web/vite.config.ts", "scripts/starter-factory.mjs", "scripts/source-release.mjs", "scripts/materialize-blueprint.mjs", "scripts/sync-project-identity.mjs", "starter.blueprint.json", "catalog/catalog.json"],
       "docs": ["features/assembler/MODULE.md", "PROJECT.md"],
-      "checks": ["npm run factory:contract", "npm run starter:materialize:check", "npm run saas:contract", "npm run knowledge:check"],
-      "skills": ["skills/project-context/SKILL.md", "skills/starter-bootstrap/SKILL.md"]
+      "checks": ["npm run source:status", "npm run factory:contract", "npm run starter:materialize:check", "npm run saas:contract", "npm run knowledge:check"],
+      "skills": ["skills/project-context/SKILL.md", "skills/starter-bootstrap/SKILL.md", "skills/starter-source-release/SKILL.md"]
     },
     {
       "id": "auth-account",

@@ -1,0 +1,390 @@
+import { createHash } from "node:crypto";
+import { execFileSync, spawnSync } from "node:child_process";
+import { access, copyFile, mkdir, mkdtemp, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const args = process.argv.slice(2);
+const command = args.find((value) => !value.startsWith("--")) || "status";
+const option = (name) => args.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
+const flag = (name) => args.includes(`--${name}`);
+const json = (value) => `${JSON.stringify(value, null, 2)}\n`;
+const candidateRoot = path.join(root, ".all2cf", "engine-candidates");
+const verificationPath = path.join(root, ".all2cf", "source-release-verification.local.json");
+const versionPattern = /^(\d+)\.(\d+)\.(\d+)(?:-(dev|rc)\.(\d+))?$/u;
+
+function run(commandName, commandArgs, options = {}) {
+  const result = spawnSync(commandName, commandArgs, {
+    cwd: options.cwd || root,
+    encoding: "utf8",
+    env: { ...process.env, ...options.env },
+    stdio: options.stdio || ["ignore", "pipe", "pipe"],
+  });
+  if (result.status !== 0)
+    throw new Error(result.stderr || result.stdout || `${commandName} failed`);
+  return result.stdout?.trim() || "";
+}
+
+function git(args, cwd = root) {
+  return execFileSync("git", args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
+}
+
+function gitStatus(cwd = root) {
+  return execFileSync("git", ["status", "--porcelain=v1"], { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trimEnd();
+}
+
+function sourceIdentity() {
+  const commit = git(["rev-parse", "HEAD"]);
+  const branch = git(["branch", "--show-current"]);
+  const dirtyLines = gitStatus().split("\n").filter(Boolean);
+  return { commit, branch, dirty: dirtyLines.length > 0, dirtyFiles: dirtyLines.map((line) => line.slice(3)) };
+}
+
+function requireCleanSource() {
+  const source = sourceIdentity();
+  if (source.dirty)
+    throw new Error(`Starter source release requires a clean commit; dirty files: ${source.dirtyFiles.slice(0, 8).join(", ")}`);
+  if (!/^[a-f0-9]{40}$/u.test(source.commit)) throw new Error("Starter source commit is invalid");
+  return source;
+}
+
+async function exists(filename) {
+  try { await access(filename); return true; }
+  catch { return false; }
+}
+
+async function sha256File(filename) {
+  const bytes = await readFile(filename);
+  return createHash("sha256").update(bytes).digest("hex");
+}
+
+async function packVersions() {
+  const rootPath = path.join(root, "packs");
+  const files = (await readdir(rootPath, { recursive: true }))
+    .map(String)
+    .filter((file) => file.endsWith("pack.json"));
+  const entries = await Promise.all(files.map(async (file) => {
+    const manifest = JSON.parse(await readFile(path.join(rootPath, file), "utf8"));
+    if (!manifest.id || !manifest.version) throw new Error(`Pack manifest is incomplete: ${file}`);
+    return [String(manifest.id), String(manifest.version)];
+  }));
+  return Object.fromEntries(entries.sort(([left], [right]) => left.localeCompare(right)));
+}
+
+function parseVersion(value) {
+  const version = String(value || "").trim();
+  if (!versionPattern.test(version))
+    throw new Error("Engine version must be SemVer such as 2.0.0-dev.9, 2.0.0-rc.1 or 2.0.0");
+  return version;
+}
+
+function compareVersions(leftValue, rightValue) {
+  const parse = (value) => {
+    const match = String(value || "").match(versionPattern);
+    if (!match) throw new Error(`Cannot compare invalid Engine version ${value}`);
+    const channel = match[4] || "stable";
+    return [Number(match[1]), Number(match[2]), Number(match[3]), { dev: 0, rc: 1, stable: 2 }[channel], Number(match[5] || 0)];
+  };
+  const left = parse(leftValue);
+  const right = parse(rightValue);
+  for (let index = 0; index < left.length; index += 1)
+    if (left[index] !== right[index]) return left[index] > right[index] ? 1 : -1;
+  return 0;
+}
+
+async function candidateDirectories() {
+  if (!(await exists(candidateRoot))) return [];
+  return (await readdir(candidateRoot, { withFileTypes: true }))
+    .filter((entry) => entry.isDirectory() && versionPattern.test(entry.name))
+    .map((entry) => entry.name)
+    .sort((left, right) => left.localeCompare(right, undefined, { numeric: true }));
+}
+
+async function status() {
+  const source = sourceIdentity();
+  let verification = null;
+  if (await exists(verificationPath)) verification = JSON.parse(await readFile(verificationPath, "utf8"));
+  return {
+    ok: !source.dirty,
+    command: "status",
+    source,
+    stylekit: {
+      policy: "starter-owned-curated-snapshots",
+      upstreamAutomaticSync: false,
+      selected: JSON.parse(await readFile(path.join(root, "starter.blueprint.json"), "utf8")).stylekit,
+    },
+    packs: await packVersions(),
+    verification: verification
+      ? { sourceCommit: verification.sourceCommit, ok: verification.ok, completedAt: verification.completedAt }
+      : null,
+    candidates: await candidateDirectories(),
+  };
+}
+
+async function portableBlueprint(dataLayer) {
+  const blueprint = JSON.parse(await readFile(path.join(root, "starter.blueprint.json"), "utf8"));
+  blueprint.project = { ...blueprint.project, name: `Engine ${dataLayer} proof`, slug: `engine-${dataLayer.replaceAll("-", "")}-proof` };
+  blueprint.providers.database.access = dataLayer;
+  const selection = blueprint.selections.capabilities.find(({ id }) => id === "capability.data-layer-drizzle");
+  if (!selection) throw new Error("Blueprint is missing capability.data-layer-drizzle");
+  selection.lifecycle = { selected: dataLayer === "drizzle", materialized: false, localVerified: false, developmentVerified: false, productionReleased: false };
+  return blueprint;
+}
+
+async function verifyPortableProject(source, dataLayer, version) {
+  const slug = `engine-${dataLayer.replaceAll("-", "")}-${source.commit.slice(0, 8)}`;
+  const target = path.join(root, ".factory-output", slug);
+  const archive = path.join(root, ".factory-output", `${slug}.tar.gz`);
+  const inputPath = path.join(root, ".all2cf", `source-release-${dataLayer}.local.json`);
+  await mkdir(path.dirname(inputPath), { recursive: true });
+  await rm(target, { recursive: true, force: true });
+  await rm(archive, { force: true });
+  const config = JSON.parse(await readFile(path.join(root, "starter.config.json"), "utf8"));
+  await writeFile(inputPath, json({ blueprint: await portableBlueprint(dataLayer), config }), { mode: 0o600 });
+  const startedAt = performance.now();
+  try {
+    const factoryOutput = run(process.execPath, [
+      "scripts/starter-factory.mjs",
+      "create",
+      `--slug=${slug}`,
+      `--name=Engine ${dataLayer} proof`,
+      `--input=${path.relative(root, inputPath)}`,
+    ], {
+      env: {
+        STARTER_FACTORY_PORTABLE: "true",
+        STARTER_FACTORY_PACKAGE_LOCK_ONLY: "true",
+        STARTER_FACTORY_SOURCE_URL: `https://app.all2cf.com/api/starter-v2/engine/${encodeURIComponent(version)}`,
+      },
+    });
+    const factory = JSON.parse(factoryOutput);
+    run("npm", ["ci", "--ignore-scripts", "--no-audit", "--no-fund"], { cwd: target });
+    run("npm", ["run", "verify"], { cwd: target });
+    const [receipt, sourceReceipt] = await Promise.all([
+      readFile(path.join(target, ".starter", "materialization.json"), "utf8").then(JSON.parse),
+      readFile(path.join(target, ".starter", "source.json"), "utf8").then(JSON.parse),
+    ]);
+    if (sourceReceipt.sourceCommit !== source.commit || sourceReceipt.sourceDirty !== false || sourceReceipt.updateMode !== "all2cf-managed")
+      throw new Error(`${dataLayer} portable source receipt does not match the clean source commit`);
+    if (dataLayer === "drizzle" && !receipt.packs?.["capability.data-layer-drizzle"])
+      throw new Error("Drizzle proof did not materialize capability.data-layer-drizzle");
+    if (dataLayer === "sql-first" && receipt.packs?.["capability.data-layer-drizzle"])
+      throw new Error("SQL proof unexpectedly materialized capability.data-layer-drizzle");
+    return {
+      ok: true,
+      dataLayer,
+      sourceCommit: source.commit,
+      generatedCommit: git(["rev-parse", "HEAD"], target),
+      blueprintHash: factory.blueprintHash,
+      archiveSha256: factory.archiveSha256,
+      packCount: Object.keys(receipt.packs || {}).length,
+      elapsedMs: Math.round(performance.now() - startedAt),
+    };
+  } finally {
+    await rm(target, { recursive: true, force: true });
+    await rm(archive, { force: true });
+    await rm(inputPath, { force: true });
+  }
+}
+
+async function verify(versionValue) {
+  const source = requireCleanSource();
+  const version = parseVersion(versionValue);
+  const startedAt = new Date().toISOString();
+  run("npm", ["run", "verify"]);
+  const projects = [];
+  for (const dataLayer of ["sql-first", "drizzle"])
+    projects.push(await verifyPortableProject(source, dataLayer, version));
+  const report = {
+    schemaVersion: "starter-source-verification/v1",
+    ok: true,
+    version,
+    sourceCommit: source.commit,
+    sourceBranch: source.branch,
+    sourceVerification: "npm run verify",
+    projects,
+    stylekit: { policy: "starter-owned-curated-snapshots", upstreamAutomaticSync: false },
+    startedAt,
+    completedAt: new Date().toISOString(),
+  };
+  await mkdir(path.dirname(verificationPath), { recursive: true });
+  await writeFile(verificationPath, json(report), { mode: 0o600 });
+  return report;
+}
+
+async function archiveCommit(source, output) {
+  run("git", ["archive", "--format=tar.gz", `--output=${output}`, source.commit], { cwd: root });
+  return sha256File(output);
+}
+
+async function build(versionValue) {
+  const source = requireCleanSource();
+  const version = parseVersion(versionValue);
+  if (!(await exists(verificationPath))) throw new Error("Run source:verify for this version before engine:build");
+  const verification = JSON.parse(await readFile(verificationPath, "utf8"));
+  if (verification.ok !== true || verification.sourceCommit !== source.commit || verification.version !== version)
+    throw new Error("Source verification does not match this exact commit and Engine version");
+  const candidate = path.join(candidateRoot, version);
+  if (await exists(candidate)) throw new Error(`Engine candidate already exists: ${candidate}`);
+  await mkdir(candidateRoot, { recursive: true });
+  const staging = await mkdtemp(path.join(candidateRoot, `.staging-${version}-`));
+  const artifact = `factory-engine-${source.commit.slice(0, 7)}.tar.gz`;
+  try {
+    const first = path.join(staging, artifact);
+    const second = path.join(staging, `${artifact}.reproducible`);
+    const firstHash = await archiveCommit(source, first);
+    const secondHash = await archiveCommit(source, second);
+    if (firstHash !== secondHash) throw new Error("Engine capsule is not reproducible for the same commit");
+    await rm(second, { force: true });
+    const manifest = {
+      schemaVersion: "all2cf-starter-engine/v2",
+      engine: "all2cf-starter-factory-v2",
+      version,
+      sourceCommit: source.commit,
+      artifact,
+      artifactSha256: firstHash,
+      blueprintSchemaVersion: "starter-blueprint/v1",
+      runtimeProfile: "cloudflare-react-vite",
+      database: "postgresql",
+      dataLayers: ["sql-first", "drizzle"],
+      packVersions: await packVersions(),
+    };
+    const registration = {
+      schemaVersion: "all2cf-starter-engine-registration/v1",
+      sourceRepository: root,
+      sourceCommit: source.commit,
+      engineManifest: manifest,
+      files: [
+        { source: artifact, target: `www/console/runner/factory/${artifact}`, sha256: firstHash },
+        { source: "factory-engine.json", target: "www/console/runner/factory/factory-engine.json" },
+      ],
+      targetRequirements: {
+        cleanWorktree: true,
+        branchOwnedByIntegrationController: true,
+        all2cfTypecheckAfterRegistration: true,
+        runnerGenerationTestsAfterRegistration: true,
+        deploymentAuthorized: false,
+      },
+      stylekit: { policy: "starter-owned-curated-snapshots", upstreamAutomaticSync: false },
+    };
+    const report = {
+      schemaVersion: "starter-engine-candidate/v1",
+      ok: true,
+      version,
+      sourceCommit: source.commit,
+      artifact,
+      artifactSha256: firstHash,
+      reproducibleBuilds: 2,
+      reproducible: true,
+      verification: { completedAt: verification.completedAt, sql: verification.projects.find(({ dataLayer }) => dataLayer === "sql-first"), drizzle: verification.projects.find(({ dataLayer }) => dataLayer === "drizzle") },
+      registration: "registration.json",
+      deploymentAuthorized: false,
+      createdAt: new Date().toISOString(),
+    };
+    await Promise.all([
+      writeFile(path.join(staging, "factory-engine.json"), json(manifest)),
+      writeFile(path.join(staging, "registration.json"), json(registration)),
+      writeFile(path.join(staging, "candidate-report.json"), json(report)),
+      copyFile(verificationPath, path.join(staging, "source-verification.json")),
+    ]);
+    await rename(staging, candidate);
+    return report;
+  } catch (error) {
+    await rm(staging, { recursive: true, force: true });
+    throw error;
+  }
+}
+
+async function resolveCandidate(versionValue) {
+  const version = parseVersion(versionValue);
+  const candidate = path.join(candidateRoot, version);
+  if (!(await exists(candidate))) throw new Error(`Engine candidate does not exist: ${candidate}`);
+  return { version, candidate };
+}
+
+async function check(versionValue) {
+  const source = requireCleanSource();
+  const { version, candidate } = await resolveCandidate(versionValue);
+  const manifest = JSON.parse(await readFile(path.join(candidate, "factory-engine.json"), "utf8"));
+  const report = JSON.parse(await readFile(path.join(candidate, "candidate-report.json"), "utf8"));
+  const registration = JSON.parse(await readFile(path.join(candidate, "registration.json"), "utf8"));
+  const verification = JSON.parse(await readFile(path.join(candidate, "source-verification.json"), "utf8"));
+  const artifact = path.join(candidate, manifest.artifact || "");
+  const failures = [];
+  if (manifest.schemaVersion !== "all2cf-starter-engine/v2" || manifest.engine !== "all2cf-starter-factory-v2") failures.push("Engine manifest identity is invalid");
+  if (manifest.version !== version || manifest.sourceCommit !== source.commit) failures.push("Engine manifest does not match the current source/version");
+  if (!/^[a-f0-9]{64}$/u.test(manifest.artifactSha256 || "") || !(await exists(artifact)) || await sha256File(artifact) !== manifest.artifactSha256) failures.push("Engine artifact hash is invalid");
+  if (JSON.stringify(manifest.packVersions) !== JSON.stringify(await packVersions())) failures.push("Engine Pack versions are stale");
+  if (verification.ok !== true || verification.version !== version || verification.sourceCommit !== source.commit || verification.projects?.length !== 2) failures.push("Source verification evidence is stale");
+  if (report.reproducible !== true || report.reproducibleBuilds !== 2) failures.push("Reproducible build evidence is missing");
+  if (registration.sourceCommit !== source.commit || registration.engineManifest?.artifactSha256 !== manifest.artifactSha256) failures.push("Registration bundle does not match the Engine manifest");
+  if (!failures.length) {
+    const replayRoot = await mkdtemp(path.join(candidateRoot, `.check-${version}-`));
+    try {
+      const replay = path.join(replayRoot, manifest.artifact);
+      const replayHash = await archiveCommit(source, replay);
+      if (replayHash !== manifest.artifactSha256) failures.push("Engine capsule cannot be reproduced from the current source commit");
+    } finally {
+      await rm(replayRoot, { recursive: true, force: true });
+    }
+  }
+  if (!failures.length) {
+    const listing = run("tar", ["-tzf", artifact], { cwd: candidate }).split("\n").filter(Boolean);
+    for (const required of ["AGENTS.md", "scripts/starter-factory.mjs", "starter.blueprint.json", "packs/saas/billing-stripe/pack.json"])
+      if (!listing.includes(required)) failures.push(`Engine capsule is missing ${required}`);
+    if (listing.some((entry) => entry.startsWith("/") || entry.split("/").includes("..") || entry === ".git" || entry.startsWith(".git/"))) failures.push("Engine capsule contains an unsafe or Git path");
+  }
+  return { ok: failures.length === 0, command: "check", version, sourceCommit: source.commit, artifact: manifest.artifact, artifactSha256: manifest.artifactSha256, failures };
+}
+
+async function register(versionValue) {
+  const checked = await check(versionValue);
+  if (!checked.ok) throw new Error(`Engine candidate check failed: ${checked.failures.join("; ")}`);
+  const { version, candidate } = await resolveCandidate(versionValue);
+  const targetValue = option("target");
+  const plan = JSON.parse(await readFile(path.join(candidate, "registration.json"), "utf8"));
+  if (!targetValue) return { ok: true, command: "register", mode: "plan", version, candidate, registration: plan, applied: false };
+  const target = path.resolve(targetValue);
+  const targetManifest = path.join(target, "www/console/runner/factory/factory-engine.json");
+  if (!(await exists(targetManifest)) || !(await exists(path.join(target, ".git")))) throw new Error("Registration target is not an All2CF worktree");
+  const dirty = gitStatus(target);
+  if (dirty) throw new Error("Registration target must be a clean integration worktree");
+  const currentManifest = JSON.parse(await readFile(targetManifest, "utf8"));
+  if (compareVersions(version, currentManifest.version) <= 0)
+    throw new Error(`Engine ${version} must be newer than target Engine ${currentManifest.version}`);
+  if (!flag("apply")) return { ok: true, command: "register", mode: "target-plan", version, target, registration: plan, applied: false };
+  const manifest = JSON.parse(await readFile(path.join(candidate, "factory-engine.json"), "utf8"));
+  await copyFile(path.join(candidate, manifest.artifact), path.join(target, "www/console/runner/factory", manifest.artifact));
+  await writeFile(targetManifest, json(manifest));
+  const receiptPath = path.join(target, ".all2cf", "starter-engine-registration.local.json");
+  await mkdir(path.dirname(receiptPath), { recursive: true });
+  await writeFile(receiptPath, json({ ...plan, appliedAt: new Date().toISOString(), target, targetCommitBefore: git(["rev-parse", "HEAD"], target) }), { mode: 0o600 });
+  return { ok: true, command: "register", mode: "apply", version, target, artifact: manifest.artifact, artifactSha256: manifest.artifactSha256, receipt: receiptPath, applied: true, deploymentAuthorized: false };
+}
+
+async function candidate(versionValue) {
+  await verify(versionValue);
+  await build(versionValue);
+  const checked = await check(versionValue);
+  if (!checked.ok) throw new Error(`Engine candidate check failed: ${checked.failures.join("; ")}`);
+  return { ok: true, command: "candidate", version: parseVersion(versionValue), verification: verificationPath, candidate: path.join(candidateRoot, parseVersion(versionValue)), check: checked, registration: await register(versionValue) };
+}
+
+async function main() {
+  const version = option("version");
+  let result;
+  if (command === "status") result = await status();
+  else if (command === "verify") result = await verify(version);
+  else if (command === "build") result = await build(version);
+  else if (command === "check") result = await check(version);
+  else if (command === "register") result = await register(version);
+  else if (command === "candidate") result = await candidate(version);
+  else throw new Error(`Unknown source release command ${command}`);
+  console.log(json(result));
+  if (result.ok === false) process.exitCode = 1;
+}
+
+main().catch((error) => {
+  console.error(json({ ok: false, command, error: error instanceof Error ? error.message : String(error) }));
+  process.exitCode = 1;
+});
