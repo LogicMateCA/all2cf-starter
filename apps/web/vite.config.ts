@@ -5,7 +5,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath, URL } from "node:url";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import path from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { validateAssemblyContracts } from "../../scripts/lib/assembly.mjs";
@@ -13,6 +13,10 @@ import {
   resolveCfpgConnectCommand,
   validateCfpgConnection,
 } from "../../scripts/lib/cfpg.mjs";
+import {
+  AuthEmailProviderError,
+  sendAuthEmail,
+} from "../../workers/app/auth-email-provider.ts";
 
 const repositoryRoot = fileURLToPath(new URL("../../", import.meta.url));
 const json = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`;
@@ -134,6 +138,77 @@ async function writeProviderSecrets(input: unknown) {
   await writeFile(envPath, `${lines.join("\n")}\n`, { encoding: "utf8", mode: 0o600 });
 }
 
+async function readRequestJson(request: IncomingMessage, maximum = 32768) {
+  let body = "";
+  for await (const chunk of request) {
+    body += chunk;
+    if (body.length > maximum) throw new Error("Request payload is too large.");
+  }
+  return JSON.parse(body || "{}");
+}
+
+async function testEmailProvider(input: unknown) {
+  if (!input || typeof input !== "object")
+    throw new Error("Provider test payload is required.");
+  const body = input as {
+    provider?: unknown;
+    recipient?: unknown;
+    providerSecrets?: unknown;
+  };
+  const provider = String(body.provider || "").trim().toLowerCase();
+  if (provider !== "cfsend" && provider !== "resend")
+    throw new Error("Local email testing supports CFsend or Resend.");
+  const recipient = String(body.recipient || "").trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(recipient) || recipient.length > 254)
+    throw new Error("Enter a valid test recipient email address.");
+
+  const providers = JSON.parse(
+    await readFile(path.join(repositoryRoot, "profiles/providers.json"), "utf8"),
+  ) as { defaultPath: string };
+  const profilePath = process.env.STARTER_DEV_PROFILE_PATH || providers.defaultPath;
+  const [project, shared] = await Promise.all([
+    readOptionalEnv(path.join(repositoryRoot, ".dev.vars")),
+    readOptionalEnv(profilePath),
+  ]);
+  const values = new Map([...shared, ...project]);
+  if (body.providerSecrets && typeof body.providerSecrets === "object") {
+    for (const name of providerCredentialFields[provider]) {
+      const value = (body.providerSecrets as Record<string, unknown>)[name];
+      if (typeof value === "string" && value.trim()) {
+        if (/[\r\n\0]/u.test(value))
+          throw new Error("Provider credentials cannot contain line breaks.");
+        values.set(name, value.trim());
+      }
+    }
+  }
+
+  const id = randomUUID();
+  const result = await sendAuthEmail(
+    {
+      AUTH_EMAIL_PROVIDER: provider,
+      CFSEND_API_URL: values.get("CFSEND_API_URL"),
+      CFSEND_API_KEY: values.get("CFSEND_API_KEY"),
+      CFSEND_FROM: values.get("CFSEND_FROM"),
+      RESEND_API_URL: "https://api.resend.com",
+      RESEND_API_KEY: values.get("RESEND_API_KEY"),
+      RESEND_FROM: values.get("RESEND_FROM"),
+    },
+    {
+      id,
+      to: recipient,
+      subject: `Starter ${provider} delivery test`,
+      text: `This is a real ${provider} delivery test from the local Starter Setup. Test ID: ${id}`,
+      html: `<p>This is a real <strong>${provider}</strong> delivery test from the local Starter Setup.</p><p>Test ID: <code>${id}</code></p>`,
+    },
+  );
+  return {
+    provider: result.provider,
+    providerMessageId: result.providerMessageId,
+    attempts: result.attempts,
+    recipient,
+  };
+}
+
 async function normalizedCfpgConnection(input: unknown, command: unknown) {
   const desiredCommand = String(
     command || (input && typeof input === "object" && "connectCommand" in input
@@ -209,6 +284,7 @@ function isLoopbackOrigin(value: string | undefined) {
 }
 
 function localSetupApi(): Plugin {
+  const recentProviderTests = new Map<string, number>();
   return {
     name: "starter-local-setup-api",
     configureServer(server: ViteDevServer) {
@@ -219,7 +295,8 @@ function localSetupApi(): Plugin {
           next: () => void,
         ) => {
           const url = new URL(request.url || "/", "http://starter.local");
-          if (url.pathname !== "/__starter/setup") return next();
+          if (!new Set(["/__starter/setup", "/__starter/provider-test"]).has(url.pathname))
+            return next();
           response.setHeader("Content-Type", "application/json; charset=utf-8");
           response.setHeader("Cache-Control", "no-store");
           if (
@@ -235,6 +312,26 @@ function localSetupApi(): Plugin {
           }
 
           try {
+            if (url.pathname === "/__starter/provider-test") {
+              if (request.method !== "POST") {
+                response.statusCode = 405;
+                response.end(json({ error: "Method not allowed." }));
+                return;
+              }
+              const payload = await readRequestJson(request);
+              const key = `${String(payload.provider || "")}:${String(payload.recipient || "").trim().toLowerCase()}`;
+              const lastTest = recentProviderTests.get(key) || 0;
+              if (Date.now() - lastTest < 10_000) {
+                response.statusCode = 429;
+                response.end(json({ error: "Wait 10 seconds before repeating this provider test." }));
+                return;
+              }
+              const result = await testEmailProvider(payload);
+              recentProviderTests.set(key, Date.now());
+              response.statusCode = 200;
+              response.end(json({ ok: true, result }));
+              return;
+            }
             const [
               manifestSource,
               blueprintSource,
@@ -333,13 +430,7 @@ function localSetupApi(): Plugin {
               return;
             }
 
-            let body = "";
-            for await (const chunk of request) {
-              body += chunk;
-              if (body.length > 524288)
-                throw new Error("Setup payload is too large.");
-            }
-            const payload = JSON.parse(body);
+            const payload = await readRequestJson(request, 524288);
             const submittedBlueprint = payload.blueprint;
             const nextConfig = payload.config;
             if (!submittedBlueprint || !nextConfig)
@@ -489,10 +580,22 @@ function localSetupApi(): Plugin {
               }),
             );
           } catch (error) {
-            response.statusCode = 400;
+            response.statusCode =
+              error instanceof AuthEmailProviderError
+                ? error.code === "provider_not_configured"
+                  ? 400
+                  : 502
+                : 400;
             response.end(
               json({
                 error: error instanceof Error ? error.message : String(error),
+                ...(error instanceof AuthEmailProviderError
+                  ? {
+                      code: error.code,
+                      attempts: error.attempts,
+                      status: error.status,
+                    }
+                  : {}),
               }),
             );
           }

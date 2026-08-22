@@ -237,6 +237,11 @@ type SetupPayload = {
   >;
   config: StarterConfig;
 };
+type ProviderTestState = {
+  status: "idle" | "testing" | "success" | "error";
+  provider?: string;
+  message?: string;
+};
 
 const providerSecretFields = {
   google: [
@@ -548,6 +553,8 @@ export function SetupPage() {
   const [dirty, setDirty] = useState(false);
   const [providerSecrets, setProviderSecrets] = useState<Record<string, string>>({});
   const [providerEditors, setProviderEditors] = useState<Record<string, boolean>>({});
+  const [testRecipient, setTestRecipient] = useState("");
+  const [providerTest, setProviderTest] = useState<ProviderTestState>({ status: "idle" });
   const [cfpgCommands, setCfpgCommands] = useState({ development: "", production: "" });
   const [stylekitQuery, setStylekitQuery] = useState("");
   const [stylekitCategory, setStylekitCategory] = useState("all");
@@ -711,6 +718,34 @@ export function SetupPage() {
     setProviderSecrets((current) =>
       Object.fromEntries(Object.entries(current).filter(([name]) => !names.has(name))),
     );
+  };
+  const runEmailProviderTest = async () => {
+    const provider = payload.blueprint.providers.email.default;
+    setProviderTest({ status: "testing", provider });
+    try {
+      const response = await fetch("/__starter/provider-test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ provider, recipient: testRecipient, providerSecrets }),
+      });
+      const result = (await response.json()) as {
+        error?: string;
+        result?: { provider: string; providerMessageId: string; attempts: number; recipient: string };
+      };
+      if (!response.ok || !result.result)
+        throw new Error(result.error || `Provider test returned HTTP ${response.status}.`);
+      setProviderTest({
+        status: "success",
+        provider,
+        message: `${result.result.provider} accepted the message for ${result.result.recipient}. Message ID: ${result.result.providerMessageId}. Attempts: ${result.result.attempts}.`,
+      });
+    } catch (error) {
+      setProviderTest({
+        status: "error",
+        provider,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
   };
   const updateIdentity = (key: "name" | "slug", value: string) => {
     updateBlueprint((blueprint) => ({
@@ -1650,19 +1685,33 @@ export function SetupPage() {
                   } )}
                 </div>
                 {payload.blueprint.providers.socialAuth.map((provider) => (
-                  <ProviderCredentialEditor
-                    key={provider}
-                    provider={provider as "google" | "github" | "apple"}
-                    state={payload.providerCredentials[provider as "google" | "github" | "apple"]}
-                    editing={Boolean(providerEditors[provider])}
-                    values={providerSecrets}
-                    onEditing={(editing) => setProviderEditing(provider as "google" | "github" | "apple", editing)}
-                    onChange={updateProviderSecret}
-                    callbackUrls={[
-                      `https://${payload.config.development.domain}/api/auth/callback/${provider}`,
-                      `https://${payload.config.production.domain}/api/auth/callback/${provider}`,
-                    ]}
-                  />
+                  <div className="provider-test-stack" key={provider}>
+                    <ProviderCredentialEditor
+                      provider={provider as "google" | "github" | "apple"}
+                      state={payload.providerCredentials[provider as "google" | "github" | "apple"]}
+                      editing={Boolean(providerEditors[provider])}
+                      values={providerSecrets}
+                      onEditing={(editing) => setProviderEditing(provider as "google" | "github" | "apple", editing)}
+                      onChange={updateProviderSecret}
+                      callbackUrls={[
+                        `https://${payload.config.development.domain}/api/auth/callback/${provider}`,
+                        `https://${payload.config.production.domain}/api/auth/callback/${provider}`,
+                      ]}
+                    />
+                    <div className="provider-live-test">
+                      <Button asChild type="button" size="sm" variant="outline">
+                        <a
+                          href={`https://${payload.config.development.domain}/login?returnTo=%2Fapp`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Test {provider} sign-in on Development
+                          <ExternalLink size={13} />
+                        </a>
+                      </Button>
+                      <small>This opens the real deployed OAuth flow. Saved replacement credentials must be released to Development before this test can validate them.</small>
+                    </div>
+                  </div>
                 ))}
               </section>
 
@@ -1687,6 +1736,42 @@ export function SetupPage() {
                   onEditing={(editing) => setProviderEditing(payload.blueprint.providers.email.default as keyof typeof providerSecretFields, editing)}
                   onChange={updateProviderSecret}
                 />
+                {new Set(["cfsend", "resend"]).has(payload.blueprint.providers.email.default) ? (
+                  <div className="provider-email-test">
+                    <div>
+                      <strong>Real delivery test</strong>
+                      <p>Send through the same adapter used by authentication email. Entered replacement values are used for this test without being returned by the server.</p>
+                    </div>
+                    <label>
+                      <span>Test recipient</span>
+                      <Input
+                        type="email"
+                        autoComplete="email"
+                        value={testRecipient}
+                        placeholder="you@example.com"
+                        onChange={(event) => {
+                          setTestRecipient(event.target.value);
+                          setProviderTest({ status: "idle" });
+                        }}
+                      />
+                    </label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={providerTest.status === "testing" || !testRecipient.trim()}
+                      onClick={() => void runEmailProviderTest()}
+                    >
+                      {providerTest.status === "testing" ? "Sending test email" : `Send ${payload.blueprint.providers.email.default} test email`}
+                    </Button>
+                    {providerTest.message ? (
+                      <p className={providerTest.status === "success" ? "provider-test-result success" : "provider-test-result error"} role="status">
+                        {providerTest.message}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : (
+                  <p className="provider-test-unavailable">Cloudflare Email Service needs its deployed Worker binding and is tested after a Development release.</p>
+                )}
               </section>
 
               <section className="setup-panel provider-section">

@@ -2311,6 +2311,80 @@ dd {
   color: var(--muted);
   font-size: 13px;
 }
+.provider-test-stack {
+  display: grid;
+  gap: 10px;
+}
+.provider-live-test {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface-soft);
+}
+.provider-live-test a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.provider-live-test small {
+  flex: 1 1 360px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.provider-email-test {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 0.8fr) auto;
+  align-items: end;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-soft);
+}
+.provider-email-test > div strong,
+.provider-email-test label > span {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 750;
+}
+.provider-email-test > div p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.provider-email-test label {
+  display: grid;
+  gap: 7px;
+}
+.provider-test-result {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.provider-test-result.success {
+  color: var(--success);
+  background: var(--success-surface);
+}
+.provider-test-result.error {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 10%, var(--design-background));
+}
+.provider-test-unavailable {
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
 .preset-selector {
   display: flex;
   align-items: center;
@@ -3677,8 +3751,12 @@ dd {
   .provider-panel,
   .provider-summary,
   .provider-option-grid,
+  .provider-email-test,
   .provider-secret-fields {
     grid-template-columns: 1fr;
+  }
+  .provider-email-test > button {
+    width: 100%;
   }
   .provider-secret-actions,
   .provider-credential-state,
