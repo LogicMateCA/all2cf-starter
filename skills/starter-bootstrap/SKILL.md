@@ -5,6 +5,8 @@ description: Initialize a copied Cloudflare AI Starter with a new project identi
 
 # Starter bootstrap
 
+When `.starter/source.json` exists, the project came from the deterministic Factory. Verify its source commit, generation report, clean initial Git commit, `/setup` entry, and `starter:status`/`starter:diff` before provisioning. Do not repeat identity reset unless the owner is deliberately renaming the generated project. A legacy manual copy without a source receipt follows the identity phase below.
+
 Use the always-running `starter-dev` container for Setup, materialization and normal verification. Invoke `starter-ops` through the explicit Compose `ops` profile only for scoped infrastructure provisioning; do not add Docker or Production mounts back to the Setup service.
 
 Use repository scripts for deterministic work and keep project identity decisions in Markdown/JSON source files. Do not copy the canonical Starter's release claims into a new product unchanged.

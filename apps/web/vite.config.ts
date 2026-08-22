@@ -20,6 +20,16 @@ import {
 } from "../../workers/app/auth-email-provider.ts";
 
 const repositoryRoot = fileURLToPath(new URL("../../", import.meta.url));
+let starterSourceRoot = repositoryRoot;
+try {
+  const sourceReceipt = JSON.parse(
+    await readFile(path.join(repositoryRoot, ".starter/source.json"), "utf8"),
+  ) as { sourceRoot?: string };
+  if (sourceReceipt.sourceRoot)
+    starterSourceRoot = path.resolve(sourceReceipt.sourceRoot);
+} catch (error) {
+  if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+}
 const execFileAsync = promisify(execFile);
 const json = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`;
 const sha256 = (value: string) =>
@@ -614,7 +624,7 @@ async function loadStylekitSnapshots(stylekitCatalog: {
       )
       .map(async ({ slug }) => {
         const source = await readFile(
-          path.join(repositoryRoot, "design/stylekit", slug, "snapshot.json"),
+          path.join(starterSourceRoot, "design/stylekit", slug, "snapshot.json"),
           "utf8",
         );
         const snapshot = JSON.parse(source);
@@ -667,7 +677,7 @@ function localSetupApi(): Plugin {
           next: () => void,
         ) => {
           const url = new URL(request.url || "/", "http://starter.local");
-          if (!new Set(["/__starter/setup", "/__starter/provider-test"]).has(url.pathname))
+          if (!new Set(["/__starter/setup", "/__starter/provider-test", "/__starter/factory"]).has(url.pathname))
             return next();
           response.setHeader("Content-Type", "application/json; charset=utf-8");
           response.setHeader("Cache-Control", "no-store");
@@ -684,6 +694,26 @@ function localSetupApi(): Plugin {
           }
 
           try {
+            if (url.pathname === "/__starter/factory") {
+              if (starterSourceRoot !== repositoryRoot || request.method !== "POST") {
+                response.statusCode = 405;
+                response.end(json({ error: "Project generation is available only from the canonical Factory." }));
+                return;
+              }
+              const payload = await readRequestJson(request);
+              const slug = String(payload.slug || "").trim();
+              const name = String(payload.name || "").trim();
+              const result = await execFileAsync(process.execPath, [
+                "scripts/starter-factory.mjs",
+                "create",
+                `--slug=${slug}`,
+                `--name=${name}`,
+                "--input=.starter/factory-draft.local.json",
+              ], { cwd: repositoryRoot, maxBuffer: 4 * 1024 * 1024 });
+              response.statusCode = 201;
+              response.end(result.stdout);
+              return;
+            }
             if (url.pathname === "/__starter/provider-test") {
               if (request.method !== "POST") {
                 response.statusCode = 405;
@@ -753,35 +783,35 @@ function localSetupApi(): Plugin {
                 "utf8",
               ),
               readFile(
-                path.join(repositoryRoot, "catalog/catalog.json"),
+                path.join(starterSourceRoot, "catalog/catalog.json"),
                 "utf8",
               ),
               readFile(
-                path.join(repositoryRoot, "design/catalog.json"),
+                path.join(starterSourceRoot, "design/catalog.json"),
                 "utf8",
               ),
-              readFile(path.join(repositoryRoot, "pages/catalog.json"), "utf8"),
+              readFile(path.join(starterSourceRoot, "pages/catalog.json"), "utf8"),
               readFile(
                 path.join(repositoryRoot, "starter.config.json"),
                 "utf8",
               ),
               readFile(
                 path.join(
-                  repositoryRoot,
+                  starterSourceRoot,
                   "design/stylekit/source-catalog.json",
                 ),
                 "utf8",
               ),
               readFile(
-                path.join(repositoryRoot, "catalog/saas-sources.json"),
+                path.join(starterSourceRoot, "catalog/saas-sources.json"),
                 "utf8",
               ),
               readFile(
-                path.join(repositoryRoot, "catalog/saas-capabilities.json"),
+                path.join(starterSourceRoot, "catalog/saas-capabilities.json"),
                 "utf8",
               ),
               readFile(
-                path.join(repositoryRoot, "catalog/providers.json"),
+                path.join(starterSourceRoot, "catalog/providers.json"),
                 "utf8",
               ),
             ]);
@@ -789,7 +819,7 @@ function localSetupApi(): Plugin {
             const catalog = JSON.parse(catalogSource);
             const designCatalog = JSON.parse(designCatalogSource);
             const pageCatalog = JSON.parse(pageCatalogSource);
-            const config = JSON.parse(configSource);
+            let config = JSON.parse(configSource);
             const stylekitCatalog = JSON.parse(stylekitCatalogSource);
             const setupStylekitCatalog = {
               ...stylekitCatalog,
@@ -803,9 +833,18 @@ function localSetupApi(): Plugin {
             const providerCatalog = JSON.parse(providerCatalogSource);
             const stylekitSnapshots =
               await loadStylekitSnapshots(stylekitCatalog);
-            const initialBlueprint = JSON.parse(blueprintSource);
+            let initialBlueprint = JSON.parse(blueprintSource);
+            if (starterSourceRoot === repositoryRoot) {
+              try {
+                const draft = JSON.parse(await readFile(path.join(repositoryRoot, ".starter/factory-draft.local.json"), "utf8"));
+                initialBlueprint = draft.blueprint;
+                config = draft.config;
+              } catch (error) {
+                if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+              }
+            }
             const initialSnapshotPath = path.join(
-              repositoryRoot,
+              starterSourceRoot,
               "design/stylekit",
               initialBlueprint.stylekit?.slug || "",
               "snapshot.json",
@@ -886,7 +925,7 @@ function localSetupApi(): Plugin {
               },
             };
             const snapshotPath = path.join(
-              repositoryRoot,
+              starterSourceRoot,
               "design/stylekit",
               blueprint.stylekit?.slug || "",
               "snapshot.json",
@@ -909,6 +948,35 @@ function localSetupApi(): Plugin {
               response.end(
                 json({ error: "Blueprint validation failed.", failures }),
               );
+              return;
+            }
+
+            if (starterSourceRoot === repositoryRoot) {
+              nextConfig.email.provider =
+                blueprint.providers.email.default === "cloudflare-email-service"
+                  ? "cloudflare-email"
+                  : blueprint.providers.email.default;
+              await writeFile(
+                path.join(repositoryRoot, ".starter/factory-draft.local.json"),
+                json({ schemaVersion: "starter-factory-draft/v1", blueprint, config: nextConfig }),
+                { encoding: "utf8", mode: 0o600 },
+              );
+              await writeProviderSecrets(payload.providerSecrets);
+              response.statusCode = 200;
+              response.end(json({
+                blueprint,
+                catalog,
+                designCatalog,
+                pageCatalog,
+                stylekitCatalog: setupStylekitCatalog,
+                stylekitSnapshots,
+                stylekitSnapshot: { ...JSON.parse(snapshotSource), snapshotHash: sha256(snapshotSource) },
+                saasSources,
+                saasCapabilities,
+                providerCatalog,
+                providerCredentials: await providerCredentialStatus(),
+                config: nextConfig,
+              }));
               return;
             }
 
@@ -1053,6 +1121,9 @@ function optionalMapLibreWorker(): Plugin {
 
 export default defineConfig(({ command }) => ({
   base: command === "build" ? "/_app/" : "/",
+  define: {
+    __STARTER_FACTORY_MODE__: JSON.stringify(starterSourceRoot === repositoryRoot),
+  },
   plugins: [localSetupApi(), react(), tailwindcss(), optionalMapLibreWorker()],
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
   build: {

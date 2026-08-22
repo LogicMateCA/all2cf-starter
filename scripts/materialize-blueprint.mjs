@@ -20,7 +20,15 @@ import {
   configureDatabaseRuntime,
 } from "./lib/cfpg.mjs";
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const scriptRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const projectRootArgument = process.argv.find((value) => value.startsWith("--project-root="));
+const sourceRootArgument = process.argv.find((value) => value.startsWith("--source-root="));
+const root = projectRootArgument
+  ? path.resolve(projectRootArgument.slice("--project-root=".length))
+  : scriptRoot;
+const sourceRoot = sourceRootArgument
+  ? path.resolve(sourceRootArgument.slice("--source-root=".length))
+  : scriptRoot;
 const apply = process.argv.includes("--apply");
 const check = process.argv.includes("--check");
 const blueprintPath = path.join(root, "starter.blueprint.json");
@@ -155,7 +163,7 @@ async function readState() {
 }
 
 async function readPackManifests() {
-  const packsRoot = path.join(root, "packs");
+  const packsRoot = path.join(sourceRoot, "packs");
   const entries = await readdir(packsRoot, { recursive: true });
   const manifests = [];
   for (const entry of entries
@@ -906,24 +914,24 @@ const starterManifest = JSON.parse(
   await readFile(path.join(root, "starter.manifest.json"), "utf8"),
 );
 const catalog = JSON.parse(
-  await readFile(path.join(root, "catalog/catalog.json"), "utf8"),
+  await readFile(path.join(sourceRoot, "catalog/catalog.json"), "utf8"),
 );
 const designCatalog = JSON.parse(
-  await readFile(path.join(root, "design/catalog.json"), "utf8"),
+  await readFile(path.join(sourceRoot, "design/catalog.json"), "utf8"),
 );
 const pageCatalog = JSON.parse(
-  await readFile(path.join(root, "pages/catalog.json"), "utf8"),
+  await readFile(path.join(sourceRoot, "pages/catalog.json"), "utf8"),
 );
 const stylekitCatalog = JSON.parse(
   await readFile(
-    path.join(root, "design/stylekit/source-catalog.json"),
+    path.join(sourceRoot, "design/stylekit/source-catalog.json"),
     "utf8",
   ),
 );
 if (!/^[a-z0-9][a-z0-9-]*$/u.test(blueprint.stylekit?.slug || ""))
   throw new Error("Blueprint StyleKit slug is invalid");
 const stylekitSnapshotSource = await readFile(
-  path.join(root, "design/stylekit", blueprint.stylekit.slug, "snapshot.json"),
+  path.join(sourceRoot, "design/stylekit", blueprint.stylekit.slug, "snapshot.json"),
   "utf8",
 );
 const stylekitSnapshot = JSON.parse(stylekitSnapshotSource);
@@ -1711,7 +1719,10 @@ try {
   }
   await writeFile(blueprintPath, json(blueprint));
 
-  if (packageModels.size) {
+  const dependencyChanged = changes.some(({ kind }) =>
+    new Set(["add-dependency", "update-dependency", "remove-dependency"]).has(kind),
+  );
+  if (dependencyChanged) {
     const install = spawnSync(
       "npm",
       ["install", "--ignore-scripts", "--no-audit", "--no-fund"],

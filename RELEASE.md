@@ -6,6 +6,8 @@ source: "starter"
 
 # Release
 
+Generating a project through `/factory` is not a Cloudflare or App release. The generated repository begins at an intentional local Git commit with no Development or Production claim. Its `.starter/source.json` records the exact source commit and whether an explicitly disposable generation used a dirty source; normal Factory creation rejects a dirty source.
+
 ## Environments
 
 - Generic “发布” or “deploy” means development only.

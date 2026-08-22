@@ -25,7 +25,8 @@ export function App() {
       "/app/notifications": "Notifications",
       "/support": "Support",
       "/admin": "Admin",
-      "/setup": "Local Setup",
+      "/factory": "Starter Factory",
+      "/setup": "Project Setup",
       "/dp": "Development Plan",
     };
     const navigationTitle = productNavigation.find(({ href }) => href === path)?.label;
@@ -36,7 +37,7 @@ export function App() {
     (sessionStorage.getItem("starter.setup.savePending") ||
       sessionStorage.getItem("starter.setup.saved"));
   if (path === "/" && localSetupSave) {
-    window.location.replace("/setup?result=saved");
+    window.location.replace(`${__STARTER_FACTORY_MODE__ ? "/factory" : "/setup"}?result=saved`);
     return <RouteLoading />;
   }
   let page;
@@ -44,7 +45,15 @@ export function App() {
   else if (path === "/app" || path === "/app/settings" || path === "/app/notifications") page = <ProtectedApp />;
   else if (path === "/support") page = <SupportPage />;
   else if (path === "/admin") page = <AdminPage />;
-  else if (path === "/setup") page = <SetupPage />;
+  else if (__STARTER_FACTORY_MODE__ && path === "/setup") {
+    window.location.replace("/factory");
+    return <RouteLoading />;
+  }
+  else if (!__STARTER_FACTORY_MODE__ && path === "/factory") {
+    window.location.replace("/setup");
+    return <RouteLoading />;
+  }
+  else if (path === "/setup" || path === "/factory") page = <SetupPage />;
   else if (path === "/dp") page = <DevelopmentPlanPage />;
   else {
     const capabilityRoute = capabilityRoutes.find((route) => route.path === path);

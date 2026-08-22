@@ -677,6 +677,7 @@ function ProviderCredentialEditor({
 
 export function SetupPage() {
   const [payload, setPayload] = useState<SetupPayload | null>(null);
+  const [generation, setGeneration] = useState<{ status: "idle" | "generating" | "done" | "error"; message?: string; target?: string }>({ status: "idle" });
   const [stepIndex, setStepIndex] = useState(0);
   const [loadError, setLoadError] = useState("");
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">(
@@ -1496,10 +1497,29 @@ export function SetupPage() {
             ?.scrollIntoView({ behavior: "smooth", block: "start" }),
         );
       }
+      return true;
     } catch (error) {
       setSaveState("idle");
       sessionStorage.removeItem("starter.setup.savePending");
       setSaveError(error instanceof Error ? error.message : String(error));
+      return false;
+    }
+  };
+
+  const generateProject = async () => {
+    if (!(await save({ finish: true }))) return;
+    setGeneration({ status: "generating", message: "Creating the independent project and AI handoff…" });
+    try {
+      const response = await fetch("/__starter/factory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ name: payload.blueprint.project.name, slug: payload.blueprint.project.slug }),
+      });
+      const result = (await response.json()) as { error?: string; target?: string };
+      if (!response.ok) throw new Error(result.error || "Project generation failed.");
+      setGeneration({ status: "done", message: "Independent project generated.", target: result.target });
+    } catch (error) {
+      setGeneration({ status: "error", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -1507,7 +1527,7 @@ export function SetupPage() {
     <div className="setup-shell">
       <header className="setup-header">
         <a href="/">{payload.blueprint.project.name}</a>
-        <span>Local project setup</span>
+        <span>{__STARTER_FACTORY_MODE__ ? "Starter Factory" : "Local project setup"}</span>
         <div className="setup-header-actions">
           <span className={`setup-save-state ${dirty ? "unsaved" : saveState}`} role="status">
             {saveState === "saving"
@@ -2685,17 +2705,16 @@ export function SetupPage() {
                   </article>
                 ))}
               </section>
-              {saveState !== "saved" || dirty ? <Button
+              {(__STARTER_FACTORY_MODE__ || saveState !== "saved" || dirty) ? <Button
                 type="button"
                 className="save-blueprint"
-                onClick={() => void save({ finish: true })}
-                disabled={saveState === "saving"}
+                onClick={() => void (__STARTER_FACTORY_MODE__ ? generateProject() : save({ finish: true }))}
+                disabled={saveState === "saving" || generation.status === "generating"}
               >
                 <Save size={16} />
-                {saveState === "saving"
-                  ? "Saving project plan"
-                  : "Save and finish"}
+                {generation.status === "generating" ? "Generating project" : saveState === "saving" ? "Saving project plan" : __STARTER_FACTORY_MODE__ ? "Generate project" : "Save and finish"}
               </Button> : null}
+              {generation.message ? <p className={generation.status === "error" ? "setup-error" : "setup-saved-feedback"} role="status">{generation.message}{generation.target ? <> <code>{generation.target}</code></> : null}</p> : null}
             </div>
           ) : null}
 

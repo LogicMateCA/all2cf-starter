@@ -143,6 +143,13 @@ function environmentFromConfig(id, config, manifestEnvironment) {
 }
 
 export async function collectKnowledge(root) {
+  let sourceRoot = root;
+  try {
+    const sourceReceipt = await readJson(root, ".starter/source.json");
+    if (sourceReceipt.sourceRoot) sourceRoot = path.resolve(sourceReceipt.sourceRoot);
+  } catch (error) {
+    if (error?.code !== "ENOENT") throw error;
+  }
   const [
     manifest,
     blueprint,
@@ -162,13 +169,13 @@ export async function collectKnowledge(root) {
   ] = await Promise.all([
     readJson(root, "starter.manifest.json"),
     readJson(root, "starter.blueprint.json"),
-    readJson(root, "catalog/catalog.json"),
-    readJson(root, "catalog/providers.json"),
-    readJson(root, "design/catalog.json"),
-    readJson(root, "design/stylekit/source-catalog.json"),
-    readJson(root, "catalog/saas-sources.json"),
-    readJson(root, "catalog/saas-capabilities.json"),
-    readJson(root, "pages/catalog.json"),
+    readJson(sourceRoot, "catalog/catalog.json"),
+    readJson(sourceRoot, "catalog/providers.json"),
+    readJson(sourceRoot, "design/catalog.json"),
+    readJson(sourceRoot, "design/stylekit/source-catalog.json"),
+    readJson(sourceRoot, "catalog/saas-sources.json"),
+    readJson(sourceRoot, "catalog/saas-capabilities.json"),
+    readJson(sourceRoot, "pages/catalog.json"),
     readJson(root, ".starter/materialization.json"),
     readJson(root, ".ai/manifest.json"),
     readFile(path.join(root, ".ai/orchestration.yaml"), "utf8"),
@@ -183,7 +190,7 @@ export async function collectKnowledge(root) {
   const stylekitSnapshots = await Promise.all(
     eligibleStylekitSystems.map(async ({ slug }) => {
       const snapshotPath = path.join(
-        root,
+        sourceRoot,
         "design/stylekit",
         slug,
         "snapshot.json",

@@ -1352,6 +1352,28 @@ app.get("/dp", serveProductApplication);
 for (const routePath of workerCapabilityRoutePaths)
   app.get(routePath, serveProductApplication);
 
+app.all("/factory", (c) =>
+  c.json(
+    {
+      error: {
+        code: "LOCAL_ONLY",
+        message: "Starter Factory is available only from the canonical local source repository.",
+      },
+    },
+    404,
+  ),
+);
+app.all("/factory/*", (c) =>
+  c.json(
+    {
+      error: {
+        code: "LOCAL_ONLY",
+        message: "Starter Factory is available only from the canonical local source repository.",
+      },
+    },
+    404,
+  ),
+);
 app.all("/setup", (c) =>
   c.json(
     {

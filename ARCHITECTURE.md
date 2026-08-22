@@ -14,7 +14,7 @@ The always-running `starter-dev` container has only project, dependency and shar
 
 Assembly control flow:
 
-`product brief` → `/setup` → `starter.blueprint.json` → `catalog/catalog.json` → `AI materialization` → `owned project code` → `local verification` → `Development release` → explicit `Production release`
+`product brief` → source `/factory` → ignored Factory Draft → deterministic source/target materialization → independent product `/setup` + Agent Map + receipt → local verification → Development release → explicit Production release
 
 - `apps/marketing` is the static-first Astro public product site. Only Blueprint-selected Page Catalog routes are materialized; its default route output requires no client JavaScript.
 - `apps/web` is a Desktop Web product optimized for mouse, keyboard, large-screen density, dashboards, tables, and complex operations. Its deploy artifact is mounted under `/_app`, while `/login`, `/app`, `/support`, `/admin`, and `/dp` ask the Worker asset binding for that shell.
@@ -39,7 +39,7 @@ The permanent Product Shell owns responsive navigation, global search seam, work
 
 ## Configuration and knowledge boundaries
 
-- `/setup` is local-only configuration UI, not a public product route. It writes reviewed changes to `starter.blueprint.json` and `starter.config.json`, invokes the transactional identity synchronizer, and refreshes `/dp`; it does not mutate Cloudflare or database infrastructure directly. Both deployed Workers reject `/setup` and `/__starter/*` before static asset fallback.
+- `/factory` is the canonical source repository's local-only creation UI. It writes an ignored draft and generates a separate Git project without changing source identity. Generated projects retain local-only `/setup`, which writes their reviewed Blueprint/config and refreshes their `/dp`. Neither route mutates Cloudflare or database infrastructure directly; deployed Workers reject `/factory`, `/setup` and `/__starter/*`.
 - The `starter-dev` Compose service runs `npm run setup` as its supervised main process and restarts unless explicitly stopped. Port `15173` therefore owns both local `/setup` and the current-worktree `/dp`; `dev.logicm8.com/dp` remains the immutable Development release view and may intentionally lag local edits until the next Development release.
 - Setup saves are explicit and step-scoped. Draft and continue actions persist before navigation, interrupted Vite reloads recover the saved review state, and final save remains on a visible completion screen. Provider credentials are write-only project-local development inputs: Setup reports readiness/source without returning values, while `/admin` reports runtime health read-only and directs changes back to local Setup.
 - `/setup` records intent; it does not silently install packages. AI runs the read-only materialization plan, reviews collisions, then explicitly applies it. During deselection, the Blueprint may truthfully show `selected: false` and `materialized: true` until apply removes receipt-owned output. Pack manifests own exact files, page-specific files, dependencies, lazy client routes, exact Worker application routes, `assets.run_worker_first` entries, optional Better Auth server/client and Worker event registries, Queue producer/consumer declarations, and secret requirements. Generated target Design adapters and the Marketing project contract are also hash-tracked in `.starter/materialization.json` for drift detection.

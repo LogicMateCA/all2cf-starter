@@ -24,7 +24,7 @@ export const publicRoutes = [
 ];
 
 export const localSetupRoutes = [
-  { surface: "setup", route: "/setup", status: 200 },
+  { surface: "factory", route: "/factory", status: 200 },
 ];
 
 export const authenticatedRoutes = [
@@ -269,7 +269,7 @@ async function exercisePage({ page, route, viewport, outputRoot, caseId }) {
     );
   }
 
-  if (route === "/setup") {
+  if (route === "/setup" || route === "/factory") {
     await page.getByRole("button", { name: "Design" }).click();
     await page.getByRole("heading", { name: "Design" }).waitFor();
     await page

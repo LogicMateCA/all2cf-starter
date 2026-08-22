@@ -43,7 +43,7 @@
   "technology": [
     {
       "area": "Project configuration",
-      "choice": "Function-first local-only /setup + starter.blueprint.json + owned SaaS/Capability/Page/Design Catalog",
+      "choice": "Source-only /factory creates independent projects; generated products retain local-only /setup and a pinned source receipt",
       "status": "local-verified"
     },
     {

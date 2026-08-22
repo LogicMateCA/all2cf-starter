@@ -9,15 +9,15 @@ source: "starter"
 
 ## Purpose
 
-Blueprint-driven project assembler for AI-led Cloudflare SaaS products. The reusable baseline owns the normal SaaS platform, application shell, administration, account, notification, support, documentation and operations behavior. `/setup` captures what the new SaaS actually does, its actors, core objects, tenancy and charging model, product capabilities, providers and page families before the replaceable StyleKit presentation choice; AI then materializes the product-specific remainder into an owned Cloudflare application.
+Blueprint-driven project factory for AI-led Cloudflare SaaS products. The reusable baseline owns the normal SaaS platform, application shell, administration, account, notification, support, documentation and operations behavior. Source-only `/factory` captures what a new SaaS does and generates an independent product; that product retains `/setup` for its later configuration without carrying the complete Catalog, Pack or StyleKit source library.
 
 ## Users and boundaries
 
 - Primary users: product owners and AI development controllers
 - Explicit non-goals: project-specific business behavior and branding
 - Environments: `development`, `production`
-- Configuration boundary: local `http://localhost:15173/setup` writes the Project Blueprint; local `http://localhost:15173/dp` is the current worktree projection; deployed `/dp` is read-only evidence for that exact released commit; `/admin` operates the resulting product.
-- Setup persistence boundary: every step can save a draft and “Save and continue” persists before navigation. Provider selection is independent from credential timing; Google, GitHub, Apple, CFsend, Resend, Stripe and Cloudflare Email Service may inherit project/shared values, accept project-local replacements, or remain visibly deferred until a later local `/setup` session. Provider readiness is not inferred from key presence alone: Setup can open the real Development OAuth flow and send an explicit real CFsend/Resend test email.
+- Configuration boundary: the canonical source uses local `http://localhost:15173/factory` and a local ignored Factory Draft to generate independent projects. Generated products use local `/setup` to write their own Blueprint and configuration. Local `/dp` is the current project projection; deployed `/dp` is read-only evidence for that exact released commit; `/admin` operates product data.
+- Factory/Setup persistence boundary: every step can save a draft before navigation. Factory drafts never rewrite canonical source identity. Provider selection is independent from credential timing; generated products may inherit shared values, accept project-local replacements, or defer them to their local `/setup`.
 - AI control boundary: Sol is the sole controller but not a permanently high-reasoning process. It selects light, medium, or high from task complexity and risk, defaults normal implementation to medium, and reserves high for architecture, release, ambiguous cross-module judgment, and high-risk mutation.
 
 ## Success criteria

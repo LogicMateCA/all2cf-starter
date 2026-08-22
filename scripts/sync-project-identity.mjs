@@ -3,7 +3,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseJsonc } from "jsonc-parser";
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const projectRootArgument = process.argv.find((value) => value.startsWith("--project-root="));
+const root = projectRootArgument
+  ? path.resolve(projectRootArgument.slice("--project-root=".length))
+  : sourceRoot;
 const reset = process.argv.includes("--reset");
 const readJson = async (file) => JSON.parse(await readFile(path.join(root, file), "utf8"));
 const json = (value) => `${JSON.stringify(value, null, 2)}\n`;
