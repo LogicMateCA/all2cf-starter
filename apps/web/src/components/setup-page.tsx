@@ -28,7 +28,7 @@ type Pack = {
 type DatabasePolicy = {
   engine: "postgresql";
   provider: "native-postgresql" | "cfpg";
-  access: "sql-first";
+  access: "sql-first" | "drizzle";
   initialState: "empty";
   schemaSource: "selected-pack-baseline";
   existingDataPolicy: "out-of-scope";
@@ -2122,7 +2122,10 @@ export function SetupPage() {
               </section>
 
               <section className="setup-panel provider-section">
-                <header><h2>Database runtime</h2><p>Both choices keep PostgreSQL SQL and the SQL-first application layer. Native PostgreSQL uses Hyperdrive; CFPG uses the All2CF client alias and a private Worker Service Binding.</p></header>
+                <header><h2>PostgreSQL</h2><p>Application code always uses the native pg contract. Choose SQL-first or Drizzle for product-domain code; Hyperdrive and CFPG only change how pg connects.</p></header>
+                <div className="storage-provider-options" role="group" aria-label="Product data layer">
+                  {(["sql-first", "drizzle"] as const).map((access) => <button type="button" key={access} aria-pressed={payload.blueprint.providers.database.access === access} onClick={() => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, database: { ...blueprint.providers.database, access } }, selections: { ...blueprint.selections, capabilities: blueprint.selections.capabilities.map((selection) => selection.id === "capability.data-layer-drizzle" ? { ...selection, lifecycle: { ...selection.lifecycle, selected: access === "drizzle", ...(access === "drizzle" ? {} : { localVerified: false, developmentVerified: false, productionReleased: false }) } } : selection) } }))}><strong>{access === "sql-first" ? "SQL" : "Drizzle"}</strong><span>{access === "sql-first" ? "Smallest and AI-first." : "Typed product-domain schema over the same pg connection."}</span></button>)}
+                </div>
                 <div className="provider-option-grid" role="radiogroup" aria-label="Database runtime">
                   {[
                     { id: "native-postgresql", name: "Native PostgreSQL", note: "PostgreSQL 18 through one isolated Hyperdrive binding per environment." },

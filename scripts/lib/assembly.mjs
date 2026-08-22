@@ -63,7 +63,6 @@ export function validateAssemblyContracts(
   const databasePolicy = blueprint.providers?.database || {};
   const expectedDatabasePolicy = {
     engine: "postgresql",
-    access: "sql-first",
     initialState: "empty",
     schemaSource: "selected-pack-baseline",
     existingDataPolicy: "out-of-scope",
@@ -72,6 +71,13 @@ export function validateAssemblyContracts(
     if (databasePolicy[key] !== expected)
       failures.push(`Blueprint database policy ${key} must be ${expected}`);
   }
+  if (!new Set(["sql-first", "drizzle"]).has(databasePolicy.access))
+    failures.push("Blueprint database policy access must be sql-first or drizzle");
+  const drizzleSelection = Object.values(blueprint.selections || {})
+    .flat()
+    .find(({ id }) => id === "capability.data-layer-drizzle");
+  if (Boolean(drizzleSelection?.lifecycle?.selected) !== (databasePolicy.access === "drizzle"))
+    failures.push("Drizzle Pack selection must match the Blueprint database access layer");
   if (!new Set(["native-postgresql", "cfpg"]).has(databasePolicy.provider))
     failures.push("Blueprint database policy provider must be native-postgresql or cfpg");
   for (const environment of ["development", "production"])

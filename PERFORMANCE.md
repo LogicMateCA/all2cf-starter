@@ -10,6 +10,7 @@ source: "starter"
 
 - A generated source project must exclude `node_modules`, Git history, build/test output, credentials, and the complete reusable Catalog, Pack and StyleKit libraries.
 - `factory:contract` creates a disposable Git project, requires a clean initial receipt/status/diff and caps the generated tree at 700 entries. The first verified default proof produced 447 entries; dependency installation is a later local-project step, not part of the portable source package.
+- Drizzle is absent from SQL-first output. When selected, it reuses the bounded pg pool factory and may not add an alternate CFPG runtime or generated client engine.
 
 Verification avoids duplicate generation: `/dp` is synchronized once, site builds reuse it, and Cloudflare Types are check-only in the release gate. Independent future gates may be parallelized only after all shared generated artifacts are complete.
 

@@ -23,6 +23,8 @@
         "@cloudflare/workers-types",
         "hono",
         "pg",
+        "drizzle-orm",
+        "drizzle-kit",
         "vite",
         "@vitejs/plugin-react",
         "tailwindcss",

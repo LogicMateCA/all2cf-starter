@@ -319,7 +319,7 @@
           "properties": {
             "engine": { "const": "postgresql" },
             "provider": { "enum": ["native-postgresql", "cfpg"] },
-            "access": { "const": "sql-first" },
+            "access": { "enum": ["sql-first", "drizzle"] },
             "initialState": { "const": "empty" },
             "schemaSource": { "const": "selected-pack-baseline" },
             "existingDataPolicy": { "const": "out-of-scope" },

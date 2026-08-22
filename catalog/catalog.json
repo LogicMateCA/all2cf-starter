@@ -1181,6 +1181,24 @@
       "documentation": ["ARCHITECTURE.md", "features/background/MODULE.md", "features/admin/MODULE.md", "features/operations/MODULE.md"]
     },
     {
+      "id": "capability.data-layer-drizzle",
+      "kind": "capability",
+      "name": "Drizzle product data layer",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": ["worker"],
+      "ownership": "starter-owned",
+      "source": [{ "name": "Drizzle ORM", "url": "https://orm.drizzle.team/", "relationship": "runtime-dependency" }],
+      "updatePolicy": "runtime-stable",
+      "provides": ["product-domain Drizzle schema", "Drizzle Kit configuration", "pg-backed typed database factory"],
+      "requires": ["PostgreSQL", "pg runtime contract", "product-owned tables only"],
+      "conflicts": ["Prisma", "Kysely", "ORM ownership of Starter or Pack migrations", "a CFPG-specific query layer"],
+      "performance": ["absent when SQL-first is selected", "shared pg pool factory", "no generated client runtime"],
+      "verification": ["Native PG and CFPG parity", "Drizzle migration generation", "select/apply/deselect dependency cleanup"],
+      "documentation": ["ARCHITECTURE.md", "features/assembler/MODULE.md", "PERFORMANCE.md"]
+    },
+    {
       "id": "capability.mapcn-web",
       "kind": "capability",
       "name": "MapCN Web maps",

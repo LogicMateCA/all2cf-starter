@@ -1,0 +1,21 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "capability.data-layer-drizzle",
+  "version": "0.1.0",
+  "source": {
+    "name": "Drizzle ORM",
+    "url": "https://orm.drizzle.team/",
+    "relationship": "runtime-dependency"
+  },
+  "files": [
+    { "source": "templates/product-schema.ts", "target": "db/schema/product.ts" },
+    { "source": "templates/product-database.ts", "target": "workers/app/product-database.ts" },
+    { "source": "templates/drizzle.config.ts", "target": "drizzle.config.ts" }
+  ],
+  "dependencies": [
+    { "packageFile": "workers/app/package.json", "section": "dependencies", "name": "drizzle-orm", "version": "0.45.2" },
+    { "packageFile": "package.json", "section": "devDependencies", "name": "drizzle-kit", "version": "0.31.10" }
+  ],
+  "routes": []
+}

@@ -1130,6 +1130,11 @@ for (const { packRoot, manifest } of selectedManifests) {
 }
 
 const storagePackSelected = selected.has("capability.object-storage");
+const drizzlePackSelected = selected.has("capability.data-layer-drizzle");
+if (drizzlePackSelected !== (blueprint.providers.database.access === "drizzle"))
+  throw new Error(
+    "Drizzle Pack selection must match the Blueprint database access layer.",
+  );
 if (storagePackSelected !== (blueprint.providers.storage.provider !== "none"))
   throw new Error(
     "Object Storage Pack selection must match the Blueprint storage Provider.",

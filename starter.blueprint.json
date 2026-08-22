@@ -263,6 +263,17 @@
     ],
     "capabilities": [
       {
+        "id": "capability.data-layer-drizzle",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Optional product-domain Drizzle layer. PostgreSQL, pg, Starter tables and Pack migrations remain SQL-first."
+      },
+      {
         "id": "capability.mapcn-web",
         "lifecycle": {
           "selected": false,
