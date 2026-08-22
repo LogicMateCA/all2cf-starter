@@ -21,7 +21,7 @@ The authenticated Shell shares one notification model across Bell, Recent Activi
 # Verification
 
 - Web/Worker/Mobile/Astro types pass. The complete disposable empty-database Workerd suite passes session, preferences, notification, Admin, support and selected SaaS behavior after the client request-ownership changes.
-- Browser network evidence remains pending.
+- Authenticated browser acceptance passes 36 desktop/mobile, light/dark cases with zero failures. The report records initial same-origin API requests and rejects duplicate preference/notification reads or eager inactive Admin-domain loads.
 
 # Release
 

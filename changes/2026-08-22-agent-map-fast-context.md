@@ -20,7 +20,7 @@ After initial setup, an AI starts from a compact ownership map instead of loadin
 
 # Verification
 
-- Pending complete repository verification.
+- Complete repository verification passes, including Agent Map, Change Spec, knowledge synchronization, types, builds, bundle budgets and both Cloudflare configuration dry-runs.
 - Focused contract currently reports 15 routes, all 24 modules covered, an 8,153-byte default response, four default reads, `auth-account` routing for a Chinese login/email task and `mobile-expo` routing for the Mobile module.
 - Explicit `--full` remains available and currently produces the complete first-run/architecture context; ordinary calls no longer receive it.
 

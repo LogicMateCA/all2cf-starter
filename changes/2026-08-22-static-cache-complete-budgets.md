@@ -19,7 +19,8 @@ Repeat visits can reuse content-hashed Web/Marketing/Docs assets without an edge
 
 # Verification
 
-- Pending build, cache contract, bundle budgets, Wrangler dry-runs and live header readback after Development release.
+- Production builds, the merged cache contract, Marketing/Web/Docs bundle budgets and both Wrangler configuration dry-runs pass.
+- Live header readback remains pending until a later Development release; this change does not publish.
 
 # Release
 

@@ -397,6 +397,7 @@ export async function runBrowserAcceptance({
           const consoleErrors = [];
           const pageErrors = [];
           const failedResponses = [];
+          const apiRequests = [];
           page.on("console", (message) => {
             const expectedNavigationError =
               routeCase.status >= 400 &&
@@ -406,6 +407,11 @@ export async function runBrowserAcceptance({
               consoleErrors.push({ text: message.text(), location: message.location() });
           });
           page.on("pageerror", (error) => pageErrors.push(String(error)));
+          page.on("request", (request) => {
+            const url = new URL(request.url());
+            if (url.origin === new URL(normalizedBaseUrl).origin && url.pathname.startsWith("/api/"))
+              apiRequests.push({ method: request.method(), path: url.pathname });
+          });
           page.on("response", (response) => {
             if (response.status() >= 400 && response.url() !== new URL(routeCase.route, normalizedBaseUrl).href)
               failedResponses.push({ status: response.status(), url: response.url() });
@@ -431,6 +437,7 @@ export async function runBrowserAcceptance({
               reducedMotion: matchMedia("(prefers-reduced-motion: reduce)").matches,
             }));
             const accessibility = await axeViolations(page);
+            const initialApiRequests = apiRequests.slice();
             const interaction = await exercisePage({
               page,
               route: routeCase.route,
@@ -459,6 +466,7 @@ export async function runBrowserAcceptance({
               consoleErrors,
               pageErrors,
               failedResponses,
+              initialApiRequests,
               screenshots: [screenshot, ...interaction.stateScreenshots],
             };
             const caseFailures = [];
@@ -474,6 +482,22 @@ export async function runBrowserAcceptance({
             if (pageErrors.length) caseFailures.push(`${pageErrors.length} page errors`);
             if (failedResponses.length)
               caseFailures.push(`${failedResponses.length} failed subresources`);
+            const initialCount = (method, requestPath) =>
+              initialApiRequests.filter((request) => request.method === method && request.path === requestPath).length;
+            if (cookieHeader && initialCount("GET", "/api/preferences") > 1)
+              caseFailures.push("duplicate initial preferences requests");
+            if (cookieHeader && initialCount("GET", "/api/notifications") > 1)
+              caseFailures.push("duplicate initial notification requests");
+            if (routeCase.route === "/admin") {
+              const eagerAdminDomains = [
+                "/api/admin/support/tickets",
+                "/api/admin/announcements",
+                "/api/admin/audit",
+                "/api/admin/webhooks",
+              ].filter((requestPath) => initialApiRequests.some((request) => request.path === requestPath));
+              if (eagerAdminDomains.length)
+                caseFailures.push(`eager Admin requests: ${eagerAdminDomains.join(", ")}`);
+            }
             if (caseFailures.length) failures.push({ id: caseId, failures: caseFailures });
           } catch (error) {
             result = {

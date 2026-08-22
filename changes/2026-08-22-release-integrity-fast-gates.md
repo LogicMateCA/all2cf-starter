@@ -20,7 +20,8 @@ Verification can no longer silently regenerate tracked Cloudflare Types and depl
 
 # Verification
 
-- Pending release contract, full verification and a deliberate stale-types failure drill.
+- The release contract and complete repository verification pass. The contract confirms one knowledge sync, check-only Cloudflare Types, sites-only build reuse and the post-verify clean-tree check.
+- A deliberate stale-types failure drill remains future destructive-test work; no tracked generated type was modified solely to simulate failure.
 
 # Release
 

@@ -21,7 +21,8 @@ Routine Setup no longer sends all 146 StyleKit source entries or expands the com
 # Verification
 
 - Setup response fell from 674,633 bytes to 382,261 bytes (43.3% smaller) while retaining all 28 selectable global systems, 28 snapshot summaries and all 17 Provider categories.
-- Web/Worker/Mobile/Astro type checks pass. Save/reload behavior and desktop/mobile browser acceptance remain pending.
+- Web/Worker/Mobile/Astro type checks pass. Local Setup browser acceptance passes four desktop/mobile, light/dark cases with eight screenshots and zero failures.
+- The visual browser matrix exercises the Design selector; a dedicated save/reload mutation assertion remains separate from this response-size change.
 
 # Release
 

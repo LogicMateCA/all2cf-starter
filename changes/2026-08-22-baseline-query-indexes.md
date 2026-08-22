@@ -19,7 +19,8 @@ Baseline queries that filter by normalized email, support-message author/time, a
 
 # Verification
 
-- Pending empty-schema migration, checksum ledger, query-plan inspection and Development migration.
+- The disposable empty-database Workerd smoke suite applies and exercises the complete migration set successfully.
+- Query-plan inspection and the Development database migration remain pending; no remote database schema changed in this release-neutral change.
 
 # Release
 
