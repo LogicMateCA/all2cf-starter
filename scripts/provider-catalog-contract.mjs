@@ -51,6 +51,11 @@ for (const category of catalog.categories || []) {
       failures.push(`Selectable option ${category.id}.${option.id} cannot use planned delivery`);
     if (option.verification.available && option.verification.mode === "none")
       failures.push(`Verified option ${category.id}.${option.id} needs a real verification mode`);
+    if (option.selectable && option.id !== "none" && !option.verification.available)
+      failures.push(`Selectable option ${category.id}.${option.id} needs an explicit verification action`);
+    const externalSetup = option.credentials.length || option.bindings.length || option.dependencies.length || option.delivery !== "baseline";
+    if (option.selectable && option.id !== "none" && externalSetup && option.setupLinks.length === 0)
+      failures.push(`Selectable external option ${category.id}.${option.id} needs an official setup link`);
   }
   for (const id of category.defaultOptionIds || [])
     if (!options.has(id)) failures.push(`${category.id} default ${id} is missing`);
@@ -92,6 +97,21 @@ for (const [categoryId, optionId] of [
 ])
   if (!option(categoryId, optionId)?.selectable)
     failures.push(`Executable Provider ${categoryId}.${optionId} must be selectable`);
+const expectedCredentials = new Map([
+  ["anti-abuse.turnstile", ["TURNSTILE_SITE_KEY", "TURNSTILE_SECRET_KEY"]],
+  ["notification-channels.expo-push", ["EXPO_PROJECT_ID", "EXPO_PUSH_ACCESS_TOKEN"]],
+  ["notification-channels.twilio-sms", ["TWILIO_ACCOUNT_SID", "TWILIO_API_KEY", "TWILIO_API_SECRET", "TWILIO_FROM"]],
+  ["release-platforms.cloudflare", ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"]],
+  ["release-platforms.expo-eas", ["EXPO_TOKEN", "EXPO_OWNER", "EXPO_PROJECT_ID"]],
+  ["release-platforms.apple-app-store", ["ASC_KEY_ID", "ASC_ISSUER_ID", "ASC_API_KEY_BASE64", "ASC_APP_ID"]],
+  ["release-platforms.google-play", ["GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64", "GOOGLE_PLAY_PACKAGE_NAME"]],
+]);
+for (const [key, expected] of expectedCredentials) {
+  const [categoryId, optionId] = key.split(".");
+  const actual = option(categoryId, optionId)?.credentials || [];
+  if (JSON.stringify(actual) !== JSON.stringify(expected))
+    failures.push(`${key} credentials must be ${expected.join(", ")}`);
+}
 const result = {
   ok: failures.length === 0,
   schemaVersion: catalog.schemaVersion,
