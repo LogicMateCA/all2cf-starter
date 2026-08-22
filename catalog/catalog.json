@@ -930,7 +930,7 @@
       "kind": "capability",
       "name": "Object storage",
       "version": "0.1.0",
-      "status": "implemented",
+      "status": "development-verified",
       "delivery": "materializer",
       "targets": ["desktop-web", "worker", "admin"],
       "ownership": "starter-owned",

@@ -279,10 +279,10 @@
           "selected": true,
           "materialized": true,
           "localVerified": true,
-          "developmentVerified": false,
+          "developmentVerified": true,
           "productionReleased": false
         },
-        "note": "Cloudflare R2 is selected and locally verified through authenticated private/public exact-byte Workerd round trips; Development and Production remain unreleased."
+        "note": "Cloudflare R2 is selected. Local authenticated private/public lifecycle evidence and the Development release-bound exact-byte adapter round trip both pass; Production remains unreleased."
       },
       {
         "id": "capability.turnstile",
