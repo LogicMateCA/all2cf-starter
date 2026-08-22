@@ -140,6 +140,11 @@
       "status": "implemented"
     },
     {
+      "area": "SMS",
+      "choice": "Optional Twilio Programmable Messaging Pack with API-key authentication, SQL idempotency, privacy-bounded evidence, real test action and no SDK dependency",
+      "status": "implemented"
+    },
+    {
       "area": "Organizations",
       "choice": "Optional Better Auth Organization 1.7.1 pack with Product Shell switching, member administration, teams, verified invitations, lifecycle notifications, and tenant-scoped roles",
       "status": "local-verified"

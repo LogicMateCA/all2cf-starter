@@ -193,6 +193,23 @@ export function validateAssemblyContracts(
     failures.push("Blueprint is missing capability.expo-push selection state");
   else if (expoPushSelection.lifecycle.selected !== (pushPolicy.provider === "expo-push"))
     failures.push("Expo Push Pack selection must match the push Provider");
+  const smsPolicy = blueprint.providers?.sms || {};
+  if (!new Set(["none", "twilio"]).has(smsPolicy.provider))
+    failures.push("Blueprint SMS provider must be none or twilio");
+  for (const environment of ["development", "production"])
+    try {
+      const url = new URL(smsPolicy[environment]?.apiBaseUrl || "");
+      if (url.protocol !== "https:") throw new Error("not https");
+    } catch {
+      failures.push(`Blueprint ${environment} Twilio API base URL must use HTTPS`);
+    }
+  const twilioSmsSelection = Object.values(blueprint.selections || {})
+    .flat()
+    .find(({ id }) => id === "capability.twilio-sms");
+  if (!twilioSmsSelection)
+    failures.push("Blueprint is missing capability.twilio-sms selection state");
+  else if (twilioSmsSelection.lifecycle.selected !== (smsPolicy.provider === "twilio"))
+    failures.push("Twilio SMS Pack selection must match the SMS Provider");
 
   const packIds = new Set();
   const packs = new Map();

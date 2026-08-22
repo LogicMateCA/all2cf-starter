@@ -73,6 +73,11 @@ type PushPolicy = {
   development: { projectId: string };
   production: { projectId: string };
 };
+type SmsPolicy = {
+  provider: "none" | "twilio";
+  development: { apiBaseUrl: string };
+  production: { apiBaseUrl: string };
+};
 type CfpgConnection = {
   connectCommand: string;
   databaseId: string;
@@ -132,6 +137,7 @@ type Blueprint = {
     ai: AiPolicy;
     search: SearchPolicy;
     push: PushPolicy;
+    sms: SmsPolicy;
     email: { default: string; alternatives: string[] };
     billing: string;
     release: string;
@@ -297,7 +303,7 @@ type SetupPayload = {
     categories: ProviderCatalogCategory[];
   };
   providerCredentials: Record<
-    "google" | "github" | "apple" | "cfsend" | "resend" | "cloudflare-email-service" | "stripe" | "s3-compatible" | "turnstile" | "expo-push",
+    "google" | "github" | "apple" | "cfsend" | "resend" | "cloudflare-email-service" | "stripe" | "s3-compatible" | "turnstile" | "expo-push" | "twilio-sms",
     {
       configured: boolean;
       source: "project" | "shared" | "mixed" | "missing";
@@ -357,6 +363,16 @@ const providerSecretFields = {
   "expo-push": [
     { name: "EXPO_PUSH_ACCESS_TOKEN", label: "Development access token", secret: true },
     { name: "STARTER_PRODUCTION_EXPO_PUSH_ACCESS_TOKEN", label: "Production access token", secret: true },
+  ],
+  "twilio-sms": [
+    { name: "TWILIO_ACCOUNT_SID", label: "Development Account SID", secret: false },
+    { name: "TWILIO_API_KEY", label: "Development API Key SID", secret: false },
+    { name: "TWILIO_API_SECRET", label: "Development API Secret", secret: true },
+    { name: "TWILIO_FROM", label: "Development sender (E.164)", secret: false },
+    { name: "STARTER_PRODUCTION_TWILIO_ACCOUNT_SID", label: "Production Account SID", secret: false },
+    { name: "STARTER_PRODUCTION_TWILIO_API_KEY", label: "Production API Key SID", secret: false },
+    { name: "STARTER_PRODUCTION_TWILIO_API_SECRET", label: "Production API Secret", secret: true },
+    { name: "STARTER_PRODUCTION_TWILIO_FROM", label: "Production sender (E.164)", secret: false },
   ],
 } as const;
 
@@ -642,6 +658,8 @@ export function SetupPage() {
   const [vectorizeTest, setVectorizeTest] = useState<ProviderTestState>({ status: "idle" });
   const [expoPushToken, setExpoPushToken] = useState("");
   const [expoPushTest, setExpoPushTest] = useState<ProviderTestState>({ status: "idle" });
+  const [smsRecipient, setSmsRecipient] = useState("");
+  const [smsTest, setSmsTest] = useState<ProviderTestState>({ status: "idle" });
   const [cfpgCommands, setCfpgCommands] = useState({ development: "", production: "" });
   const [stylekitQuery, setStylekitQuery] = useState("");
   const [stylekitCategory, setStylekitCategory] = useState("all");
@@ -907,6 +925,21 @@ export function SetupPage() {
       setExpoPushTest({ status: "error", provider: "expo-push", message: error instanceof Error ? error.message : String(error) });
     }
   };
+  const runSmsTest = async () => {
+    setSmsTest({ status: "testing", provider: "twilio-sms" });
+    try {
+      const response = await fetch("/__starter/provider-test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ provider: "twilio-sms", recipient: smsRecipient, apiBaseUrl: payload.blueprint.providers.sms.development.apiBaseUrl, providerSecrets }),
+      });
+      const result = (await response.json()) as { error?: string; result?: { providerSid: string; status: string; recipientLast4: string } };
+      if (!response.ok || !result.result) throw new Error(result.error || `Twilio test returned HTTP ${response.status}.`);
+      setSmsTest({ status: "success", provider: "twilio-sms", message: `Twilio accepted ${result.result.providerSid} for ••••${result.result.recipientLast4}; initial status: ${result.result.status}. Carrier delivery remains a separate receipt/status check.` });
+    } catch (error) {
+      setSmsTest({ status: "error", provider: "twilio-sms", message: error instanceof Error ? error.message : String(error) });
+    }
+  };
   const updateIdentity = (key: "name" | "slug", value: string) => {
     updateBlueprint((blueprint) => ({
       ...blueprint,
@@ -1030,6 +1063,8 @@ export function SetupPage() {
                   ...blueprint.providers,
                   push: { ...blueprint.providers.push, provider: selected ? "expo-push" : "none" },
                 }
+            : pack.id === "capability.twilio-sms"
+              ? { ...blueprint.providers, sms: { ...blueprint.providers.sms, provider: selected ? "twilio" : "none" } }
             : blueprint.providers,
       };
     });
@@ -1129,6 +1164,20 @@ export function SetupPage() {
         capabilities: blueprint.selections.capabilities.map((selection) =>
           selection.id === "capability.expo-push"
             ? { ...selection, lifecycle: selectLifecycle(selection.lifecycle, provider === "expo-push") }
+            : selection,
+        ),
+      },
+    }));
+  const setSmsProvider = (provider: SmsPolicy["provider"]) =>
+    updateBlueprint((blueprint) => ({
+      ...blueprint,
+      preset: "custom",
+      providers: { ...blueprint.providers, sms: { ...blueprint.providers.sms, provider } },
+      selections: {
+        ...blueprint.selections,
+        capabilities: blueprint.selections.capabilities.map((selection) =>
+          selection.id === "capability.twilio-sms"
+            ? { ...selection, lifecycle: selectLifecycle(selection.lifecycle, provider === "twilio") }
             : selection,
         ),
       },
@@ -2101,6 +2150,24 @@ export function SetupPage() {
               </section>
 
               <section className="setup-panel provider-section">
+                <header><h2>SMS notifications</h2><p>SMS is an explicit server channel, not a default second factor and not implied by in-app notifications. Twilio credentials, sender numbers, compliance and delivery evidence remain environment-specific.</p></header>
+                <div className="provider-option-grid" role="radiogroup" aria-label="SMS Provider">
+                  {[
+                    { id: "none", name: "None", note: "No SMS provider, secret requirements or delivery ledger." },
+                    { id: "twilio", name: "Twilio SMS", note: "Programmable Messaging with API-key authentication and SQL idempotency." },
+                  ].map(({ id, name, note }) => { const selected = payload.blueprint.providers.sms.provider === id; return <div className={selected ? "provider-option selected" : "provider-option"} key={id}><label><input type="radio" name="sms-provider" checked={selected} onChange={() => setSmsProvider(id as SmsPolicy["provider"])} /><span><strong>{name}</strong><small>{note}</small></span></label></div>; })}
+                </div>
+                {payload.blueprint.providers.sms.provider === "twilio" ? (
+                  <div className="storage-provider-config">
+                    <div className="storage-environment-grid">{(["development", "production"] as const).map((environment) => <div key={environment}><h3>{environment === "development" ? "Development Twilio region" : "Production Twilio region"}</h3><Field label="API base URL" value={payload.blueprint.providers.sms[environment].apiBaseUrl} onChange={(apiBaseUrl) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, sms: { ...blueprint.providers.sms, [environment]: { apiBaseUrl } } } }))} /><p>Use <code>https://api.twilio.com</code> or the documented regional base URL. Setup requires HTTPS.</p></div>)}</div>
+                    <ProviderCredentialEditor provider="twilio-sms" state={payload.providerCredentials["twilio-sms"]} editing={Boolean(providerEditors["twilio-sms"])} values={providerSecrets} onEditing={(editing) => setProviderEditing("twilio-sms", editing)} onChange={updateProviderSecret} />
+                    <div className="provider-resource-links">{providerSetupLinks["twilio-sms"].map((link) => <a href={link.href} target="_blank" rel="noreferrer" key={link.href}>{link.label}<ExternalLink size={14} /></a>)}</div>
+                    <div className="provider-email-test"><div><strong>Real Development SMS test</strong><p>Twilio receives a fixed message. Setup returns only the provider SID, initial status and recipient last four digits.</p></div><label><span>Test recipient (E.164)</span><Input type="tel" value={smsRecipient} autoComplete="tel" onChange={(event) => { setSmsRecipient(event.target.value); setSmsTest({ status: "idle" }); }} placeholder="+14035551234" /></label><Button type="button" variant="outline" disabled={smsTest.status === "testing" || !smsRecipient.trim()} onClick={() => void runSmsTest()}>{smsTest.status === "testing" ? "Sending SMS" : "Send Development SMS"}</Button>{smsTest.message ? <p className={smsTest.status === "success" ? "provider-test-result success" : "provider-test-result error"} role="status">{smsTest.message}</p> : null}</div>
+                  </div>
+                ) : null}
+              </section>
+
+              <section className="setup-panel provider-section">
                 <header><h2>Social sign-in</h2><p>Select the providers this project will support. Credentials may be inherited, entered now, or configured later from this local Setup.</p></header>
                 <div className="provider-option-grid" role="group" aria-label="Social sign-in providers">
                   {[
@@ -2368,6 +2435,10 @@ export function SetupPage() {
                   <div>
                     <dt>Push</dt>
                     <dd>{payload.blueprint.providers.push.provider}</dd>
+                  </div>
+                  <div>
+                    <dt>SMS</dt>
+                    <dd>{payload.blueprint.providers.sms.provider}</dd>
                   </div>
                   <div>
                     <dt>Social sign-in</dt>

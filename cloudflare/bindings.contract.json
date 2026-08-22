@@ -128,6 +128,30 @@
       "requiredPerEnvironment": false,
       "requiredWhen": "antiAbuse.provider=turnstile"
     },
+    "TWILIO_ACCOUNT_SID": {
+      "kind": "secret",
+      "status": "optional-twilio-sms-pack",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "sms.provider=twilio"
+    },
+    "TWILIO_API_KEY": {
+      "kind": "secret",
+      "status": "optional-twilio-sms-pack",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "sms.provider=twilio"
+    },
+    "TWILIO_API_SECRET": {
+      "kind": "secret",
+      "status": "optional-twilio-sms-pack",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "sms.provider=twilio"
+    },
+    "TWILIO_FROM": {
+      "kind": "secret",
+      "status": "optional-twilio-sms-pack",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "sms.provider=twilio"
+    },
     "AUTH": {
       "kind": "service_binding",
       "status": "future",

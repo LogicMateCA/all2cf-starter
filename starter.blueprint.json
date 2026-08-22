@@ -327,6 +327,17 @@
           "productionReleased": false
         },
         "note": "Optional Expo Push device registration and delivery for native iOS/Android."
+      },
+      {
+        "id": "capability.twilio-sms",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Optional server-only Twilio SMS delivery with provider evidence."
       }
     ]
   },
@@ -417,6 +428,15 @@
       },
       "production": {
         "projectId": ""
+      }
+    },
+    "sms": {
+      "provider": "none",
+      "development": {
+        "apiBaseUrl": "https://api.twilio.com"
+      },
+      "production": {
+        "apiBaseUrl": "https://api.twilio.com"
       }
     },
     "email": {

@@ -45,6 +45,7 @@ const providerCredentialFields = {
   "s3-compatible": ["S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY"],
   turnstile: ["TURNSTILE_SECRET_KEY", "STARTER_PRODUCTION_TURNSTILE_SECRET_KEY"],
   "expo-push": ["EXPO_PUSH_ACCESS_TOKEN", "STARTER_PRODUCTION_EXPO_PUSH_ACCESS_TOKEN"],
+  "twilio-sms": ["TWILIO_ACCOUNT_SID", "TWILIO_API_KEY", "TWILIO_API_SECRET", "TWILIO_FROM", "STARTER_PRODUCTION_TWILIO_ACCOUNT_SID", "STARTER_PRODUCTION_TWILIO_API_KEY", "STARTER_PRODUCTION_TWILIO_API_SECRET", "STARTER_PRODUCTION_TWILIO_FROM"],
 } as const;
 const allowedProviderSecrets = new Set<string>(
   Object.values(providerCredentialFields).flat(),
@@ -414,6 +415,39 @@ async function testExpoPushProvider(input: unknown) {
   return { provider: "expo-push", ticketId: ticket.id, status: ticket.status };
 }
 
+async function testTwilioSmsProvider(input: unknown) {
+  if (!input || typeof input !== "object") throw new Error("Provider test payload is required.");
+  const body = input as { recipient?: unknown; apiBaseUrl?: unknown; providerSecrets?: unknown };
+  const recipient = String(body.recipient || "").trim();
+  const apiBaseUrl = String(body.apiBaseUrl || "https://api.twilio.com").trim().replace(/\/$/u, "");
+  if (!/^\+[1-9][0-9]{7,14}$/u.test(recipient)) throw new Error("Enter a valid E.164 test phone number.");
+  if (!apiBaseUrl.startsWith("https://")) throw new Error("Twilio API base URL must use HTTPS.");
+  const providers = JSON.parse(await readFile(path.join(repositoryRoot, "profiles/providers.json"), "utf8")) as { defaultPath: string };
+  const profilePath = process.env.STARTER_DEV_PROFILE_PATH || providers.defaultPath;
+  const [project, shared] = await Promise.all([readOptionalEnv(path.join(repositoryRoot, ".dev.vars")), readOptionalEnv(profilePath)]);
+  const values = new Map([...shared, ...project]);
+  if (body.providerSecrets && typeof body.providerSecrets === "object")
+    for (const name of ["TWILIO_ACCOUNT_SID", "TWILIO_API_KEY", "TWILIO_API_SECRET", "TWILIO_FROM"]) {
+      const value = (body.providerSecrets as Record<string, unknown>)[name];
+      if (typeof value === "string" && value.trim()) values.set(name, value.trim());
+    }
+  const account = values.get("TWILIO_ACCOUNT_SID") || "";
+  const key = values.get("TWILIO_API_KEY") || "";
+  const secret = values.get("TWILIO_API_SECRET") || "";
+  const from = values.get("TWILIO_FROM") || "";
+  if (!/^AC[0-9a-f]{32}$/iu.test(account) || !/^SK[0-9a-f]{32}$/iu.test(key) || !secret || !/^\+[1-9][0-9]{7,14}$/u.test(from))
+    throw new Error("Development Twilio Account SID, API Key, API Secret or sender is incomplete.");
+  const response = await fetch(`${apiBaseUrl}/2010-04-01/Accounts/${account}/Messages.json`, {
+    method: "POST",
+    headers: { Authorization: `Basic ${btoa(`${key}:${secret}`)}`, "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ To: recipient, From: from, Body: "Starter Twilio SMS delivery is configured." }),
+  });
+  const payload = (await response.json()) as { sid?: string; status?: string; code?: number; message?: string };
+  if (!response.ok || !payload.sid || !new Set(["queued", "accepted", "sending", "sent"]).has(String(payload.status)))
+    throw new Error(payload.message || (payload.code ? `Twilio error ${payload.code}` : `Twilio returned HTTP ${response.status}.`));
+  return { provider: "twilio-sms", providerSid: payload.sid, status: payload.status, recipientLast4: recipient.slice(-4) };
+}
+
 async function normalizedCfpgConnection(input: unknown, command: unknown) {
   const desiredCommand = String(
     command || (input && typeof input === "object" && "connectCommand" in input
@@ -531,6 +565,8 @@ function localSetupApi(): Plugin {
                   ? String(payload.indexName || "").trim()
                   : provider === "expo-push"
                     ? String(payload.token || "").trim()
+                    : provider === "twilio-sms"
+                      ? String(payload.recipient || "").trim()
                 : String(payload.recipient || "").trim().toLowerCase();
               const key = `${provider}:${discriminator}`;
               const lastTest = recentProviderTests.get(key) || 0;
@@ -547,6 +583,8 @@ function localSetupApi(): Plugin {
                     ? await testVectorizeProvider(payload)
                     : provider === "expo-push"
                       ? await testExpoPushProvider(payload)
+                      : provider === "twilio-sms"
+                        ? await testTwilioSmsProvider(payload)
                   : await testEmailProvider(payload);
               recentProviderTests.set(key, Date.now());
               response.statusCode = 200;

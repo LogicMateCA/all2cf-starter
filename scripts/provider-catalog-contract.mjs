@@ -80,6 +80,7 @@ for (const [categoryId, optionId] of [
   ["ai", "workers-ai"],
   ["search-vector", "vectorize"],
   ["notification-channels", "expo-push"],
+  ["notification-channels", "twilio-sms"],
   ["maps", "mapcn"],
   ["background-realtime", "queues"],
   ["release-platforms", "cloudflare"],

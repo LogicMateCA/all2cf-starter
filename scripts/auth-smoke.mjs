@@ -16,6 +16,7 @@ const mailPort = Number(process.env.STARTER_AUTH_SMOKE_MAIL_PORT || 18789);
 const webhookPort = Number(
   process.env.STARTER_AUTH_SMOKE_WEBHOOK_PORT || 18790,
 );
+const smsPort = Number(process.env.STARTER_AUTH_SMOKE_SMS_PORT || 18791);
 const envPath = path.join(root, ".dev.vars");
 const values = parseEnv(await readFile(envPath, "utf8"));
 const starter = JSON.parse(
@@ -47,6 +48,7 @@ const workersAiSelected = selectedPacks.has("capability.workers-ai");
 const vectorizeSelected = selectedPacks.has("capability.vectorize");
 const searchProvider = blueprint.providers?.search?.provider || "none";
 const expoPushSelected = selectedPacks.has("capability.expo-push");
+const twilioSmsSelected = selectedPacks.has("capability.twilio-sms");
 const origin = remote
   ? `https://${starter.development.domain}`
   : `http://127.0.0.1:${port}`;
@@ -106,8 +108,10 @@ if (!remote && !isolatedDatabaseUrl) {
 let child = null;
 let mailServer = null;
 let webhookServer = null;
+let smsServer = null;
 const mailRequests = [];
 const webhookRequests = [];
+const smsRequests = [];
 let logs = "";
 if (!remote) {
   const tempRoot = path.join(root, "dist/auth-smoke");
@@ -115,7 +119,7 @@ if (!remote) {
   const smokeEnvPath = path.join(tempRoot, ".dev.vars");
   const workerEntryPath = path.join(tempRoot, "worker.ts");
   await mkdir(tempRoot, { recursive: true });
-  if (apiKeysSelected || usageSelected || stripeSelected) {
+  if (apiKeysSelected || usageSelected || stripeSelected || twilioSmsSelected) {
     const smokeImports = [
       `import app from ${JSON.stringify(path.join(root, "workers/app/index.ts"))};`,
       `import { withRequestAuth } from ${JSON.stringify(path.join(root, "workers/app/auth-runtime.ts"))};`,
@@ -127,6 +131,11 @@ if (!remote) {
       ...(stripeSelected
         ? [
             `import { recordBillingNotification } from ${JSON.stringify(path.join(root, "workers/app/features/stripe-auth-plugin.ts"))};`,
+          ]
+        : []),
+      ...(twilioSmsSelected
+        ? [
+            `import { sendTwilioSms } from ${JSON.stringify(path.join(root, "workers/app/features/twilio-sms-worker.ts"))};`,
           ]
         : []),
     ];
@@ -184,6 +193,21 @@ if (!remote) {
     }`,
           ]
         : []),
+      ...(twilioSmsSelected
+        ? [
+            `    if (url.pathname === "/api/__smoke/send-sms" && request.method === "POST") {
+      return withRequestAuth(env, ctx, async (auth, database) => {
+        const session = await auth.api.getSession({ headers: request.headers });
+        if (!session?.user) return Response.json({ error: { code: "UNAUTHORIZED" } }, { status: 401 });
+        const body = await request.json<{ to?: string; idempotencyKey?: string }>();
+        return Response.json({ data: await sendTwilioSms(database, env, {
+          to: String(body.to || ""), body: "Starter SMS smoke test", kind: "starter-smoke",
+          idempotencyKey: String(body.idempotencyKey || ""), actorUserId: session.user.id,
+        }) });
+      });
+    }`,
+          ]
+        : []),
     ];
     await writeFile(
       workerEntryPath,
@@ -224,6 +248,30 @@ ${smokeHandlers.join("\n")}
     mailServer.once("error", reject);
     mailServer.listen(mailPort, "127.0.0.1", resolve);
   });
+  if (twilioSmsSelected) {
+    smsServer = createServer(async (request, response) => {
+      let body = "";
+      for await (const chunk of request) body += chunk;
+      const expectedAuthorization = `Basic ${Buffer.from("SK11111111111111111111111111111111:smoke-twilio-secret").toString("base64")}`;
+      if (
+        request.method !== "POST" ||
+        request.url !== "/2010-04-01/Accounts/AC11111111111111111111111111111111/Messages.json" ||
+        request.headers.authorization !== expectedAuthorization
+      ) {
+        response.writeHead(401, { "Content-Type": "application/json" });
+        response.end(JSON.stringify({ code: 20003, message: "Authentication Error" }));
+        return;
+      }
+      const form = new URLSearchParams(body);
+      smsRequests.push({ headers: request.headers, form: Object.fromEntries(form) });
+      response.writeHead(201, { "Content-Type": "application/json" });
+      response.end(JSON.stringify({ sid: `SM${String(smsRequests.length).padStart(32, "1")}`, status: "queued", error_code: null }));
+    });
+    await new Promise((resolve, reject) => {
+      smsServer.once("error", reject);
+      smsServer.listen(smsPort, "127.0.0.1", resolve);
+    });
+  }
   if (outgoingWebhooksSelected) {
     webhookServer = createServer(async (request, response) => {
       let body = "";
@@ -272,6 +320,12 @@ ${smokeHandlers.join("\n")}
       "TURNSTILE_SECRET_KEY",
       "1x0000000000000000000000000000000AA",
     );
+  if (twilioSmsSelected) {
+    smokeValues.set("TWILIO_ACCOUNT_SID", "AC11111111111111111111111111111111");
+    smokeValues.set("TWILIO_API_KEY", "SK11111111111111111111111111111111");
+    smokeValues.set("TWILIO_API_SECRET", "smoke-twilio-secret");
+    smokeValues.set("TWILIO_FROM", "+14035550100");
+  }
   await writeFile(
     smokeEnvPath,
     renderEnv([...smokeValues.keys()], smokeValues),
@@ -281,7 +335,7 @@ ${smokeHandlers.join("\n")}
     ...baseConfig,
     name: "starter-auth-smoke",
     main:
-      apiKeysSelected || usageSelected || stripeSelected
+      apiKeysSelected || usageSelected || stripeSelected || twilioSmsSelected
         ? workerEntryPath
         : path.join(root, "workers/app/index.ts"),
     vars: {
@@ -290,6 +344,7 @@ ${smokeHandlers.join("\n")}
       AUTH_CANONICAL_ORIGIN: origin,
       AUTH_REQUIRE_EMAIL_VERIFICATION: "true",
       AUTH_EMAIL_PROVIDER: "cfsend",
+      ...(twilioSmsSelected ? { TWILIO_API_BASE_URL: `http://127.0.0.1:${smsPort}` } : {}),
     },
     secrets: {
       required: [...new Set([
@@ -323,6 +378,10 @@ ${smokeHandlers.join("\n")}
     "STRIPE_PRICE_PRO",
     "WEBHOOK_SIGNING_KEY",
     "TURNSTILE_SECRET_KEY",
+    "TWILIO_ACCOUNT_SID",
+    "TWILIO_API_KEY",
+    "TWILIO_API_SECRET",
+    "TWILIO_FROM",
   ]) delete smokeChildEnv[name];
   child = spawn(
     process.execPath,
@@ -834,6 +893,46 @@ try {
     "anonymous user could access notifications",
   );
   const currentUserId = session.payload.data.user.id;
+  if (twilioSmsSelected) {
+    const deniedSmsAdmin = await request("/api/admin/sms/test", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Cookie: cookie, Origin: origin },
+      body: JSON.stringify({ to: "+14035550123" }),
+    });
+    const smsIdempotencyKey = `sms-smoke-${randomUUID()}`;
+    const firstSms = await request("/api/__smoke/send-sms", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Cookie: cookie, Origin: origin },
+      body: JSON.stringify({ to: "+14035550123", idempotencyKey: smsIdempotencyKey }),
+    });
+    const replayedSms = await request("/api/__smoke/send-sms", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Cookie: cookie, Origin: origin },
+      body: JSON.stringify({ to: "+14035550123", idempotencyKey: smsIdempotencyKey }),
+    });
+    const smsEvidence = await database.query(
+      `select recipient_hash, recipient_last4, provider_sid, status, error_code
+         from app_sms_delivery where idempotency_key = $1`,
+      [smsIdempotencyKey],
+    );
+    assert(
+      deniedSmsAdmin.response.status === 403 &&
+        firstSms.response.status === 200 &&
+        firstSms.payload?.data?.duplicate === false &&
+        firstSms.payload?.data?.providerSid?.startsWith("SM") &&
+        replayedSms.response.status === 200 &&
+        replayedSms.payload?.data?.duplicate === true &&
+        smsRequests.length === 1 &&
+        smsRequests[0]?.form?.To === "+14035550123" &&
+        smsRequests[0]?.form?.From === "+14035550100" &&
+        smsRequests[0]?.form?.Body === "Starter SMS smoke test" &&
+        smsEvidence.rows[0]?.recipient_hash !== "+14035550123" &&
+        smsEvidence.rows[0]?.recipient_last4 === "0123" &&
+        smsEvidence.rows[0]?.status === "queued",
+      "Twilio SMS authorization, form, idempotency, or privacy evidence failed",
+    );
+    checks.push("twilio-sms-admin-denial-basic-auth-form-idempotency-hashed-recipient-provider-sid");
+  }
   if (expoPushSelected) {
     const anonymousPushDevices = await request("/api/push/devices", { headers: { Origin: origin } });
     assert(anonymousPushDevices.response.status === 401, "anonymous user could list push devices");
@@ -2290,6 +2389,7 @@ try {
   const workersAiHealth = healthComponents.get("workers-ai");
   const searchHealth = healthComponents.get("product-search");
   const expoPushHealth = healthComponents.get("expo-push");
+  const twilioSmsHealth = healthComponents.get("twilio-sms");
   assert(
     operationsHealth.response.status === 200 &&
       operationsHealth.payload?.data?.service === "starter" &&
@@ -2300,6 +2400,17 @@ try {
       emailHealth?.details?.sent24h >= 1 &&
       googleHealth?.details?.configured === true,
     "operations health omitted active database, CFsend, or Google evidence",
+  );
+  assert(
+    twilioSmsSelected
+      ? twilioSmsHealth?.status === "ok" &&
+          twilioSmsHealth?.details?.selected === true &&
+          twilioSmsHealth?.details?.configured === true &&
+          twilioSmsHealth?.details?.ledgerReady === true &&
+          twilioSmsHealth?.details?.accepted24h >= 1
+      : twilioSmsHealth?.status === "not-selected" &&
+          twilioSmsHealth?.details?.selected === false,
+    "operations health returned incorrect Twilio SMS readiness evidence",
   );
   assert(
     expoPushSelected
@@ -3233,6 +3344,7 @@ try {
   if (mailServer) await new Promise((resolve) => mailServer.close(resolve));
   if (webhookServer)
     await new Promise((resolve) => webhookServer.close(resolve));
+  if (smsServer) await new Promise((resolve) => smsServer.close(resolve));
   if (scratchAdmin && scratchDatabase) {
     await scratchAdmin
       .query(`drop database if exists "${scratchDatabase}" with (force)`)

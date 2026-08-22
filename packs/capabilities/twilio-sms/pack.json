@@ -1,0 +1,23 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "capability.twilio-sms",
+  "version": "0.1.0",
+  "source": {
+    "name": "Twilio Programmable Messaging",
+    "url": "https://www.twilio.com/docs/messaging/api/message-resource",
+    "revision": "2010-04-01",
+    "license": "proprietary-service",
+    "relationship": "tracked-upstream"
+  },
+  "files": [
+    { "source": "templates/twilio-sms-worker.ts", "target": "workers/app/features/twilio-sms-worker.ts" },
+    { "source": "templates/1103_twilio_sms.sql", "target": "db/migrations/1103_twilio_sms.sql" }
+  ],
+  "dependencies": [],
+  "routes": [],
+  "workerFeature": { "module": "../features/twilio-sms-worker", "export": "twilioSmsFeature" },
+  "cloudflare": {
+    "requiredSecrets": ["TWILIO_ACCOUNT_SID", "TWILIO_API_KEY", "TWILIO_API_SECRET", "TWILIO_FROM"]
+  }
+}

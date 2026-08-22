@@ -65,6 +65,12 @@ export type AuthRuntimeEnv = {
   EXPO_PUSH_PROJECT_ID?: string;
   EXPO_PUSH_ACCESS_TOKEN_REQUIRED?: string;
   EXPO_PUSH_ACCESS_TOKEN?: string;
+  SMS_PROVIDER?: string;
+  TWILIO_API_BASE_URL?: string;
+  TWILIO_ACCOUNT_SID?: string;
+  TWILIO_API_KEY?: string;
+  TWILIO_API_SECRET?: string;
+  TWILIO_FROM?: string;
 };
 
 type RequestExecutionContext = Pick<ExecutionContext, "waitUntil">;

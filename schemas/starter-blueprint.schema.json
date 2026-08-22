@@ -90,6 +90,12 @@
       "properties": {
         "projectId": { "type": "string", "pattern": "^(|[0-9a-fA-F-]{36})$" }
       }
+    },
+    "twilioEnvironment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["apiBaseUrl"],
+      "properties": { "apiBaseUrl": { "type": "string", "pattern": "^https://" } }
     }
   },
   "properties": {
@@ -268,6 +274,7 @@
         "ai",
         "search",
         "push",
+        "sms",
         "email",
         "billing",
         "release"
@@ -387,6 +394,16 @@
             "accessTokenRequired": { "type": "boolean" },
             "development": { "$ref": "#/$defs/expoPushEnvironment" },
             "production": { "$ref": "#/$defs/expoPushEnvironment" }
+          }
+        },
+        "sms": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["provider", "development", "production"],
+          "properties": {
+            "provider": { "enum": ["none", "twilio"] },
+            "development": { "$ref": "#/$defs/twilioEnvironment" },
+            "production": { "$ref": "#/$defs/twilioEnvironment" }
           }
         },
         "email": {

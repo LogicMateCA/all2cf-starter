@@ -46,6 +46,10 @@ export const providerSetupLinks = {
     { label: "Expo Push setup", href: "https://docs.expo.dev/push-notifications/push-notifications-setup/" },
     { label: "Expo credentials", href: "https://expo.dev/accounts" },
   ],
+  "twilio-sms": [
+    { label: "Twilio API keys", href: "https://console.twilio.com/us1/account/keys-credentials/api-keys" },
+    { label: "Twilio phone numbers", href: "https://console.twilio.com/us1/develop/phone-numbers/manage/incoming" },
+  ],
 } as const;
 
 export type ProviderSetupLinkId = keyof typeof providerSetupLinks;

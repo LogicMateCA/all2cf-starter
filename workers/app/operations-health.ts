@@ -340,6 +340,50 @@ export async function collectOperationsHealth(
     });
   }
 
+  const smsTable = await relationExists(database, "app_sms_delivery");
+  const twilioSmsSelected = env.SMS_PROVIDER === "twilio" || smsTable;
+  if (!twilioSmsSelected) {
+    components.push({
+      id: "twilio-sms",
+      label: "Twilio SMS",
+      status: "not-selected",
+      summary: "SMS delivery is not materialized.",
+      details: { selected: false },
+    });
+  } else {
+    const smsConfiguration = requiredConfiguration([
+      ["TWILIO_API_BASE_URL", env.TWILIO_API_BASE_URL],
+      ["TWILIO_ACCOUNT_SID", env.TWILIO_ACCOUNT_SID],
+      ["TWILIO_API_KEY", env.TWILIO_API_KEY],
+      ["TWILIO_API_SECRET", env.TWILIO_API_SECRET],
+      ["TWILIO_FROM", env.TWILIO_FROM],
+    ]);
+    const evidence = smsTable ? await database.query<{ accepted_24h: string; failed_24h: string; last_provider_sid: string | null }>(
+      `select
+        count(*) filter (where status in ('queued','accepted','sending','sent','delivered') and created_at > now() - interval '24 hours')::text as accepted_24h,
+        count(*) filter (where status in ('failed','undelivered') and created_at > now() - interval '24 hours')::text as failed_24h,
+        max(provider_sid) filter (where provider_sid is not null) as last_provider_sid
+       from app_sms_delivery`,
+    ) : null;
+    components.push({
+      id: "twilio-sms",
+      label: "Twilio SMS",
+      status: smsConfiguration.configured && smsTable ? "ok" : "attention",
+      summary: smsConfiguration.configured && smsTable
+        ? "Twilio API-key configuration and idempotency ledger are ready."
+        : "Selected Twilio SMS configuration is incomplete.",
+      details: {
+        selected: true,
+        configured: smsConfiguration.configured,
+        ledgerReady: smsTable,
+        missing: smsConfiguration.missing.join(", ") || null,
+        accepted24h: Number(evidence?.rows[0]?.accepted_24h || 0),
+        failed24h: Number(evidence?.rows[0]?.failed_24h || 0),
+        lastProviderSid: evidence?.rows[0]?.last_provider_sid || null,
+      },
+    });
+  }
+
   const stripeTable = await relationExists(database, "app_stripe_webhook_event");
   const stripeSelected =
     stripeTable ||

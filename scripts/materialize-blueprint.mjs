@@ -470,6 +470,11 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
       throw new Error(`${path.relative(root, configPath)} changed materializer-owned push variable ${name}`);
     delete model.vars[name];
   }
+  for (const [name, value] of Object.entries(previousRuntime?.smsVars || {})) {
+    if (model.vars[name] !== value)
+      throw new Error(`${path.relative(root, configPath)} changed materializer-owned SMS variable ${name}`);
+    delete model.vars[name];
+  }
   const vectorize = Array.isArray(model.vectorize) ? structuredClone(model.vectorize) : [];
   if (previousRuntime?.vectorizeBinding) {
     const index = vectorize.findIndex(
@@ -555,6 +560,13 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
     pushVars.EXPO_PUSH_PROJECT_ID = blueprint.providers.push[environment].projectId;
     pushVars.EXPO_PUSH_ACCESS_TOKEN_REQUIRED = String(blueprint.providers.push.accessTokenRequired);
   }
+  const smsVars = {};
+  if (blueprint.providers.sms.provider === "twilio") {
+    model.vars.SMS_PROVIDER = "twilio";
+    model.vars.TWILIO_API_BASE_URL = blueprint.providers.sms[environment].apiBaseUrl;
+    smsVars.SMS_PROVIDER = "twilio";
+    smsVars.TWILIO_API_BASE_URL = blueprint.providers.sms[environment].apiBaseUrl;
+  }
   const queues = model.queues || { producers: [], consumers: [] };
   queues.producers ||= [];
   queues.consumers ||= [];
@@ -597,6 +609,7 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
     vectorizeBinding,
     vectorizeVars,
     pushVars,
+    smsVars,
     r2Buckets: receiptR2Buckets,
     storageVars,
   };
@@ -991,6 +1004,11 @@ if (expoPushPackSelected !== (blueprint.providers.push.provider === "expo-push")
   );
 if (expoPushPackSelected && blueprint.providers.push.accessTokenRequired)
   desiredCloudflareSecrets.set("EXPO_PUSH_ACCESS_TOKEN", "capability.expo-push");
+const twilioSmsPackSelected = selected.has("capability.twilio-sms");
+if (twilioSmsPackSelected !== (blueprint.providers.sms.provider === "twilio"))
+  throw new Error(
+    "Twilio SMS Pack selection must match the Blueprint SMS Provider.",
+  );
 
 desiredRoutes.sort((left, right) => left.path.localeCompare(right.path));
 const desiredWorkerFirstRoutes = desiredRoutes

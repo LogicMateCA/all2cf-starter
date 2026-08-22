@@ -23,6 +23,7 @@ const storageProvider = blueprint.providers?.storage?.provider || "none";
 const antiAbuseProvider = blueprint.providers?.antiAbuse?.provider || "none";
 const searchProvider = blueprint.providers?.search?.provider || "none";
 const pushProvider = blueprint.providers?.push?.provider || "none";
+const smsProvider = blueprint.providers?.sms?.provider || "none";
 const env = parseEnv(await readFile(path.join(root, ".dev.vars"), "utf8"));
 const providers = JSON.parse(await readFile(path.join(root, "profiles/providers.json"), "utf8"));
 const profilePath = process.env.STARTER_DEV_PROFILE_PATH || providers.defaultPath;
@@ -116,6 +117,12 @@ function syncWorkerSecrets(environment, wranglerConfig) {
           ? "STARTER_PRODUCTION_EXPO_PUSH_ACCESS_TOKEN"
           : "EXPO_PUSH_ACCESS_TOKEN",
       ),
+    } : {}),
+    ...(smsProvider === "twilio" ? {
+      TWILIO_ACCOUNT_SID: required(environment === "production" ? "STARTER_PRODUCTION_TWILIO_ACCOUNT_SID" : "TWILIO_ACCOUNT_SID"),
+      TWILIO_API_KEY: required(environment === "production" ? "STARTER_PRODUCTION_TWILIO_API_KEY" : "TWILIO_API_KEY"),
+      TWILIO_API_SECRET: required(environment === "production" ? "STARTER_PRODUCTION_TWILIO_API_SECRET" : "TWILIO_API_SECRET"),
+      TWILIO_FROM: required(environment === "production" ? "STARTER_PRODUCTION_TWILIO_FROM" : "TWILIO_FROM"),
     } : {}),
   };
   const result = spawnSync("npx", ["wrangler", "secret", "bulk", "--config", wranglerConfig], {

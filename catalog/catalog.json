@@ -1073,6 +1073,24 @@
       "documentation": ["ARCHITECTURE.md", "features/notifications/MODULE.md", "features/mobile/MODULE.md"]
     },
     {
+      "id": "capability.twilio-sms",
+      "kind": "capability",
+      "name": "Twilio SMS",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": ["worker", "admin"],
+      "ownership": "starter-owned",
+      "source": [{ "name": "Twilio Programmable Messaging", "url": "https://www.twilio.com/docs/messaging/api/message-resource", "revision": "2010-04-01", "license": "proprietary-service", "relationship": "tracked-upstream" }],
+      "updatePolicy": "provider-contract",
+      "provides": ["server-only SMS helper", "SQL idempotency ledger", "recipient hash and provider SID evidence", "Admin fixed-message test"],
+      "requires": ["separate environment API credentials", "E.164 sender", "verified recipient and regulatory compliance", "delivery-status verification"],
+      "conflicts": ["client-selected identity recipient", "stored SMS body", "automatic OTP use"],
+      "performance": ["single provider request per idempotency key", "bounded 1000-character body", "no SDK dependency"],
+      "verification": ["mock authorization/form contract", "idempotent replay", "provider SID/error evidence", "real phone delivery", "clean removal"],
+      "documentation": ["ARCHITECTURE.md", "features/notifications/MODULE.md", "features/admin/MODULE.md"]
+    },
+    {
       "id": "capability.mapcn-web",
       "kind": "capability",
       "name": "MapCN Web maps",
