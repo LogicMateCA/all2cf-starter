@@ -247,6 +247,7 @@
         "database",
         "storage",
         "antiAbuse",
+        "ai",
         "email",
         "billing",
         "release"
@@ -318,6 +319,32 @@
               "additionalProperties": false,
               "required": ["siteKey"],
               "properties": { "siteKey": { "type": "string", "maxLength": 128 } }
+            }
+          }
+        },
+        "ai": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["provider", "development", "production"],
+          "properties": {
+            "provider": { "enum": ["none", "workers-ai"] },
+            "development": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["model", "gatewayId"],
+              "properties": {
+                "model": { "type": "string", "pattern": "^@cf/[a-z0-9._-]+/[a-z0-9._-]+$" },
+                "gatewayId": { "type": "string", "pattern": "^(|[a-z0-9][a-z0-9_-]{0,63})$" }
+              }
+            },
+            "production": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["model", "gatewayId"],
+              "properties": {
+                "model": { "type": "string", "pattern": "^@cf/[a-z0-9._-]+/[a-z0-9._-]+$" },
+                "gatewayId": { "type": "string", "pattern": "^(|[a-z0-9][a-z0-9_-]{0,63})$" }
+              }
             }
           }
         },

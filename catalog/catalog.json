@@ -1004,6 +1004,39 @@
       "documentation": ["ARCHITECTURE.md", "features/auth/MODULE.md"]
     },
     {
+      "id": "capability.workers-ai",
+      "kind": "capability",
+      "name": "Cloudflare Workers AI",
+      "version": "0.1.0",
+      "status": "local-verified",
+      "delivery": "materializer",
+      "targets": ["worker", "admin"],
+      "ownership": "starter-owned",
+      "source": [
+        {
+          "name": "Cloudflare Workers AI and AI Gateway",
+          "url": "https://developers.cloudflare.com/ai-gateway/usage/worker-binding-methods/",
+          "relationship": "platform-provider"
+        }
+      ],
+      "updatePolicy": "runtime-stable",
+      "provides": [
+        "server-only Workers AI helper",
+        "optional AI Gateway routing and log identity",
+        "platform Admin binding test",
+        "local Cloudflare REST verification action"
+      ],
+      "requires": [
+        "explicit environment model selection",
+        "Cloudflare AI Binding",
+        "remote provider verification before Development acceptance"
+      ],
+      "conflicts": ["client-side model credentials", "unbounded public inference endpoint", "silent model fallback"],
+      "performance": ["no AI code or binding when deselected", "bounded prompts and test output", "Gateway metadata without user content"],
+      "verification": ["Cloudflare REST model test", "generated binding types", "selected Worker dry-run", "clean removal", "Development binding call"],
+      "documentation": ["ARCHITECTURE.md", "features/ai/MODULE.md", "features/admin/MODULE.md"]
+    },
+    {
       "id": "capability.mapcn-web",
       "kind": "capability",
       "name": "MapCN Web maps",

@@ -132,6 +132,24 @@ export function validateAssemblyContracts(
     failures.push("Blueprint is missing capability.turnstile selection state");
   else if (turnstileSelection.lifecycle.selected !== (antiAbuse.provider === "turnstile"))
     failures.push("Turnstile Pack selection must match the anti-abuse Provider");
+  const aiPolicy = blueprint.providers?.ai || {};
+  if (!new Set(["none", "workers-ai"]).has(aiPolicy.provider))
+    failures.push("Blueprint AI provider must be none or workers-ai");
+  for (const environment of ["development", "production"]) {
+    const model = String(aiPolicy[environment]?.model || "");
+    const gatewayId = String(aiPolicy[environment]?.gatewayId || "");
+    if (!/^@cf\/[a-z0-9._-]+\/[a-z0-9._-]+$/u.test(model))
+      failures.push(`Blueprint ${environment} Workers AI model is invalid`);
+    if (!/^(?:|[a-z0-9][a-z0-9_-]{0,63})$/u.test(gatewayId))
+      failures.push(`Blueprint ${environment} AI Gateway ID is invalid`);
+  }
+  const workersAiSelection = Object.values(blueprint.selections || {})
+    .flat()
+    .find(({ id }) => id === "capability.workers-ai");
+  if (!workersAiSelection)
+    failures.push("Blueprint is missing capability.workers-ai selection state");
+  else if (workersAiSelection.lifecycle.selected !== (aiPolicy.provider === "workers-ai"))
+    failures.push("Workers AI Pack selection must match the AI Provider");
 
   const packIds = new Set();
   const packs = new Map();

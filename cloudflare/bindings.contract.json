@@ -34,6 +34,12 @@
       "requiredWhen": "storage.provider=cloudflare-r2",
       "resourceIsolation": "Use distinct Development and Production buckets."
     },
+    "AI": {
+      "kind": "workers_ai",
+      "status": "optional-workers-ai-pack",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "ai.provider=workers-ai"
+    },
     "STARTER_QUEUE": {
       "kind": "queue",
       "status": "future",

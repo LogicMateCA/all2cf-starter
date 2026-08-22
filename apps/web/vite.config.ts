@@ -261,6 +261,64 @@ async function testTurnstileProvider(input: unknown) {
   };
 }
 
+async function testWorkersAiProvider(input: unknown) {
+  if (!input || typeof input !== "object")
+    throw new Error("Provider test payload is required.");
+  const body = input as { model?: unknown; gatewayId?: unknown };
+  const model = String(body.model || "").trim();
+  const gatewayId = String(body.gatewayId || "").trim();
+  if (!/^@cf\/[a-z0-9._-]+\/[a-z0-9._-]+$/u.test(model))
+    throw new Error("Enter a valid Workers AI model such as @cf/meta/llama-3.1-8b-instruct.");
+  if (!/^(?:|[a-z0-9][a-z0-9_-]{0,63})$/u.test(gatewayId))
+    throw new Error("AI Gateway ID contains unsupported characters.");
+  const providers = JSON.parse(
+    await readFile(path.join(repositoryRoot, "profiles/providers.json"), "utf8"),
+  ) as { defaultPath: string };
+  const profilePath = process.env.STARTER_DEV_PROFILE_PATH || providers.defaultPath;
+  const [project, shared] = await Promise.all([
+    readOptionalEnv(path.join(repositoryRoot, ".dev.vars")),
+    readOptionalEnv(profilePath),
+  ]);
+  const token = project.get("CLOUDFLARE_API_TOKEN") || shared.get("CLOUDFLARE_API_TOKEN") || "";
+  const accountId = project.get("CLOUDFLARE_ACCOUNT_ID") || shared.get("CLOUDFLARE_ACCOUNT_ID") || "";
+  if (!token || !accountId)
+    throw new Error("Cloudflare API token and account ID are required for the real Workers AI test.");
+  const response = await fetch(
+    `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(accountId)}/ai/run/${model}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        ...(gatewayId ? { "cf-aig-gateway-id": gatewayId } : {}),
+      },
+      body: JSON.stringify({
+        messages: [{ role: "user", content: "Reply with exactly STARTER_AI_OK." }],
+        max_tokens: 32,
+      }),
+    },
+  );
+  const payload = (await response.json()) as {
+    success?: boolean;
+    result?: { response?: string } | string;
+    errors?: Array<{ code?: number; message?: string }>;
+  };
+  if (!response.ok || payload.success === false)
+    throw new Error(
+      payload.errors?.map(({ code, message }) => `${code || "error"}: ${message || "unknown"}`).join("; ") ||
+        `Workers AI returned HTTP ${response.status}.`,
+    );
+  const text = typeof payload.result === "string"
+    ? payload.result
+    : String(payload.result?.response || "");
+  return {
+    provider: "workers-ai",
+    model,
+    gatewayId: gatewayId || null,
+    response: text.slice(0, 160),
+  };
+}
+
 async function normalizedCfpgConnection(input: unknown, command: unknown) {
   const desiredCommand = String(
     command || (input && typeof input === "object" && "connectCommand" in input
@@ -372,7 +430,10 @@ function localSetupApi(): Plugin {
               }
               const payload = await readRequestJson(request);
               const provider = String(payload.provider || "").trim().toLowerCase();
-              const key = `${provider}:${String(payload.recipient || "").trim().toLowerCase()}`;
+              const discriminator = provider === "workers-ai"
+                ? `${String(payload.model || "").trim()}:${String(payload.gatewayId || "").trim()}`
+                : String(payload.recipient || "").trim().toLowerCase();
+              const key = `${provider}:${discriminator}`;
               const lastTest = recentProviderTests.get(key) || 0;
               if (Date.now() - lastTest < 10_000) {
                 response.statusCode = 429;
@@ -381,7 +442,9 @@ function localSetupApi(): Plugin {
               }
               const result = provider === "turnstile"
                 ? await testTurnstileProvider(payload)
-                : await testEmailProvider(payload);
+                : provider === "workers-ai"
+                  ? await testWorkersAiProvider(payload)
+                  : await testEmailProvider(payload);
               recentProviderTests.set(key, Date.now());
               response.statusCode = 200;
               response.end(json({ ok: true, result }));

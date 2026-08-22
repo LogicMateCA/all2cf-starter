@@ -34,6 +34,10 @@ export const providerSetupLinks = {
     { label: "Create Turnstile widgets", href: "https://dash.cloudflare.com/?to=/:account/turnstile" },
     { label: "Turnstile setup guide", href: "https://developers.cloudflare.com/turnstile/get-started/" },
   ],
+  "workers-ai": [
+    { label: "Workers AI models", href: "https://developers.cloudflare.com/workers-ai/models/" },
+    { label: "AI Gateway", href: "https://dash.cloudflare.com/?to=/:account/ai/ai-gateway" },
+  ],
 } as const;
 
 export type ProviderSetupLinkId = keyof typeof providerSetupLinks;

@@ -440,6 +440,16 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
       throw new Error(`${path.relative(root, configPath)} changed materializer-owned anti-abuse variable ${name}`);
     delete model.vars[name];
   }
+  for (const [name, value] of Object.entries(previousRuntime?.aiVars || {})) {
+    if (model.vars[name] !== value)
+      throw new Error(`${path.relative(root, configPath)} changed materializer-owned AI variable ${name}`);
+    delete model.vars[name];
+  }
+  if (previousRuntime?.aiBinding) {
+    if (model.ai?.binding !== previousRuntime.aiBinding.binding)
+      throw new Error(`${path.relative(root, configPath)} changed materializer-owned AI binding`);
+    delete model.ai;
+  }
   const storage = blueprint.providers.storage;
   const storageEnvironment = storage[environment];
   const storageVars = {};
@@ -473,6 +483,20 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
     model.vars.TURNSTILE_SITE_KEY = blueprint.providers.antiAbuse[environment].siteKey;
     antiAbuseVars.TURNSTILE_PROVIDER = "turnstile";
     antiAbuseVars.TURNSTILE_SITE_KEY = blueprint.providers.antiAbuse[environment].siteKey;
+  }
+  const aiVars = {};
+  let aiBinding = null;
+  if (blueprint.providers.ai.provider === "workers-ai") {
+    if (model.ai)
+      throw new Error(`${path.relative(root, configPath)} already owns an AI binding`);
+    model.ai = { binding: "AI" };
+    aiBinding = { binding: "AI" };
+    model.vars.AI_PROVIDER = "workers-ai";
+    model.vars.AI_MODEL = blueprint.providers.ai[environment].model;
+    model.vars.AI_GATEWAY_ID = blueprint.providers.ai[environment].gatewayId;
+    aiVars.AI_PROVIDER = "workers-ai";
+    aiVars.AI_MODEL = blueprint.providers.ai[environment].model;
+    aiVars.AI_GATEWAY_ID = blueprint.providers.ai[environment].gatewayId;
   }
   const queues = model.queues || { producers: [], consumers: [] };
   queues.producers ||= [];
@@ -511,6 +535,8 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
     requiredSecrets: [],
     database: receiptDatabase,
     antiAbuseVars,
+    aiBinding,
+    aiVars,
     r2Buckets: receiptR2Buckets,
     storageVars,
   };
@@ -884,6 +910,11 @@ const turnstilePackSelected = selected.has("capability.turnstile");
 if (turnstilePackSelected !== (blueprint.providers.antiAbuse.provider === "turnstile"))
   throw new Error(
     "Turnstile Pack selection must match the Blueprint anti-abuse Provider.",
+  );
+const workersAiPackSelected = selected.has("capability.workers-ai");
+if (workersAiPackSelected !== (blueprint.providers.ai.provider === "workers-ai"))
+  throw new Error(
+    "Workers AI Pack selection must match the Blueprint AI Provider.",
   );
 
 desiredRoutes.sort((left, right) => left.path.localeCompare(right.path));

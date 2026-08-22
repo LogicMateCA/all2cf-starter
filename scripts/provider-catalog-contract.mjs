@@ -77,6 +77,7 @@ for (const [categoryId, optionId] of [
   ["object-storage", "cloudflare-r2"],
   ["object-storage", "s3-compatible"],
   ["anti-abuse", "turnstile"],
+  ["ai", "workers-ai"],
   ["maps", "mapcn"],
   ["background-realtime", "queues"],
   ["release-platforms", "cloudflare"],

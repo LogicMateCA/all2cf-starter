@@ -31,6 +31,7 @@
     "onboarding",
     "support",
     "storage",
+    "ai",
     "admin",
     "operations",
     "mobile",
@@ -95,6 +96,11 @@
     {
       "area": "Anti-abuse",
       "choice": "Optional Cloudflare Turnstile through Better Auth Captcha with separate environment widgets, client challenge tokens, mandatory server Siteverify and receipt-safe removal",
+      "status": "local-verified"
+    },
+    {
+      "area": "AI",
+      "choice": "Optional Cloudflare Workers AI Binding with per-environment model, optional AI Gateway, bounded server helper, real Setup inference test and no runtime when unselected",
       "status": "local-verified"
     },
     {

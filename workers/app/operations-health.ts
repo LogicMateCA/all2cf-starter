@@ -221,6 +221,38 @@ export async function collectOperationsHealth(
     });
   }
 
+  const workersAiSelected = env.AI_PROVIDER === "workers-ai";
+  if (!workersAiSelected) {
+    components.push({
+      id: "workers-ai",
+      label: "Cloudflare Workers AI",
+      status: "not-selected",
+      summary: "Workers AI is not materialized.",
+      details: { selected: false },
+    });
+  } else {
+    const aiConfiguration = requiredConfiguration([
+      ["AI", env.AI],
+      ["AI_MODEL", env.AI_MODEL],
+    ]);
+    components.push({
+      id: "workers-ai",
+      label: "Cloudflare Workers AI",
+      status: aiConfiguration.configured ? "ok" : "attention",
+      summary: aiConfiguration.configured
+        ? "AI Binding and environment model are configured."
+        : "Selected Workers AI configuration is incomplete.",
+      details: {
+        selected: true,
+        configured: aiConfiguration.configured,
+        bindingReady: Boolean(env.AI),
+        model: env.AI_MODEL || null,
+        gatewayId: env.AI_GATEWAY_ID || null,
+        missing: aiConfiguration.missing.join(", ") || null,
+      },
+    });
+  }
+
   const stripeTable = await relationExists(database, "app_stripe_webhook_event");
   const stripeSelected =
     stripeTable ||

@@ -57,6 +57,11 @@ type AntiAbusePolicy = {
   development: { siteKey: string };
   production: { siteKey: string };
 };
+type AiPolicy = {
+  provider: "none" | "workers-ai";
+  development: { model: string; gatewayId: string };
+  production: { model: string; gatewayId: string };
+};
 type CfpgConnection = {
   connectCommand: string;
   databaseId: string;
@@ -113,6 +118,7 @@ type Blueprint = {
     database: DatabasePolicy;
     storage: StoragePolicy;
     antiAbuse: AntiAbusePolicy;
+    ai: AiPolicy;
     email: { default: string; alternatives: string[] };
     billing: string;
     release: string;
@@ -615,6 +621,7 @@ export function SetupPage() {
   const [providerTest, setProviderTest] = useState<ProviderTestState>({ status: "idle" });
   const [turnstileToken, setTurnstileToken] = useState("");
   const [turnstileTest, setTurnstileTest] = useState<ProviderTestState>({ status: "idle" });
+  const [workersAiTest, setWorkersAiTest] = useState<ProviderTestState>({ status: "idle" });
   const [cfpgCommands, setCfpgCommands] = useState({ development: "", production: "" });
   const [stylekitQuery, setStylekitQuery] = useState("");
   const [stylekitCategory, setStylekitCategory] = useState("all");
@@ -827,6 +834,26 @@ export function SetupPage() {
       setTurnstileTest({ status: "error", provider: "turnstile", message: error instanceof Error ? error.message : String(error) });
     }
   };
+  const runWorkersAiTest = async () => {
+    setWorkersAiTest({ status: "testing", provider: "workers-ai" });
+    try {
+      const environment = payload.blueprint.providers.ai.development;
+      const response = await fetch("/__starter/provider-test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ provider: "workers-ai", model: environment.model, gatewayId: environment.gatewayId }),
+      });
+      const result = (await response.json()) as {
+        error?: string;
+        result?: { model: string; gatewayId: string | null; response: string };
+      };
+      if (!response.ok || !result.result)
+        throw new Error(result.error || `Workers AI test returned HTTP ${response.status}.`);
+      setWorkersAiTest({ status: "success", provider: "workers-ai", message: `${result.result.model} responded${result.result.gatewayId ? ` through ${result.result.gatewayId}` : " directly"}: ${result.result.response || "response received"}` });
+    } catch (error) {
+      setWorkersAiTest({ status: "error", provider: "workers-ai", message: error instanceof Error ? error.message : String(error) });
+    }
+  };
   const updateIdentity = (key: "name" | "slug", value: string) => {
     updateBlueprint((blueprint) => ({
       ...blueprint,
@@ -929,6 +956,14 @@ export function SetupPage() {
                     provider: selected ? "turnstile" : "none",
                   },
                 }
+            : pack.id === "capability.workers-ai"
+              ? {
+                  ...blueprint.providers,
+                  ai: {
+                    ...blueprint.providers.ai,
+                    provider: selected ? "workers-ai" : "none",
+                  },
+                }
             : blueprint.providers,
       };
     });
@@ -972,6 +1007,29 @@ export function SetupPage() {
                 lifecycle: selectLifecycle(
                   selection.lifecycle,
                   provider === "turnstile",
+                ),
+              }
+            : selection,
+        ),
+      },
+    }));
+  const setAiProvider = (provider: AiPolicy["provider"]) =>
+    updateBlueprint((blueprint) => ({
+      ...blueprint,
+      preset: "custom",
+      providers: {
+        ...blueprint.providers,
+        ai: { ...blueprint.providers.ai, provider },
+      },
+      selections: {
+        ...blueprint.selections,
+        capabilities: blueprint.selections.capabilities.map((selection) =>
+          selection.id === "capability.workers-ai"
+            ? {
+                ...selection,
+                lifecycle: selectLifecycle(
+                  selection.lifecycle,
+                  provider === "workers-ai",
                 ),
               }
             : selection,
@@ -1887,6 +1945,20 @@ export function SetupPage() {
               </section>
 
               <section className="setup-panel provider-section">
+                <header><h2>AI models and Gateway</h2><p>Workers AI keeps inference inside the Cloudflare runtime. AI Gateway is an optional per-environment overlay for logs, caching, routing and billing; no client API key is exposed.</p></header>
+                <div className="provider-option-grid" role="radiogroup" aria-label="AI Provider">
+                  {[
+                    { id: "none", name: "None", note: "No AI Binding, model traffic or AI runtime code." },
+                    { id: "workers-ai", name: "Cloudflare Workers AI", note: "Native AI Binding with an optional AI Gateway ID." },
+                  ].map(({ id, name, note }) => {
+                    const selected = payload.blueprint.providers.ai.provider === id;
+                    return <div className={selected ? "provider-option selected" : "provider-option"} key={id}><label><input type="radio" name="ai-provider" checked={selected} onChange={() => setAiProvider(id as AiPolicy["provider"])} /><span><strong>{name}</strong><small>{note}</small></span></label></div>;
+                  })}
+                </div>
+                {payload.blueprint.providers.ai.provider === "workers-ai" ? <div className="storage-provider-config"><div className="storage-environment-grid">{(["development", "production"] as const).map((environment) => { const value = payload.blueprint.providers.ai[environment]; const update = (patch: Partial<AiPolicy[typeof environment]>) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, ai: { ...blueprint.providers.ai, [environment]: { ...blueprint.providers.ai[environment], ...patch } } } })); return <div key={environment}><h3>{environment === "development" ? "Development AI" : "Production AI"}</h3><Field label="Workers AI model" value={value.model} onChange={(model) => update({ model })} /><Field label="AI Gateway ID (optional)" value={value.gatewayId} onChange={(gatewayId) => update({ gatewayId })} /><p>Leave Gateway empty for a direct Binding call. Use an existing Gateway ID or <code>default</code> to let Cloudflare create/use the account default on the first authenticated request.</p></div>; })}</div><div className="provider-resource-links">{providerSetupLinks["workers-ai"].map((link) => <a href={link.href} target="_blank" rel="noreferrer" key={link.href}>{link.label}<ExternalLink size={14} /></a>)}</div><div className="provider-email-test"><div><strong>Real Workers AI test</strong><p>Uses the saved Cloudflare account token to call the selected Development model. The prompt is fixed and output is bounded.</p></div><Button type="button" variant="outline" disabled={workersAiTest.status === "testing" || !payload.blueprint.providers.ai.development.model} onClick={() => void runWorkersAiTest()}>{workersAiTest.status === "testing" ? "Running Workers AI" : "Test Development model"}</Button>{workersAiTest.message ? <p className={workersAiTest.status === "success" ? "provider-test-result success" : "provider-test-result error"} role="status">{workersAiTest.message}</p> : null}</div><div className="provider-live-test"><Button asChild type="button" size="sm" variant="outline"><a href={`https://${payload.config.development.domain}/admin`} target="_blank" rel="noreferrer">Test deployed AI Binding<ExternalLink size={13} /></a></Button><small>The local REST test proves provider access; Development acceptance still requires the deployed Worker Binding and Admin test route.</small></div></div> : null}
+              </section>
+
+              <section className="setup-panel provider-section">
                 <header><h2>Social sign-in</h2><p>Select the providers this project will support. Credentials may be inherited, entered now, or configured later from this local Setup.</p></header>
                 <div className="provider-option-grid" role="group" aria-label="Social sign-in providers">
                   {[
@@ -2142,6 +2214,10 @@ export function SetupPage() {
                   <div>
                     <dt>Anti-abuse</dt>
                     <dd>{payload.blueprint.providers.antiAbuse.provider}</dd>
+                  </div>
+                  <div>
+                    <dt>AI</dt>
+                    <dd>{payload.blueprint.providers.ai.provider}</dd>
                   </div>
                   <div>
                     <dt>Social sign-in</dt>

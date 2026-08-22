@@ -43,6 +43,7 @@ const outgoingWebhooksSelected = selectedPacks.has(
 const onboardingSelected = selectedPacks.has("saas.onboarding");
 const objectStorageSelected = selectedPacks.has("capability.object-storage");
 const turnstileSelected = selectedPacks.has("capability.turnstile");
+const workersAiSelected = selectedPacks.has("capability.workers-ai");
 const origin = remote
   ? `https://${starter.development.domain}`
   : `http://127.0.0.1:${port}`;
@@ -2254,6 +2255,7 @@ try {
   const stripeHealth = healthComponents.get("stripe");
   const queueHealth = healthComponents.get("outgoing-webhooks");
   const turnstileHealth = healthComponents.get("turnstile");
+  const workersAiHealth = healthComponents.get("workers-ai");
   assert(
     operationsHealth.response.status === 200 &&
       operationsHealth.payload?.data?.service === "starter" &&
@@ -2264,6 +2266,15 @@ try {
       emailHealth?.details?.sent24h >= 1 &&
       googleHealth?.details?.configured === true,
     "operations health omitted active database, CFsend, or Google evidence",
+  );
+  assert(
+    workersAiSelected
+      ? workersAiHealth?.details?.selected === true &&
+          workersAiHealth?.details?.configured === true &&
+          workersAiHealth?.details?.bindingReady === true
+      : workersAiHealth?.status === "not-selected" &&
+          workersAiHealth?.details?.selected === false,
+    "operations health returned incorrect Workers AI selection or Binding evidence",
   );
   assert(
     turnstileSelected

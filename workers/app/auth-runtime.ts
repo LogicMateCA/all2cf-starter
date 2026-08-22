@@ -52,6 +52,10 @@ export type AuthRuntimeEnv = {
   TURNSTILE_PROVIDER?: string;
   TURNSTILE_SITE_KEY?: string;
   TURNSTILE_SECRET_KEY?: string;
+  AI?: Ai;
+  AI_PROVIDER?: string;
+  AI_MODEL?: string;
+  AI_GATEWAY_ID?: string;
 };
 
 type RequestExecutionContext = Pick<ExecutionContext, "waitUntil">;

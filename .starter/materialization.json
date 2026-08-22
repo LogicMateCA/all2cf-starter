@@ -166,6 +166,8 @@
         "provider": "native-postgresql"
       },
       "antiAbuseVars": {},
+      "aiBinding": null,
+      "aiVars": {},
       "r2Buckets": [
         {
           "binding": "OBJECTS",
@@ -197,6 +199,8 @@
         "provider": "native-postgresql"
       },
       "antiAbuseVars": {},
+      "aiBinding": null,
+      "aiVars": {},
       "r2Buckets": [
         {
           "binding": "OBJECTS",
