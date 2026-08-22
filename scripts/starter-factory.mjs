@@ -56,8 +56,19 @@ function shouldCopy(source) {
   return !transientPrefixes.some((prefix) => relative === prefix || relative.startsWith(`${prefix}/`));
 }
 
-const sourceVersion = () => execFileSync("git", ["rev-parse", "HEAD"], { cwd: sourceRoot, encoding: "utf8" }).trim();
-const sourceStatus = () => execFileSync("git", ["status", "--porcelain"], { cwd: sourceRoot, encoding: "utf8" }).trim();
+function injectedSourceCommit() {
+  const value = process.env.STARTER_FACTORY_SOURCE_COMMIT?.trim() || "";
+  if (value && !/^[a-f0-9]{40}$/u.test(value))
+    throw new Error("STARTER_FACTORY_SOURCE_COMMIT must be a lowercase 40-character Git SHA-1");
+  return value || null;
+}
+const sourceVersion = () =>
+  injectedSourceCommit() ||
+  execFileSync("git", ["rev-parse", "HEAD"], { cwd: sourceRoot, encoding: "utf8" }).trim();
+const sourceStatus = () =>
+  injectedSourceCommit()
+    ? ""
+    : execFileSync("git", ["status", "--porcelain"], { cwd: sourceRoot, encoding: "utf8" }).trim();
 
 async function writeIdentity(target, name, slug) {
   const config = await readJson(target, "starter.config.json");

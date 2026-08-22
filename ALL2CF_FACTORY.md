@@ -33,6 +33,8 @@ GitHub repository creation, Cloudflare Development provisioning, EAS builds and 
 
 A generation identity is the hash of the normalized Blueprint, immutable source commit and engine version. Repeating that identity returns the same completed artifact or active job rather than creating another project. Every completed result records the source commit, Blueprint hash, materialization receipt, generated Git commit, archive hash, verification gates and unresolved external Provider evidence.
 
+All2CF executes a SHA-256-verified Git archive without `.git` history and injects its manifest's exact commit through `STARTER_FACTORY_SOURCE_COMMIT`. Normal local Factory execution still derives identity and dirty state from Git; the capsule override is only for an already verified immutable source artifact.
+
 ## Current evidence
 
 Local directory generation, portable archive creation, project-specific Git/AI handoff, status/diff, Pack addition with dependency closure, idempotent update and receipt-owned conflict refusal are verified. Hosted jobs, artifact storage, GitHub delivery and remote All2CF MCP tools remain planned until exercised against their real systems.

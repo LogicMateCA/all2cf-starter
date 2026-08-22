@@ -29,6 +29,22 @@ try {
   if (dirty) failures.push("generated Git baseline is dirty");
   if (!status.ok || status.packs.length === 0) failures.push("status did not report installed Packs");
   if (!diff.ok || diff.changes.length) failures.push("fresh project has materialization drift");
+  const injectedSlug = `${slug}-capsule`;
+  const injectedTarget = path.join(root, ".factory-output", injectedSlug);
+  const injected = JSON.parse(execFileSync(process.execPath, [
+    path.join(root, "scripts/starter-factory.mjs"),
+    "create",
+    `--slug=${injectedSlug}`,
+    "--name=Factory Capsule Contract",
+  ], {
+    cwd: root,
+    encoding: "utf8",
+    env: { ...process.env, STARTER_FACTORY_SOURCE_COMMIT: "1111111111111111111111111111111111111111" },
+  }));
+  if (injected.source.sourceCommit !== "1111111111111111111111111111111111111111" || injected.source.sourceDirty)
+    failures.push("immutable capsule source identity was not preserved as clean");
+  await rm(injectedTarget, { recursive: true, force: true });
+  await rm(path.join(root, ".factory-output", `${injectedSlug}.tar.gz`), { force: true });
   run("scripts/starter-factory.mjs", ["add", "saas.account-security-2fa", `--project-root=${target}`], target);
   const addedStatus = JSON.parse(run("scripts/starter-factory.mjs", ["status", `--project-root=${target}`], target));
   const addedDiff = JSON.parse(run("scripts/starter-factory.mjs", ["diff", `--project-root=${target}`], target));
