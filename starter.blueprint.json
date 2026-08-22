@@ -316,6 +316,17 @@
           "productionReleased": false
         },
         "note": "Optional environment-isolated Cloudflare Vectorize indexes."
+      },
+      {
+        "id": "capability.expo-push",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Optional Expo Push device registration and delivery for native iOS/Android."
       }
     ]
   },
@@ -396,6 +407,16 @@
         "indexName": "starter-vectorize",
         "dimensions": 768,
         "metric": "cosine"
+      }
+    },
+    "push": {
+      "provider": "none",
+      "accessTokenRequired": false,
+      "development": {
+        "projectId": ""
+      },
+      "production": {
+        "projectId": ""
       }
     },
     "email": {

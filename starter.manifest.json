@@ -135,6 +135,11 @@
       "status": "local-verified"
     },
     {
+      "area": "Native push",
+      "choice": "Optional Expo Push device registry and delivery Pack with SDK 57-compatible expo-notifications, native config plugin, ticket evidence and no dependency when unselected",
+      "status": "implemented"
+    },
+    {
       "area": "Organizations",
       "choice": "Optional Better Auth Organization 1.7.1 pack with Product Shell switching, member administration, teams, verified invitations, lifecycle notifications, and tenant-scoped roles",
       "status": "local-verified"

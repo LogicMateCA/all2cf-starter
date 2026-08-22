@@ -60,6 +60,7 @@
         "expo-network",
         "expo-web-browser",
         "expo-secure-store",
+        "expo-notifications",
         "@expo/fingerprint",
         "@tamagui/core",
         "@tamagui/stacks",

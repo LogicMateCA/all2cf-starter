@@ -44,6 +44,7 @@ const providerCredentialFields = {
   ],
   "s3-compatible": ["S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY"],
   turnstile: ["TURNSTILE_SECRET_KEY", "STARTER_PRODUCTION_TURNSTILE_SECRET_KEY"],
+  "expo-push": ["EXPO_PUSH_ACCESS_TOKEN", "STARTER_PRODUCTION_EXPO_PUSH_ACCESS_TOKEN"],
 } as const;
 const allowedProviderSecrets = new Set<string>(
   Object.values(providerCredentialFields).flat(),
@@ -376,6 +377,43 @@ async function testVectorizeProvider(input: unknown) {
   }
 }
 
+async function testExpoPushProvider(input: unknown) {
+  if (!input || typeof input !== "object")
+    throw new Error("Provider test payload is required.");
+  const body = input as { token?: unknown; accessTokenRequired?: unknown; providerSecrets?: unknown };
+  const token = String(body.token || "").trim();
+  if (!/^(?:Exponent|Expo)PushToken\[[A-Za-z0-9_-]{8,256}\]$/u.test(token))
+    throw new Error("Enter a valid ExpoPushToken from a physical Development build.");
+  const providers = JSON.parse(
+    await readFile(path.join(repositoryRoot, "profiles/providers.json"), "utf8"),
+  ) as { defaultPath: string };
+  const profilePath = process.env.STARTER_DEV_PROFILE_PATH || providers.defaultPath;
+  const [project, shared] = await Promise.all([
+    readOptionalEnv(path.join(repositoryRoot, ".dev.vars")),
+    readOptionalEnv(profilePath),
+  ]);
+  const replacement = body.providerSecrets && typeof body.providerSecrets === "object"
+    ? (body.providerSecrets as Record<string, unknown>).EXPO_PUSH_ACCESS_TOKEN
+    : undefined;
+  const accessToken = (typeof replacement === "string" ? replacement.trim() : "") || project.get("EXPO_PUSH_ACCESS_TOKEN") || shared.get("EXPO_PUSH_ACCESS_TOKEN") || "";
+  if (body.accessTokenRequired && !accessToken)
+    throw new Error("Expo Push access token is required by this project configuration.");
+  const response = await fetch("https://exp.host/--/api/v2/push/send", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    },
+    body: JSON.stringify([{ to: token, title: "Starter push test", body: "Expo Push delivery is configured.", sound: "default", channelId: "default", data: { purpose: "starter-setup-test" } }]),
+  });
+  const payload = (await response.json()) as { data?: Array<{ status?: string; id?: string; message?: string; details?: { error?: string } }>; errors?: unknown };
+  const ticket = payload.data?.[0];
+  if (!response.ok || !ticket || ticket.status !== "ok" || !ticket.id)
+    throw new Error(ticket?.details?.error || ticket?.message || `Expo Push returned HTTP ${response.status}.`);
+  return { provider: "expo-push", ticketId: ticket.id, status: ticket.status };
+}
+
 async function normalizedCfpgConnection(input: unknown, command: unknown) {
   const desiredCommand = String(
     command || (input && typeof input === "object" && "connectCommand" in input
@@ -491,6 +529,8 @@ function localSetupApi(): Plugin {
                 ? `${String(payload.model || "").trim()}:${String(payload.gatewayId || "").trim()}`
                 : provider === "vectorize"
                   ? String(payload.indexName || "").trim()
+                  : provider === "expo-push"
+                    ? String(payload.token || "").trim()
                 : String(payload.recipient || "").trim().toLowerCase();
               const key = `${provider}:${discriminator}`;
               const lastTest = recentProviderTests.get(key) || 0;
@@ -505,6 +545,8 @@ function localSetupApi(): Plugin {
                   ? await testWorkersAiProvider(payload)
                   : provider === "vectorize"
                     ? await testVectorizeProvider(payload)
+                    : provider === "expo-push"
+                      ? await testExpoPushProvider(payload)
                   : await testEmailProvider(payload);
               recentProviderTests.set(key, Date.now());
               response.statusCode = 200;

@@ -297,6 +297,49 @@ export async function collectOperationsHealth(
     });
   }
 
+  const pushTable = await relationExists(database, "app_push_device");
+  const expoPushSelected = env.PUSH_PROVIDER === "expo-push" || pushTable;
+  if (!expoPushSelected) {
+    components.push({
+      id: "expo-push",
+      label: "Expo Push",
+      status: "not-selected",
+      summary: "Native push notifications are not materialized.",
+      details: { selected: false },
+    });
+  } else {
+    const tokenRequired = env.EXPO_PUSH_ACCESS_TOKEN_REQUIRED === "true";
+    const pushConfiguration = requiredConfiguration([
+      ["EXPO_PUSH_PROJECT_ID", env.EXPO_PUSH_PROJECT_ID],
+      ...(tokenRequired ? [["EXPO_PUSH_ACCESS_TOKEN", env.EXPO_PUSH_ACCESS_TOKEN] as [string, unknown]] : []),
+    ]);
+    const evidence = pushTable ? await database.query<{ devices: string; accepted_24h: string; failed_24h: string }>(
+      `select
+        (select count(*)::text from app_push_device where enabled = true) as devices,
+        count(*) filter (where status = 'accepted' and created_at > now() - interval '24 hours')::text as accepted_24h,
+        count(*) filter (where status = 'error' and created_at > now() - interval '24 hours')::text as failed_24h
+       from app_push_delivery`,
+    ) : null;
+    components.push({
+      id: "expo-push",
+      label: "Expo Push",
+      status: pushConfiguration.configured && pushTable ? "ok" : "attention",
+      summary: pushConfiguration.configured && pushTable
+        ? "Expo project configuration and device registry are ready."
+        : "Selected Expo Push configuration is incomplete.",
+      details: {
+        selected: true,
+        configured: pushConfiguration.configured,
+        registryReady: pushTable,
+        accessTokenRequired: tokenRequired,
+        missing: pushConfiguration.missing.join(", ") || null,
+        activeDevices: Number(evidence?.rows[0]?.devices || 0),
+        accepted24h: Number(evidence?.rows[0]?.accepted_24h || 0),
+        failed24h: Number(evidence?.rows[0]?.failed_24h || 0),
+      },
+    });
+  }
+
   const stripeTable = await relationExists(database, "app_stripe_webhook_event");
   const stripeSelected =
     stripeTable ||

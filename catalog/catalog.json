@@ -1055,6 +1055,24 @@
       "documentation": ["ARCHITECTURE.md", "features/search/MODULE.md", "features/admin/MODULE.md"]
     },
     {
+      "id": "capability.expo-push",
+      "kind": "capability",
+      "name": "Expo Push notifications",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": ["mobile", "worker", "admin"],
+      "ownership": "starter-owned",
+      "source": [{ "name": "Expo Notifications and Push Service", "url": "https://docs.expo.dev/push-notifications/", "revision": "sdk-57", "license": "MIT", "relationship": "tracked-upstream" }],
+      "updatePolicy": "expo-compatible",
+      "provides": ["native notification permission and Expo token acquisition", "user-owned device registration", "bounded Expo Push send helper", "Admin self-device test", "ticket and failure evidence"],
+      "requires": ["Expo project ID per environment", "physical iOS/Android build", "APNs and FCM credentials", "optional Expo Push access token"],
+      "conflicts": ["Expo Go remote push acceptance", "client-selected recipient", "unbounded broadcast"],
+      "performance": ["20-device user cap", "bounded payloads", "no mobile native module when deselected"],
+      "verification": ["device registration isolation", "Expo ticket acceptance", "receipt/device-not-registered handling", "native build and physical-device delivery", "clean removal"],
+      "documentation": ["ARCHITECTURE.md", "features/notifications/MODULE.md", "features/mobile/MODULE.md"]
+    },
+    {
       "id": "capability.mapcn-web",
       "kind": "capability",
       "name": "MapCN Web maps",

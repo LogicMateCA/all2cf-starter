@@ -343,6 +343,8 @@ export async function collectKnowledge(root) {
         generatedAuthClientHash: materialization.generatedAuthClientHash,
         generatedStorageAdapterHash:
           materialization.generatedStorageAdapterHash,
+        generatedMobileConfigPluginsHash:
+          materialization.generatedMobileConfigPluginsHash,
         generatedDesignWebHash: materialization.generatedDesignWebHash,
         generatedDesignMarketingHash:
           materialization.generatedDesignMarketingHash,

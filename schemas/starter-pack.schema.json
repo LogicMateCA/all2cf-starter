@@ -111,6 +111,11 @@
     "workerEvents": {
       "$ref": "#/$defs/authPlugin"
     },
+    "mobileConfigPlugins": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
     "cloudflare": {
       "type": "object",
       "additionalProperties": false,

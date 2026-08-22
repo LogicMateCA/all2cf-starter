@@ -79,6 +79,7 @@ for (const [categoryId, optionId] of [
   ["anti-abuse", "turnstile"],
   ["ai", "workers-ai"],
   ["search-vector", "vectorize"],
+  ["notification-channels", "expo-push"],
   ["maps", "mapcn"],
   ["background-realtime", "queues"],
   ["release-platforms", "cloudflare"],

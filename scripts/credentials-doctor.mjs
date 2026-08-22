@@ -24,6 +24,8 @@ const requiredGroups = {
 const optionalGroups = {
   expoAccount: ["EXPO_TOKEN", "EXPO_OWNER"],
   expoProject: ["EXPO_PROJECT_ID"],
+  expoPushDevelopment: ["EXPO_PUSH_ACCESS_TOKEN"],
+  expoPushProduction: ["STARTER_PRODUCTION_EXPO_PUSH_ACCESS_TOKEN"],
   appleStore: ["APPLE_TEAM_ID", "ASC_KEY_ID", "ASC_ISSUER_ID", "ASC_API_KEY_BASE64", "ASC_APP_ID"],
   googlePlay: ["GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64"],
   googleOAuth: ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"],

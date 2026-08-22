@@ -67,6 +67,12 @@ type SearchPolicy = {
   development: { indexName: string; dimensions: number; metric: "cosine" | "euclidean" | "dot-product" };
   production: { indexName: string; dimensions: number; metric: "cosine" | "euclidean" | "dot-product" };
 };
+type PushPolicy = {
+  provider: "none" | "expo-push";
+  accessTokenRequired: boolean;
+  development: { projectId: string };
+  production: { projectId: string };
+};
 type CfpgConnection = {
   connectCommand: string;
   databaseId: string;
@@ -125,6 +131,7 @@ type Blueprint = {
     antiAbuse: AntiAbusePolicy;
     ai: AiPolicy;
     search: SearchPolicy;
+    push: PushPolicy;
     email: { default: string; alternatives: string[] };
     billing: string;
     release: string;
@@ -290,7 +297,7 @@ type SetupPayload = {
     categories: ProviderCatalogCategory[];
   };
   providerCredentials: Record<
-    "google" | "github" | "apple" | "cfsend" | "resend" | "cloudflare-email-service" | "stripe" | "s3-compatible" | "turnstile",
+    "google" | "github" | "apple" | "cfsend" | "resend" | "cloudflare-email-service" | "stripe" | "s3-compatible" | "turnstile" | "expo-push",
     {
       configured: boolean;
       source: "project" | "shared" | "mixed" | "missing";
@@ -346,6 +353,10 @@ const providerSecretFields = {
   turnstile: [
     { name: "TURNSTILE_SECRET_KEY", label: "Development secret key", secret: true },
     { name: "STARTER_PRODUCTION_TURNSTILE_SECRET_KEY", label: "Production secret key", secret: true },
+  ],
+  "expo-push": [
+    { name: "EXPO_PUSH_ACCESS_TOKEN", label: "Development access token", secret: true },
+    { name: "STARTER_PRODUCTION_EXPO_PUSH_ACCESS_TOKEN", label: "Production access token", secret: true },
   ],
 } as const;
 
@@ -629,6 +640,8 @@ export function SetupPage() {
   const [turnstileTest, setTurnstileTest] = useState<ProviderTestState>({ status: "idle" });
   const [workersAiTest, setWorkersAiTest] = useState<ProviderTestState>({ status: "idle" });
   const [vectorizeTest, setVectorizeTest] = useState<ProviderTestState>({ status: "idle" });
+  const [expoPushToken, setExpoPushToken] = useState("");
+  const [expoPushTest, setExpoPushTest] = useState<ProviderTestState>({ status: "idle" });
   const [cfpgCommands, setCfpgCommands] = useState({ development: "", production: "" });
   const [stylekitQuery, setStylekitQuery] = useState("");
   const [stylekitCategory, setStylekitCategory] = useState("all");
@@ -878,6 +891,22 @@ export function SetupPage() {
       setVectorizeTest({ status: "error", provider: "vectorize", message: error instanceof Error ? error.message : String(error) });
     }
   };
+  const runExpoPushTest = async () => {
+    setExpoPushTest({ status: "testing", provider: "expo-push" });
+    try {
+      const response = await fetch("/__starter/provider-test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ provider: "expo-push", token: expoPushToken, accessTokenRequired: payload.blueprint.providers.push.accessTokenRequired, providerSecrets }),
+      });
+      const result = (await response.json()) as { error?: string; result?: { ticketId: string; status: string } };
+      if (!response.ok || !result.result)
+        throw new Error(result.error || `Expo Push test returned HTTP ${response.status}.`);
+      setExpoPushTest({ status: "success", provider: "expo-push", message: `Expo accepted the Development push ticket ${result.result.ticketId}. Device delivery and receipt still require physical-device confirmation.` });
+    } catch (error) {
+      setExpoPushTest({ status: "error", provider: "expo-push", message: error instanceof Error ? error.message : String(error) });
+    }
+  };
   const updateIdentity = (key: "name" | "slug", value: string) => {
     updateBlueprint((blueprint) => ({
       ...blueprint,
@@ -996,6 +1025,11 @@ export function SetupPage() {
                     provider: selected ? "vectorize" : "none",
                   },
                 }
+            : pack.id === "capability.expo-push"
+              ? {
+                  ...blueprint.providers,
+                  push: { ...blueprint.providers.push, provider: selected ? "expo-push" : "none" },
+                }
             : blueprint.providers,
       };
     });
@@ -1081,6 +1115,20 @@ export function SetupPage() {
         capabilities: blueprint.selections.capabilities.map((selection) =>
           selection.id === "capability.vectorize"
             ? { ...selection, lifecycle: selectLifecycle(selection.lifecycle, provider === "vectorize") }
+            : selection,
+        ),
+      },
+    }));
+  const setPushProvider = (provider: PushPolicy["provider"]) =>
+    updateBlueprint((blueprint) => ({
+      ...blueprint,
+      preset: "custom",
+      providers: { ...blueprint.providers, push: { ...blueprint.providers.push, provider } },
+      selections: {
+        ...blueprint.selections,
+        capabilities: blueprint.selections.capabilities.map((selection) =>
+          selection.id === "capability.expo-push"
+            ? { ...selection, lifecycle: selectLifecycle(selection.lifecycle, provider === "expo-push") }
             : selection,
         ),
       },
@@ -2032,6 +2080,27 @@ export function SetupPage() {
               </section>
 
               <section className="setup-panel provider-section">
+                <header><h2>Native push notifications</h2><p>Expo Push is only for native iOS/Android builds. It adds notification permissions, Android channel setup, user-owned device tokens and server delivery; Expo Go is not a physical delivery acceptance target.</p></header>
+                <div className="provider-option-grid" role="radiogroup" aria-label="Push Provider">
+                  {[
+                    { id: "none", name: "None", note: "No native notification module, device table or push delivery." },
+                    { id: "expo-push", name: "Expo Push", note: "One server API for APNs and FCM through Expo Push Service." },
+                  ].map(({ id, name, note }) => { const selected = payload.blueprint.providers.push.provider === id; return <div className={selected ? "provider-option selected" : "provider-option"} key={id}><label><input type="radio" name="push-provider" checked={selected} onChange={() => setPushProvider(id as PushPolicy["provider"])} /><span><strong>{name}</strong><small>{note}</small></span></label></div>; })}
+                </div>
+                {payload.blueprint.providers.push.provider === "expo-push" ? (
+                  <div className="storage-provider-config">
+                    <div className="storage-environment-grid">
+                      {(["development", "production"] as const).map((environment) => <div key={environment}><h3>{environment === "development" ? "Development Expo project" : "Production Expo project"}</h3><Field label="EAS project ID" value={payload.blueprint.providers.push[environment].projectId} onChange={(projectId) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, push: { ...blueprint.providers.push, [environment]: { projectId } } } }))} /><p>Use a different EAS project ID for each environment so device tokens and credentials cannot cross release lanes.</p></div>)}
+                    </div>
+                    <label className="platform-option"><input type="checkbox" checked={payload.blueprint.providers.push.accessTokenRequired} onChange={(event) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, push: { ...blueprint.providers.push, accessTokenRequired: event.target.checked } } }))} />Require Expo Push access-token security</label>
+                    {payload.blueprint.providers.push.accessTokenRequired ? <ProviderCredentialEditor provider="expo-push" state={payload.providerCredentials["expo-push"]} editing={Boolean(providerEditors["expo-push"])} values={providerSecrets} onEditing={(editing) => setProviderEditing("expo-push", editing)} onChange={updateProviderSecret} /> : null}
+                    <div className="provider-resource-links">{providerSetupLinks["expo-push"].map((link) => <a href={link.href} target="_blank" rel="noreferrer" key={link.href}>{link.label}<ExternalLink size={14} /></a>)}</div>
+                    <div className="provider-email-test"><div><strong>Real Development push test</strong><p>Paste an ExpoPushToken from a signed-in physical Development build. Setup sends a fixed message and returns only the Expo ticket ID.</p></div><label><span>Development ExpoPushToken</span><Input value={expoPushToken} autoComplete="off" onChange={(event) => { setExpoPushToken(event.target.value); setExpoPushTest({ status: "idle" }); }} placeholder="ExpoPushToken[...]" /></label><Button type="button" variant="outline" disabled={expoPushTest.status === "testing" || !expoPushToken.trim()} onClick={() => void runExpoPushTest()}>{expoPushTest.status === "testing" ? "Sending push" : "Send Development push"}</Button>{expoPushTest.message ? <p className={expoPushTest.status === "success" ? "provider-test-result success" : "provider-test-result error"} role="status">{expoPushTest.message}</p> : null}</div>
+                  </div>
+                ) : null}
+              </section>
+
+              <section className="setup-panel provider-section">
                 <header><h2>Social sign-in</h2><p>Select the providers this project will support. Credentials may be inherited, entered now, or configured later from this local Setup.</p></header>
                 <div className="provider-option-grid" role="group" aria-label="Social sign-in providers">
                   {[
@@ -2295,6 +2364,10 @@ export function SetupPage() {
                   <div>
                     <dt>Search</dt>
                     <dd>{payload.blueprint.providers.search.provider}</dd>
+                  </div>
+                  <div>
+                    <dt>Push</dt>
+                    <dd>{payload.blueprint.providers.push.provider}</dd>
                   </div>
                   <div>
                     <dt>Social sign-in</dt>

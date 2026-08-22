@@ -82,6 +82,14 @@
         "dimensions": { "type": "integer", "minimum": 32, "maximum": 1536 },
         "metric": { "enum": ["cosine", "euclidean", "dot-product"] }
       }
+    },
+    "expoPushEnvironment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["projectId"],
+      "properties": {
+        "projectId": { "type": "string", "pattern": "^(|[0-9a-fA-F-]{36})$" }
+      }
     }
   },
   "properties": {
@@ -259,6 +267,7 @@
         "antiAbuse",
         "ai",
         "search",
+        "push",
         "email",
         "billing",
         "release"
@@ -367,6 +376,17 @@
             "provider": { "enum": ["none", "postgresql", "vectorize"] },
             "development": { "$ref": "#/$defs/vectorizeEnvironment" },
             "production": { "$ref": "#/$defs/vectorizeEnvironment" }
+          }
+        },
+        "push": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["provider", "accessTokenRequired", "development", "production"],
+          "properties": {
+            "provider": { "enum": ["none", "expo-push"] },
+            "accessTokenRequired": { "type": "boolean" },
+            "development": { "$ref": "#/$defs/expoPushEnvironment" },
+            "production": { "$ref": "#/$defs/expoPushEnvironment" }
           }
         },
         "email": {

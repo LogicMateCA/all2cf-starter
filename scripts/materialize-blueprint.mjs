@@ -53,6 +53,10 @@ const storageAdapterPath = path.join(
   root,
   "workers/app/generated/storage-adapter.ts",
 );
+const mobileConfigPluginsPath = path.join(
+  root,
+  "apps/mobile/generated/optional-config-plugins.json",
+);
 const webDesignPath = path.join(
   root,
   "apps/web/src/generated/design-profile.css",
@@ -192,6 +196,12 @@ async function readPackManifests() {
       throw new Error(
         `${path.relative(root, file)} has an invalid worker event declaration`,
       );
+    if (
+      manifest.mobileConfigPlugins &&
+      (!Array.isArray(manifest.mobileConfigPlugins) ||
+        manifest.mobileConfigPlugins.some((plugin) => typeof plugin !== "string" || !plugin.trim()))
+    )
+      throw new Error(`${path.relative(root, file)} has invalid mobile config plugins`);
     for (const secret of manifest.cloudflare?.requiredSecrets || [])
       if (!/^[A-Z][A-Z0-9_]*$/u.test(secret))
         throw new Error(`${manifest.id} has an invalid required secret ${secret}`);
@@ -455,6 +465,11 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
       throw new Error(`${path.relative(root, configPath)} changed materializer-owned Vectorize variable ${name}`);
     delete model.vars[name];
   }
+  for (const [name, value] of Object.entries(previousRuntime?.pushVars || {})) {
+    if (model.vars[name] !== value)
+      throw new Error(`${path.relative(root, configPath)} changed materializer-owned push variable ${name}`);
+    delete model.vars[name];
+  }
   const vectorize = Array.isArray(model.vectorize) ? structuredClone(model.vectorize) : [];
   if (previousRuntime?.vectorizeBinding) {
     const index = vectorize.findIndex(
@@ -531,6 +546,15 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
   }
   if (vectorize.length) model.vectorize = vectorize;
   else delete model.vectorize;
+  const pushVars = {};
+  if (blueprint.providers.push.provider === "expo-push") {
+    model.vars.PUSH_PROVIDER = "expo-push";
+    model.vars.EXPO_PUSH_PROJECT_ID = blueprint.providers.push[environment].projectId;
+    model.vars.EXPO_PUSH_ACCESS_TOKEN_REQUIRED = String(blueprint.providers.push.accessTokenRequired);
+    pushVars.PUSH_PROVIDER = "expo-push";
+    pushVars.EXPO_PUSH_PROJECT_ID = blueprint.providers.push[environment].projectId;
+    pushVars.EXPO_PUSH_ACCESS_TOKEN_REQUIRED = String(blueprint.providers.push.accessTokenRequired);
+  }
   const queues = model.queues || { producers: [], consumers: [] };
   queues.producers ||= [];
   queues.consumers ||= [];
@@ -572,6 +596,7 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
     aiVars,
     vectorizeBinding,
     vectorizeVars,
+    pushVars,
     r2Buckets: receiptR2Buckets,
     storageVars,
   };
@@ -798,6 +823,7 @@ const desiredServerAuthPlugins = [];
 const desiredClientAuthPlugins = [];
 const desiredWorkerFeatures = [];
 const desiredWorkerEvents = [];
+const desiredMobileConfigPlugins = new Set();
 const desiredCloudflareSecrets = new Map();
 const desiredCloudflareQueues = new Map();
 
@@ -916,6 +942,8 @@ for (const { packRoot, manifest } of selectedManifests) {
       ...manifest.workerEvents,
       packId: manifest.id,
     });
+  for (const plugin of manifest.mobileConfigPlugins || [])
+    desiredMobileConfigPlugins.add(plugin);
   for (const secret of manifest.cloudflare?.requiredSecrets || []) {
     const owner = desiredCloudflareSecrets.get(secret);
     if (owner && owner !== manifest.id)
@@ -956,6 +984,13 @@ if (vectorizePackSelected !== (blueprint.providers.search.provider === "vectoriz
   throw new Error(
     "Vectorize Pack selection must match the Blueprint search Provider.",
   );
+const expoPushPackSelected = selected.has("capability.expo-push");
+if (expoPushPackSelected !== (blueprint.providers.push.provider === "expo-push"))
+  throw new Error(
+    "Expo Push Pack selection must match the Blueprint push Provider.",
+  );
+if (expoPushPackSelected && blueprint.providers.push.accessTokenRequired)
+  desiredCloudflareSecrets.set("EXPO_PUSH_ACCESS_TOKEN", "capability.expo-push");
 
 desiredRoutes.sort((left, right) => left.path.localeCompare(right.path));
 const desiredWorkerFirstRoutes = desiredRoutes
@@ -981,6 +1016,7 @@ const desiredClientAuthSource = renderClientAuthPlugins(
 );
 const desiredWorkerFeatureSource = renderWorkerFeatures(desiredWorkerFeatures);
 const desiredWorkerEventSource = renderWorkerEvents(desiredWorkerEvents);
+const desiredMobileConfigPluginSource = `${JSON.stringify([...desiredMobileConfigPlugins].sort(), null, 2)}\n`;
 const desiredStorageAdapterSource = renderStorageAdapter(
   blueprint.providers.storage,
 );
@@ -1201,6 +1237,12 @@ const generatedRegistries = [
     packId: storagePackSelected ? "capability.object-storage" : undefined,
   },
   {
+    path: mobileConfigPluginsPath,
+    desired: desiredMobileConfigPluginSource,
+    stateKey: "generatedMobileConfigPluginsHash",
+    baseline: "[]\n",
+  },
+  {
     path: webDesignPath,
     desired: desiredDesignCSS,
     stateKey: "generatedDesignWebHash",
@@ -1289,6 +1331,7 @@ const desiredState = {
   generatedWorkerFeaturesHash: sha256(desiredWorkerFeatureSource),
   generatedWorkerEventsHash: sha256(desiredWorkerEventSource),
   generatedStorageAdapterHash: sha256(desiredStorageAdapterSource),
+  generatedMobileConfigPluginsHash: sha256(desiredMobileConfigPluginSource),
   generatedCloudflareConfigs: desiredCloudflareConfigReceipts,
   generatedDesignWebHash: sha256(desiredDesignCSS),
   generatedDesignMarketingHash: sha256(desiredDesignCSS),

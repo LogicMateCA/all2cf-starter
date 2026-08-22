@@ -1,5 +1,6 @@
 import type { ExpoConfig } from "expo/config";
 import starter from "../../starter.config.json";
+import optionalConfigPlugins from "./generated/optional-config-plugins.json";
 
 type AppVariant = "development" | "preview" | "production";
 
@@ -48,7 +49,7 @@ const config: ExpoConfig = {
     bundler: "metro",
     output: "single"
   },
-  plugins: ["expo-router", "expo-dev-client", "expo-secure-store", "expo-updates", "expo-web-browser"],
+  plugins: ["expo-router", "expo-dev-client", "expo-secure-store", "expo-updates", "expo-web-browser", ...optionalConfigPlugins],
   extra: {
     appVariant: variant,
     apiUrls: {

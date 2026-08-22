@@ -61,6 +61,10 @@ export type AuthRuntimeEnv = {
   VECTORIZE_INDEX_NAME?: string;
   VECTORIZE_DIMENSIONS?: string;
   VECTORIZE_METRIC?: string;
+  PUSH_PROVIDER?: string;
+  EXPO_PUSH_PROJECT_ID?: string;
+  EXPO_PUSH_ACCESS_TOKEN_REQUIRED?: string;
+  EXPO_PUSH_ACCESS_TOKEN?: string;
 };
 
 type RequestExecutionContext = Pick<ExecutionContext, "waitUntil">;

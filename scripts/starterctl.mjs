@@ -22,6 +22,7 @@ const outgoingWebhooksSelected = selectedPacks.has("saas.outgoing-webhooks");
 const storageProvider = blueprint.providers?.storage?.provider || "none";
 const antiAbuseProvider = blueprint.providers?.antiAbuse?.provider || "none";
 const searchProvider = blueprint.providers?.search?.provider || "none";
+const pushProvider = blueprint.providers?.push?.provider || "none";
 const env = parseEnv(await readFile(path.join(root, ".dev.vars"), "utf8"));
 const providers = JSON.parse(await readFile(path.join(root, "profiles/providers.json"), "utf8"));
 const profilePath = process.env.STARTER_DEV_PROFILE_PATH || providers.defaultPath;
@@ -107,6 +108,13 @@ function syncWorkerSecrets(environment, wranglerConfig) {
         environment === "production"
           ? "STARTER_PRODUCTION_TURNSTILE_SECRET_KEY"
           : "TURNSTILE_SECRET_KEY",
+      ),
+    } : {}),
+    ...(pushProvider === "expo-push" && blueprint.providers.push.accessTokenRequired ? {
+      EXPO_PUSH_ACCESS_TOKEN: required(
+        environment === "production"
+          ? "STARTER_PRODUCTION_EXPO_PUSH_ACCESS_TOKEN"
+          : "EXPO_PUSH_ACCESS_TOKEN",
       ),
     } : {}),
   };

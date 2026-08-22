@@ -42,6 +42,10 @@ export const providerSetupLinks = {
     { label: "Vectorize dashboard", href: "https://dash.cloudflare.com/?to=/:account/workers/vectorize" },
     { label: "Vectorize documentation", href: "https://developers.cloudflare.com/vectorize/" },
   ],
+  "expo-push": [
+    { label: "Expo Push setup", href: "https://docs.expo.dev/push-notifications/push-notifications-setup/" },
+    { label: "Expo credentials", href: "https://expo.dev/accounts" },
+  ],
 } as const;
 
 export type ProviderSetupLinkId = keyof typeof providerSetupLinks;

@@ -1,0 +1,24 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "capability.expo-push",
+  "version": "0.1.0",
+  "source": {
+    "name": "Expo Notifications and Push Service",
+    "url": "https://docs.expo.dev/push-notifications/",
+    "revision": "sdk-57",
+    "license": "MIT",
+    "relationship": "tracked-upstream"
+  },
+  "files": [
+    { "source": "templates/expo-push-worker.ts", "target": "workers/app/features/expo-push-worker.ts" },
+    { "source": "templates/push-notifications.ts", "target": "apps/mobile/lib/push-notifications.ts" },
+    { "source": "templates/1102_expo_push.sql", "target": "db/migrations/1102_expo_push.sql" }
+  ],
+  "dependencies": [
+    { "packageFile": "apps/mobile/package.json", "section": "dependencies", "name": "expo-notifications", "version": "~57.0.12" }
+  ],
+  "routes": [],
+  "workerFeature": { "module": "../features/expo-push-worker", "export": "expoPushFeature" },
+  "mobileConfigPlugins": ["expo-notifications"]
+}

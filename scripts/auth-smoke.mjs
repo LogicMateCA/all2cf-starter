@@ -46,6 +46,7 @@ const turnstileSelected = selectedPacks.has("capability.turnstile");
 const workersAiSelected = selectedPacks.has("capability.workers-ai");
 const vectorizeSelected = selectedPacks.has("capability.vectorize");
 const searchProvider = blueprint.providers?.search?.provider || "none";
+const expoPushSelected = selectedPacks.has("capability.expo-push");
 const origin = remote
   ? `https://${starter.development.domain}`
   : `http://127.0.0.1:${port}`;
@@ -833,6 +834,35 @@ try {
     "anonymous user could access notifications",
   );
   const currentUserId = session.payload.data.user.id;
+  if (expoPushSelected) {
+    const anonymousPushDevices = await request("/api/push/devices", { headers: { Origin: origin } });
+    assert(anonymousPushDevices.response.status === 401, "anonymous user could list push devices");
+    const invalidPushDevice = await request("/api/push/devices", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Cookie: cookie, Origin: origin },
+      body: JSON.stringify({ token: "ExpoPushToken[starterInvalidProjectToken]", projectId: "00000000-0000-4000-8000-000000000000", platform: "ios" }),
+    });
+    assert(invalidPushDevice.response.status === 422, "push registration accepted the wrong Expo project");
+    const pushToken = `ExpoPushToken[${randomUUID().replaceAll("-", "")}A]`;
+    const registeredPushDevice = await request("/api/push/devices", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Cookie: cookie, Origin: origin },
+      body: JSON.stringify({ token: pushToken, projectId: blueprint.providers.push.development.projectId, platform: "ios" }),
+    });
+    const pushDeviceId = registeredPushDevice.payload?.data?.id;
+    const listedPushDevices = await request("/api/push/devices", { headers: { Cookie: cookie, Origin: origin } });
+    assert(
+      registeredPushDevice.response.status === 200 &&
+        pushDeviceId &&
+        listedPushDevices.response.status === 200 &&
+        listedPushDevices.payload?.data?.devices?.some((device) => device.id === pushDeviceId && device.platform === "ios"),
+      "Expo push device registration or owner list failed",
+    );
+    const removedPushDevice = await request(`/api/push/devices/${encodeURIComponent(pushDeviceId)}`, { method: "DELETE", headers: { Cookie: cookie, Origin: origin } });
+    const removedPushDeviceAgain = await request(`/api/push/devices/${encodeURIComponent(pushDeviceId)}`, { method: "DELETE", headers: { Cookie: cookie, Origin: origin } });
+    assert(removedPushDevice.response.status === 204 && removedPushDeviceAgain.response.status === 404, "Expo push device removal was not owner-scoped and idempotent-safe");
+    checks.push("expo-push-auth-project-validation-register-list-delete");
+  }
   if (objectStorageSelected) {
     const anonymousObjects = await request("/api/storage/objects", {
       headers: { Origin: origin },
@@ -2259,6 +2289,7 @@ try {
   const turnstileHealth = healthComponents.get("turnstile");
   const workersAiHealth = healthComponents.get("workers-ai");
   const searchHealth = healthComponents.get("product-search");
+  const expoPushHealth = healthComponents.get("expo-push");
   assert(
     operationsHealth.response.status === 200 &&
       operationsHealth.payload?.data?.service === "starter" &&
@@ -2269,6 +2300,16 @@ try {
       emailHealth?.details?.sent24h >= 1 &&
       googleHealth?.details?.configured === true,
     "operations health omitted active database, CFsend, or Google evidence",
+  );
+  assert(
+    expoPushSelected
+      ? expoPushHealth?.status === "ok" &&
+          expoPushHealth?.details?.selected === true &&
+          expoPushHealth?.details?.configured === true &&
+          expoPushHealth?.details?.registryReady === true
+      : expoPushHealth?.status === "not-selected" &&
+          expoPushHealth?.details?.selected === false,
+    "operations health returned incorrect Expo Push readiness evidence",
   );
   assert(
     vectorizeSelected
