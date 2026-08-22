@@ -2435,6 +2435,24 @@ dd {
   color: var(--success);
   background: color-mix(in srgb, var(--success) 9%, transparent);
 }
+.setup-save-feedback {
+  min-height: 42px;
+  margin-top: 18px;
+}
+.setup-saved-feedback {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 9px 11px;
+  border: 1px solid color-mix(in srgb, var(--success) 45%, var(--border));
+  border-radius: 8px;
+  color: var(--success);
+  background: var(--success-surface);
+  font-size: 14px;
+  font-weight: 700;
+}
 .save-blueprint {
   width: fit-content;
 }

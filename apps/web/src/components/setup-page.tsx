@@ -974,7 +974,14 @@ export function SetupPage() {
         () => sessionStorage.removeItem("starter.setup.saved"),
         2000,
       );
-      if (nextStepIndex !== undefined) setStepIndex(nextStepIndex);
+      if (nextStepIndex !== undefined) {
+        setStepIndex(nextStepIndex);
+        window.requestAnimationFrame(() =>
+          document
+            .querySelector(".setup-main > header")
+            ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+        );
+      }
     } catch (error) {
       setSaveState("idle");
       sessionStorage.removeItem("starter.setup.savePending");
@@ -1840,12 +1847,6 @@ export function SetupPage() {
                   </article>
                 ))}
               </section>
-              {saveError ? (
-                <p className="setup-error">
-                  <AlertCircle size={16} />
-                  {saveError}
-                </p>
-              ) : null}
               {saveState !== "saved" || dirty ? <Button
                 type="button"
                 className="save-blueprint"
@@ -1860,6 +1861,20 @@ export function SetupPage() {
             </div>
           ) : null}
 
+          <div className="setup-save-feedback" aria-live="polite">
+            {saveError ? (
+              <p className="setup-error">
+                <AlertCircle size={16} />
+                {saveError}
+              </p>
+            ) : saveState === "saved" && !dirty ? (
+              <p className="setup-saved-feedback">
+                <Check size={16} />
+                Saved to the local Blueprint.
+              </p>
+            ) : null}
+          </div>
+
           <footer className="setup-actions">
             <Button
               variant="outline"
@@ -1871,6 +1886,7 @@ export function SetupPage() {
             </Button>
             {stepIndex < steps.length - 1 ? (
               <Button
+                type="button"
                 disabled={saveState === "saving"}
                 onClick={() => void save({ nextStepIndex: Math.min(steps.length - 1, stepIndex + 1) })}
               >

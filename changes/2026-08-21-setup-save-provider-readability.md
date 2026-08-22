@@ -25,6 +25,7 @@ Every Setup step persists before navigation, Provider credentials can be safely 
 - Allow a saved executable `custom` Blueprint to pass the SaaS contract; the repository default remains `saas-foundation`, while Setup customization is validated through the ordinary assembly/dependency contracts instead of being rejected by a hard-coded preset name.
 - Treat every changed StyleKit selection as an unsaved Blueprint edit so Save draft/Save and finish cannot remain hidden, and explain that materialization plus Development release are separate steps.
 - Render selected-step and selected-pack checkmarks with the selected style's semantic `on-accent` color instead of hard-coded white, preserving contrast when a dark-mode style uses a light accent.
+- Show save errors and saved confirmation beside the footer actions on every Setup step, then scroll the newly saved next step into view so a long Providers form cannot make successful navigation look like a failed save.
 
 # Verification
 
