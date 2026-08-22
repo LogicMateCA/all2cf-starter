@@ -1728,9 +1728,10 @@ try {
     new Set(["add-dependency", "update-dependency", "remove-dependency"]).has(kind),
   );
   if (dependencyChanged) {
+    const packageLockOnly = process.env.STARTER_FACTORY_PACKAGE_LOCK_ONLY === "true";
     const install = spawnSync(
       "npm",
-      ["install", "--ignore-scripts", "--no-audit", "--no-fund"],
+      ["install", ...(packageLockOnly ? ["--package-lock-only"] : []), "--ignore-scripts", "--no-audit", "--no-fund"],
       { cwd: root, encoding: "utf8" },
     );
     if (install.status !== 0)

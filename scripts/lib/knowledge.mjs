@@ -2,8 +2,6 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
-import { parse as parseJsonc } from "jsonc-parser";
-import YAML from "yaml";
 import { validateAssemblyContracts } from "./assembly.mjs";
 
 const rootDocuments = [
@@ -19,8 +17,24 @@ function splitFrontmatter(source) {
     return { attributes: {}, body: source.trim() };
   const end = source.indexOf("\n---\n", 4);
   if (end < 0) throw new Error("Markdown frontmatter is not closed");
+  const attributes = {};
+  for (const line of source.slice(4, end).split("\n")) {
+    const separator = line.indexOf(":");
+    if (separator < 1 || /^\s/u.test(line)) continue;
+    const key = line.slice(0, separator).trim();
+    const raw = line.slice(separator + 1).trim();
+    let value = raw || null;
+    if (/^\[.*\]$/u.test(raw))
+      value = raw.slice(1, -1).trim()
+        ? raw.slice(1, -1).split(",").map((item) => item.trim().replace(/^['"]|['"]$/gu, ""))
+        : [];
+    else if (/^(true|false)$/u.test(raw)) value = raw === "true";
+    else if (/^-?\d+(?:\.\d+)?$/u.test(raw)) value = Number(raw);
+    else value = raw.replace(/^['"]|['"]$/gu, "");
+    attributes[key] = value;
+  }
   return {
-    attributes: YAML.parse(source.slice(4, end)) || {},
+    attributes,
     body: source.slice(end + 5).trim(),
   };
 }
@@ -108,14 +122,11 @@ async function readJson(root, relativePath) {
 }
 
 async function readJsonc(root, relativePath) {
-  const errors = [];
-  const value = parseJsonc(
-    await readFile(path.join(root, relativePath), "utf8"),
-    errors,
-    { allowTrailingComma: true },
-  );
-  if (errors.length) throw new Error(`${relativePath} contains invalid JSONC`);
-  return value;
+  try {
+    return JSON.parse(await readFile(path.join(root, relativePath), "utf8"));
+  } catch (error) {
+    throw new Error(`${relativePath} contains invalid generated JSONC`, { cause: error });
+  }
 }
 
 function environmentFromConfig(id, config, manifestEnvironment) {
@@ -385,7 +396,7 @@ export async function collectKnowledge(root) {
       mcpPolicy: aiManifest.cloudflare,
       workerStudio: "capability-detected",
     },
-    orchestration: YAML.parse(orchestrationSource),
+    orchestration: JSON.parse(orchestrationSource),
     release: aiManifest.release,
     documentation: {
       source: "Markdown and frontmatter",

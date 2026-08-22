@@ -1,7 +1,6 @@
 import { readFile, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { parse as parseJsonc } from "jsonc-parser";
 
 const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const projectRootArgument = process.argv.find((value) => value.startsWith("--project-root="));
@@ -47,7 +46,7 @@ const socialSecrets = {
   apple: ["APPLE_CLIENT_ID", "APPLE_TEAM_ID", "APPLE_KEY_ID", "APPLE_PRIVATE_KEY_BASE64", "APPLE_APP_BUNDLE_IDENTIFIER"],
 };
 for (const file of ["cloudflare/wrangler.development.jsonc", "cloudflare/wrangler.production.jsonc"]) {
-  const worker = parseJsonc(await readFile(path.join(root, file), "utf8"));
+  const worker = JSON.parse(await readFile(path.join(root, file), "utf8"));
   worker.vars ||= {};
   worker.vars.AUTH_SOCIAL_PROVIDERS = blueprint.providers.socialAuth.join(",");
   const required = new Set(

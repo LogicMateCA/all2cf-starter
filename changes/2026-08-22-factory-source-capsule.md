@@ -16,11 +16,12 @@ All2CF can execute the exact canonical Factory source from a hash-verified Git a
 - Use normal live Git identity and dirty-tree refusal when the variable is absent.
 - Treat an injected immutable source capsule as clean; artifact SHA-256 validation remains the caller's responsibility.
 - Add a hosted portable mode that removes canonical infrastructure identity before project handoff.
+- Remove external parser dependencies from the capsule hot path and support package-lock-only dependency resolution.
 - Extend the Factory contract to prove the injected receipt identity.
 
 # Verification
 
-- Factory contract passes normal Git-backed generation plus injected immutable portable-capsule identity and confirms canonical Cloudflare topology is absent. Complete repository verification and a new All2CF capsule render remain pending.
+- Factory contract passes normal Git-backed generation plus injected immutable portable-capsule identity and confirms canonical Cloudflare topology is absent. Node-only identity/knowledge parsing and package-lock-only resolution pass complete repository verification. A new All2CF capsule render remains pending.
 
 # Release
 
