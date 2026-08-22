@@ -11,6 +11,7 @@ const option = (name) => args.find((value) => value.startsWith(`--${name}=`))?.s
 const json = (value) => `${JSON.stringify(value, null, 2)}\n`;
 const sha256 = (value) => createHash("sha256").update(value).digest("hex");
 const outputRoot = path.join(sourceRoot, ".factory-output");
+const portable = process.env.STARTER_FACTORY_PORTABLE === "true";
 
 async function readJson(root, file) {
   return JSON.parse(await readFile(path.join(root, file), "utf8"));
@@ -73,6 +74,20 @@ const sourceStatus = () =>
 async function writeIdentity(target, name, slug) {
   const config = await readJson(target, "starter.config.json");
   const blueprint = await readJson(target, "starter.blueprint.json");
+  if (portable) {
+    config.cloudflare = { accountId: "", zoneId: "", zoneName: "example.invalid" };
+    config.development.database.host = "127.0.0.1";
+    config.development.database.port = 5432;
+    config.development.database.tunnelId = "";
+    config.production.database.host = "";
+    config.production.database.port = 5432;
+    config.production.database.sshHost = "";
+    config.production.database.sshKey = "";
+    config.production.database.sshKnownHosts = "";
+    config.production.database.container = "";
+    config.production.database.adminUser = "";
+    config.production.database.vpcServiceId = "";
+  }
   config.project = { name, slug };
   config.development.worker = `${slug}-dev`;
   config.production.worker = slug;
@@ -179,7 +194,7 @@ async function createProject() {
     }
     await writeIdentity(target, name, slug);
     await mkdir(path.join(target, ".starter"), { recursive: true });
-    const source = { schemaVersion: "starter-source/v1", sourceRoot, sourceCommit: sourceVersion(), sourceDirty: dirty, generatedAt: new Date().toISOString(), project: { name, slug } };
+    const source = { schemaVersion: "starter-source/v1", sourceRoot, sourceCommit: sourceVersion(), sourceDirty: dirty, portable, generatedAt: new Date().toISOString(), project: { name, slug } };
     await writeFile(path.join(target, ".starter/source.json"), json(source));
     run("scripts/sync-project-identity.mjs", ["--reset", `--project-root=${target}`], target);
     const materialization = await materialize(target, "--apply");

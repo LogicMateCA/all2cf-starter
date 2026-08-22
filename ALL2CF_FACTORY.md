@@ -35,6 +35,8 @@ A generation identity is the hash of the normalized Blueprint, immutable source 
 
 All2CF executes a SHA-256-verified Git archive without `.git` history and injects its manifest's exact commit through `STARTER_FACTORY_SOURCE_COMMIT`. Normal local Factory execution still derives identity and dirty state from Git; the capsule override is only for an already verified immutable source artifact.
 
+All2CF also sets `STARTER_FACTORY_PORTABLE=true`. Portable output removes canonical account, zone, domain and database-host topology, uses non-routable `example.invalid` identities, and leaves the generated product's local `/setup` responsible for binding customer infrastructure later.
+
 ## Current evidence
 
 Local directory generation, portable archive creation, project-specific Git/AI handoff, status/diff, Pack addition with dependency closure, idempotent update and receipt-owned conflict refusal are verified. Hosted jobs, artifact storage, GitHub delivery and remote All2CF MCP tools remain planned until exercised against their real systems.

@@ -39,10 +39,13 @@ try {
   ], {
     cwd: root,
     encoding: "utf8",
-    env: { ...process.env, STARTER_FACTORY_SOURCE_COMMIT: "1111111111111111111111111111111111111111" },
+    env: { ...process.env, STARTER_FACTORY_SOURCE_COMMIT: "1111111111111111111111111111111111111111", STARTER_FACTORY_PORTABLE: "true" },
   }));
   if (injected.source.sourceCommit !== "1111111111111111111111111111111111111111" || injected.source.sourceDirty)
     failures.push("immutable capsule source identity was not preserved as clean");
+  const injectedConfig = JSON.parse(await readFile(path.join(injectedTarget, "starter.config.json"), "utf8"));
+  if (!injected.source.portable || injectedConfig.cloudflare.accountId || injectedConfig.cloudflare.zoneId || injectedConfig.cloudflare.zoneName !== "example.invalid")
+    failures.push("portable capsule retained canonical infrastructure identity");
   await rm(injectedTarget, { recursive: true, force: true });
   await rm(path.join(root, ".factory-output", `${injectedSlug}.tar.gz`), { force: true });
   run("scripts/starter-factory.mjs", ["add", "saas.account-security-2fa", `--project-root=${target}`], target);
