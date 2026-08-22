@@ -18,6 +18,7 @@ All2CF can execute the exact canonical Factory source from a hash-verified Git a
 - Add a hosted portable mode that removes canonical infrastructure identity before project handoff.
 - Remove external parser dependencies from the capsule hot path and support package-lock-only dependency resolution.
 - Replace temporary Runner source paths in portable receipts with an All2CF-managed immutable source URL.
+- Derive portable R2, Vectorize and domain placeholders from the project slug and zero canonical Stream account identity.
 - Extend the Factory contract to prove the injected receipt identity.
 
 # Verification

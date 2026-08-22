@@ -44,8 +44,11 @@ try {
   if (injected.source.sourceCommit !== "1111111111111111111111111111111111111111" || injected.source.sourceDirty)
     failures.push("immutable capsule source identity was not preserved as clean");
   const injectedConfig = JSON.parse(await readFile(path.join(injectedTarget, "starter.config.json"), "utf8"));
+  const injectedBlueprint = JSON.parse(await readFile(path.join(injectedTarget, "starter.blueprint.json"), "utf8"));
   if (!injected.source.portable || injected.source.sourceRoot !== null || injected.source.updateMode !== "all2cf-managed" || injected.source.sourceUrl !== "https://app.all2cf.com/api/starter-v2/engine/contract" || injectedConfig.cloudflare.accountId || injectedConfig.cloudflare.zoneId || injectedConfig.cloudflare.zoneName !== "example.invalid")
     failures.push("portable capsule retained canonical infrastructure identity");
+  if (injectedBlueprint.providers.storage.development.bucket !== `${injectedSlug}-dev-objects` || injectedBlueprint.providers.search.production.indexName !== `${injectedSlug}-vectorize` || injectedBlueprint.providers.media.stream.production.accountId !== "00000000000000000000000000000000")
+    failures.push("portable Blueprint retained canonical resource identity");
   await rm(injectedTarget, { recursive: true, force: true });
   await rm(path.join(root, ".factory-output", `${injectedSlug}.tar.gz`), { force: true });
   run("scripts/starter-factory.mjs", ["add", "saas.account-security-2fa", `--project-root=${target}`], target);

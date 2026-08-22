@@ -88,6 +88,16 @@ async function writeIdentity(target, name, slug) {
     config.production.database.container = "";
     config.production.database.adminUser = "";
     config.production.database.vpcServiceId = "";
+    blueprint.providers.storage.development.bucket = `${slug}-dev-objects`;
+    blueprint.providers.storage.production.bucket = `${slug}-objects`;
+    blueprint.providers.storage.development.publicDomain = "";
+    blueprint.providers.storage.production.publicDomain = "";
+    blueprint.providers.search.development.indexName = `${slug}-dev-vectorize`;
+    blueprint.providers.search.production.indexName = `${slug}-vectorize`;
+    blueprint.providers.media.stream.development.accountId = "00000000000000000000000000000000";
+    blueprint.providers.media.stream.production.accountId = "00000000000000000000000000000000";
+    blueprint.providers.media.stream.development.allowedOrigins = [`${slug}-dev.example.invalid`];
+    blueprint.providers.media.stream.production.allowedOrigins = [`${slug}.example.invalid`];
   }
   config.project = { name, slug };
   config.development.worker = `${slug}-dev`;
