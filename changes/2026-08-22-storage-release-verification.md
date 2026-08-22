@@ -22,6 +22,7 @@ Every Web/Worker release with a selected Object Storage Provider performs an aut
 - Disposable empty-database Workerd passed missing-proof denial plus a valid release-proof exact-byte put/get/delete round trip, followed by the existing authenticated private/public object lifecycle regression.
 - A clean Development release against `starter-dev-objects` remains pending for this revised candidate.
 - The prior Development release exposed that Wrangler may auto-provision a missing R2 bucket; the pre-fix local state did not record that bucket, so the release could not yet satisfy the resource-ownership contract.
+- The first revised deployment uploaded successfully and recorded the exact R2/Queue identities, but the immediate custom-domain request still reached the prior version and correctly failed the new route check. Verification now retries the full expected storage identity/round-trip result during edge propagation rather than retrying HTTP status alone.
 - Cloudflare MCP and Worker Studio MCP were unavailable. Wrangler output plus official Cloudflare API readback remain the evidence sources.
 
 # Release

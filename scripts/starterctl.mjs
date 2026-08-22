@@ -566,10 +566,21 @@ async function verifyUrl(environment, baseUrl) {
   if (storageProvider !== "none") {
     const pathname = "/api/__verification/storage";
     const proof = createHmac("sha256", required("BETTER_AUTH_SECRET")).update("starter-storage-binding-round-trip").digest("hex");
-    const response = await fetch(`${baseUrl}${pathname}`, { method: "POST", headers: { Accept: "application/json", "x-starter-release-proof": proof } });
-    const payload = await response.json();
     const expectedBucket = blueprint.providers.storage?.[environment]?.bucket;
-    if (!response.ok || payload.data?.provider !== storageProvider || payload.data?.bucket !== expectedBucket || payload.data?.cleaned !== true || !Number.isInteger(payload.data?.bytes) || payload.data.bytes < 1)
+    let response;
+    let payload;
+    for (let attempt = 0; attempt < 30; attempt += 1) {
+      try {
+        response = await fetch(`${baseUrl}${pathname}`, { method: "POST", headers: { Accept: "application/json", "x-starter-release-proof": proof } });
+        payload = await response.json();
+      } catch {
+        response = undefined;
+        payload = undefined;
+      }
+      if (response?.ok && payload?.data?.provider === storageProvider && payload.data?.bucket === expectedBucket && payload.data?.cleaned === true && Number.isInteger(payload.data?.bytes) && payload.data.bytes > 0) break;
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+    if (!response?.ok || payload?.data?.provider !== storageProvider || payload.data?.bucket !== expectedBucket || payload.data?.cleaned !== true || !Number.isInteger(payload.data?.bytes) || payload.data.bytes < 1)
       throw new Error(`${baseUrl}${pathname} storage round trip failed`);
     results.push({ path: pathname, status: response.status, contentType: response.headers.get("content-type"), identity: payload.data });
   }
