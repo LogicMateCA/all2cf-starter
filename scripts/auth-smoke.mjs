@@ -53,6 +53,7 @@ const twilioSmsSelected = selectedPacks.has("capability.twilio-sms");
 const cloudflareImagesSelected = selectedPacks.has("capability.cloudflare-images");
 const cloudflareStreamSelected = selectedPacks.has("capability.cloudflare-stream");
 const cronSelected = selectedPacks.has("capability.cron");
+const workflowsSelected = selectedPacks.has("capability.workflows");
 const origin = remote
   ? `https://${starter.development.domain}`
   : `http://127.0.0.1:${port}`;
@@ -129,6 +130,9 @@ if (!remote) {
     const smokeImports = [
       `import app from ${JSON.stringify(path.join(root, "workers/app/index.ts"))};`,
       `import { withRequestAuth } from ${JSON.stringify(path.join(root, "workers/app/auth-runtime.ts"))};`,
+      ...(workflowsSelected
+        ? [`export { StarterWorkflow } from ${JSON.stringify(path.join(root, "workers/app/index.ts"))};`]
+        : []),
       ...(usageSelected
         ? [
             `import { consumeUserUsage } from ${JSON.stringify(path.join(root, "workers/app/features/usage-worker.ts"))};`,
@@ -660,6 +664,7 @@ const checks = [];
 try {
   await waitUntilReady();
   await database.connect();
+
 
   if (cronSelected) {
     const scheduledTime = Date.now() - 1_000;
@@ -2128,6 +2133,9 @@ try {
         headers: { Cookie: cookie, Origin: origin },
       })
     : null;
+  const deniedWorkflowTest = workflowsSelected
+    ? await request("/api/admin/workflows/test", { method: "POST", headers: { Cookie: cookie, Origin: origin } })
+    : null;
   assert(
     anonymousOperationsHealth.response.status === 401 &&
       deniedOperationsHealth.response.status === 403,
@@ -2151,6 +2159,22 @@ try {
       "Cloudflare Images Admin authority or local transform round trip failed",
     );
     checks.push("cloudflare-images-admin-denial-local-png-webp-transform");
+  }
+  if (workflowsSelected) {
+    const createdWorkflow = await request("/api/admin/workflows/test", { method: "POST", headers: { Cookie: cookie, Origin: origin } });
+    const workflowId = createdWorkflow.payload?.data?.id;
+    let workflowStatus = null;
+    for (let attempt = 0; attempt < 40; attempt += 1) {
+      workflowStatus = await request(`/api/admin/workflows/${encodeURIComponent(workflowId || "")}`, { headers: { Cookie: cookie, Origin: origin } });
+      if (new Set(["complete", "errored", "terminated"]).has(workflowStatus.payload?.data?.status)) break;
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+    assert(
+      deniedWorkflowTest?.response.status === 403 && createdWorkflow.response.status === 201 && workflowId?.startsWith("starter-test-") &&
+        workflowStatus?.response.status === 200 && workflowStatus.payload?.data?.status === "complete" && workflowStatus.payload?.data?.output?.status === "complete" && workflowStatus.payload?.data?.output?.requestedBy === currentUserId,
+      "Cloudflare Workflow Admin authority, instance creation, status, or step output failed",
+    );
+    checks.push("cloudflare-workflows-admin-denial-local-create-steps-complete-output");
   }
   const announcementRecipients = await database.query(
     `select count(*)::int as count from app_user
@@ -2501,6 +2525,7 @@ try {
   const cloudflareImagesHealth = healthComponents.get("cloudflare-images");
   const cloudflareStreamHealth = healthComponents.get("cloudflare-stream");
   const cronHealth = healthComponents.get("cron");
+  const workflowsHealth = healthComponents.get("workflows");
   assert(
     operationsHealth.response.status === 200 &&
       operationsHealth.payload?.data?.service === "starter" &&
@@ -2511,6 +2536,12 @@ try {
       emailHealth?.details?.sent24h >= 1 &&
       googleHealth?.details?.configured === true,
     "operations health omitted active database, CFsend, or Google evidence",
+  );
+  assert(
+    workflowsSelected
+      ? workflowsHealth?.status === "ok" && workflowsHealth?.details?.selected === true && workflowsHealth?.details?.configured === true && workflowsHealth?.details?.bindingReady === true
+      : workflowsHealth?.status === "not-selected" && workflowsHealth?.details?.selected === false,
+    "operations health returned incorrect Workflows readiness evidence",
   );
   assert(
     cronSelected

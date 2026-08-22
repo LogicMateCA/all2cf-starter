@@ -84,6 +84,9 @@ export type AuthRuntimeEnv = {
   STREAM_WEBHOOK_SECRET?: string;
   CRON_PROVIDER?: string;
   CRON_EXPRESSION?: string;
+  STARTER_WORKFLOW?: Workflow;
+  WORKFLOW_PROVIDER?: string;
+  WORKFLOW_NAME?: string;
 };
 
 type RequestExecutionContext = Pick<ExecutionContext, "waitUntil">;

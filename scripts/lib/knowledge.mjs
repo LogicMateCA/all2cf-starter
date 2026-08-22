@@ -345,6 +345,8 @@ export async function collectKnowledge(root) {
           materialization.generatedStorageAdapterHash,
         generatedMobileConfigPluginsHash:
           materialization.generatedMobileConfigPluginsHash,
+        generatedWorkflowExportsHash:
+          materialization.generatedWorkflowExportsHash,
         generatedDesignWebHash: materialization.generatedDesignWebHash,
         generatedDesignMarketingHash:
           materialization.generatedDesignMarketingHash,

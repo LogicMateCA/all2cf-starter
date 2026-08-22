@@ -183,7 +183,7 @@
     },
     {
       "area": "Background scheduling",
-      "choice": "Optional environment-specific Cloudflare Cron Trigger with generated scheduled dispatch, SQL heartbeat, explicit empty-trigger removal and independent Queue ownership",
+      "choice": "Optional Cloudflare Cron plus a separate durable two-step Workflows skeleton with generated class export, Admin lifecycle evidence and exact remote-resource cleanup",
       "status": "local-verified"
     },
     {

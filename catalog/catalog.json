@@ -1145,6 +1145,24 @@
       "documentation": ["ARCHITECTURE.md", "features/background/MODULE.md", "features/admin/MODULE.md"]
     },
     {
+      "id": "capability.workflows",
+      "kind": "capability",
+      "name": "Cloudflare Workflows",
+      "version": "0.1.0",
+      "status": "local-verified",
+      "delivery": "materializer",
+      "targets": ["worker", "admin"],
+      "ownership": "starter-owned",
+      "source": [{ "name": "Cloudflare Workflows", "url": "https://developers.cloudflare.com/workflows/", "relationship": "platform-provider" }],
+      "updatePolicy": "runtime-stable",
+      "provides": ["durable two-step skeleton", "Admin-only instance create/status", "optional binding schedule", "resource deletion on deselected release"],
+      "requires": ["exported WorkflowEntrypoint class", "environment resource name", "product-owned payload and steps"],
+      "conflicts": ["arbitrary code execution", "client-selected workflow class", "orphaned deselected resources"],
+      "performance": ["bounded serializable payload", "two fixed local test steps", "no Workflow binding when deselected"],
+      "verification": ["local instance create/complete/output", "selected types/dry-run", "resource deletion contract", "clean removal"],
+      "documentation": ["ARCHITECTURE.md", "features/background/MODULE.md", "features/admin/MODULE.md"]
+    },
+    {
       "id": "capability.mapcn-web",
       "kind": "capability",
       "name": "MapCN Web maps",

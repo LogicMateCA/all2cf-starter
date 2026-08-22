@@ -19,6 +19,7 @@ Purpose: give platform operators a truthful, bounded view of runtime readiness w
 - Cloudflare Images reports Binding, input ceiling and default output-format readiness without performing a billable transform from health.
 - Cloudflare Stream reports API/webhook configuration and pending/ready/error asset counts without creating uploads or playback traffic from health.
 - Cloudflare Cron reports configured expression, heartbeat-ledger readiness, run count and last run without invoking the scheduled handler from health.
+- Cloudflare Workflows reports Binding/resource readiness without creating an instance from health.
 - The dashboard is read-only and lazy. It never sends test email, creates provider resources, or enqueues synthetic events.
 
 Disposable empty-database workerd verification proves anonymous and ordinary-user denial, platform Admin readback, active database latency, configured CFsend and Google state, real authentication-email delivery counts, and truthful unselected optional providers. Separate Stripe-only and Outgoing-Webhook-only flows prove webhook-ledger and real local Queue binding/delivery evidence. Web and Worker type checks pass. Remote provider reachability, browser accessibility, alert routing, retention, external observability, and Development release remain open.

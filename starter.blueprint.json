@@ -371,6 +371,17 @@
           "productionReleased": false
         },
         "note": "Optional environment-specific Cloudflare Cron Trigger with heartbeat evidence."
+      },
+      {
+        "id": "capability.workflows",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Optional Cloudflare durable multi-step Workflow skeleton and Admin lifecycle test."
       }
     ]
   },
@@ -505,6 +516,16 @@
         },
         "production": {
           "expression": "0 * * * *"
+        }
+      },
+      "workflow": {
+        "enabled": false,
+        "scheduleEnabled": false,
+        "development": {
+          "expression": "0 * * * *"
+        },
+        "production": {
+          "expression": "0 3 * * *"
         }
       }
     },

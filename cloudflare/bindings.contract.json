@@ -53,6 +53,13 @@
       "requiredPerEnvironment": false,
       "requiredWhen": "media.images.provider=cloudflare-images"
     },
+    "STARTER_WORKFLOW": {
+      "kind": "workflow",
+      "status": "optional-workflows-pack",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "background.workflow.enabled=true",
+      "resourceIsolation": "Use different Worker-derived Workflow names per environment."
+    },
     "STARTER_QUEUE": {
       "kind": "queue",
       "status": "future",

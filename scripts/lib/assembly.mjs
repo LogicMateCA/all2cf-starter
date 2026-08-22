@@ -246,6 +246,13 @@ export function validateAssemblyContracts(
   const cronSelection = Object.values(blueprint.selections || {}).flat().find(({ id }) => id === "capability.cron");
   if (!cronSelection) failures.push("Blueprint is missing capability.cron selection state");
   else if (cronSelection.lifecycle.selected !== Boolean(cronPolicy.enabled)) failures.push("Cron Pack selection must match the background Cron setting");
+  const workflowPolicy = blueprint.providers?.background?.workflow || {};
+  for (const environment of ["development", "production"])
+    if (!/^(\S+\s+){4}\S+$/u.test(workflowPolicy[environment]?.expression || "")) failures.push(`Blueprint ${environment} Workflow schedule expression must contain five fields`);
+  const workflowSelection = Object.values(blueprint.selections || {}).flat().find(({ id }) => id === "capability.workflows");
+  if (!workflowSelection) failures.push("Blueprint is missing capability.workflows selection state");
+  else if (workflowSelection.lifecycle.selected !== Boolean(workflowPolicy.enabled)) failures.push("Workflows Pack selection must match the background Workflow setting");
+  if (workflowPolicy.scheduleEnabled && !workflowPolicy.enabled) failures.push("Workflow schedule cannot be enabled while Workflows is disabled");
 
   const packIds = new Set();
   const packs = new Map();

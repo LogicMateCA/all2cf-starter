@@ -455,7 +455,7 @@
         "background": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["cron"],
+          "required": ["cron", "workflow"],
           "properties": {
             "cron": {
               "type": "object",
@@ -463,6 +463,17 @@
               "required": ["enabled", "development", "production"],
               "properties": {
                 "enabled": { "type": "boolean" },
+                "development": { "$ref": "#/$defs/cronEnvironment" },
+                "production": { "$ref": "#/$defs/cronEnvironment" }
+              }
+            },
+            "workflow": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["enabled", "scheduleEnabled", "development", "production"],
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "scheduleEnabled": { "type": "boolean" },
                 "development": { "$ref": "#/$defs/cronEnvironment" },
                 "production": { "$ref": "#/$defs/cronEnvironment" }
               }

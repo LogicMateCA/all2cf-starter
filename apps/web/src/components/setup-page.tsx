@@ -82,7 +82,7 @@ type MediaPolicy = {
   images: { provider: "none" | "cloudflare-images"; maxInputBytes: number; defaultFormat: "image/webp" | "image/avif" | "image/jpeg" | "image/png" };
   stream: { provider: "none" | "cloudflare-stream"; maxDurationSeconds: number; development: { accountId: string; allowedOrigins: string[]; apiBaseUrl: string }; production: { accountId: string; allowedOrigins: string[]; apiBaseUrl: string } };
 };
-type BackgroundPolicy = { cron: { enabled: boolean; development: { expression: string }; production: { expression: string } } };
+type BackgroundPolicy = { cron: { enabled: boolean; development: { expression: string }; production: { expression: string } }; workflow: { enabled: boolean; scheduleEnabled: boolean; development: { expression: string }; production: { expression: string } } };
 type CfpgConnection = {
   connectCommand: string;
   databaseId: string;
@@ -1095,6 +1095,8 @@ export function SetupPage() {
               ? { ...blueprint.providers, media: { ...blueprint.providers.media, stream: { ...blueprint.providers.media.stream, provider: selected ? "cloudflare-stream" : "none" } } }
             : pack.id === "capability.cron"
               ? { ...blueprint.providers, background: { ...blueprint.providers.background, cron: { ...blueprint.providers.background.cron, enabled: selected } } }
+            : pack.id === "capability.workflows"
+              ? { ...blueprint.providers, background: { ...blueprint.providers.background, workflow: { ...blueprint.providers.background.workflow, enabled: selected, scheduleEnabled: selected ? blueprint.providers.background.workflow.scheduleEnabled : false } } }
             : blueprint.providers,
       };
     });
@@ -1242,6 +1244,13 @@ export function SetupPage() {
       preset: "custom",
       providers: { ...blueprint.providers, background: { ...blueprint.providers.background, cron: { ...blueprint.providers.background.cron, enabled } } },
       selections: { ...blueprint.selections, capabilities: blueprint.selections.capabilities.map((selection) => selection.id === "capability.cron" ? { ...selection, lifecycle: selectLifecycle(selection.lifecycle, enabled) } : selection) },
+    }));
+  const setWorkflowsEnabled = (enabled: boolean) =>
+    updateBlueprint((blueprint) => ({
+      ...blueprint,
+      preset: "custom",
+      providers: { ...blueprint.providers, background: { ...blueprint.providers.background, workflow: { ...blueprint.providers.background.workflow, enabled, scheduleEnabled: enabled ? blueprint.providers.background.workflow.scheduleEnabled : false } } },
+      selections: { ...blueprint.selections, capabilities: blueprint.selections.capabilities.map((selection) => selection.id === "capability.workflows" ? { ...selection, lifecycle: selectLifecycle(selection.lifecycle, enabled) } : selection) },
     }));
   const setDesignProfile = (profile: DesignProfile) =>
     updateBlueprint((blueprint) => ({
@@ -2252,6 +2261,12 @@ export function SetupPage() {
               </section>
 
               <section className="setup-panel provider-section">
+                <header><h2>Durable multi-step jobs</h2><p>Cloudflare Workflows persists step results and retries across Worker invocations. Starter installs only a fixed two-step test skeleton; copied products replace its payload and steps.</p></header>
+                <div className="provider-option-grid" role="radiogroup" aria-label="Workflow Provider">{[{ id: "none", name: "None", note: "No Workflow class, binding, instance API or remote resource." }, { id: "workflows", name: "Cloudflare Workflows", note: "Durable step execution with Admin instance create/status." }].map(({ id, name, note }) => { const selected = payload.blueprint.providers.background.workflow.enabled === (id === "workflows"); return <div className={selected ? "provider-option selected" : "provider-option"} key={id}><label><input type="radio" name="workflow-provider" checked={selected} onChange={() => setWorkflowsEnabled(id === "workflows")} /><span><strong>{name}</strong><small>{note}</small></span></label></div>; })}</div>
+                {payload.blueprint.providers.background.workflow.enabled ? <div className="storage-provider-config"><label className="platform-option"><input type="checkbox" checked={payload.blueprint.providers.background.workflow.scheduleEnabled} onChange={(event) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, background: { ...blueprint.providers.background, workflow: { ...blueprint.providers.background.workflow, scheduleEnabled: event.target.checked } } } }))} />Create Workflow instances on a schedule</label>{payload.blueprint.providers.background.workflow.scheduleEnabled ? <div className="storage-environment-grid">{(["development", "production"] as const).map((environment) => <div key={environment}><h3>{environment === "development" ? "Development Workflow schedule" : "Production Workflow schedule"}</h3><Field label="UTC Cron expression" value={payload.blueprint.providers.background.workflow[environment].expression} onChange={(expression) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, background: { ...blueprint.providers.background, workflow: { ...blueprint.providers.background.workflow, [environment]: { expression } } } } }))} /></div>)}</div> : null}<div className="provider-resource-links"><a href="https://developers.cloudflare.com/workflows/" target="_blank" rel="noreferrer">Workflows documentation<ExternalLink size={14} /></a></div><div className="provider-live-test"><Button asChild type="button" size="sm" variant="outline"><a href={`https://${payload.config.development.domain}/admin`} target="_blank" rel="noreferrer">Test Workflow on Development<ExternalLink size={13} /></a></Button><small>The Admin test creates a fixed instance and reads status/output. A deselected release removes the binding/class first, then deletes the recorded remote Workflow resource.</small></div></div> : null}
+              </section>
+
+              <section className="setup-panel provider-section">
                 <header><h2>Social sign-in</h2><p>Select the providers this project will support. Credentials may be inherited, entered now, or configured later from this local Setup.</p></header>
                 <div className="provider-option-grid" role="group" aria-label="Social sign-in providers">
                   {[
@@ -2535,6 +2550,10 @@ export function SetupPage() {
                   <div>
                     <dt>Cron</dt>
                     <dd>{payload.blueprint.providers.background.cron.enabled ? payload.blueprint.providers.background.cron.development.expression : "none"}</dd>
+                  </div>
+                  <div>
+                    <dt>Workflows</dt>
+                    <dd>{payload.blueprint.providers.background.workflow.enabled ? "enabled" : "none"}</dd>
                   </div>
                   <div>
                     <dt>Social sign-in</dt>

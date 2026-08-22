@@ -444,6 +444,31 @@ async function ensureConfiguredVectorize(environment) {
   }];
 }
 
+async function reconcileWorkflowResource(environment, targetConfig) {
+  const key = `${environment}Workflow`;
+  const declaration = (targetConfig.workflows || []).find(
+    (entry) => entry.binding === "STARTER_WORKFLOW",
+  );
+  if (declaration) {
+    state.resources[key] = {
+      name: declaration.name,
+      binding: declaration.binding,
+      className: declaration.class_name,
+      schedules: declaration.schedules || [],
+    };
+    return;
+  }
+  const previous = state.resources[key];
+  if (!previous?.name) return;
+  const workflows = await cloudflare("GET", `/accounts/${config.cloudflare.accountId}/workflows`);
+  if ((Array.isArray(workflows) ? workflows : []).some((entry) => entry.name === previous.name))
+    await cloudflare(
+      "DELETE",
+      `/accounts/${config.cloudflare.accountId}/workflows/${encodeURIComponent(previous.name)}`,
+    );
+  delete state.resources[key];
+}
+
 async function provision(environment = "all") {
   if (!new Set(["all", "development", "production"]).has(environment))
     throw new Error("provision environment must be development, production, or all");
@@ -561,12 +586,14 @@ async function release(environment) {
   const commit = run("git", ["rev-parse", "HEAD"]).trim();
   syncWorkerSecrets(environment, target.wranglerConfig);
   run("npx", ["wrangler", "deploy", "--config", target.wranglerConfig, "--message", `${environment} ${commit.slice(0, 12)}`], { inherit: true, env: { ...process.env, CLOUDFLARE_API_TOKEN: required("CLOUDFLARE_API_TOKEN") } });
+  const deployedConfig = parseJsonc(await readFile(path.join(root, target.wranglerConfig), "utf8"));
+  await reconcileWorkflowResource(environment, deployedConfig);
   const checks = await verifyUrl(environment, `https://${target.domain}`);
   if (environment === "development") run("npm", ["run", "auth:smoke:dev:remote"], { inherit: true });
   const deployment = await latestDeployment(target.worker);
   const configPath = path.join(root, target.wranglerConfig);
   const configHash = await fileHash(configPath);
-  const targetConfig = parseJsonc(await readFile(configPath, "utf8"));
+  const targetConfig = deployedConfig;
   const releaseRecord = { commit, artifactHash: hash, configHash, compatibilityDate: targetConfig.compatibility_date, domain: target.domain, worker: target.worker, deployment, checks, verifiedAt: new Date().toISOString() };
   state.releaseHistory ||= [];
   state.releaseHistory.push({ environment, ...releaseRecord });
