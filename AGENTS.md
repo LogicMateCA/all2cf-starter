@@ -18,6 +18,8 @@ This repository is a reusable starter. Replace neutral placeholders during proje
 - Route Product Design work through the Product Design skill, and visual/frontend taste work through the applicable taste skill.
 - For Cloudflare build, deploy, inspection, or rollback work, read and follow `skills/cloudflare-release/SKILL.md`.
 - For copying or initializing this Starter, read and follow `skills/starter-bootstrap/SKILL.md`.
+- For generating a new independent project, read and follow `skills/starter-factory/SKILL.md`.
+- For checking, adding or updating reusable Packs in a generated project, read and follow `skills/starter-maintenance/SKILL.md`.
 - For Expo/EAS build, update, Apple App Store, Google Play, or rollback work, read and follow `skills/expo-release/SKILL.md`.
 - For dependency checks or upgrades, read and follow `skills/runtime-upgrade/SKILL.md`; use current stable compatible versions, not unreviewed prereleases.
 - For whole-project understanding, Change Specs, documentation synchronization, or `/dp`, read and follow `skills/project-context/SKILL.md`.

@@ -71,6 +71,8 @@ Every material change records intent, affected contracts, migration or rollback 
 
 - `skills/cloudflare-release/SKILL.md` owns verified Cloudflare builds, Development releases, explicit Production releases, and rollback evidence.
 - `skills/starter-bootstrap/SKILL.md` owns copied-project identity replacement, environment materialization, infrastructure idempotency, and the first Development release.
+- `skills/starter-factory/SKILL.md` owns clean-source independent project generation, portable packaging, initial Git/AI handoff and creation evidence.
+- `skills/starter-maintenance/SKILL.md` owns generated-product Pack status, diff, dependency-closure addition, source update and receipt-owned conflict refusal.
 - `skills/expo-release/SKILL.md` owns Expo verification, Development/Preview updates and builds, and separate Apple App Store and Google Play submission evidence.
 - `skills/runtime-upgrade/SKILL.md` owns stable-version discovery, compatibility decisions, Better Auth/plugin alignment, upgrade verification, and Development release evidence.
 - `skills/project-context/SKILL.md` owns Change Specs, module/document status, AI onboarding context, stale detection, and `/dp` synchronization.

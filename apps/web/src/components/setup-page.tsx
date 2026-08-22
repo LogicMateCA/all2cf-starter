@@ -1515,9 +1515,9 @@ export function SetupPage() {
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({ name: payload.blueprint.project.name, slug: payload.blueprint.project.slug }),
       });
-      const result = (await response.json()) as { error?: string; target?: string };
+      const result = (await response.json()) as { error?: string; target?: string; archive?: string };
       if (!response.ok) throw new Error(result.error || "Project generation failed.");
-      setGeneration({ status: "done", message: "Independent project generated.", target: result.target });
+      setGeneration({ status: "done", message: result.archive ? `Independent project and package generated: ${result.archive}` : "Independent project generated.", target: result.target });
     } catch (error) {
       setGeneration({ status: "error", message: error instanceof Error ? error.message : String(error) });
     }

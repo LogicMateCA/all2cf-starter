@@ -127,6 +127,18 @@ function initializeGit(target, slug) {
   execFileSync("git", ["commit", "-m", `chore: initialize ${slug}`], { cwd: target, stdio: "ignore" });
 }
 
+async function createArchive(target, slug) {
+  const archive = path.join(outputRoot, `${slug}.tar.gz`);
+  try {
+    await stat(archive);
+    throw new Error(`Archive already exists: ${archive}`);
+  } catch (error) {
+    if (error?.code !== "ENOENT") throw error;
+  }
+  execFileSync("tar", ["--exclude=.git", "--exclude=node_modules", "--exclude=dist", "-czf", archive, "-C", target, "."], { stdio: "ignore" });
+  return archive;
+}
+
 async function materialize(target, mode) {
   return run("scripts/materialize-blueprint.mjs", [mode, `--project-root=${target}`, `--source-root=${sourceRoot}`], target);
 }
@@ -164,12 +176,15 @@ async function createProject() {
     await pruneSourceLibrary(target);
     await writeProductHandoff(target, source);
     runProjectScript(target, "scripts/build-dp.mjs");
-    const report = { ok: true, command: "create", target, project: { name, slug }, source, fileCount: (await readdir(target, { recursive: true })).length, blueprintHash: sha256(await readFile(path.join(target, "starter.blueprint.json"))), materialization: JSON.parse(materialization) };
+    const report = { ok: true, command: "create", target, archive: path.join(outputRoot, `${slug}.tar.gz`), project: { name, slug }, source, fileCount: (await readdir(target, { recursive: true })).length, blueprintHash: sha256(await readFile(path.join(target, "starter.blueprint.json"))), materialization: JSON.parse(materialization) };
     await writeFile(path.join(target, ".starter/generation-report.json"), json(report));
     initializeGit(target, slug);
+    await createArchive(target, slug);
+    report.archiveSha256 = sha256(await readFile(report.archive));
     console.log(json(report));
   } catch (error) {
     await rm(target, { recursive: true, force: true });
+    await rm(path.join(outputRoot, `${slug}.tar.gz`), { force: true });
     throw error;
   }
 }

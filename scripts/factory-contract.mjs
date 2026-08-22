@@ -24,6 +24,8 @@ try {
   if (await exists(path.join(target, "packs"))) failures.push("Pack library leaked into generated project");
   if (await exists(path.join(target, "catalog"))) failures.push("Catalog library leaked into generated project");
   if (await exists(path.join(target, "node_modules"))) failures.push("node_modules leaked into generated project");
+  if (!created.archive || !(await exists(created.archive))) failures.push("portable archive was not generated");
+  if (!/^[a-f0-9]{64}$/u.test(created.archiveSha256 || "")) failures.push("portable archive hash is missing");
   if (dirty) failures.push("generated Git baseline is dirty");
   if (!status.ok || status.packs.length === 0) failures.push("status did not report installed Packs");
   if (!diff.ok || diff.changes.length) failures.push("fresh project has materialization drift");
@@ -46,4 +48,5 @@ try {
   if (failures.length) process.exitCode = 1;
 } finally {
   await rm(target, { recursive: true, force: true });
+  await rm(path.join(root, ".factory-output", `${slug}.tar.gz`), { force: true });
 }

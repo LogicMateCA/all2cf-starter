@@ -3,7 +3,7 @@ id: independent-project-factory
 title: Generate independent AI-ready projects from one Starter source
 status: implementing
 affectedModules: [assembler, docs, operations]
-docsImpact: [AGENTS.md, PROJECT.md, ARCHITECTURE.md, PERFORMANCE.md, RELEASE.md, features/assembler/MODULE.md, features/docs/MODULE.md, AGENT_MAP.md, skills/starter-bootstrap/SKILL.md, /dp]
+docsImpact: [AGENTS.md, AGENT_MAP.md, ALL2CF_FACTORY.md, PROJECT.md, ARCHITECTURE.md, PERFORMANCE.md, RELEASE.md, features/assembler/MODULE.md, features/docs/MODULE.md, skills/starter-bootstrap/SKILL.md, skills/starter-factory/SKILL.md, skills/starter-maintenance/SKILL.md, /dp]
 ---
 
 # Outcome
@@ -25,7 +25,9 @@ The canonical repository becomes a local Project Factory. It reads reusable Cata
 - The same proof adds the previously unselected TOTP 2FA Pack, including code, SQL, routes, Better Auth registries, Wrangler changes and receipt; subsequent diff is empty and update is idempotent.
 - Source `/factory` passes four desktop/mobile light/dark browser cases. A real PUT preserves the exact canonical Blueprint/config hashes and writes only the ignored Factory Draft.
 - The complete repository verification passes, including the Factory contract, knowledge synchronization, source materialization, all types/builds/budgets and both Cloudflare configuration dry-runs.
-- Pending: generated-project `/setup` browser proof, Pack-owned conflict refusal, clean-source Factory API generation, archive/GitHub delivery, and later Skill extraction.
+- Generated-project `/setup` passes four desktop/mobile light/dark browser cases with eight screenshots and zero failures. Clean-source Factory API generation returns HTTP 201 from exact source commit `28a418e` with `sourceDirty: false`.
+- Portable archive generation is part of `factory:contract`. The verified create/add/update/conflict workflows are now captured in focused `starter-factory` and `starter-maintenance` Skills.
+- `ALL2CF_FACTORY.md` now fixes the future asynchronous job and typed MCP boundary around the same engine. Hosted jobs, artifact storage and GitHub delivery remain planned until exercised end to end.
 
 # Release
 
