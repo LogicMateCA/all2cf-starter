@@ -14,7 +14,8 @@ services:
     ports:
       - "15173:5173"
       - "18787:8787"
-    command: ["sleep", "infinity"]
+    restart: unless-stopped
+    command: ["npm", "run", "setup"]
 
   browser-acceptance:
     image: mcr.microsoft.com/playwright:v1.62.1-noble

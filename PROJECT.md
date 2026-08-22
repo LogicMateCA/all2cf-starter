@@ -16,7 +16,7 @@ Blueprint-driven project assembler for AI-led Cloudflare SaaS products. The reus
 - Primary users: product owners and AI development controllers
 - Explicit non-goals: project-specific business behavior and branding
 - Environments: `development`, `production`
-- Configuration boundary: `/setup` writes the Project Blueprint; `/dp` is read-only; `/admin` operates the resulting product.
+- Configuration boundary: local `http://localhost:15173/setup` writes the Project Blueprint; local `http://localhost:15173/dp` is the current worktree projection; deployed `/dp` is read-only evidence for that exact released commit; `/admin` operates the resulting product.
 - Setup persistence boundary: every step can save a draft and “Save and continue” persists before navigation. Provider selection is independent from credential timing; Google, GitHub, Apple, CFsend, Resend, Stripe and Cloudflare Email Service may inherit project/shared values, accept project-local replacements, or remain visibly deferred until a later local `/setup` session.
 - AI control boundary: Sol is the sole controller but not a permanently high-reasoning process. It selects light, medium, or high from task complexity and risk, defaults normal implementation to medium, and reserves high for architecture, release, ambiguous cross-module judgment, and high-risk mutation.
 
