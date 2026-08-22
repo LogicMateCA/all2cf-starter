@@ -53,7 +53,7 @@ for (const file of ["cloudflare/wrangler.development.jsonc", "cloudflare/wrangle
     for (const name of socialSecrets[provider] || []) required.add(name);
   }
   worker.secrets ||= {};
-  worker.secrets.required = [...required];
+  worker.secrets.required = [...required].sort();
   addJson(file, worker);
 }
 

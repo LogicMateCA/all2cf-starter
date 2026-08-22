@@ -16,6 +16,7 @@ docsImpact: [PROJECT.md, ARCHITECTURE.md, features/assembler/MODULE.md, compose.
 - Restart the local service unless the owner explicitly stops it.
 - Keep port `15173` responsible for local Setup and the current worktree Development Plan.
 - Preserve `dev.logicm8.com/dp` as the read-only view of the exact Development release; it does not replace the local planning view.
+- Keep Setup-triggered Wrangler secret requirements deterministically sorted so ordinary draft saves do not create meaningless Git ordering churn.
 
 # Verification
 
