@@ -60,6 +60,15 @@
       "requiredWhen": "background.workflow.enabled=true",
       "resourceIsolation": "Use different Worker-derived Workflow names per environment."
     },
+    "STARTER_REALTIME": {
+      "kind": "durable_object_namespace",
+      "status": "optional-durable-objects-pack",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "background.realtime.enabled=true",
+      "className": "StarterRealtimeRoom",
+      "storage": "sqlite",
+      "resourceIsolation": "The Development and Production Workers own separate Durable Object namespaces. Deselecting never deletes namespace data automatically."
+    },
     "STARTER_QUEUE": {
       "kind": "queue",
       "status": "future",

@@ -53,6 +53,10 @@ const workflowExportsPath = path.join(
   root,
   "workers/app/generated/workflow-exports.ts",
 );
+const durableObjectExportsPath = path.join(
+  root,
+  "workers/app/generated/durable-object-exports.ts",
+);
 const storageAdapterPath = path.join(
   root,
   "workers/app/generated/storage-adapter.ts",
@@ -499,6 +503,11 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
       throw new Error(`${path.relative(root, configPath)} changed materializer-owned Workflow variable ${name}`);
     delete model.vars[name];
   }
+  for (const [name, value] of Object.entries(previousRuntime?.durableObjectVars || {})) {
+    if (model.vars[name] !== value)
+      throw new Error(`${path.relative(root, configPath)} changed materializer-owned Durable Object variable ${name}`);
+    delete model.vars[name];
+  }
   if (previousRuntime?.imagesBinding) {
     if (model.images?.binding !== previousRuntime.imagesBinding.binding)
       throw new Error(`${path.relative(root, configPath)} changed materializer-owned Images binding`);
@@ -518,6 +527,17 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
     const index = workflows.findIndex((entry) => entry.binding === previousRuntime.workflow.binding && entry.name === previousRuntime.workflow.name && entry.class_name === previousRuntime.workflow.className);
     if (index < 0) throw new Error(`${path.relative(root, configPath)} changed materializer-owned Workflow binding`);
     workflows.splice(index, 1);
+  }
+  const durableObjectBindings = Array.isArray(model.durable_objects?.bindings) ? structuredClone(model.durable_objects.bindings) : [];
+  const durableObjectExports = model.exports ? structuredClone(model.exports) : {};
+  if (previousRuntime?.durableObject) {
+    const index = durableObjectBindings.findIndex((entry) => entry.name === previousRuntime.durableObject.binding && entry.class_name === previousRuntime.durableObject.className);
+    if (index < 0) throw new Error(`${path.relative(root, configPath)} changed materializer-owned Durable Object binding`);
+    durableObjectBindings.splice(index, 1);
+    const declaration = durableObjectExports[previousRuntime.durableObject.className];
+    if (declaration?.type !== "durable-object" || declaration?.storage !== previousRuntime.durableObject.storage)
+      throw new Error(`${path.relative(root, configPath)} changed materializer-owned Durable Object export`);
+    delete durableObjectExports[previousRuntime.durableObject.className];
   }
   const storage = blueprint.providers.storage;
   const storageEnvironment = storage[environment];
@@ -601,6 +621,25 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
   }
   if (workflows.length) model.workflows = workflows;
   else delete model.workflows;
+  let durableObject = null;
+  const durableObjectVars = {};
+  if (blueprint.providers.background.realtime.enabled) {
+    if (durableObjectBindings.some((entry) => entry.name === "STARTER_REALTIME"))
+      throw new Error(`${path.relative(root, configPath)} already owns Durable Object binding STARTER_REALTIME`);
+    if (durableObjectExports.StarterRealtimeRoom)
+      throw new Error(`${path.relative(root, configPath)} already owns Durable Object export StarterRealtimeRoom`);
+    durableObjectBindings.push({ name: "STARTER_REALTIME", class_name: "StarterRealtimeRoom" });
+    durableObjectExports.StarterRealtimeRoom = { type: "durable-object", storage: "sqlite" };
+    durableObject = { binding: "STARTER_REALTIME", className: "StarterRealtimeRoom", storage: "sqlite" };
+    model.vars.REALTIME_PROVIDER = "cloudflare-durable-objects";
+    model.vars.REALTIME_CLASS = "StarterRealtimeRoom";
+    durableObjectVars.REALTIME_PROVIDER = "cloudflare-durable-objects";
+    durableObjectVars.REALTIME_CLASS = "StarterRealtimeRoom";
+  }
+  if (durableObjectBindings.length) model.durable_objects = { ...(model.durable_objects || {}), bindings: durableObjectBindings };
+  else delete model.durable_objects;
+  if (Object.keys(durableObjectExports).length) model.exports = durableObjectExports;
+  else delete model.exports;
   const pushVars = {};
   if (blueprint.providers.push.provider === "expo-push") {
     model.vars.PUSH_PROVIDER = "expo-push";
@@ -710,6 +749,8 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
     vectorizeVars,
     workflow,
     workflowVars,
+    durableObject,
+    durableObjectVars,
     pushVars,
     smsVars,
     imagesBinding,
@@ -1130,6 +1171,9 @@ if (cronPackSelected !== Boolean(blueprint.providers.background.cron.enabled))
 const workflowsPackSelected = selected.has("capability.workflows");
 if (workflowsPackSelected !== Boolean(blueprint.providers.background.workflow.enabled))
   throw new Error("Workflows Pack selection must match the Blueprint background Workflow setting.");
+const durableObjectsPackSelected = selected.has("capability.durable-objects");
+if (durableObjectsPackSelected !== Boolean(blueprint.providers.background.realtime.enabled))
+  throw new Error("Durable Objects Pack selection must match the Blueprint realtime setting.");
 
 desiredRoutes.sort((left, right) => left.path.localeCompare(right.path));
 const desiredWorkerFirstRoutes = desiredRoutes
@@ -1159,6 +1203,12 @@ const desiredWorkflowExportsSource = [
   "// Generated by scripts/materialize-blueprint.mjs. Do not edit by hand.",
   "export {};",
   ...(workflowsPackSelected ? ['export { StarterWorkflow } from "../features/workflows-worker";'] : []),
+  "",
+].join("\n");
+const desiredDurableObjectExportsSource = [
+  "// Generated by scripts/materialize-blueprint.mjs. Do not edit by hand.",
+  "export {};",
+  ...(durableObjectsPackSelected ? ['export { StarterRealtimeRoom } from "../features/realtime-room-worker";'] : []),
   "",
 ].join("\n");
 const desiredMobileConfigPluginSource = `${JSON.stringify([...desiredMobileConfigPlugins].sort(), null, 2)}\n`;
@@ -1381,6 +1431,12 @@ const generatedRegistries = [
     baseline: "// Generated by scripts/materialize-blueprint.mjs. Do not edit by hand.\nexport {};\n",
   },
   {
+    path: durableObjectExportsPath,
+    desired: desiredDurableObjectExportsSource,
+    stateKey: "generatedDurableObjectExportsHash",
+    baseline: "// Generated by scripts/materialize-blueprint.mjs. Do not edit by hand.\nexport {};\n",
+  },
+  {
     path: storageAdapterPath,
     desired: desiredStorageAdapterSource,
     stateKey: "generatedStorageAdapterHash",
@@ -1482,6 +1538,7 @@ const desiredState = {
   generatedWorkerFeaturesHash: sha256(desiredWorkerFeatureSource),
   generatedWorkerEventsHash: sha256(desiredWorkerEventSource),
   generatedWorkflowExportsHash: sha256(desiredWorkflowExportsSource),
+  generatedDurableObjectExportsHash: sha256(desiredDurableObjectExportsSource),
   generatedStorageAdapterHash: sha256(desiredStorageAdapterSource),
   generatedMobileConfigPluginsHash: sha256(desiredMobileConfigPluginSource),
   generatedCloudflareConfigs: desiredCloudflareConfigReceipts,

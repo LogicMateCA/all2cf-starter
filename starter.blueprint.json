@@ -382,6 +382,17 @@
           "productionReleased": false
         },
         "note": "Optional Cloudflare durable multi-step Workflow skeleton and Admin lifecycle test."
+      },
+      {
+        "id": "capability.durable-objects",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Optional SQLite-backed Durable Object room with hibernatable WebSockets and Admin round-trip test."
       }
     ]
   },
@@ -527,6 +538,9 @@
         "production": {
           "expression": "0 3 * * *"
         }
+      },
+      "realtime": {
+        "enabled": false
       }
     },
     "email": {

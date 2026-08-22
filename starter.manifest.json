@@ -183,7 +183,7 @@
     },
     {
       "area": "Background scheduling",
-      "choice": "Optional Cloudflare Cron plus a separate durable two-step Workflows skeleton with generated class export, Admin lifecycle evidence and exact remote-resource cleanup",
+      "choice": "Optional Cloudflare Cron, durable two-step Workflows, and SQLite-backed Durable Object realtime rooms with authenticated hibernatable WebSockets and non-destructive deselection",
       "status": "local-verified"
     },
     {

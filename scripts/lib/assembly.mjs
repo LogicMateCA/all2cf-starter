@@ -253,6 +253,10 @@ export function validateAssemblyContracts(
   if (!workflowSelection) failures.push("Blueprint is missing capability.workflows selection state");
   else if (workflowSelection.lifecycle.selected !== Boolean(workflowPolicy.enabled)) failures.push("Workflows Pack selection must match the background Workflow setting");
   if (workflowPolicy.scheduleEnabled && !workflowPolicy.enabled) failures.push("Workflow schedule cannot be enabled while Workflows is disabled");
+  const realtimePolicy = blueprint.providers?.background?.realtime || {};
+  const realtimeSelection = Object.values(blueprint.selections || {}).flat().find(({ id }) => id === "capability.durable-objects");
+  if (!realtimeSelection) failures.push("Blueprint is missing capability.durable-objects selection state");
+  else if (realtimeSelection.lifecycle.selected !== Boolean(realtimePolicy.enabled)) failures.push("Durable Objects Pack selection must match the realtime setting");
 
   const packIds = new Set();
   const packs = new Map();

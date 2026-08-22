@@ -54,6 +54,7 @@ const cloudflareImagesSelected = selectedPacks.has("capability.cloudflare-images
 const cloudflareStreamSelected = selectedPacks.has("capability.cloudflare-stream");
 const cronSelected = selectedPacks.has("capability.cron");
 const workflowsSelected = selectedPacks.has("capability.workflows");
+const durableObjectsSelected = selectedPacks.has("capability.durable-objects");
 const origin = remote
   ? `https://${starter.development.domain}`
   : `http://127.0.0.1:${port}`;
@@ -126,12 +127,15 @@ if (!remote) {
   const smokeEnvPath = path.join(tempRoot, ".dev.vars");
   const workerEntryPath = path.join(tempRoot, "worker.ts");
   await mkdir(tempRoot, { recursive: true });
-  if (apiKeysSelected || usageSelected || stripeSelected || twilioSmsSelected) {
+  if (apiKeysSelected || usageSelected || stripeSelected || twilioSmsSelected || durableObjectsSelected) {
     const smokeImports = [
       `import app from ${JSON.stringify(path.join(root, "workers/app/index.ts"))};`,
       `import { withRequestAuth } from ${JSON.stringify(path.join(root, "workers/app/auth-runtime.ts"))};`,
       ...(workflowsSelected
         ? [`export { StarterWorkflow } from ${JSON.stringify(path.join(root, "workers/app/index.ts"))};`]
+        : []),
+      ...(durableObjectsSelected
+        ? [`export { StarterRealtimeRoom } from ${JSON.stringify(path.join(root, "workers/app/index.ts"))};`]
         : []),
       ...(usageSelected
         ? [
@@ -2136,6 +2140,9 @@ try {
   const deniedWorkflowTest = workflowsSelected
     ? await request("/api/admin/workflows/test", { method: "POST", headers: { Cookie: cookie, Origin: origin } })
     : null;
+  const deniedRealtimeTest = durableObjectsSelected
+    ? await request("/api/admin/realtime/test", { method: "POST", headers: { Cookie: cookie, Origin: origin } })
+    : null;
   assert(
     anonymousOperationsHealth.response.status === 401 &&
       deniedOperationsHealth.response.status === 403,
@@ -2175,6 +2182,17 @@ try {
       "Cloudflare Workflow Admin authority, instance creation, status, or step output failed",
     );
     checks.push("cloudflare-workflows-admin-denial-local-create-steps-complete-output");
+  }
+  if (durableObjectsSelected) {
+    const realtimeTest = await request("/api/admin/realtime/test", { method: "POST", headers: { Cookie: cookie, Origin: origin } });
+    assert(
+      deniedRealtimeTest?.response.status === 403 && realtimeTest.response.status === 200 &&
+        realtimeTest.payload?.data?.ready?.type === "ready" && realtimeTest.payload?.data?.message?.type === "message" &&
+        realtimeTest.payload?.data?.message?.text === "STARTER_REALTIME_OK" && realtimeTest.payload?.data?.message?.userId === currentUserId &&
+        realtimeTest.payload?.data?.state?.sequence === 1 && realtimeTest.payload?.data?.state?.lastMessage?.text === "STARTER_REALTIME_OK",
+      "Durable Object Admin authority, WebSocket round trip, or persisted state failed",
+    );
+    checks.push("durable-objects-admin-denial-hibernatable-websocket-state-round-trip");
   }
   const announcementRecipients = await database.query(
     `select count(*)::int as count from app_user
@@ -2526,6 +2544,7 @@ try {
   const cloudflareStreamHealth = healthComponents.get("cloudflare-stream");
   const cronHealth = healthComponents.get("cron");
   const workflowsHealth = healthComponents.get("workflows");
+  const realtimeHealth = healthComponents.get("realtime");
   assert(
     operationsHealth.response.status === 200 &&
       operationsHealth.payload?.data?.service === "starter" &&
@@ -2542,6 +2561,12 @@ try {
       ? workflowsHealth?.status === "ok" && workflowsHealth?.details?.selected === true && workflowsHealth?.details?.configured === true && workflowsHealth?.details?.bindingReady === true
       : workflowsHealth?.status === "not-selected" && workflowsHealth?.details?.selected === false,
     "operations health returned incorrect Workflows readiness evidence",
+  );
+  assert(
+    durableObjectsSelected
+      ? realtimeHealth?.status === "ok" && realtimeHealth?.details?.selected === true && realtimeHealth?.details?.configured === true && realtimeHealth?.details?.bindingReady === true && realtimeHealth?.details?.storage === "sqlite"
+      : realtimeHealth?.status === "not-selected" && realtimeHealth?.details?.selected === false,
+    "operations health returned incorrect Durable Objects readiness evidence",
   );
   assert(
     cronSelected

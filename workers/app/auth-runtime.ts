@@ -87,6 +87,9 @@ export type AuthRuntimeEnv = {
   STARTER_WORKFLOW?: Workflow;
   WORKFLOW_PROVIDER?: string;
   WORKFLOW_NAME?: string;
+  STARTER_REALTIME?: DurableObjectNamespace;
+  REALTIME_PROVIDER?: string;
+  REALTIME_CLASS?: string;
 };
 
 type RequestExecutionContext = Pick<ExecutionContext, "waitUntil">;

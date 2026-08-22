@@ -40,6 +40,7 @@ Purpose: turn a product brief into a complete SaaS platform plus the smallest ow
 - Cloudflare Stream receipt-owns its Worker/SQL lifecycle, exact environment variables and two secrets. Selection never implies signed/private playback, because that path is not yet executable.
 - Cron receipt-owns its Worker/SQL event feature, exact environment trigger and variables. Empty trigger arrays are intentional removal state, not stale configuration.
 - Workflows receipt-owns its Worker feature, generated top-level class export, Binding/resource name, optional schedules and variables. Release state owns exact remote deletion after deselection.
+- Durable Objects receipt-owns its Worker feature, generated top-level class export, `STARTER_REALTIME` Binding, declarative SQLite class export and variables. Deselection removes runtime access but never generates a destructive namespace tombstone automatically.
 - AI may recommend and prefill selections, but it must show conflicts and consequences before changing the Blueprint. The controller owns integration and release.
 - `/dp` is a read-only projection of the Blueprint, Catalog, Markdown contracts, code status, and release evidence. Its lifecycle matrix separates reusable Catalog readiness and delivery mode from the current Blueprint's selected, materialized, locally verified, Development verified, and Production released states. It never edits the Blueprint.
 

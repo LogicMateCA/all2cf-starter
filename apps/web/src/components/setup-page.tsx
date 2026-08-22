@@ -82,7 +82,7 @@ type MediaPolicy = {
   images: { provider: "none" | "cloudflare-images"; maxInputBytes: number; defaultFormat: "image/webp" | "image/avif" | "image/jpeg" | "image/png" };
   stream: { provider: "none" | "cloudflare-stream"; maxDurationSeconds: number; development: { accountId: string; allowedOrigins: string[]; apiBaseUrl: string }; production: { accountId: string; allowedOrigins: string[]; apiBaseUrl: string } };
 };
-type BackgroundPolicy = { cron: { enabled: boolean; development: { expression: string }; production: { expression: string } }; workflow: { enabled: boolean; scheduleEnabled: boolean; development: { expression: string }; production: { expression: string } } };
+type BackgroundPolicy = { cron: { enabled: boolean; development: { expression: string }; production: { expression: string } }; workflow: { enabled: boolean; scheduleEnabled: boolean; development: { expression: string }; production: { expression: string } }; realtime: { enabled: boolean } };
 type CfpgConnection = {
   connectCommand: string;
   databaseId: string;
@@ -1097,6 +1097,8 @@ export function SetupPage() {
               ? { ...blueprint.providers, background: { ...blueprint.providers.background, cron: { ...blueprint.providers.background.cron, enabled: selected } } }
             : pack.id === "capability.workflows"
               ? { ...blueprint.providers, background: { ...blueprint.providers.background, workflow: { ...blueprint.providers.background.workflow, enabled: selected, scheduleEnabled: selected ? blueprint.providers.background.workflow.scheduleEnabled : false } } }
+            : pack.id === "capability.durable-objects"
+              ? { ...blueprint.providers, background: { ...blueprint.providers.background, realtime: { enabled: selected } } }
             : blueprint.providers,
       };
     });
@@ -1251,6 +1253,13 @@ export function SetupPage() {
       preset: "custom",
       providers: { ...blueprint.providers, background: { ...blueprint.providers.background, workflow: { ...blueprint.providers.background.workflow, enabled, scheduleEnabled: enabled ? blueprint.providers.background.workflow.scheduleEnabled : false } } },
       selections: { ...blueprint.selections, capabilities: blueprint.selections.capabilities.map((selection) => selection.id === "capability.workflows" ? { ...selection, lifecycle: selectLifecycle(selection.lifecycle, enabled) } : selection) },
+    }));
+  const setRealtimeEnabled = (enabled: boolean) =>
+    updateBlueprint((blueprint) => ({
+      ...blueprint,
+      preset: "custom",
+      providers: { ...blueprint.providers, background: { ...blueprint.providers.background, realtime: { enabled } } },
+      selections: { ...blueprint.selections, capabilities: blueprint.selections.capabilities.map((selection) => selection.id === "capability.durable-objects" ? { ...selection, lifecycle: selectLifecycle(selection.lifecycle, enabled) } : selection) },
     }));
   const setDesignProfile = (profile: DesignProfile) =>
     updateBlueprint((blueprint) => ({
@@ -2267,6 +2276,12 @@ export function SetupPage() {
               </section>
 
               <section className="setup-panel provider-section">
+                <header><h2>Realtime rooms</h2><p>Durable Objects keep one strongly consistent SQLite-backed state authority per room. Hibernatable WebSockets preserve client connections while idle without keeping the object billed as active.</p></header>
+                <div className="provider-option-grid" role="radiogroup" aria-label="Realtime Provider">{[{ id: "none", name: "None", note: "No Durable Object class, Binding, room route or WebSocket runtime." }, { id: "durable-objects", name: "Durable Objects / WebSockets", note: "Authenticated per-room messages, sequence state and hibernatable sockets." }].map(({ id, name, note }) => { const selected = payload.blueprint.providers.background.realtime.enabled === (id === "durable-objects"); return <div className={selected ? "provider-option selected" : "provider-option"} key={id}><label><input type="radio" name="realtime-provider" checked={selected} onChange={() => setRealtimeEnabled(id === "durable-objects")} /><span><strong>{name}</strong><small>{note}</small></span></label></div>; })}</div>
+                {payload.blueprint.providers.background.realtime.enabled ? <div className="storage-provider-config"><div className="provider-resource-links"><a href="https://developers.cloudflare.com/durable-objects/" target="_blank" rel="noreferrer">Durable Objects documentation<ExternalLink size={14} /></a><a href="https://developers.cloudflare.com/durable-objects/best-practices/websockets/" target="_blank" rel="noreferrer">WebSocket hibernation guide<ExternalLink size={14} /></a></div><div className="provider-live-test"><Button asChild type="button" size="sm" variant="outline"><a href={`https://${payload.config.development.domain}/admin`} target="_blank" rel="noreferrer">Test realtime room on Development<ExternalLink size={13} /></a></Button><small>The Admin test opens the real Durable Object socket, sends one bounded message, receives the broadcast and reads persisted sequence state. Deselecting removes access and the Binding but never deletes namespace data automatically.</small></div></div> : null}
+              </section>
+
+              <section className="setup-panel provider-section">
                 <header><h2>Social sign-in</h2><p>Select the providers this project will support. Credentials may be inherited, entered now, or configured later from this local Setup.</p></header>
                 <div className="provider-option-grid" role="group" aria-label="Social sign-in providers">
                   {[
@@ -2554,6 +2569,10 @@ export function SetupPage() {
                   <div>
                     <dt>Workflows</dt>
                     <dd>{payload.blueprint.providers.background.workflow.enabled ? "enabled" : "none"}</dd>
+                  </div>
+                  <div>
+                    <dt>Realtime rooms</dt>
+                    <dd>{payload.blueprint.providers.background.realtime.enabled ? "Durable Objects" : "none"}</dd>
                   </div>
                   <div>
                     <dt>Social sign-in</dt>

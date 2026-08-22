@@ -455,7 +455,7 @@
         "background": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["cron", "workflow"],
+          "required": ["cron", "workflow", "realtime"],
           "properties": {
             "cron": {
               "type": "object",
@@ -476,6 +476,14 @@
                 "scheduleEnabled": { "type": "boolean" },
                 "development": { "$ref": "#/$defs/cronEnvironment" },
                 "production": { "$ref": "#/$defs/cronEnvironment" }
+              }
+            },
+            "realtime": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["enabled"],
+              "properties": {
+                "enabled": { "type": "boolean" }
               }
             }
           }

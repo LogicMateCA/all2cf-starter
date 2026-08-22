@@ -8,6 +8,7 @@ import { selectedWorkerEvents } from "./generated/worker-events";
 import { collectOperationsHealth } from "./operations-health";
 import { createDatabaseClient } from "./database-runtime";
 export * from "./generated/workflow-exports";
+export * from "./generated/durable-object-exports";
 
 type AppVariables = {
   requestId: string;

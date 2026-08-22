@@ -85,6 +85,7 @@ for (const [categoryId, optionId] of [
   ["media", "cloudflare-stream"],
   ["background-realtime", "cron"],
   ["background-realtime", "workflows"],
+  ["background-realtime", "durable-objects"],
   ["maps", "mapcn"],
   ["background-realtime", "queues"],
   ["release-platforms", "cloudflare"],

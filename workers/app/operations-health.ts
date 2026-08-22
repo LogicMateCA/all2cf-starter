@@ -453,6 +453,14 @@ export async function collectOperationsHealth(
     components.push({ id: "workflows", label: "Cloudflare Workflows", status: configuration.configured ? "ok" : "attention", summary: configuration.configured ? "Workflow binding and resource name are configured." : "Selected Workflow configuration is incomplete.", details: { selected: true, configured: configuration.configured, bindingReady: Boolean(env.STARTER_WORKFLOW), name: env.WORKFLOW_NAME || null, missing: configuration.missing.join(", ") || null } });
   }
 
+  const realtimeSelected = env.REALTIME_PROVIDER === "cloudflare-durable-objects";
+  if (!realtimeSelected) {
+    components.push({ id: "realtime", label: "Durable Objects realtime", status: "not-selected", summary: "Realtime rooms are not materialized.", details: { selected: false } });
+  } else {
+    const configuration = requiredConfiguration([["STARTER_REALTIME", env.STARTER_REALTIME], ["REALTIME_CLASS", env.REALTIME_CLASS]]);
+    components.push({ id: "realtime", label: "Durable Objects realtime", status: configuration.configured ? "ok" : "attention", summary: configuration.configured ? "Realtime Durable Object Binding and class are configured." : "Selected realtime configuration is incomplete.", details: { selected: true, configured: configuration.configured, bindingReady: Boolean(env.STARTER_REALTIME), className: env.REALTIME_CLASS || null, storage: "sqlite", missing: configuration.missing.join(", ") || null } });
+  }
+
   const stripeTable = await relationExists(database, "app_stripe_webhook_event");
   const stripeSelected =
     stripeTable ||

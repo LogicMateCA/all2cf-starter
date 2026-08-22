@@ -1163,6 +1163,24 @@
       "documentation": ["ARCHITECTURE.md", "features/background/MODULE.md", "features/admin/MODULE.md"]
     },
     {
+      "id": "capability.durable-objects",
+      "kind": "capability",
+      "name": "Cloudflare Durable Objects realtime rooms",
+      "version": "0.1.0",
+      "status": "local-verified",
+      "delivery": "materializer",
+      "targets": ["worker", "admin"],
+      "ownership": "starter-owned",
+      "source": [{ "name": "Cloudflare Durable Objects", "url": "https://developers.cloudflare.com/durable-objects/", "relationship": "platform-provider" }],
+      "updatePolicy": "runtime-stable",
+      "provides": ["SQLite-backed per-room state", "authenticated hibernatable WebSocket endpoint", "bounded room and message contracts", "Admin state and socket round-trip"],
+      "requires": ["STARTER_REALTIME Durable Object binding", "StarterRealtimeRoom class export", "declarative SQLite class export"],
+      "conflicts": ["anonymous room access", "unbounded message payloads", "automatic namespace data deletion on deselection"],
+      "performance": ["hibernation API", "one object per room", "1000-character message cap", "no timers in the Durable Object"],
+      "verification": ["ordinary-user Admin denial", "local WebSocket ready/send/broadcast/state", "selected types/dry-run", "clean deactivation"],
+      "documentation": ["ARCHITECTURE.md", "features/background/MODULE.md", "features/admin/MODULE.md", "features/operations/MODULE.md"]
+    },
+    {
       "id": "capability.mapcn-web",
       "kind": "capability",
       "name": "MapCN Web maps",
