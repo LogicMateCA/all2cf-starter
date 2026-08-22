@@ -32,6 +32,7 @@
     "support",
     "storage",
     "ai",
+    "search",
     "admin",
     "operations",
     "mobile",
@@ -101,6 +102,11 @@
     {
       "area": "AI",
       "choice": "Optional Cloudflare Workers AI Binding with per-environment model, optional AI Gateway, bounded server helper, real Setup inference test and no runtime when unselected",
+      "status": "local-verified"
+    },
+    {
+      "area": "Search and vector",
+      "choice": "None or PostgreSQL by default; optional environment-isolated Cloudflare Vectorize with immutable dimensions/metric, live round trip and receipt-safe Binding removal",
       "status": "local-verified"
     },
     {

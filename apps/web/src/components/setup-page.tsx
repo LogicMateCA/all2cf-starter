@@ -62,6 +62,11 @@ type AiPolicy = {
   development: { model: string; gatewayId: string };
   production: { model: string; gatewayId: string };
 };
+type SearchPolicy = {
+  provider: "none" | "postgresql" | "vectorize";
+  development: { indexName: string; dimensions: number; metric: "cosine" | "euclidean" | "dot-product" };
+  production: { indexName: string; dimensions: number; metric: "cosine" | "euclidean" | "dot-product" };
+};
 type CfpgConnection = {
   connectCommand: string;
   databaseId: string;
@@ -119,6 +124,7 @@ type Blueprint = {
     storage: StoragePolicy;
     antiAbuse: AntiAbusePolicy;
     ai: AiPolicy;
+    search: SearchPolicy;
     email: { default: string; alternatives: string[] };
     billing: string;
     release: string;
@@ -622,6 +628,7 @@ export function SetupPage() {
   const [turnstileToken, setTurnstileToken] = useState("");
   const [turnstileTest, setTurnstileTest] = useState<ProviderTestState>({ status: "idle" });
   const [workersAiTest, setWorkersAiTest] = useState<ProviderTestState>({ status: "idle" });
+  const [vectorizeTest, setVectorizeTest] = useState<ProviderTestState>({ status: "idle" });
   const [cfpgCommands, setCfpgCommands] = useState({ development: "", production: "" });
   const [stylekitQuery, setStylekitQuery] = useState("");
   const [stylekitCategory, setStylekitCategory] = useState("all");
@@ -854,6 +861,23 @@ export function SetupPage() {
       setWorkersAiTest({ status: "error", provider: "workers-ai", message: error instanceof Error ? error.message : String(error) });
     }
   };
+  const runVectorizeTest = async () => {
+    setVectorizeTest({ status: "testing", provider: "vectorize" });
+    try {
+      const environment = payload.blueprint.providers.search.development;
+      const response = await fetch("/__starter/provider-test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ provider: "vectorize", ...environment }),
+      });
+      const result = (await response.json()) as { error?: string; result?: { indexName: string; dimensions: number; metric: string; match: { id: string; score: number | null } } };
+      if (!response.ok || !result.result)
+        throw new Error(result.error || `Vectorize test returned HTTP ${response.status}.`);
+      setVectorizeTest({ status: "success", provider: "vectorize", message: `${result.result.indexName} accepted, queried and deleted a ${result.result.dimensions}-dimension test vector (${result.result.metric}); score: ${result.result.match.score ?? "n/a"}.` });
+    } catch (error) {
+      setVectorizeTest({ status: "error", provider: "vectorize", message: error instanceof Error ? error.message : String(error) });
+    }
+  };
   const updateIdentity = (key: "name" | "slug", value: string) => {
     updateBlueprint((blueprint) => ({
       ...blueprint,
@@ -964,6 +988,14 @@ export function SetupPage() {
                     provider: selected ? "workers-ai" : "none",
                   },
                 }
+            : pack.id === "capability.vectorize"
+              ? {
+                  ...blueprint.providers,
+                  search: {
+                    ...blueprint.providers.search,
+                    provider: selected ? "vectorize" : "none",
+                  },
+                }
             : blueprint.providers,
       };
     });
@@ -1032,6 +1064,23 @@ export function SetupPage() {
                   provider === "workers-ai",
                 ),
               }
+            : selection,
+        ),
+      },
+    }));
+  const setSearchProvider = (provider: SearchPolicy["provider"]) =>
+    updateBlueprint((blueprint) => ({
+      ...blueprint,
+      preset: "custom",
+      providers: {
+        ...blueprint.providers,
+        search: { ...blueprint.providers.search, provider },
+      },
+      selections: {
+        ...blueprint.selections,
+        capabilities: blueprint.selections.capabilities.map((selection) =>
+          selection.id === "capability.vectorize"
+            ? { ...selection, lifecycle: selectLifecycle(selection.lifecycle, provider === "vectorize") }
             : selection,
         ),
       },
@@ -1959,6 +2008,30 @@ export function SetupPage() {
               </section>
 
               <section className="setup-panel provider-section">
+                <header><h2>Product search and vector index</h2><p>Use PostgreSQL first for ordinary product search. Select Vectorize only for embedding similarity or RAG; its dimensions and distance metric are immutable after index creation.</p></header>
+                <div className="provider-option-grid" role="radiogroup" aria-label="Search Provider">
+                  {[
+                    { id: "none", name: "None", note: "No product-data search index. Registered route search remains available." },
+                    { id: "postgresql", name: "PostgreSQL search", note: "Recommended for text/filter search without another Cloudflare resource." },
+                    { id: "vectorize", name: "Cloudflare Vectorize", note: "Embedding similarity and RAG with isolated environment indexes." },
+                  ].map(({ id, name, note }) => { const selected = payload.blueprint.providers.search.provider === id; return <div className={selected ? "provider-option selected" : "provider-option"} key={id}><label><input type="radio" name="search-provider" checked={selected} onChange={() => setSearchProvider(id as SearchPolicy["provider"])} /><span><strong>{name}</strong><small>{note}</small></span></label></div>; })}
+                </div>
+                {payload.blueprint.providers.search.provider === "vectorize" ? (
+                  <div className="storage-provider-config">
+                    <div className="storage-environment-grid">
+                      {(["development", "production"] as const).map((environment) => {
+                        const value = payload.blueprint.providers.search[environment];
+                        const update = (patch: Partial<SearchPolicy[typeof environment]>) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, search: { ...blueprint.providers.search, [environment]: { ...blueprint.providers.search[environment], ...patch } } } }));
+                        return <div key={environment}><h3>{environment === "development" ? "Development index" : "Production index"}</h3><Field label="Index name" value={value.indexName} onChange={(indexName) => update({ indexName })} /><label className="setup-field"><span>Dimensions</span><Input type="number" min={32} max={1536} value={value.dimensions} onChange={(event) => update({ dimensions: Number(event.target.value) })} /></label><label className="setup-field"><span>Distance metric</span><select value={value.metric} onChange={(event) => update({ metric: event.target.value as SearchPolicy[typeof environment]["metric"] })}><option value="cosine">Cosine</option><option value="euclidean">Euclidean</option><option value="dot-product">Dot product</option></select></label><p>Dimensions must match the chosen embedding model and cannot be changed on an existing index.</p></div>;
+                      })}
+                    </div>
+                    <div className="provider-resource-links">{providerSetupLinks.vectorize.map((link) => <a href={link.href} target="_blank" rel="noreferrer" key={link.href}>{link.label}<ExternalLink size={14} /></a>)}</div>
+                    <div className="provider-email-test"><div><strong>Real Vectorize round trip</strong><p>Requires the Development index to be provisioned. The test inserts, queries and deletes one generated vector without exposing product data.</p></div><Button type="button" variant="outline" disabled={vectorizeTest.status === "testing"} onClick={() => void runVectorizeTest()}>{vectorizeTest.status === "testing" ? "Testing Vectorize" : "Test Development index"}</Button>{vectorizeTest.message ? <p className={vectorizeTest.status === "success" ? "provider-test-result success" : "provider-test-result error"} role="status">{vectorizeTest.message}</p> : null}</div>
+                  </div>
+                ) : null}
+              </section>
+
+              <section className="setup-panel provider-section">
                 <header><h2>Social sign-in</h2><p>Select the providers this project will support. Credentials may be inherited, entered now, or configured later from this local Setup.</p></header>
                 <div className="provider-option-grid" role="group" aria-label="Social sign-in providers">
                   {[
@@ -2218,6 +2291,10 @@ export function SetupPage() {
                   <div>
                     <dt>AI</dt>
                     <dd>{payload.blueprint.providers.ai.provider}</dd>
+                  </div>
+                  <div>
+                    <dt>Search</dt>
+                    <dd>{payload.blueprint.providers.search.provider}</dd>
                   </div>
                   <div>
                     <dt>Social sign-in</dt>

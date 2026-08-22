@@ -168,6 +168,8 @@
       "antiAbuseVars": {},
       "aiBinding": null,
       "aiVars": {},
+      "vectorizeBinding": null,
+      "vectorizeVars": {},
       "r2Buckets": [
         {
           "binding": "OBJECTS",
@@ -201,6 +203,8 @@
       "antiAbuseVars": {},
       "aiBinding": null,
       "aiVars": {},
+      "vectorizeBinding": null,
+      "vectorizeVars": {},
       "r2Buckets": [
         {
           "binding": "OBJECTS",

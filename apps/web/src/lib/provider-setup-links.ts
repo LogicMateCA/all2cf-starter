@@ -38,6 +38,10 @@ export const providerSetupLinks = {
     { label: "Workers AI models", href: "https://developers.cloudflare.com/workers-ai/models/" },
     { label: "AI Gateway", href: "https://dash.cloudflare.com/?to=/:account/ai/ai-gateway" },
   ],
+  vectorize: [
+    { label: "Vectorize dashboard", href: "https://dash.cloudflare.com/?to=/:account/workers/vectorize" },
+    { label: "Vectorize documentation", href: "https://developers.cloudflare.com/vectorize/" },
+  ],
 } as const;
 
 export type ProviderSetupLinkId = keyof typeof providerSetupLinks;

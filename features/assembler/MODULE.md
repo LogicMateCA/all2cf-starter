@@ -33,6 +33,7 @@ Purpose: turn a product brief into a complete SaaS platform plus the smallest ow
 - Analytics stays unselected in the current Blueprint. The Catalog identifies Pulse as the preferred future external-product contract so AI does not silently add a competing analytics runtime.
 - Turnstile is a selectable Better Auth Captcha Pack with separate environment widgets, generated public variables, write-only secrets, a local real Siteverify action, protected credential UI and receipt-safe removal. It remains `None` by default.
 - Workers AI is a selectable Cloudflare-native Pack with independent environment model/Gateway configuration, a real local REST test, a generated `AI` Binding, Admin-only deployed test and receipt-safe removal. AI Gateway is an overlay inside this Pack rather than a second conflicting Provider selection.
+- Search offers `None`, PostgreSQL and Vectorize. Only Vectorize selects a Pack; it owns isolated index declarations, scoped provisioning, generated Binding/variables, a real round-trip action and safe removal.
 - AI may recommend and prefill selections, but it must show conflicts and consequences before changing the Blueprint. The controller owns integration and release.
 - `/dp` is a read-only projection of the Blueprint, Catalog, Markdown contracts, code status, and release evidence. Its lifecycle matrix separates reusable Catalog readiness and delivery mode from the current Blueprint's selected, materialized, locally verified, Development verified, and Production released states. It never edits the Blueprint.
 

@@ -72,6 +72,16 @@
         "s3Region": { "type": "string", "minLength": 1 },
         "s3ForcePathStyle": { "type": "boolean" }
       }
+    },
+    "vectorizeEnvironment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["indexName", "dimensions", "metric"],
+      "properties": {
+        "indexName": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$" },
+        "dimensions": { "type": "integer", "minimum": 32, "maximum": 1536 },
+        "metric": { "enum": ["cosine", "euclidean", "dot-product"] }
+      }
     }
   },
   "properties": {
@@ -248,6 +258,7 @@
         "storage",
         "antiAbuse",
         "ai",
+        "search",
         "email",
         "billing",
         "release"
@@ -346,6 +357,16 @@
                 "gatewayId": { "type": "string", "pattern": "^(|[a-z0-9][a-z0-9_-]{0,63})$" }
               }
             }
+          }
+        },
+        "search": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["provider", "development", "production"],
+          "properties": {
+            "provider": { "enum": ["none", "postgresql", "vectorize"] },
+            "development": { "$ref": "#/$defs/vectorizeEnvironment" },
+            "production": { "$ref": "#/$defs/vectorizeEnvironment" }
           }
         },
         "email": {

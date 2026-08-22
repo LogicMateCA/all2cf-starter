@@ -253,6 +253,50 @@ export async function collectOperationsHealth(
     });
   }
 
+  const searchProvider = String(env.SEARCH_PROVIDER || "none");
+  if (searchProvider === "none") {
+    components.push({
+      id: "product-search",
+      label: "Product search",
+      status: "not-selected",
+      summary: "No product-data search Provider is selected.",
+      details: { selected: false, provider: "none" },
+    });
+  } else if (searchProvider === "postgresql") {
+    components.push({
+      id: "product-search",
+      label: "Product search",
+      status: "ok",
+      summary: "Product search uses the active PostgreSQL database.",
+      details: { selected: true, provider: "postgresql" },
+    });
+  } else {
+    const vectorizeConfiguration = requiredConfiguration([
+      ["VECTOR_INDEX", env.VECTOR_INDEX],
+      ["VECTORIZE_INDEX_NAME", env.VECTORIZE_INDEX_NAME],
+      ["VECTORIZE_DIMENSIONS", env.VECTORIZE_DIMENSIONS],
+      ["VECTORIZE_METRIC", env.VECTORIZE_METRIC],
+    ]);
+    components.push({
+      id: "product-search",
+      label: "Cloudflare Vectorize",
+      status: vectorizeConfiguration.configured ? "ok" : "attention",
+      summary: vectorizeConfiguration.configured
+        ? "Vectorize Binding and immutable index configuration are present."
+        : "Selected Vectorize configuration is incomplete.",
+      details: {
+        selected: true,
+        provider: "vectorize",
+        configured: vectorizeConfiguration.configured,
+        bindingReady: Boolean(env.VECTOR_INDEX),
+        indexName: env.VECTORIZE_INDEX_NAME || null,
+        dimensions: Number(env.VECTORIZE_DIMENSIONS || 0) || null,
+        metric: env.VECTORIZE_METRIC || null,
+        missing: vectorizeConfiguration.missing.join(", ") || null,
+      },
+    });
+  }
+
   const stripeTable = await relationExists(database, "app_stripe_webhook_event");
   const stripeSelected =
     stripeTable ||

@@ -305,6 +305,17 @@
           "productionReleased": false
         },
         "note": "Optional Cloudflare Workers AI Binding with an AI Gateway overlay."
+      },
+      {
+        "id": "capability.vectorize",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Optional environment-isolated Cloudflare Vectorize indexes."
       }
     ]
   },
@@ -372,6 +383,19 @@
       "production": {
         "model": "@cf/meta/llama-3.1-8b-instruct",
         "gatewayId": ""
+      }
+    },
+    "search": {
+      "provider": "none",
+      "development": {
+        "indexName": "starter-dev-vectorize",
+        "dimensions": 768,
+        "metric": "cosine"
+      },
+      "production": {
+        "indexName": "starter-vectorize",
+        "dimensions": 768,
+        "metric": "cosine"
       }
     },
     "email": {

@@ -450,6 +450,20 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
       throw new Error(`${path.relative(root, configPath)} changed materializer-owned AI binding`);
     delete model.ai;
   }
+  for (const [name, value] of Object.entries(previousRuntime?.vectorizeVars || {})) {
+    if (model.vars[name] !== value)
+      throw new Error(`${path.relative(root, configPath)} changed materializer-owned Vectorize variable ${name}`);
+    delete model.vars[name];
+  }
+  const vectorize = Array.isArray(model.vectorize) ? structuredClone(model.vectorize) : [];
+  if (previousRuntime?.vectorizeBinding) {
+    const index = vectorize.findIndex(
+      (entry) => entry.binding === previousRuntime.vectorizeBinding.binding && entry.index_name === previousRuntime.vectorizeBinding.indexName,
+    );
+    if (index < 0)
+      throw new Error(`${path.relative(root, configPath)} changed materializer-owned Vectorize binding`);
+    vectorize.splice(index, 1);
+  }
   const storage = blueprint.providers.storage;
   const storageEnvironment = storage[environment];
   const storageVars = {};
@@ -498,6 +512,25 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
     aiVars.AI_MODEL = blueprint.providers.ai[environment].model;
     aiVars.AI_GATEWAY_ID = blueprint.providers.ai[environment].gatewayId;
   }
+  const vectorizeVars = {};
+  let vectorizeBinding = null;
+  if (blueprint.providers.search.provider === "vectorize") {
+    const search = blueprint.providers.search[environment];
+    if (vectorize.some((entry) => entry.binding === "VECTOR_INDEX"))
+      throw new Error(`${path.relative(root, configPath)} already owns Vectorize binding VECTOR_INDEX`);
+    vectorize.push({ binding: "VECTOR_INDEX", index_name: search.indexName });
+    vectorizeBinding = { binding: "VECTOR_INDEX", indexName: search.indexName };
+    model.vars.SEARCH_PROVIDER = "vectorize";
+    model.vars.VECTORIZE_INDEX_NAME = search.indexName;
+    model.vars.VECTORIZE_DIMENSIONS = String(search.dimensions);
+    model.vars.VECTORIZE_METRIC = search.metric;
+    vectorizeVars.SEARCH_PROVIDER = "vectorize";
+    vectorizeVars.VECTORIZE_INDEX_NAME = search.indexName;
+    vectorizeVars.VECTORIZE_DIMENSIONS = String(search.dimensions);
+    vectorizeVars.VECTORIZE_METRIC = search.metric;
+  }
+  if (vectorize.length) model.vectorize = vectorize;
+  else delete model.vectorize;
   const queues = model.queues || { producers: [], consumers: [] };
   queues.producers ||= [];
   queues.consumers ||= [];
@@ -537,6 +570,8 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
     antiAbuseVars,
     aiBinding,
     aiVars,
+    vectorizeBinding,
+    vectorizeVars,
     r2Buckets: receiptR2Buckets,
     storageVars,
   };
@@ -915,6 +950,11 @@ const workersAiPackSelected = selected.has("capability.workers-ai");
 if (workersAiPackSelected !== (blueprint.providers.ai.provider === "workers-ai"))
   throw new Error(
     "Workers AI Pack selection must match the Blueprint AI Provider.",
+  );
+const vectorizePackSelected = selected.has("capability.vectorize");
+if (vectorizePackSelected !== (blueprint.providers.search.provider === "vectorize"))
+  throw new Error(
+    "Vectorize Pack selection must match the Blueprint search Provider.",
   );
 
 desiredRoutes.sort((left, right) => left.path.localeCompare(right.path));

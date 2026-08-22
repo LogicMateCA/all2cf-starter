@@ -1037,6 +1037,24 @@
       "documentation": ["ARCHITECTURE.md", "features/ai/MODULE.md", "features/admin/MODULE.md"]
     },
     {
+      "id": "capability.vectorize",
+      "kind": "capability",
+      "name": "Cloudflare Vectorize",
+      "version": "0.1.0",
+      "status": "local-verified",
+      "delivery": "materializer",
+      "targets": ["worker", "admin"],
+      "ownership": "starter-owned",
+      "source": [{ "name": "Cloudflare Vectorize", "url": "https://developers.cloudflare.com/vectorize/", "relationship": "platform-provider" }],
+      "updatePolicy": "runtime-stable",
+      "provides": ["environment-isolated vector index Binding", "server-only vector operations", "Admin upsert/query/delete test", "idempotent index provisioning"],
+      "requires": ["fixed dimensions and distance metric", "explicit embedding model compatibility", "product-owned namespaces and metadata"],
+      "conflicts": ["shared Development/Production index", "client-authoritative vectors", "dimension changes in place"],
+      "performance": ["bounded topK", "no vector runtime when deselected", "asynchronous mutation visibility polling only in explicit tests"],
+      "verification": ["temporary live index round trip", "selected Worker types and dry-run", "Admin authorization", "clean removal"],
+      "documentation": ["ARCHITECTURE.md", "features/search/MODULE.md", "features/admin/MODULE.md"]
+    },
+    {
       "id": "capability.mapcn-web",
       "kind": "capability",
       "name": "MapCN Web maps",

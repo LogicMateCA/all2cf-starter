@@ -56,6 +56,11 @@ export type AuthRuntimeEnv = {
   AI_PROVIDER?: string;
   AI_MODEL?: string;
   AI_GATEWAY_ID?: string;
+  VECTOR_INDEX?: VectorizeIndex;
+  SEARCH_PROVIDER?: string;
+  VECTORIZE_INDEX_NAME?: string;
+  VECTORIZE_DIMENSIONS?: string;
+  VECTORIZE_METRIC?: string;
 };
 
 type RequestExecutionContext = Pick<ExecutionContext, "waitUntil">;

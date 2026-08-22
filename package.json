@@ -38,6 +38,7 @@
     "pages:contract": "node scripts/page-catalog-contract.mjs",
     "providers:contract": "node scripts/provider-catalog-contract.mjs",
     "turnstile:contract": "node scripts/turnstile-provider-contract.mjs",
+    "vectorize:contract": "node scripts/vectorize-provider-contract.mjs",
     "saas:contract": "node scripts/saas-foundation-contract.mjs",
     "stylekit:source": "node scripts/stylekit-source-catalog.mjs",
     "stylekit:bundle": "node scripts/stylekit-bundle.mjs",

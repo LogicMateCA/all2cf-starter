@@ -319,6 +319,63 @@ async function testWorkersAiProvider(input: unknown) {
   };
 }
 
+async function testVectorizeProvider(input: unknown) {
+  if (!input || typeof input !== "object")
+    throw new Error("Provider test payload is required.");
+  const body = input as { indexName?: unknown; dimensions?: unknown; metric?: unknown };
+  const indexName = String(body.indexName || "").trim();
+  const dimensions = Number(body.dimensions);
+  const metric = String(body.metric || "").trim();
+  if (!/^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$/u.test(indexName))
+    throw new Error("Vectorize index name is invalid.");
+  if (!Number.isInteger(dimensions) || dimensions < 32 || dimensions > 1536)
+    throw new Error("Vectorize dimensions must be between 32 and 1536.");
+  if (!new Set(["cosine", "euclidean", "dot-product"]).has(metric))
+    throw new Error("Vectorize metric is invalid.");
+  const providers = JSON.parse(
+    await readFile(path.join(repositoryRoot, "profiles/providers.json"), "utf8"),
+  ) as { defaultPath: string };
+  const profilePath = process.env.STARTER_DEV_PROFILE_PATH || providers.defaultPath;
+  const [project, shared] = await Promise.all([
+    readOptionalEnv(path.join(repositoryRoot, ".dev.vars")),
+    readOptionalEnv(profilePath),
+  ]);
+  const token = project.get("CLOUDFLARE_API_TOKEN") || shared.get("CLOUDFLARE_API_TOKEN") || "";
+  const accountId = project.get("CLOUDFLARE_ACCOUNT_ID") || shared.get("CLOUDFLARE_ACCOUNT_ID") || "";
+  if (!token || !accountId)
+    throw new Error("Cloudflare API token and account ID are required for the real Vectorize test.");
+  const base = `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(accountId)}/vectorize/v2/indexes/${encodeURIComponent(indexName)}`;
+  const headers = { Authorization: `Bearer ${token}` };
+  const indexResponse = await fetch(base, { headers });
+  const indexPayload = (await indexResponse.json()) as { success?: boolean; result?: { name?: string; config?: { dimensions?: number; metric?: string } }; errors?: Array<{ code?: number; message?: string }> };
+  if (!indexResponse.ok || !indexPayload.success || !indexPayload.result)
+    throw new Error(indexPayload.errors?.map(({ code, message }) => `${code || "error"}: ${message || "unknown"}`).join("; ") || "Development Vectorize index is not provisioned.");
+  if (Number(indexPayload.result.config?.dimensions) !== dimensions || indexPayload.result.config?.metric !== metric)
+    throw new Error("The live Vectorize index dimensions or metric do not match Setup.");
+  const id = `starter-setup-${randomUUID()}`;
+  const vector = Array.from({ length: dimensions }, () => 0);
+  vector[0] = 1;
+  const form = new FormData();
+  form.set("vectors", new Blob([`${JSON.stringify({ id, values: vector, metadata: { purpose: "starter-setup-test" } })}\n`], { type: "application/x-ndjson" }), "vector.ndjson");
+  const upsertResponse = await fetch(`${base}/upsert`, { method: "POST", headers, body: form });
+  const upsertPayload = (await upsertResponse.json()) as { success?: boolean; result?: { mutationId?: string }; errors?: Array<{ message?: string }> };
+  if (!upsertResponse.ok || !upsertPayload.success)
+    throw new Error(upsertPayload.errors?.map(({ message }) => message).join("; ") || "Vectorize upsert failed.");
+  try {
+    for (let attempt = 0; attempt < 80; attempt += 1) {
+      const queryResponse = await fetch(`${base}/query`, { method: "POST", headers: { ...headers, "Content-Type": "application/json" }, body: JSON.stringify({ vector, topK: 1, returnMetadata: "all" }) });
+      const queryPayload = (await queryResponse.json()) as { success?: boolean; result?: { matches?: Array<{ id?: string; score?: number }> } };
+      const match = queryPayload.result?.matches?.find((entry) => entry.id === id);
+      if (queryResponse.ok && queryPayload.success && match)
+        return { provider: "vectorize", indexName, dimensions, metric, mutationId: upsertPayload.result?.mutationId || null, match: { id: match.id, score: match.score ?? null } };
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    throw new Error("Vectorize mutation did not become queryable in time.");
+  } finally {
+    await fetch(`${base}/delete_by_ids`, { method: "POST", headers: { ...headers, "Content-Type": "application/json" }, body: JSON.stringify({ ids: [id] }) }).catch(() => undefined);
+  }
+}
+
 async function normalizedCfpgConnection(input: unknown, command: unknown) {
   const desiredCommand = String(
     command || (input && typeof input === "object" && "connectCommand" in input
@@ -432,6 +489,8 @@ function localSetupApi(): Plugin {
               const provider = String(payload.provider || "").trim().toLowerCase();
               const discriminator = provider === "workers-ai"
                 ? `${String(payload.model || "").trim()}:${String(payload.gatewayId || "").trim()}`
+                : provider === "vectorize"
+                  ? String(payload.indexName || "").trim()
                 : String(payload.recipient || "").trim().toLowerCase();
               const key = `${provider}:${discriminator}`;
               const lastTest = recentProviderTests.get(key) || 0;
@@ -444,6 +503,8 @@ function localSetupApi(): Plugin {
                 ? await testTurnstileProvider(payload)
                 : provider === "workers-ai"
                   ? await testWorkersAiProvider(payload)
+                  : provider === "vectorize"
+                    ? await testVectorizeProvider(payload)
                   : await testEmailProvider(payload);
               recentProviderTests.set(key, Date.now());
               response.statusCode = 200;

@@ -44,6 +44,8 @@ const onboardingSelected = selectedPacks.has("saas.onboarding");
 const objectStorageSelected = selectedPacks.has("capability.object-storage");
 const turnstileSelected = selectedPacks.has("capability.turnstile");
 const workersAiSelected = selectedPacks.has("capability.workers-ai");
+const vectorizeSelected = selectedPacks.has("capability.vectorize");
+const searchProvider = blueprint.providers?.search?.provider || "none";
 const origin = remote
   ? `https://${starter.development.domain}`
   : `http://127.0.0.1:${port}`;
@@ -2256,6 +2258,7 @@ try {
   const queueHealth = healthComponents.get("outgoing-webhooks");
   const turnstileHealth = healthComponents.get("turnstile");
   const workersAiHealth = healthComponents.get("workers-ai");
+  const searchHealth = healthComponents.get("product-search");
   assert(
     operationsHealth.response.status === 200 &&
       operationsHealth.payload?.data?.service === "starter" &&
@@ -2266,6 +2269,18 @@ try {
       emailHealth?.details?.sent24h >= 1 &&
       googleHealth?.details?.configured === true,
     "operations health omitted active database, CFsend, or Google evidence",
+  );
+  assert(
+    vectorizeSelected
+      ? searchHealth?.details?.provider === "vectorize" &&
+          searchHealth?.details?.configured === true &&
+          searchHealth?.details?.bindingReady === true
+      : searchProvider === "postgresql"
+        ? searchHealth?.status === "ok" &&
+            searchHealth?.details?.provider === "postgresql"
+      : searchHealth?.status === "not-selected" &&
+          searchHealth?.details?.selected === false,
+    "operations health returned incorrect search Provider or Vectorize Binding evidence",
   );
   assert(
     workersAiSelected

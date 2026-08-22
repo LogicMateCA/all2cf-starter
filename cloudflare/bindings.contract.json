@@ -40,6 +40,13 @@
       "requiredPerEnvironment": false,
       "requiredWhen": "ai.provider=workers-ai"
     },
+    "VECTOR_INDEX": {
+      "kind": "vectorize",
+      "status": "optional-vectorize-pack",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "search.provider=vectorize",
+      "resourceIsolation": "Use distinct Development and Production indexes with immutable dimensions and metric."
+    },
     "STARTER_QUEUE": {
       "kind": "queue",
       "status": "future",

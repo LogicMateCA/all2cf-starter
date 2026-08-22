@@ -21,6 +21,7 @@ const stripeSelected = selectedPacks.has("saas.billing-stripe");
 const outgoingWebhooksSelected = selectedPacks.has("saas.outgoing-webhooks");
 const storageProvider = blueprint.providers?.storage?.provider || "none";
 const antiAbuseProvider = blueprint.providers?.antiAbuse?.provider || "none";
+const searchProvider = blueprint.providers?.search?.provider || "none";
 const env = parseEnv(await readFile(path.join(root, ".dev.vars"), "utf8"));
 const providers = JSON.parse(await readFile(path.join(root, "profiles/providers.json"), "utf8"));
 const profilePath = process.env.STARTER_DEV_PROFILE_PATH || providers.defaultPath;
@@ -385,6 +386,44 @@ async function ensureConfiguredR2Buckets(environment) {
   }];
 }
 
+async function ensureConfiguredVectorize(environment) {
+  if (searchProvider !== "vectorize") {
+    state.resources[`${environment}VectorizeIndexes`] = [];
+    return;
+  }
+  const desired = blueprint.providers.search?.[environment];
+  if (!desired?.indexName)
+    throw new Error(`Blueprint is missing the ${environment} Vectorize index configuration`);
+  const indexes = await cloudflare(
+    "GET",
+    `/accounts/${config.cloudflare.accountId}/vectorize/v2/indexes`,
+  );
+  let index = (Array.isArray(indexes) ? indexes : []).find(
+    (entry) => entry.name === desired.indexName,
+  );
+  if (!index)
+    index = await cloudflare(
+      "POST",
+      `/accounts/${config.cloudflare.accountId}/vectorize/v2/indexes`,
+      {
+        name: desired.indexName,
+        description: `${config.project.slug} ${environment} vector index`,
+        config: { dimensions: desired.dimensions, metric: desired.metric },
+      },
+    );
+  if (
+    index?.name !== desired.indexName ||
+    Number(index?.config?.dimensions) !== desired.dimensions ||
+    index?.config?.metric !== desired.metric
+  )
+    throw new Error(`Cloudflare Vectorize index ${desired.indexName} has an unexpected immutable configuration`);
+  state.resources[`${environment}VectorizeIndexes`] = [{
+    name: index.name,
+    dimensions: Number(index.config.dimensions),
+    metric: index.config.metric,
+  }];
+}
+
 async function provision(environment = "all") {
   if (!new Set(["all", "development", "production"]).has(environment))
     throw new Error("provision environment must be development, production, or all");
@@ -399,6 +438,8 @@ async function provision(environment = "all") {
     await writeWrangler("development", developmentHyperdriveId);
     await ensureConfiguredR2Buckets("development");
     await saveState();
+    await ensureConfiguredVectorize("development");
+    await saveState();
     await ensureConfiguredQueues("development");
     await saveState();
   }
@@ -409,6 +450,8 @@ async function provision(environment = "all") {
     await saveState();
     await writeWrangler("production", productionHyperdriveId);
     await ensureConfiguredR2Buckets("production");
+    await saveState();
+    await ensureConfiguredVectorize("production");
     await saveState();
     await ensureConfiguredQueues("production");
     await saveState();

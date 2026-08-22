@@ -150,6 +150,29 @@ export function validateAssemblyContracts(
     failures.push("Blueprint is missing capability.workers-ai selection state");
   else if (workersAiSelection.lifecycle.selected !== (aiPolicy.provider === "workers-ai"))
     failures.push("Workers AI Pack selection must match the AI Provider");
+  const searchPolicy = blueprint.providers?.search || {};
+  if (!new Set(["none", "postgresql", "vectorize"]).has(searchPolicy.provider))
+    failures.push("Blueprint search provider must be none, postgresql, or vectorize");
+  const vectorizeNames = [];
+  for (const environment of ["development", "production"]) {
+    const value = searchPolicy[environment] || {};
+    vectorizeNames.push(value.indexName);
+    if (!/^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$/u.test(value.indexName || ""))
+      failures.push(`Blueprint ${environment} Vectorize index name is invalid`);
+    if (!Number.isInteger(value.dimensions) || value.dimensions < 32 || value.dimensions > 1536)
+      failures.push(`Blueprint ${environment} Vectorize dimensions must be 32-1536`);
+    if (!new Set(["cosine", "euclidean", "dot-product"]).has(value.metric))
+      failures.push(`Blueprint ${environment} Vectorize metric is invalid`);
+  }
+  if (vectorizeNames[0] === vectorizeNames[1])
+    failures.push("Development and Production Vectorize indexes must be different");
+  const vectorizeSelection = Object.values(blueprint.selections || {})
+    .flat()
+    .find(({ id }) => id === "capability.vectorize");
+  if (!vectorizeSelection)
+    failures.push("Blueprint is missing capability.vectorize selection state");
+  else if (vectorizeSelection.lifecycle.selected !== (searchPolicy.provider === "vectorize"))
+    failures.push("Vectorize Pack selection must match the search Provider");
 
   const packIds = new Set();
   const packs = new Map();
