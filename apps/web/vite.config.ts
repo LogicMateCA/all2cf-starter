@@ -46,6 +46,7 @@ const providerCredentialFields = {
   turnstile: ["TURNSTILE_SECRET_KEY", "STARTER_PRODUCTION_TURNSTILE_SECRET_KEY"],
   "expo-push": ["EXPO_PUSH_ACCESS_TOKEN", "STARTER_PRODUCTION_EXPO_PUSH_ACCESS_TOKEN"],
   "twilio-sms": ["TWILIO_ACCOUNT_SID", "TWILIO_API_KEY", "TWILIO_API_SECRET", "TWILIO_FROM", "STARTER_PRODUCTION_TWILIO_ACCOUNT_SID", "STARTER_PRODUCTION_TWILIO_API_KEY", "STARTER_PRODUCTION_TWILIO_API_SECRET", "STARTER_PRODUCTION_TWILIO_FROM"],
+  "cloudflare-stream": ["CLOUDFLARE_STREAM_TOKEN", "STREAM_WEBHOOK_SECRET", "STARTER_PRODUCTION_CLOUDFLARE_STREAM_TOKEN", "STARTER_PRODUCTION_STREAM_WEBHOOK_SECRET"],
 } as const;
 const allowedProviderSecrets = new Set<string>(
   Object.values(providerCredentialFields).flat(),
@@ -448,6 +449,35 @@ async function testTwilioSmsProvider(input: unknown) {
   return { provider: "twilio-sms", providerSid: payload.sid, status: payload.status, recipientLast4: recipient.slice(-4) };
 }
 
+async function testCloudflareStreamProvider(input: unknown) {
+  if (!input || typeof input !== "object") throw new Error("Provider test payload is required.");
+  const body = input as { accountId?: unknown; apiBaseUrl?: unknown; allowedOrigins?: unknown; providerSecrets?: unknown };
+  const accountId = String(body.accountId || "").trim();
+  const apiBaseUrl = String(body.apiBaseUrl || "").trim().replace(/\/$/u, "");
+  const allowedOrigins = Array.isArray(body.allowedOrigins) ? body.allowedOrigins.map(String) : [];
+  if (!/^[a-f0-9]{32}$/u.test(accountId) || !apiBaseUrl.startsWith("https://") || !allowedOrigins.length)
+    throw new Error("Development Stream account, API URL or allowed origins are invalid.");
+  const providers = JSON.parse(await readFile(path.join(repositoryRoot, "profiles/providers.json"), "utf8")) as { defaultPath: string };
+  const profilePath = process.env.STARTER_DEV_PROFILE_PATH || providers.defaultPath;
+  const [project, shared] = await Promise.all([readOptionalEnv(path.join(repositoryRoot, ".dev.vars")), readOptionalEnv(profilePath)]);
+  const replacement = body.providerSecrets && typeof body.providerSecrets === "object" ? (body.providerSecrets as Record<string, unknown>).CLOUDFLARE_STREAM_TOKEN : undefined;
+  const token = (typeof replacement === "string" ? replacement.trim() : "") || project.get("CLOUDFLARE_STREAM_TOKEN") || shared.get("CLOUDFLARE_STREAM_TOKEN") || "";
+  if (!token) throw new Error("Development Cloudflare Stream token is missing.");
+  const endpoint = `${apiBaseUrl}/accounts/${accountId}/stream/direct_upload`;
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", "Upload-Creator": "starter-setup-test" },
+    body: JSON.stringify({ maxDurationSeconds: 1, allowedOrigins, creator: "starter-setup-test", expiry: new Date(Date.now() + 10 * 60_000).toISOString(), meta: { name: "starter-setup-test.mp4" }, requireSignedURLs: false }),
+  });
+  const payload = (await response.json()) as { success?: boolean; result?: { uid?: string; uploadURL?: string }; errors?: Array<{ code?: number; message?: string }> };
+  const uid = String(payload.result?.uid || "");
+  if (!response.ok || !payload.success || !uid || !payload.result?.uploadURL)
+    throw new Error(payload.errors?.map(({ code, message }) => `${code || "error"}: ${message || "unknown"}`).join("; ") || `Stream returned HTTP ${response.status}.`);
+  const deleted = await fetch(`${apiBaseUrl}/accounts/${accountId}/stream/${encodeURIComponent(uid)}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+  if (!deleted.ok) throw new Error(`Stream test upload ${uid} could not be deleted.`);
+  return { provider: "cloudflare-stream", uid, uploadUrlCreated: true, deleted: true };
+}
+
 async function normalizedCfpgConnection(input: unknown, command: unknown) {
   const desiredCommand = String(
     command || (input && typeof input === "object" && "connectCommand" in input
@@ -567,6 +597,8 @@ function localSetupApi(): Plugin {
                     ? String(payload.token || "").trim()
                     : provider === "twilio-sms"
                       ? String(payload.recipient || "").trim()
+                      : provider === "cloudflare-stream"
+                        ? String(payload.accountId || "").trim()
                 : String(payload.recipient || "").trim().toLowerCase();
               const key = `${provider}:${discriminator}`;
               const lastTest = recentProviderTests.get(key) || 0;
@@ -585,6 +617,8 @@ function localSetupApi(): Plugin {
                       ? await testExpoPushProvider(payload)
                       : provider === "twilio-sms"
                         ? await testTwilioSmsProvider(payload)
+                        : provider === "cloudflare-stream"
+                          ? await testCloudflareStreamProvider(payload)
                   : await testEmailProvider(payload);
               recentProviderTests.set(key, Date.now());
               response.statusCode = 200;

@@ -82,6 +82,7 @@ for (const [categoryId, optionId] of [
   ["notification-channels", "expo-push"],
   ["notification-channels", "twilio-sms"],
   ["media", "cloudflare-images"],
+  ["media", "cloudflare-stream"],
   ["maps", "mapcn"],
   ["background-realtime", "queues"],
   ["release-platforms", "cloudflare"],

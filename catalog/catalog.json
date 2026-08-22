@@ -1109,6 +1109,24 @@
       "documentation": ["ARCHITECTURE.md", "features/media/MODULE.md", "features/admin/MODULE.md"]
     },
     {
+      "id": "capability.cloudflare-stream",
+      "kind": "capability",
+      "name": "Cloudflare Stream video",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": ["worker", "admin"],
+      "ownership": "starter-owned",
+      "source": [{ "name": "Cloudflare Stream", "url": "https://developers.cloudflare.com/stream/", "relationship": "platform-provider" }],
+      "updatePolicy": "provider-contract",
+      "provides": ["user-owned direct upload URLs", "video asset status and public playback URLs", "HMAC-SHA256 webhook verification and replay denial", "owner-scoped list/delete"],
+      "requires": ["Stream Write token", "single account webhook subscription", "public playback acceptance", "product retention policy"],
+      "conflicts": ["API token exposure to clients", "unsigned webhook state", "private playback without signing-token support"],
+      "performance": ["five uploads per user per hour", "30-minute one-time URLs", "100-asset list cap"],
+      "verification": ["mock direct-upload/delete contract", "signed webhook ready/error/replay", "real provider token test", "real upload/encode/playback", "clean removal"],
+      "documentation": ["ARCHITECTURE.md", "features/media/MODULE.md", "features/admin/MODULE.md"]
+    },
+    {
       "id": "capability.mapcn-web",
       "kind": "capability",
       "name": "MapCN Web maps",

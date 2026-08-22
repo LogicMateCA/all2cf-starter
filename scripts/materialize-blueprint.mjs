@@ -480,6 +480,11 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
       throw new Error(`${path.relative(root, configPath)} changed materializer-owned Images variable ${name}`);
     delete model.vars[name];
   }
+  for (const [name, value] of Object.entries(previousRuntime?.streamVars || {})) {
+    if (model.vars[name] !== value)
+      throw new Error(`${path.relative(root, configPath)} changed materializer-owned Stream variable ${name}`);
+    delete model.vars[name];
+  }
   if (previousRuntime?.imagesBinding) {
     if (model.images?.binding !== previousRuntime.imagesBinding.binding)
       throw new Error(`${path.relative(root, configPath)} changed materializer-owned Images binding`);
@@ -591,6 +596,20 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
     imagesVars.IMAGES_MAX_INPUT_BYTES = String(blueprint.providers.media.images.maxInputBytes);
     imagesVars.IMAGES_DEFAULT_FORMAT = blueprint.providers.media.images.defaultFormat;
   }
+  const streamVars = {};
+  if (blueprint.providers.media.stream.provider === "cloudflare-stream") {
+    const stream = blueprint.providers.media.stream[environment];
+    model.vars.STREAM_PROVIDER = "cloudflare-stream";
+    model.vars.STREAM_API_BASE_URL = stream.apiBaseUrl;
+    model.vars.STREAM_ACCOUNT_ID = stream.accountId;
+    model.vars.STREAM_MAX_DURATION_SECONDS = String(blueprint.providers.media.stream.maxDurationSeconds);
+    model.vars.STREAM_ALLOWED_ORIGINS = JSON.stringify(stream.allowedOrigins);
+    streamVars.STREAM_PROVIDER = "cloudflare-stream";
+    streamVars.STREAM_API_BASE_URL = stream.apiBaseUrl;
+    streamVars.STREAM_ACCOUNT_ID = stream.accountId;
+    streamVars.STREAM_MAX_DURATION_SECONDS = String(blueprint.providers.media.stream.maxDurationSeconds);
+    streamVars.STREAM_ALLOWED_ORIGINS = JSON.stringify(stream.allowedOrigins);
+  }
   const queues = model.queues || { producers: [], consumers: [] };
   queues.producers ||= [];
   queues.consumers ||= [];
@@ -636,6 +655,7 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
     smsVars,
     imagesBinding,
     imagesVars,
+    streamVars,
     r2Buckets: receiptR2Buckets,
     storageVars,
   };
@@ -1040,6 +1060,9 @@ if (cloudflareImagesPackSelected !== (blueprint.providers.media.images.provider 
   throw new Error(
     "Cloudflare Images Pack selection must match the Blueprint image Provider.",
   );
+const cloudflareStreamPackSelected = selected.has("capability.cloudflare-stream");
+if (cloudflareStreamPackSelected !== (blueprint.providers.media.stream.provider === "cloudflare-stream"))
+  throw new Error("Cloudflare Stream Pack selection must match the Blueprint video Provider.");
 
 desiredRoutes.sort((left, right) => left.path.localeCompare(right.path));
 const desiredWorkerFirstRoutes = desiredRoutes

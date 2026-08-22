@@ -147,7 +147,7 @@
     },
     {
       "area": "Media",
-      "choice": "Optional Cloudflare Images Worker Binding with bounded raw-byte resize/transcode, local PNG-WebP evidence and complete separation from Object Storage and Stream",
+      "choice": "Optional Cloudflare Images transforms plus a separate Cloudflare Stream direct-upload/signed-webhook/public-playback Pack, both isolated from Object Storage",
       "status": "local-verified"
     },
     {

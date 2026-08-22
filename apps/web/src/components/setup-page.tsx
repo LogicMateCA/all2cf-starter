@@ -80,6 +80,7 @@ type SmsPolicy = {
 };
 type MediaPolicy = {
   images: { provider: "none" | "cloudflare-images"; maxInputBytes: number; defaultFormat: "image/webp" | "image/avif" | "image/jpeg" | "image/png" };
+  stream: { provider: "none" | "cloudflare-stream"; maxDurationSeconds: number; development: { accountId: string; allowedOrigins: string[]; apiBaseUrl: string }; production: { accountId: string; allowedOrigins: string[]; apiBaseUrl: string } };
 };
 type CfpgConnection = {
   connectCommand: string;
@@ -307,7 +308,7 @@ type SetupPayload = {
     categories: ProviderCatalogCategory[];
   };
   providerCredentials: Record<
-    "google" | "github" | "apple" | "cfsend" | "resend" | "cloudflare-email-service" | "stripe" | "s3-compatible" | "turnstile" | "expo-push" | "twilio-sms",
+    "google" | "github" | "apple" | "cfsend" | "resend" | "cloudflare-email-service" | "stripe" | "s3-compatible" | "turnstile" | "expo-push" | "twilio-sms" | "cloudflare-stream",
     {
       configured: boolean;
       source: "project" | "shared" | "mixed" | "missing";
@@ -377,6 +378,12 @@ const providerSecretFields = {
     { name: "STARTER_PRODUCTION_TWILIO_API_KEY", label: "Production API Key SID", secret: false },
     { name: "STARTER_PRODUCTION_TWILIO_API_SECRET", label: "Production API Secret", secret: true },
     { name: "STARTER_PRODUCTION_TWILIO_FROM", label: "Production sender (E.164)", secret: false },
+  ],
+  "cloudflare-stream": [
+    { name: "CLOUDFLARE_STREAM_TOKEN", label: "Development Stream token", secret: true },
+    { name: "STREAM_WEBHOOK_SECRET", label: "Development webhook secret", secret: true },
+    { name: "STARTER_PRODUCTION_CLOUDFLARE_STREAM_TOKEN", label: "Production Stream token", secret: true },
+    { name: "STARTER_PRODUCTION_STREAM_WEBHOOK_SECRET", label: "Production webhook secret", secret: true },
   ],
 } as const;
 
@@ -664,6 +671,7 @@ export function SetupPage() {
   const [expoPushTest, setExpoPushTest] = useState<ProviderTestState>({ status: "idle" });
   const [smsRecipient, setSmsRecipient] = useState("");
   const [smsTest, setSmsTest] = useState<ProviderTestState>({ status: "idle" });
+  const [streamTest, setStreamTest] = useState<ProviderTestState>({ status: "idle" });
   const [cfpgCommands, setCfpgCommands] = useState({ development: "", production: "" });
   const [stylekitQuery, setStylekitQuery] = useState("");
   const [stylekitCategory, setStylekitCategory] = useState("all");
@@ -944,6 +952,16 @@ export function SetupPage() {
       setSmsTest({ status: "error", provider: "twilio-sms", message: error instanceof Error ? error.message : String(error) });
     }
   };
+  const runStreamTest = async () => {
+    setStreamTest({ status: "testing", provider: "cloudflare-stream" });
+    try {
+      const environment = payload.blueprint.providers.media.stream.development;
+      const response = await fetch("/__starter/provider-test", { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ provider: "cloudflare-stream", ...environment, providerSecrets }) });
+      const result = (await response.json()) as { error?: string; result?: { uid: string; deleted: boolean } };
+      if (!response.ok || !result.result?.deleted) throw new Error(result.error || `Stream test returned HTTP ${response.status}.`);
+      setStreamTest({ status: "success", provider: "cloudflare-stream", message: `Stream created direct upload ${result.result.uid} and deleted the unused draft successfully.` });
+    } catch (error) { setStreamTest({ status: "error", provider: "cloudflare-stream", message: error instanceof Error ? error.message : String(error) }); }
+  };
   const updateIdentity = (key: "name" | "slug", value: string) => {
     updateBlueprint((blueprint) => ({
       ...blueprint,
@@ -1071,6 +1089,8 @@ export function SetupPage() {
               ? { ...blueprint.providers, sms: { ...blueprint.providers.sms, provider: selected ? "twilio" : "none" } }
             : pack.id === "capability.cloudflare-images"
               ? { ...blueprint.providers, media: { ...blueprint.providers.media, images: { ...blueprint.providers.media.images, provider: selected ? "cloudflare-images" : "none" } } }
+            : pack.id === "capability.cloudflare-stream"
+              ? { ...blueprint.providers, media: { ...blueprint.providers.media, stream: { ...blueprint.providers.media.stream, provider: selected ? "cloudflare-stream" : "none" } } }
             : blueprint.providers,
       };
     });
@@ -1200,6 +1220,16 @@ export function SetupPage() {
             ? { ...selection, lifecycle: selectLifecycle(selection.lifecycle, provider === "cloudflare-images") }
             : selection,
         ),
+      },
+    }));
+  const setStreamProvider = (provider: MediaPolicy["stream"]["provider"]) =>
+    updateBlueprint((blueprint) => ({
+      ...blueprint,
+      preset: "custom",
+      providers: { ...blueprint.providers, media: { ...blueprint.providers.media, stream: { ...blueprint.providers.media.stream, provider } } },
+      selections: {
+        ...blueprint.selections,
+        capabilities: blueprint.selections.capabilities.map((selection) => selection.id === "capability.cloudflare-stream" ? { ...selection, lifecycle: selectLifecycle(selection.lifecycle, provider === "cloudflare-stream") } : selection),
       },
     }));
   const setDesignProfile = (profile: DesignProfile) =>
@@ -2199,6 +2229,12 @@ export function SetupPage() {
               </section>
 
               <section className="setup-panel provider-section">
+                <header><h2>Video streaming</h2><p>Cloudflare Stream creates one-time direct upload URLs so clients never receive the API token. This initial Pack supports public playback; private signed playback remains unavailable until signing-token generation is implemented.</p></header>
+                <div className="provider-option-grid" role="radiogroup" aria-label="Video Provider">{[{ id: "none", name: "None", note: "No video upload, encoding, webhook or playback runtime." }, { id: "cloudflare-stream", name: "Cloudflare Stream", note: "User-owned direct uploads, encoding state and public HLS/DASH playback." }].map(({ id, name, note }) => { const selected = payload.blueprint.providers.media.stream.provider === id; return <div className={selected ? "provider-option selected" : "provider-option"} key={id}><label><input type="radio" name="stream-provider" checked={selected} onChange={() => setStreamProvider(id as MediaPolicy["stream"]["provider"])} /><span><strong>{name}</strong><small>{note}</small></span></label></div>; })}</div>
+                {payload.blueprint.providers.media.stream.provider === "cloudflare-stream" ? <div className="storage-provider-config"><label className="setup-field"><span>Maximum video duration</span><select value={payload.blueprint.providers.media.stream.maxDurationSeconds} onChange={(event) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, media: { ...blueprint.providers.media, stream: { ...blueprint.providers.media.stream, maxDurationSeconds: Number(event.target.value) } } } }))}><option value={300}>5 minutes</option><option value={600}>10 minutes</option><option value={1800}>30 minutes</option><option value={3600}>1 hour</option></select></label><div className="storage-environment-grid">{(["development", "production"] as const).map((environment) => { const value = payload.blueprint.providers.media.stream[environment]; const update = (patch: Partial<typeof value>) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, media: { ...blueprint.providers.media, stream: { ...blueprint.providers.media.stream, [environment]: { ...blueprint.providers.media.stream[environment], ...patch } } } } })); return <div key={environment}><h3>{environment === "development" ? "Development Stream" : "Production Stream"}</h3><Field label="Account ID" value={value.accountId} onChange={(accountId) => update({ accountId })} /><Field label="Allowed origins" value={value.allowedOrigins.join(", ")} onChange={(origins) => update({ allowedOrigins: parseList(origins) })} /><Field label="API base URL" value={value.apiBaseUrl} onChange={(apiBaseUrl) => update({ apiBaseUrl })} /></div>; })}</div><ProviderCredentialEditor provider="cloudflare-stream" state={payload.providerCredentials["cloudflare-stream"]} editing={Boolean(providerEditors["cloudflare-stream"])} values={providerSecrets} onEditing={(editing) => setProviderEditing("cloudflare-stream", editing)} onChange={updateProviderSecret} /><div className="provider-resource-links">{providerSetupLinks["cloudflare-stream"].map((link) => <a href={link.href} target="_blank" rel="noreferrer" key={link.href}>{link.label}<ExternalLink size={14} /></a>)}</div><div className="provider-email-test"><div><strong>Real Stream token test</strong><p>Creates a one-time one-second direct-upload draft and immediately deletes it without uploading media.</p></div><Button type="button" variant="outline" disabled={streamTest.status === "testing"} onClick={() => void runStreamTest()}>{streamTest.status === "testing" ? "Testing Stream" : "Test Development Stream"}</Button>{streamTest.message ? <p className={streamTest.status === "success" ? "provider-test-result success" : "provider-test-result error"} role="status">{streamTest.message}</p> : null}</div></div> : null}
+              </section>
+
+              <section className="setup-panel provider-section">
                 <header><h2>Social sign-in</h2><p>Select the providers this project will support. Credentials may be inherited, entered now, or configured later from this local Setup.</p></header>
                 <div className="provider-option-grid" role="group" aria-label="Social sign-in providers">
                   {[
@@ -2474,6 +2510,10 @@ export function SetupPage() {
                   <div>
                     <dt>Images</dt>
                     <dd>{payload.blueprint.providers.media.images.provider}</dd>
+                  </div>
+                  <div>
+                    <dt>Video</dt>
+                    <dd>{payload.blueprint.providers.media.stream.provider}</dd>
                   </div>
                   <div>
                     <dt>Social sign-in</dt>

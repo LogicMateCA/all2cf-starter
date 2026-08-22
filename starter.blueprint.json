@@ -349,6 +349,17 @@
           "productionReleased": false
         },
         "note": "Optional Cloudflare Images Binding for server-side image optimization."
+      },
+      {
+        "id": "capability.cloudflare-stream",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Optional Cloudflare Stream direct video upload and signed webhook lifecycle."
       }
     ]
   },
@@ -455,6 +466,24 @@
         "provider": "none",
         "maxInputBytes": 10485760,
         "defaultFormat": "image/webp"
+      },
+      "stream": {
+        "provider": "none",
+        "maxDurationSeconds": 600,
+        "development": {
+          "accountId": "7cb5d7a44fde3f702b4757dbf6d4218d",
+          "allowedOrigins": [
+            "dev.logicm8.com"
+          ],
+          "apiBaseUrl": "https://api.cloudflare.com/client/v4"
+        },
+        "production": {
+          "accountId": "7cb5d7a44fde3f702b4757dbf6d4218d",
+          "allowedOrigins": [
+            "starter.logicm8.com"
+          ],
+          "apiBaseUrl": "https://api.cloudflare.com/client/v4"
+        }
       }
     },
     "email": {

@@ -75,6 +75,13 @@ export type AuthRuntimeEnv = {
   IMAGES_PROVIDER?: string;
   IMAGES_MAX_INPUT_BYTES?: string;
   IMAGES_DEFAULT_FORMAT?: string;
+  STREAM_PROVIDER?: string;
+  STREAM_API_BASE_URL?: string;
+  STREAM_ACCOUNT_ID?: string;
+  STREAM_MAX_DURATION_SECONDS?: string;
+  STREAM_ALLOWED_ORIGINS?: string;
+  CLOUDFLARE_STREAM_TOKEN?: string;
+  STREAM_WEBHOOK_SECRET?: string;
 };
 
 type RequestExecutionContext = Pick<ExecutionContext, "waitUntil">;

@@ -17,6 +17,7 @@ const webhookPort = Number(
   process.env.STARTER_AUTH_SMOKE_WEBHOOK_PORT || 18790,
 );
 const smsPort = Number(process.env.STARTER_AUTH_SMOKE_SMS_PORT || 18791);
+const streamPort = Number(process.env.STARTER_AUTH_SMOKE_STREAM_PORT || 18792);
 const envPath = path.join(root, ".dev.vars");
 const values = parseEnv(await readFile(envPath, "utf8"));
 const starter = JSON.parse(
@@ -50,6 +51,7 @@ const searchProvider = blueprint.providers?.search?.provider || "none";
 const expoPushSelected = selectedPacks.has("capability.expo-push");
 const twilioSmsSelected = selectedPacks.has("capability.twilio-sms");
 const cloudflareImagesSelected = selectedPacks.has("capability.cloudflare-images");
+const cloudflareStreamSelected = selectedPacks.has("capability.cloudflare-stream");
 const origin = remote
   ? `https://${starter.development.domain}`
   : `http://127.0.0.1:${port}`;
@@ -110,9 +112,11 @@ let child = null;
 let mailServer = null;
 let webhookServer = null;
 let smsServer = null;
+let streamServer = null;
 const mailRequests = [];
 const webhookRequests = [];
 const smsRequests = [];
+const streamRequests = [];
 let logs = "";
 if (!remote) {
   const tempRoot = path.join(root, "dist/auth-smoke");
@@ -273,6 +277,31 @@ ${smokeHandlers.join("\n")}
       smsServer.listen(smsPort, "127.0.0.1", resolve);
     });
   }
+  if (cloudflareStreamSelected) {
+    streamServer = createServer(async (request, response) => {
+      let body = "";
+      for await (const chunk of request) body += chunk;
+      streamRequests.push({ method: request.method, url: request.url, headers: request.headers, body });
+      if (request.headers.authorization !== "Bearer smoke-stream-token") {
+        response.writeHead(401, { "Content-Type": "application/json" });
+        response.end(JSON.stringify({ success: false, errors: [{ code: 10000, message: "Authentication error" }] }));
+        return;
+      }
+      if (request.method === "POST" && request.url === "/accounts/7cb5d7a44fde3f702b4757dbf6d4218d/stream/direct_upload") {
+        response.writeHead(200, { "Content-Type": "application/json" });
+        response.end(JSON.stringify({ success: true, result: { uid: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", uploadURL: "https://upload.example.test/stream-upload" } }));
+        return;
+      }
+      if (request.method === "DELETE" && request.url === "/accounts/7cb5d7a44fde3f702b4757dbf6d4218d/stream/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") {
+        response.writeHead(200, { "Content-Type": "application/json" });
+        response.end(JSON.stringify({ success: true, result: {} }));
+        return;
+      }
+      response.writeHead(404, { "Content-Type": "application/json" });
+      response.end(JSON.stringify({ success: false, errors: [{ code: 10001, message: "Not found" }] }));
+    });
+    await new Promise((resolve, reject) => { streamServer.once("error", reject); streamServer.listen(streamPort, "127.0.0.1", resolve); });
+  }
   if (outgoingWebhooksSelected) {
     webhookServer = createServer(async (request, response) => {
       let body = "";
@@ -327,6 +356,10 @@ ${smokeHandlers.join("\n")}
     smokeValues.set("TWILIO_API_SECRET", "smoke-twilio-secret");
     smokeValues.set("TWILIO_FROM", "+14035550100");
   }
+  if (cloudflareStreamSelected) {
+    smokeValues.set("CLOUDFLARE_STREAM_TOKEN", "smoke-stream-token");
+    smokeValues.set("STREAM_WEBHOOK_SECRET", "smoke-stream-webhook-secret");
+  }
   await writeFile(
     smokeEnvPath,
     renderEnv([...smokeValues.keys()], smokeValues),
@@ -346,6 +379,7 @@ ${smokeHandlers.join("\n")}
       AUTH_REQUIRE_EMAIL_VERIFICATION: "true",
       AUTH_EMAIL_PROVIDER: "cfsend",
       ...(twilioSmsSelected ? { TWILIO_API_BASE_URL: `http://127.0.0.1:${smsPort}` } : {}),
+      ...(cloudflareStreamSelected ? { STREAM_API_BASE_URL: `http://127.0.0.1:${streamPort}` } : {}),
     },
     secrets: {
       required: [...new Set([
@@ -383,6 +417,8 @@ ${smokeHandlers.join("\n")}
     "TWILIO_API_KEY",
     "TWILIO_API_SECRET",
     "TWILIO_FROM",
+    "CLOUDFLARE_STREAM_TOKEN",
+    "STREAM_WEBHOOK_SECRET",
   ]) delete smokeChildEnv[name];
   child = spawn(
     process.execPath,
@@ -894,6 +930,40 @@ try {
     "anonymous user could access notifications",
   );
   const currentUserId = session.payload.data.user.id;
+  if (cloudflareStreamSelected) {
+    const anonymousStreamUpload = await request("/api/stream/uploads", { method: "POST", headers: { "Content-Type": "application/json", Origin: origin }, body: JSON.stringify({ fileName: "test.mp4" }) });
+    const createdStreamUpload = await request("/api/stream/uploads", { method: "POST", headers: { "Content-Type": "application/json", Cookie: cookie, Origin: origin }, body: JSON.stringify({ fileName: "smoke-video.mp4" }) });
+    const streamAssetId = createdStreamUpload.payload?.data?.id;
+    const streamUid = createdStreamUpload.payload?.data?.uid;
+    const listedBeforeWebhook = await request("/api/stream/assets", { headers: { Cookie: cookie, Origin: origin } });
+    const webhookPayload = JSON.stringify({ uid: streamUid, readyToStream: true, status: { state: "ready", pctComplete: "100", errorReasonCode: "", errorReasonText: "" }, thumbnail: "https://videodelivery.example/thumbnail.jpg", playback: { hls: "https://videodelivery.example/manifest/video.m3u8", dash: "https://videodelivery.example/manifest/video.mpd" } });
+    const webhookTime = Math.floor(Date.now() / 1000);
+    const webhookSignature = createHmac("sha256", "smoke-stream-webhook-secret").update(`${webhookTime}.${webhookPayload}`).digest("hex");
+    const invalidStreamWebhook = await request("/api/stream/webhook", { method: "POST", headers: { "Content-Type": "application/json", "Webhook-Signature": `time=${webhookTime},sig1=invalid`, Origin: origin }, body: webhookPayload });
+    const acceptedStreamWebhook = await request("/api/stream/webhook", { method: "POST", headers: { "Content-Type": "application/json", "Webhook-Signature": `time=${webhookTime},sig1=${webhookSignature}`, Origin: origin }, body: webhookPayload });
+    const replayedStreamWebhook = await request("/api/stream/webhook", { method: "POST", headers: { "Content-Type": "application/json", "Webhook-Signature": `time=${webhookTime},sig1=${webhookSignature}`, Origin: origin }, body: webhookPayload });
+    const listedAfterWebhook = await request("/api/stream/assets", { headers: { Cookie: cookie, Origin: origin } });
+    const deletedStreamAsset = await request(`/api/stream/assets/${encodeURIComponent(streamAssetId || "")}`, { method: "DELETE", headers: { Cookie: cookie, Origin: origin } });
+    const deletedStreamAssetAgain = await request(`/api/stream/assets/${encodeURIComponent(streamAssetId || "")}`, { method: "DELETE", headers: { Cookie: cookie, Origin: origin } });
+    const directUploadRequest = streamRequests.find(({ method, url }) => method === "POST" && url?.endsWith("/stream/direct_upload"));
+    const directUploadBody = directUploadRequest ? JSON.parse(directUploadRequest.body) : null;
+    assert(
+      anonymousStreamUpload.response.status === 401 &&
+        createdStreamUpload.response.status === 201 && streamAssetId && streamUid === "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" &&
+        createdStreamUpload.payload?.data?.uploadURL === "https://upload.example.test/stream-upload" &&
+        listedBeforeWebhook.payload?.data?.assets?.some((asset) => asset.id === streamAssetId && asset.status === "upload_pending") &&
+        invalidStreamWebhook.response.status === 401 &&
+        acceptedStreamWebhook.response.status === 200 && acceptedStreamWebhook.payload?.data?.duplicate === false &&
+        replayedStreamWebhook.response.status === 200 && replayedStreamWebhook.payload?.data?.duplicate === true &&
+        listedAfterWebhook.payload?.data?.assets?.some((asset) => asset.id === streamAssetId && asset.status === "ready" && asset.ready_to_stream === true && asset.hls_url?.endsWith("video.m3u8")) &&
+        directUploadRequest?.headers?.authorization === "Bearer smoke-stream-token" &&
+        directUploadRequest?.headers?.["upload-creator"] === currentUserId &&
+        directUploadBody?.creator === currentUserId && directUploadBody?.maxDurationSeconds === 600 && directUploadBody?.requireSignedURLs === false &&
+        deletedStreamAsset.response.status === 204 && deletedStreamAssetAgain.response.status === 404,
+      "Cloudflare Stream ownership, direct upload, signed webhook, replay, playback state, or deletion failed",
+    );
+    checks.push("cloudflare-stream-auth-direct-upload-signed-webhook-replay-playback-delete");
+  }
   if (twilioSmsSelected) {
     const deniedSmsAdmin = await request("/api/admin/sms/test", {
       method: "POST",
@@ -2412,6 +2482,7 @@ try {
   const expoPushHealth = healthComponents.get("expo-push");
   const twilioSmsHealth = healthComponents.get("twilio-sms");
   const cloudflareImagesHealth = healthComponents.get("cloudflare-images");
+  const cloudflareStreamHealth = healthComponents.get("cloudflare-stream");
   assert(
     operationsHealth.response.status === 200 &&
       operationsHealth.payload?.data?.service === "starter" &&
@@ -2422,6 +2493,12 @@ try {
       emailHealth?.details?.sent24h >= 1 &&
       googleHealth?.details?.configured === true,
     "operations health omitted active database, CFsend, or Google evidence",
+  );
+  assert(
+    cloudflareStreamSelected
+      ? cloudflareStreamHealth?.status === "ok" && cloudflareStreamHealth?.details?.selected === true && cloudflareStreamHealth?.details?.configured === true && cloudflareStreamHealth?.details?.ledgerReady === true
+      : cloudflareStreamHealth?.status === "not-selected" && cloudflareStreamHealth?.details?.selected === false,
+    "operations health returned incorrect Cloudflare Stream readiness evidence",
   );
   assert(
     cloudflareImagesSelected
@@ -3377,6 +3454,7 @@ try {
   if (webhookServer)
     await new Promise((resolve) => webhookServer.close(resolve));
   if (smsServer) await new Promise((resolve) => smsServer.close(resolve));
+  if (streamServer) await new Promise((resolve) => streamServer.close(resolve));
   if (scratchAdmin && scratchDatabase) {
     await scratchAdmin
       .query(`drop database if exists "${scratchDatabase}" with (force)`)

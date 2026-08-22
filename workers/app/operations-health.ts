@@ -417,6 +417,24 @@ export async function collectOperationsHealth(
     });
   }
 
+  const streamTable = await relationExists(database, "app_stream_asset");
+  const cloudflareStreamSelected = env.STREAM_PROVIDER === "cloudflare-stream" || streamTable;
+  if (!cloudflareStreamSelected) {
+    components.push({ id: "cloudflare-stream", label: "Cloudflare Stream", status: "not-selected", summary: "Video streaming is not materialized.", details: { selected: false } });
+  } else {
+    const streamConfiguration = requiredConfiguration([
+      ["STREAM_API_BASE_URL", env.STREAM_API_BASE_URL], ["STREAM_ACCOUNT_ID", env.STREAM_ACCOUNT_ID],
+      ["CLOUDFLARE_STREAM_TOKEN", env.CLOUDFLARE_STREAM_TOKEN], ["STREAM_WEBHOOK_SECRET", env.STREAM_WEBHOOK_SECRET],
+    ]);
+    const evidence = streamTable ? await database.query<{ pending: string; ready: string; errors: string }>(`select count(*) filter (where status in ('upload_pending','queued','inprogress'))::text as pending, count(*) filter (where status = 'ready')::text as ready, count(*) filter (where status = 'error')::text as errors from app_stream_asset where deleted_at is null`) : null;
+    components.push({
+      id: "cloudflare-stream", label: "Cloudflare Stream",
+      status: streamConfiguration.configured && streamTable ? "ok" : "attention",
+      summary: streamConfiguration.configured && streamTable ? "Direct upload configuration and signed-webhook ledger are ready." : "Selected Stream configuration is incomplete.",
+      details: { selected: true, configured: streamConfiguration.configured, ledgerReady: streamTable, missing: streamConfiguration.missing.join(", ") || null, pending: Number(evidence?.rows[0]?.pending || 0), ready: Number(evidence?.rows[0]?.ready || 0), errors: Number(evidence?.rows[0]?.errors || 0) },
+    });
+  }
+
   const stripeTable = await relationExists(database, "app_stripe_webhook_event");
   const stripeSelected =
     stripeTable ||

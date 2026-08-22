@@ -24,6 +24,7 @@ const antiAbuseProvider = blueprint.providers?.antiAbuse?.provider || "none";
 const searchProvider = blueprint.providers?.search?.provider || "none";
 const pushProvider = blueprint.providers?.push?.provider || "none";
 const smsProvider = blueprint.providers?.sms?.provider || "none";
+const streamProvider = blueprint.providers?.media?.stream?.provider || "none";
 const env = parseEnv(await readFile(path.join(root, ".dev.vars"), "utf8"));
 const providers = JSON.parse(await readFile(path.join(root, "profiles/providers.json"), "utf8"));
 const profilePath = process.env.STARTER_DEV_PROFILE_PATH || providers.defaultPath;
@@ -123,6 +124,10 @@ function syncWorkerSecrets(environment, wranglerConfig) {
       TWILIO_API_KEY: required(environment === "production" ? "STARTER_PRODUCTION_TWILIO_API_KEY" : "TWILIO_API_KEY"),
       TWILIO_API_SECRET: required(environment === "production" ? "STARTER_PRODUCTION_TWILIO_API_SECRET" : "TWILIO_API_SECRET"),
       TWILIO_FROM: required(environment === "production" ? "STARTER_PRODUCTION_TWILIO_FROM" : "TWILIO_FROM"),
+    } : {}),
+    ...(streamProvider === "cloudflare-stream" ? {
+      CLOUDFLARE_STREAM_TOKEN: required(environment === "production" ? "STARTER_PRODUCTION_CLOUDFLARE_STREAM_TOKEN" : "CLOUDFLARE_STREAM_TOKEN"),
+      STREAM_WEBHOOK_SECRET: required(environment === "production" ? "STARTER_PRODUCTION_STREAM_WEBHOOK_SECRET" : "STREAM_WEBHOOK_SECRET"),
     } : {}),
   };
   const result = spawnSync("npx", ["wrangler", "secret", "bulk", "--config", wranglerConfig], {

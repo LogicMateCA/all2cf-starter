@@ -175,6 +175,7 @@
       "smsVars": {},
       "imagesBinding": null,
       "imagesVars": {},
+      "streamVars": {},
       "r2Buckets": [
         {
           "binding": "OBJECTS",
@@ -214,6 +215,7 @@
       "smsVars": {},
       "imagesBinding": null,
       "imagesVars": {},
+      "streamVars": {},
       "r2Buckets": [
         {
           "binding": "OBJECTS",

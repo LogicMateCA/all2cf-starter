@@ -54,6 +54,10 @@ export const providerSetupLinks = {
     { label: "Images binding guide", href: "https://developers.cloudflare.com/images/optimization/binding/" },
     { label: "Images dashboard", href: "https://dash.cloudflare.com/?to=/:account/images" },
   ],
+  "cloudflare-stream": [
+    { label: "Stream direct uploads", href: "https://developers.cloudflare.com/stream/uploading-videos/direct-creator-uploads/" },
+    { label: "Stream webhooks", href: "https://developers.cloudflare.com/stream/manage-video-library/using-webhooks/" },
+  ],
 } as const;
 
 export type ProviderSetupLinkId = keyof typeof providerSetupLinks;

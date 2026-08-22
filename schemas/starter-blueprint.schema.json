@@ -96,6 +96,16 @@
       "additionalProperties": false,
       "required": ["apiBaseUrl"],
       "properties": { "apiBaseUrl": { "type": "string", "pattern": "^https://" } }
+    },
+    "streamEnvironment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["accountId", "allowedOrigins", "apiBaseUrl"],
+      "properties": {
+        "accountId": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
+        "allowedOrigins": { "type": "array", "minItems": 1, "maxItems": 20, "uniqueItems": true, "items": { "type": "string", "pattern": "^[A-Za-z0-9.-]+$" } },
+        "apiBaseUrl": { "type": "string", "pattern": "^https://" }
+      }
     }
   },
   "properties": {
@@ -410,7 +420,7 @@
         "media": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["images"],
+          "required": ["images", "stream"],
           "properties": {
             "images": {
               "type": "object",
@@ -420,6 +430,17 @@
                 "provider": { "enum": ["none", "cloudflare-images"] },
                 "maxInputBytes": { "type": "integer", "minimum": 1, "maximum": 20971520 },
                 "defaultFormat": { "enum": ["image/webp", "image/avif", "image/jpeg", "image/png"] }
+              }
+            },
+            "stream": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["provider", "maxDurationSeconds", "development", "production"],
+              "properties": {
+                "provider": { "enum": ["none", "cloudflare-stream"] },
+                "maxDurationSeconds": { "type": "integer", "minimum": 1, "maximum": 21600 },
+                "development": { "$ref": "#/$defs/streamEnvironment" },
+                "production": { "$ref": "#/$defs/streamEnvironment" }
               }
             }
           }

@@ -224,6 +224,21 @@ export function validateAssemblyContracts(
     failures.push("Blueprint is missing capability.cloudflare-images selection state");
   else if (imagesSelection.lifecycle.selected !== (imagesPolicy.provider === "cloudflare-images"))
     failures.push("Cloudflare Images Pack selection must match the image Provider");
+  const streamPolicy = blueprint.providers?.media?.stream || {};
+  if (!new Set(["none", "cloudflare-stream"]).has(streamPolicy.provider))
+    failures.push("Blueprint video Provider must be none or cloudflare-stream");
+  if (!Number.isInteger(streamPolicy.maxDurationSeconds) || streamPolicy.maxDurationSeconds < 1 || streamPolicy.maxDurationSeconds > 21_600)
+    failures.push("Blueprint Stream duration must be between 1 and 21600 seconds");
+  for (const environment of ["development", "production"]) {
+    const value = streamPolicy[environment] || {};
+    if (!/^[a-f0-9]{32}$/u.test(value.accountId || "")) failures.push(`Blueprint ${environment} Stream account ID is invalid`);
+    try { const url = new URL(value.apiBaseUrl || ""); if (url.protocol !== "https:") throw new Error(); } catch { failures.push(`Blueprint ${environment} Stream API URL must use HTTPS`); }
+    if (!Array.isArray(value.allowedOrigins) || !value.allowedOrigins.length || value.allowedOrigins.some((origin) => !/^[A-Za-z0-9.-]+$/u.test(origin)))
+      failures.push(`Blueprint ${environment} Stream allowed origins are invalid`);
+  }
+  const streamSelection = Object.values(blueprint.selections || {}).flat().find(({ id }) => id === "capability.cloudflare-stream");
+  if (!streamSelection) failures.push("Blueprint is missing capability.cloudflare-stream selection state");
+  else if (streamSelection.lifecycle.selected !== (streamPolicy.provider === "cloudflare-stream")) failures.push("Cloudflare Stream Pack selection must match the video Provider");
 
   const packIds = new Set();
   const packs = new Map();
