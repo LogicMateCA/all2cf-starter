@@ -1,7 +1,7 @@
 ---
 id: provider-completion-audit
 title: Enforce Provider Catalog completion invariants
-status: local-verified
+status: development-verified
 affectedModules: [assembler, docs, mobile]
 docsImpact: [PROJECT.md, features/assembler/MODULE.md, features/docs/MODULE.md, catalog/providers.json, /dp]
 ---
@@ -21,8 +21,8 @@ The Provider Catalog contract rejects any externally configured selectable optio
 
 - The strengthened contract passes 17 categories, 63 options, 45 selectable choices and 17 explicitly unavailable Planned choices.
 - Completion audit finds no selectable external option without a verification action or official setup link.
-- The current Development release remains the immediately preceding `c01240f2eefd66e1d278527ba974726259d166a9`; this metadata correction requires one final Development release so live `/dp` and source commit remain exact.
+- Development release `d5ef7034a047516281b04df393b89fa7229fb949` passed the strengthened contract, full repository gates, remote auth checks, exact database identity and the selected R2 release round trip. Live `/dp` contains the corrected Expo Push credential name and completion invariants.
 
 # Release
 
-Development release pending for this metadata-only correction. Production remains unchanged.
+Development is verified. The latest exact commit/artifact/deployment/version tuple remains in the environment-scoped release ledger so later releases do not require editing this historical Change Spec. Production remains unchanged.
