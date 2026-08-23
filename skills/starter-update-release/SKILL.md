@@ -32,14 +32,15 @@ Generic “发布” means Development. The controller must:
 5. Advance the local Development Channel with `source:publish:channel`; never replace an existing version with another hash.
 6. Register the exact candidate into the clean isolated All2CF worktree `/opt/1panel/apps/a2c-dev/all2cf-core-baseline-20260822`. Never target the dirty `/opt/1panel/apps/a2c` worktree.
 7. In All2CF, update its Change Spec/adoption evidence, run TypeScript plus Starter v2/Runner/Agent Map/Change checks, and commit before remote mutation.
-8. Publish the exact Artifact with `starter-engine:publish:dev`; it must create/reuse private R2, upload, download again, verify SHA-256 and advance only the Development database Channel.
-9. Deploy with `all2cf:deploy:dev`. The verified topology is:
+8. For database-backed Development commands, load `/opt/1panel/apps/a2c-dev/config/all2cf-updates-dev.env`; never inherit `DATABASE_URL` from `a2c-console-dev`. Confirm it resolves to database/user `a2cdev / a2cdev`. Use publisher identity `starter-updates-development@all2cf.local`.
+9. Publish the exact Artifact with `starter-engine:publish:dev`; it must create/reuse private R2, upload, download again, verify SHA-256 and advance only the Development database Channel. The command must fail closed if the database identity is not `a2cdev / a2cdev`.
+10. Deploy with `all2cf:deploy:dev`. The verified topology is:
    - Worker `a2c-web-dev`
    - hostname `a2cdev.logicm8.com`
    - Hyperdrive `a2c-platform-dev-db`
    - PostgreSQL database/user `a2cdev / a2cdev`
    - R2 `a2c-starter-engine-artifacts`
-10. Verify `/`, `/api/health`, `/api/version`, `/api/health/database`, unauthorized `resolve`, paid project-token `resolve`, one-use Artifact download and downloaded SHA-256. Use `starter-updates:verify:dev` for the paid proof and require its cleanup result.
+11. Verify `/`, `/api/health`, `/api/version`, `/api/health/database`, unauthorized `resolve`, paid project-token `resolve`, one-use Artifact download and downloaded SHA-256. Run `starter-updates:verify:dev` with the same dedicated env file and require its cleanup result.
 
 Official Cloudflare MCP inspection comes first. If Workers/R2 operations are unavailable there, record the limitation and use the pinned Wrangler commands through the saved All2CF connection.
 
