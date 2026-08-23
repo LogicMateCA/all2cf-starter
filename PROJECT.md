@@ -75,6 +75,7 @@ Every material change records intent, affected contracts, migration or rollback 
 - `skills/starter-factory/SKILL.md` owns clean-source independent project generation, portable packaging, initial Git/AI handoff and creation evidence.
 - `skills/starter-source-release/SKILL.md` owns clean-source SQL/Drizzle verification, reproducible immutable Engine candidates, monotonic Engine Channel publication and guarded All2CF registration plans. It never deploys.
 - `skills/starter-maintenance/SKILL.md` owns generated-product Channel status, verified Engine download, diff, dependency-closure addition, source update and receipt-owned conflict refusal.
+- `skills/starter-update-release/SKILL.md` owns the repeatable controller workflow for read-only update checks, verified Development Engine/R2/Channel publication and explicitly authorized Stable promotion.
 - Portable paid updates resolve through All2CF before any private Engine download. All2CF owns project binding and subscription entitlement; the local project owns diff/application and never uploads its source by default.
 - `skills/expo-release/SKILL.md` owns Expo verification, Development/Preview updates and builds, and separate Apple App Store and Google Play submission evidence.
 - `skills/runtime-upgrade/SKILL.md` owns stable-version discovery, compatibility decisions, Better Auth/plugin alignment, upgrade verification, and Development release evidence.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Starter Update Release"
+  short_description: "Check and publish verified Starter Engine updates"
+  default_prompt: "Check Starter updates and publish only the explicitly authorized channel."
