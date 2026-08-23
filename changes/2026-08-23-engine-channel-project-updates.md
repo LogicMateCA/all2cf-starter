@@ -1,7 +1,7 @@
 ---
 id: engine-channel-project-updates
 title: Add Engine channels and generated-project updates
-status: implementing
+status: local-verified
 affectedModules: [assembler, operations, docs]
 docsImpact: [PROJECT.md, ALL2CF_FACTORY.md, features/assembler/MODULE.md, skills/starter-source-release/SKILL.md, skills/starter-maintenance/SKILL.md, /dp]
 ---
@@ -20,7 +20,9 @@ Canonical Starter updates publish an immutable Engine candidate into a monotonic
 
 # Verification
 
-The clean-source `2.0.0-dev.10` candidate and first local Channel publication passed, then `source:status` correctly exposed the new Channel evidence directory as unignored source dirt. The immutable `dev.10` Artifact remains retained; the ignore-rule correction requires a new clean `2.0.0-dev.11` candidate and Channel advance. Portable status/diff/add/update/conflict tests already pass against a real served Engine archive.
+The portable Engine Channel contract creates a generated product, serves a real Engine archive, reports `dev.9 -> dev.10`, produces a zero-write diff, adds the 2FA Pack, applies an idempotent update and refuses a product-modified receipt-owned file. Full type checks, Factory, knowledge, Agent Map and Change Spec contracts pass.
+
+Clean-source `dev.10` first proved the immutable candidate and exposed the new Channel evidence directory as unignored source dirt. That immutable Artifact remains retained. Clean `dev.11` then passed canonical verification, SQL-first and Drizzle portable generation, two-build reproducibility and strict candidate checks; the `development` Channel advanced monotonically from `dev.10` to `dev.11` while `source:status` remained clean. The final documentation-aligned source commit is published as the next immutable development Engine rather than rewriting either retained Artifact.
 
 # Release
 
