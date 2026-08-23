@@ -39,8 +39,10 @@ Generic “发布” means Development. The controller must:
    - hostname `a2cdev.logicm8.com`
    - Hyperdrive `a2c-platform-dev-db`
    - PostgreSQL database/user `a2cdev / a2cdev`
-   - R2 `a2c-starter-engine-artifacts`
-11. Verify `/`, `/api/health`, `/api/version`, `/api/health/database`, unauthorized `resolve`, paid project-token `resolve`, one-use Artifact download and downloaded SHA-256. Run `starter-updates:verify:dev` with the same dedicated env file and require its cleanup result.
+    - R2 `a2c-starter-engine-artifacts`
+11. Before accepting Runner health, compare the actual local `a2c-dev-tunnel` identity with Runner VPC Service `019fac2e-a8b8-7961-8fb0-806f64dc49c7`. It must target the current Tunnel, canonical hostname `a2c-dev-agent`, and HTTP port `8788`; redeploy the Worker after changing the Service target. Build the Development Agent from the same clean All2CF candidate and require its Docker health to pass.
+12. Verify `/`, `/api/health`, `/api/version`, `/api/health/database`, unauthorized `resolve`, paid project-token `resolve`, one-use Artifact download and downloaded SHA-256. Run `starter-updates:verify:dev` with the same dedicated env file and require its cleanup result.
+13. Run the authenticated Starter v2 API and browser proofs against Development. They must cover Better Auth sign-in and organization rotation, real Runner source generation, source SHA, Development Channel identity, unauthenticated `401`, missing-entitlement `402`, temporary paid entitlement, project Token issuance, tenant isolation, cleanup, desktop Applications/Maintain pages and 390px mobile overflow. Runner `/health` alone is transport evidence, never authorization or generation evidence.
 
 Official Cloudflare MCP inspection comes first. If Workers/R2 operations are unavailable there, record the limitation and use the pinned Wrangler commands through the saved All2CF connection.
 
