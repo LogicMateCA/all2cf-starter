@@ -161,7 +161,7 @@ async function writeProjectScripts(target) {
     "starter:add": "node scripts/starter-link.mjs add",
     "starter:update": "node scripts/starter-link.mjs update",
   });
-  manifest.scripts.verify = "npm run starter:init && npm run ai:doctor && npm run agent-map:check && npm run plugin:contract && npm run visual:integration:contract && npm run release:contract && npm run database:provider:contract && npm run auth:social:contract && npm run starter:diff && npm run knowledge:sync && npm run knowledge:check && npm run change:check && npm run cf:types:check && npm run typecheck && npm run build:sites && npm run cache:contract && npm run bundle:check:marketing && npm run bundle:check:web && npm run bundle:check:docs && npm run cf:dry-run:dev && npm run cf:dry-run:production";
+  manifest.scripts.verify = "npm run starter:init && npm run ai:doctor && npm run agent-map:check && npm run plugin:contract && npm run visual:integration:contract && npm run release:contract && npm run database:provider:contract && npm run auth:social:contract && npm run knowledge:sync && npm run knowledge:check && npm run change:check && npm run cf:types:check && npm run typecheck && npm run build:sites && npm run cache:contract && npm run bundle:check:marketing && npm run bundle:check:web && npm run bundle:check:docs && npm run cf:dry-run:dev && npm run cf:dry-run:production";
   await writeFile(path.join(target, "package.json"), json(manifest));
 }
 
@@ -208,7 +208,7 @@ async function writeProductHandoff(target, source) {
   for (const route of machineMap.routes || []) {
     for (const key of ["primaryFiles", "docs", "skills"])
       route[key] = (await Promise.all((route[key] || []).map(async (relative) => [relative, await present(relative)]))).filter(([, fileExists]) => fileExists).map(([relative]) => relative);
-    route.checks = (route.checks || []).map((check) => check === "npm run starter:materialize:check" ? "npm run starter:diff" : check).filter((check) => {
+    route.checks = (route.checks || []).filter((check) => check !== "npm run starter:materialize:check").filter((check) => {
       const match = check.match(/^npm run ([^ ]+)/u);
       return !match || Boolean(productPackage.scripts?.[match[1]]);
     });

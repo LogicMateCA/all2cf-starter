@@ -13,7 +13,7 @@ Generated projects remain lightweight after universal visual knowledge and Pack 
 # Scope
 
 - Remove canonical Factory, Engine, dependency-family, full Design Catalog, Page Catalog, SaaS Catalog and StyleKit-source commands from generated `package.json`.
-- Keep generated verification focused on initialization, AI map, functional/Visual plugins, release/database/auth contracts, authorized Starter diff, knowledge/change checks, Worker types, all workspace builds, bundle budgets and Worker dry-runs.
+- Keep generated verification focused on initialization, AI map, functional/Visual plugins, release/database/auth contracts, knowledge/change checks, Worker types, all workspace builds, bundle budgets and Worker dry-runs. Update Channel status/diff remains a separate explicit workflow because a portable candidate has no distribution URL before publication.
 - Keep canonical source verification unchanged and mandatory before building an Engine candidate.
 
 # Verification
@@ -24,4 +24,4 @@ Generated projects remain lightweight after universal visual knowledge and Pack 
 
 # Release
 
-Implemented locally after the first `2.0.0-dev.14` candidate attempt correctly failed on a source-only Design contract scanning a pruned `packs/` directory. No remote state changed during that failed attempt.
+Implemented locally after the first `2.0.0-dev.14` candidate attempt correctly failed on a source-only Design contract scanning a pruned `packs/` directory. A second attempt correctly rejected `starter:diff` because the pre-publication portable fixture has no Channel URL; the update transport remains covered by the separate Engine Channel contract. No remote state changed during either failed attempt.
