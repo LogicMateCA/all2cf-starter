@@ -22,6 +22,7 @@ playwright-report/
 .all2cf/*.local.json
 .all2cf/state.local.json
 .all2cf/engine-candidates/
+.all2cf/engine-channels/
 .ai/runtime/
 apps/web/public/dp/project.snapshot.json
 apps/web/public/dp/project.index.json

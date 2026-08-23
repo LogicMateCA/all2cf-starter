@@ -20,7 +20,7 @@ Canonical Starter updates publish an immutable Engine candidate into a monotonic
 
 # Verification
 
-Pending clean-source `2.0.0-dev.10` candidate, monotonic local Channel publication, portable SQL/Drizzle generation and real status/diff/add/update/conflict tests.
+The clean-source `2.0.0-dev.10` candidate and first local Channel publication passed, then `source:status` correctly exposed the new Channel evidence directory as unignored source dirt. The immutable `dev.10` Artifact remains retained; the ignore-rule correction requires a new clean `2.0.0-dev.11` candidate and Channel advance. Portable status/diff/add/update/conflict tests already pass against a real served Engine archive.
 
 # Release
 
