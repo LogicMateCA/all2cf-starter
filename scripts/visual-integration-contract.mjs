@@ -1,4 +1,6 @@
 import { readFile } from "node:fs/promises";
+import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildVisualFactoryRequest, validateVisualDiscovery, validateVisualIntegration } from "./lib/visual-integration.mjs";
@@ -13,6 +15,14 @@ if (!visualPlugin || visualPlugin.installation !== "external-recommended" || vis
   failures.push("Project plugin declaration must keep visual-design external and optional");
 if (!projectPlugin || projectPlugin.installation !== "bundled")
   failures.push("Project plugin declaration must keep all2cf-project bundled");
+const visualRoot = "/opt/1panel/apps/visual";
+if (existsSync(path.join(visualRoot, ".git"))) {
+  const upstream = JSON.parse(execFileSync("git", ["show", `${contract.source.sourceCommit}:contracts/starter-integration.json`], { cwd: visualRoot, encoding: "utf8" }));
+  if (upstream.contractVersion !== contract.source.contractVersion || upstream.status !== contract.source.contractStatus)
+    failures.push("Pinned Visual contract version/status does not match the exact Visual source commit");
+  if (upstream.plugin?.id !== contract.plugin.id || upstream.plugin?.version !== contract.plugin.version)
+    failures.push("Pinned Visual plugin identity does not match the exact Visual source commit");
+}
 const request = buildVisualFactoryRequest(contract, blueprint);
 const validDiscovery = Object.fromEntries(contract.service.requiredDiscoveryFields.map((field) => [field, field === "service" ? "visual" : field === "contractVersions" ? [contract.source.contractVersion] : field === "capabilities" ? request.requestedCapabilities : field === "authorization" ? { mode: "oauth" } : field === "freshness" ? { generatedAt: "2026-08-23T00:00:00.000Z" } : "1.0.0"]));
 failures.push(...validateVisualDiscovery(contract, request, validDiscovery));

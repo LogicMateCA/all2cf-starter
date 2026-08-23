@@ -7,8 +7,8 @@
     "product": "visual",
     "contractId": "starter-integration",
     "contractVersion": "1.0.1",
-    "contractStatus": "draft",
-    "sourceCommit": "9b1482690683cea17773ecd597c809731dcd882b",
+    "contractStatus": "stable",
+    "sourceCommit": "3184f80aa669f53c1c6401352d52682d93b7ce58",
     "contractUrl": "https://visual.logicm8.com/contracts/starter-integration/v1"
   },
   "plugin": {
