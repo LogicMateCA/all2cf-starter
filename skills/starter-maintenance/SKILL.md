@@ -16,6 +16,8 @@ Generated products consume reusable source through `.starter/source.json`; they 
 5. A file whose current hash differs from its matching materialization receipt is product-modified. Update must stop rather than overwrite it. Resolve ownership deliberately and preserve product behavior.
 6. Run `starter:diff` again, synchronize `/dp`, run task-scoped checks and commit the update as one reviewed product change.
 
-Portable projects must use the Channel URL recorded in `.starter/source.json`. The maintenance client accepts HTTPS, allows loopback HTTP only for local verification, requires a same-origin Artifact URL, bounds the download, verifies SHA-256 and rejects unsafe tar paths before executing the Engine.
+Portable projects must use the All2CF update service or local-verification Channel recorded in `.starter/source.json`. The maintenance client accepts HTTPS, allows loopback HTTP only for local verification, requires a same-origin Artifact URL, bounds the download, verifies SHA-256 and rejects unsafe tar paths before executing the Engine.
+
+For `updateMode: all2cf-service`, connect the project from local `/update` first. The ignored `.starter/update-auth.local.json` supplies the expiring All2CF access token, installation ID and project ID. `starter:status` must refuse an absent or expired authorization and must not fall back to GitHub or a public Channel. All2CF resolves entitlement and returns the authorized Engine; local materialization remains authoritative for file conflicts.
 
 Adding or updating a Pack does not authorize database migration, Cloudflare provisioning, Development deployment, Production deployment, EAS update or App Store submission.

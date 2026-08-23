@@ -5,6 +5,7 @@ import { productNavigation } from "./lib/product-navigation";
 const AuthPage = lazy(async () => ({ default: (await import("./components/auth-page")).AuthPage }));
 const ProtectedApp = lazy(async () => ({ default: (await import("./components/protected-app")).ProtectedApp }));
 const SetupPage = lazy(async () => ({ default: (await import("./components/setup-page")).SetupPage }));
+const UpdatePage = lazy(async () => ({ default: (await import("./components/update-page")).UpdatePage }));
 const SupportPage = lazy(async () => ({ default: (await import("./components/support-page")).SupportPage }));
 const AdminPage = lazy(async () => ({ default: (await import("./components/admin-page")).AdminPage }));
 const DevelopmentPlanPage = lazy(async () => ({ default: (await import("./components/development-plan-page")).DevelopmentPlanPage }));
@@ -27,6 +28,7 @@ export function App() {
       "/admin": "Admin",
       "/factory": "Starter Factory",
       "/setup": "Project Setup",
+      "/update": "Starter Updates",
       "/dp": "Development Plan",
     };
     const navigationTitle = productNavigation.find(({ href }) => href === path)?.label;
@@ -54,6 +56,7 @@ export function App() {
     return <RouteLoading />;
   }
   else if (path === "/setup" || path === "/factory") page = <SetupPage />;
+  else if (path === "/update") page = <UpdatePage />;
   else if (path === "/dp") page = <DevelopmentPlanPage />;
   else {
     const capabilityRoute = capabilityRoutes.find((route) => route.path === path);

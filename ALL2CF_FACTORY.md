@@ -47,6 +47,15 @@ The canonical Starter owns the Engine candidate before any consumer can advertis
 
 Generated products use `starter:status` to read only the Channel descriptor. `starter:diff`, `starter:add` and `starter:update` download the exact same-origin Artifact, enforce a 96 MiB bound, verify SHA-256, reject unsafe tar paths and execute the Artifact's Factory against the product. The product source receipt advances only after successful materialization. Receipt-owned product changes remain protected and stop the update.
 
+Paid portable products record `updateServiceUrl` and use `updateMode: all2cf-service`. The ignored `.starter/update-auth.local.json` or `ALL2CF_UPDATE_TOKEN` authenticates a project/installation to All2CF. The service returns only an authorized Channel resolution and a same-origin short-lived Artifact route; it does not receive project source. Direct `channelUrl` resolution remains a local verification mode, not the customer authority.
+
+Local products also expose `/update` during local development. Its browser UI
+does not execute maintenance commands or read source files directly: it calls
+the local Vite server, which reads the receipt, checks the project's All2CF
+update entitlement, and then invokes the existing maintenance client. GitHub
+is not the authority for paid update availability; All2CF supplies the
+authorization and update endpoint before `status`, `diff`, or `update` runs.
+
 The strict `factory-engine.json` remains the only manifest consumed by All2CF. `registration.json` describes the capsule and target paths plus required post-registration checks. `engine:register` defaults to a read-only plan, refuses dirty All2CF targets and requires an explicit `--apply` in an integration-owned clean worktree. Registration never commits, merges, deploys or removes a previous capsule.
 
 StyleKit is not an upstream auto-update channel. Engine candidates carry the current Starter-owned curated snapshots. A deliberate visual change must update the owned snapshot, adapters, contracts and visual evidence before the next source candidate.

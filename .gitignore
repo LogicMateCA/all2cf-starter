@@ -1,6 +1,7 @@
 node_modules/
 .factory-output/
 .starter/factory-draft.local.json
+.starter/update-auth.local.json
 dist/
 .wrangler/
 .dev.vars

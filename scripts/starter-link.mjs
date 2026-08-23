@@ -8,6 +8,7 @@ const projectRoot = process.cwd();
 const command = process.argv.slice(2).find((value) => !value.startsWith("--")) || "status";
 const receiptPath = path.join(projectRoot, ".starter/source.json");
 const materializationPath = path.join(projectRoot, ".starter/materialization.json");
+const localAuthPath = path.join(projectRoot, ".starter/update-auth.local.json");
 const receipt = JSON.parse(await readFile(receiptPath, "utf8"));
 const json = (value) => `${JSON.stringify(value, null, 2)}\n`;
 const maxArtifactBytes = 96 * 1024 * 1024;
@@ -61,10 +62,45 @@ function validateChannel(value, channelUrl) {
 }
 
 async function remoteChannel() {
+  if (receipt.updateServiceUrl) return serviceChannel();
   if (!receipt.channelUrl) throw new Error("This portable project has no update Channel in .starter/source.json");
   const channelUrl = allowedChannelUrl(receipt.channelUrl);
   const bytes = await fetchBytes(channelUrl, "Starter Channel");
   return validateChannel(JSON.parse(bytes.toString("utf8")), channelUrl);
+}
+
+async function serviceChannel() {
+  const serviceUrl = allowedChannelUrl(receipt.updateServiceUrl);
+  const localAuth = await readFile(localAuthPath, "utf8").then(JSON.parse, () => null);
+  const accessToken = process.env.ALL2CF_UPDATE_TOKEN || localAuth?.accessToken || "";
+  if (!accessToken) throw new Error("Connect this project to All2CF from /update before checking paid updates");
+  if (localAuth?.expiresAt && Date.parse(localAuth.expiresAt) <= Date.now())
+    throw new Error("The local All2CF update authorization expired; reconnect from /update");
+  const response = await fetch(new URL("resolve", serviceUrl.href.endsWith("/") ? serviceUrl : `${serviceUrl.href}/`), {
+    method: "POST",
+    headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({
+      schemaVersion: "starter-update-request/v1",
+      installationId: localAuth?.installationId || null,
+      projectId: localAuth?.projectId || null,
+      project: receipt.project,
+      installed: {
+        engineVersion: receipt.engineVersion || null,
+        sourceCommit: receipt.sourceCommit,
+        artifactSha256: receipt.artifactSha256 || null,
+        packs: Object.entries((JSON.parse(await readFile(materializationPath, "utf8"))).packs || {}).map(([id, value]) => ({ id, version: value.version })),
+      },
+    }),
+    redirect: "error",
+  });
+  const resolution = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(resolution?.error || `All2CF update service returned HTTP ${response.status}`);
+  if (resolution?.schemaVersion !== "all2cf-starter-update-resolution/v1") throw new Error("All2CF update resolution schema is invalid");
+  if (resolution.authorized !== true) {
+    const suffix = resolution.checkoutUrl ? ` Subscribe at ${resolution.checkoutUrl}` : "";
+    throw new Error(`${resolution.reason || "Starter Updates subscription is required."}${suffix}`);
+  }
+  return validateChannel({ schemaVersion: "all2cf-starter-channel/v1", channel: resolution.channel, engine: resolution.engine, publishedAt: resolution.publishedAt || null }, serviceUrl);
 }
 
 async function statusRemote() {
@@ -129,6 +165,7 @@ async function updateReceipt(channel) {
   const next = JSON.parse(await readFile(receiptPath, "utf8"));
   next.schemaVersion = "starter-source/v2";
   next.updateMode = "engine-channel";
+  if (next.updateServiceUrl) next.updateMode = "all2cf-service";
   next.sourceCommit = channel.engine.sourceCommit;
   next.sourceDirty = false;
   next.engineVersion = channel.engine.version;

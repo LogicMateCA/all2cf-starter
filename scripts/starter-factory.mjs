@@ -15,6 +15,7 @@ const outputRoot = path.join(sourceRoot, ".factory-output");
 const portable = process.env.STARTER_FACTORY_PORTABLE === "true";
 const portableSourceUrl = process.env.STARTER_FACTORY_SOURCE_URL?.trim() || "";
 const portableChannelUrl = process.env.STARTER_FACTORY_CHANNEL_URL?.trim() || "";
+const portableUpdateServiceUrl = process.env.STARTER_FACTORY_UPDATE_SERVICE_URL?.trim() || "";
 const portableEngineVersion = process.env.STARTER_FACTORY_ENGINE_VERSION?.trim() || "";
 const portableArtifactSha256 = process.env.STARTER_FACTORY_ARTIFACT_SHA256?.trim() || "";
 
@@ -270,9 +271,14 @@ async function createProject() {
       throw new Error("Portable Factory generation requires STARTER_FACTORY_SOURCE_URL");
     if (portableChannelUrl && !/^https?:\/\//u.test(portableChannelUrl))
       throw new Error("Portable Factory Channel URL must use HTTP or HTTPS");
+    if (portableUpdateServiceUrl) {
+      const updateService = new URL(portableUpdateServiceUrl);
+      if (updateService.protocol !== "https:" && !(updateService.protocol === "http:" && new Set(["127.0.0.1", "localhost", "::1"]).has(updateService.hostname)))
+        throw new Error("Portable Factory update service URL must use HTTPS; loopback HTTP is local-verification only");
+    }
     if (portableArtifactSha256 && !/^[a-f0-9]{64}$/u.test(portableArtifactSha256))
       throw new Error("Portable Factory artifact SHA-256 is invalid");
-    const source = { schemaVersion: "starter-source/v2", sourceRoot: portable ? null : sourceRoot, sourceUrl: portable ? portableSourceUrl : null, channelUrl: portable ? portableChannelUrl || null : null, updateMode: portable ? "engine-channel" : "linked-source", engineVersion: portable ? portableEngineVersion || null : null, artifactSha256: portable ? portableArtifactSha256 || null : null, sourceCommit: sourceVersion(), sourceDirty: dirty, portable, generatedAt: new Date().toISOString(), project: { name, slug } };
+    const source = { schemaVersion: "starter-source/v2", sourceRoot: portable ? null : sourceRoot, sourceUrl: portable ? portableSourceUrl : null, channelUrl: portable ? portableChannelUrl || null : null, updateServiceUrl: portable ? portableUpdateServiceUrl || null : null, updateMode: portable ? portableUpdateServiceUrl ? "all2cf-service" : "engine-channel" : "linked-source", engineVersion: portable ? portableEngineVersion || null : null, artifactSha256: portable ? portableArtifactSha256 || null : null, sourceCommit: sourceVersion(), sourceDirty: dirty, portable, generatedAt: new Date().toISOString(), project: { name, slug } };
     await writeFile(path.join(target, ".starter/source.json"), json(source));
     if (portable) process.env.STARTER_FACTORY_BUILD_SOURCE_ROOT = sourceRoot;
     run("scripts/sync-project-identity.mjs", ["--reset", `--project-root=${target}`], target);

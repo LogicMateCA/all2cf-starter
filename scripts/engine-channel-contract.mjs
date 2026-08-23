@@ -40,6 +40,21 @@ try {
   const artifactSha256 = createHash("sha256").update(await readFile(archive)).digest("hex");
   server = http.createServer(async (request, response) => {
     const pathname = new URL(request.url || "/", "http://127.0.0.1").pathname;
+    if (pathname === "/api/starter-updates/resolve" && request.method === "POST") {
+      if (request.headers.authorization !== "Bearer contract-token") {
+        response.statusCode = 401;
+        response.setHeader("content-type", "application/json");
+        return response.end(JSON.stringify({ error: "Unauthorized" }));
+      }
+      response.setHeader("content-type", "application/json");
+      return response.end(JSON.stringify({
+        schemaVersion: "all2cf-starter-update-resolution/v1",
+        authorized: true,
+        channel: "contract",
+        engine: { version: "2.0.0-dev.10", sourceCommit: availableCommit, artifactSha256, artifactUrl: "/engine.tar.gz", manifestUrl: "/manifest.json", packVersions: {} },
+        publishedAt: new Date().toISOString(),
+      }));
+    }
     if (pathname === "/channel.json") {
       response.setHeader("content-type", "application/json");
       return response.end(JSON.stringify({
@@ -61,6 +76,7 @@ try {
   const address = server.address();
   assert.equal(typeof address, "object");
   const channelUrl = `http://127.0.0.1:${address.port}/channel.json`;
+  const updateServiceUrl = `http://127.0.0.1:${address.port}/api/starter-updates/`;
   const created = JSON.parse(await runAsync(process.execPath, [
     path.join(root, "scripts/starter-factory.mjs"), "create", `--slug=${projectSlug}`, "--name=Engine Channel Proof",
   ], { env: {
@@ -69,11 +85,14 @@ try {
     STARTER_FACTORY_PACKAGE_LOCK_ONLY: "true",
     STARTER_FACTORY_SOURCE_URL: "https://updates.example.invalid/engine/2.0.0-dev.9",
     STARTER_FACTORY_CHANNEL_URL: channelUrl,
+    STARTER_FACTORY_UPDATE_SERVICE_URL: updateServiceUrl,
     STARTER_FACTORY_ENGINE_VERSION: "2.0.0-dev.9",
     STARTER_FACTORY_ARTIFACT_SHA256: "1".repeat(64),
   } }));
   assert.equal(created.ok, true);
   await runAsync("npm", ["ci", "--ignore-scripts", "--no-audit", "--no-fund"], { cwd: projectRoot });
+  await assert.rejects(runAsync("npm", ["run", "starter:status", "--silent"], { cwd: projectRoot }), /connect.*All2CF/iu);
+  await writeFile(path.join(projectRoot, ".starter/update-auth.local.json"), `${JSON.stringify({ schemaVersion: "starter-update-auth/v1", accessToken: "contract-token", installationId: "installation-contract", projectId: "project-contract", expiresAt: new Date(Date.now() + 60_000).toISOString() }, null, 2)}\n`, { mode: 0o600 });
   const status = JSON.parse(await runAsync("npm", ["run", "starter:status", "--silent"], { cwd: projectRoot }));
   assert.equal(status.source.installedVersion, "2.0.0-dev.9");
   assert.equal(status.source.availableVersion, "2.0.0-dev.10");

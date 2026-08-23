@@ -665,6 +665,26 @@ function isLoopbackOrigin(value: string | undefined) {
   }
 }
 
+async function starterUpdateReceipt() {
+  try {
+    return JSON.parse(await readFile(path.join(repositoryRoot, ".starter/source.json"), "utf8")) as Record<string, unknown>;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") throw new Error("This project has no .starter/source.json update receipt.");
+    throw error;
+  }
+}
+
+async function runStarterUpdateAction(action: "status" | "diff" | "update", accessToken: string) {
+  if (!accessToken) throw new Error("Connect an All2CF update token before checking for updates.");
+  const result = await execFileAsync(process.execPath, [path.join(repositoryRoot, "scripts/starter-link.mjs"), action], {
+    cwd: repositoryRoot,
+    env: { ...process.env, ALL2CF_UPDATE_TOKEN: accessToken },
+    maxBuffer: 8 * 1024 * 1024,
+    timeout: 120_000,
+  });
+  return { entitlement: { authorized: true }, output: `${result.stdout || ""}${result.stderr || ""}`, receipt: await starterUpdateReceipt() };
+}
+
 function localSetupApi(): Plugin {
   const recentProviderTests = new Map<string, number>();
   return {
@@ -677,7 +697,7 @@ function localSetupApi(): Plugin {
           next: () => void,
         ) => {
           const url = new URL(request.url || "/", "http://starter.local");
-          if (!new Set(["/__starter/setup", "/__starter/provider-test", "/__starter/factory"]).has(url.pathname))
+          if (!new Set(["/__starter/setup", "/__starter/provider-test", "/__starter/factory", "/__starter/update/receipt", "/__starter/update/check", "/__starter/update/status", "/__starter/update/diff", "/__starter/update/update"]).has(url.pathname))
             return next();
           response.setHeader("Content-Type", "application/json; charset=utf-8");
           response.setHeader("Cache-Control", "no-store");
@@ -694,6 +714,33 @@ function localSetupApi(): Plugin {
           }
 
           try {
+            if (url.pathname.startsWith("/__starter/update/")) {
+              if (url.pathname === "/__starter/update/receipt") {
+                if (request.method !== "GET") {
+                  response.statusCode = 405;
+                  response.end(json({ ok: false, error: "Method not allowed." }));
+                  return;
+                }
+                response.end(json({ ok: true, receipt: await starterUpdateReceipt() }));
+                return;
+              }
+              if (request.method !== "POST") {
+                response.statusCode = 405;
+                response.end(json({ ok: false, error: "Method not allowed." }));
+                return;
+              }
+              const payload = await readRequestJson(request);
+              const accessToken = String(payload.accessToken || "").trim();
+              const action = url.pathname.slice("/__starter/update/".length);
+              if (action === "check") {
+                const result = await runStarterUpdateAction("status", accessToken);
+                response.end(json({ ok: true, ...result }));
+                return;
+              }
+              const result = await runStarterUpdateAction(action as "status" | "diff" | "update", accessToken);
+              response.end(json({ ok: true, ...result }));
+              return;
+            }
             if (url.pathname === "/__starter/factory") {
               if (starterSourceRoot !== repositoryRoot || request.method !== "POST") {
                 response.statusCode = 405;
