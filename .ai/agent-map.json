@@ -135,13 +135,13 @@
       "skills": []
     },
     {
-      "id": "design-stylekit",
-      "summary": "StyleKit global selection, optional Design Providers, semantic tokens, design adapters, typography, visual acceptance, and cross-surface style locks.",
-      "triggers": ["stylekit", "threeui", "react bits", "html anything", "design provider", "design", "theme", "dark mode", "typography", "shadcn", "chart", "visual", "样式", "设计", "主题", "亮暗", "字体"],
+      "id": "design-baseline",
+      "summary": "Starter-owned functional visual fallback, semantic tokens, typography, Visual Receipt integration and cross-surface baseline adapters.",
+      "triggers": ["visual receipt", "visual plugin", "design fallback", "stylekit", "design", "theme", "dark mode", "typography", "shadcn", "chart", "visual", "样式", "设计", "主题", "亮暗", "字体"],
       "moduleIds": [],
-      "primaryFiles": ["DESIGN.md", "design/providers.json", "design/stylekit/source-catalog.json", "design/stylekit/editorial/snapshot.json", "scripts/lib/design-engine.mjs", "plugins/all2cf-project/skills/design-governance/SKILL.md", "apps/web/src/generated/design-profile.css"],
+      "primaryFiles": ["DESIGN.md", "integrations/visual.json", ".ai/plugins.json", "design/stylekit/editorial/snapshot.json", "scripts/lib/design-engine.mjs", "apps/web/src/generated/design-profile.css"],
       "docs": ["DESIGN.md", "features/assembler/MODULE.md"],
-      "checks": ["npm run design:contract", "npm run design:providers:contract", "npm run typography:contract", "npm run stylekit:contract", "npm run stylekit:boundary"],
+      "checks": ["npm run design:contract", "npm run visual:integration:contract", "npm run typography:contract", "npm run stylekit:contract", "npm run stylekit:boundary"],
       "skills": []
     },
     {

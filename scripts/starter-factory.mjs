@@ -153,22 +153,32 @@ async function writeIdentity(target, name, slug) {
 async function writeProjectScripts(target) {
   const manifest = await readJson(target, "package.json");
   for (const script of Object.keys(manifest.scripts || {}))
-    if (script.startsWith("source:") || script.startsWith("engine:")) delete manifest.scripts[script];
+    if (script.startsWith("source:") || script.startsWith("engine:") || script.startsWith("factory:") || script.startsWith("stylekit:")) delete manifest.scripts[script];
   Object.assign(manifest.scripts, {
     "starter:status": "node scripts/starter-link.mjs status",
     "starter:diff": "node scripts/starter-link.mjs diff",
     "starter:add": "node scripts/starter-link.mjs add",
     "starter:update": "node scripts/starter-link.mjs update",
   });
-  if (portable) {
-    manifest.scripts.verify = "npm run starter:init && npm run ai:doctor && npm run agent-map:check && npm run release:contract && npm run database:provider:contract && npm run auth:social:contract && npm run knowledge:sync && npm run knowledge:check && npm run change:check && npm run cf:types:check && npm run typecheck && npm run build:sites && npm run cache:contract && npm run bundle:check:marketing && npm run bundle:check:web && npm run bundle:check:docs && npm run cf:dry-run:dev && npm run cf:dry-run:production";
-  }
+  manifest.scripts.verify = "npm run starter:init && npm run ai:doctor && npm run agent-map:check && npm run plugin:contract && npm run visual:integration:contract && npm run release:contract && npm run database:provider:contract && npm run auth:social:contract && npm run design:contract && npm run typography:contract && npm run pages:contract && npm run starter:diff && npm run knowledge:sync && npm run knowledge:check && npm run change:check && npm run cf:types:check && npm run typecheck && npm run build:sites && npm run cache:contract && npm run bundle:check:marketing && npm run bundle:check:web && npm run bundle:check:docs && npm run cf:dry-run:dev && npm run cf:dry-run:production";
   await writeFile(path.join(target, "package.json"), json(manifest));
 }
 
 async function pruneSourceLibrary(target) {
   for (const relative of ["packs", "skills/starter-source-release", "scripts/source-release.mjs", "ALL2CF_FACTORY.md", "node_modules", "dist", "test-results", "cloudflare/.wrangler", "cloudflare/dist"])
     await rm(path.join(target, relative), { recursive: true, force: true });
+  const blueprint = await readJson(target, "starter.blueprint.json");
+  const stylekitRoot = path.join(target, "design/stylekit");
+  const sourceCatalog = await readJson(target, "design/stylekit/source-catalog.json");
+  const selectedStyle = sourceCatalog.styles.find(({ slug }) => slug === blueprint.stylekit.slug);
+  if (!selectedStyle) throw new Error(`Selected fallback style ${blueprint.stylekit.slug} is missing from the source catalog`);
+  for (const entry of await readdir(stylekitRoot))
+    if (entry !== "source-catalog.json" && entry !== blueprint.stylekit.slug)
+      await rm(path.join(stylekitRoot, entry), { recursive: true, force: true });
+  await writeFile(path.join(stylekitRoot, "source-catalog.json"), json({ ...sourceCatalog, count: 1, styles: [selectedStyle] }));
+  await rm(path.join(target, "apps/web/public/stylekit-previews"), { recursive: true, force: true });
+  for (const relative of ["scripts/stylekit-bundle.mjs", "scripts/stylekit-preview-assets.mjs", "scripts/stylekit-snapshot.mjs", "scripts/stylekit-snapshots.mjs", "scripts/stylekit-source-catalog.mjs", "scripts/stylekit-contract.mjs"])
+    await rm(path.join(target, relative), { force: true });
 }
 
 async function writeProductHandoff(target, source) {
@@ -197,7 +207,7 @@ async function writeProductHandoff(target, source) {
   for (const route of machineMap.routes || []) {
     for (const key of ["primaryFiles", "docs", "skills"])
       route[key] = (await Promise.all((route[key] || []).map(async (relative) => [relative, await present(relative)]))).filter(([, fileExists]) => fileExists).map(([relative]) => relative);
-    route.checks = (route.checks || []).filter((check) => {
+    route.checks = (route.checks || []).map((check) => check === "npm run starter:materialize:check" ? "npm run starter:diff" : check).filter((check) => {
       const match = check.match(/^npm run ([^ ]+)/u);
       return !match || Boolean(productPackage.scripts?.[match[1]]);
     });
@@ -215,7 +225,7 @@ async function writeProductHandoff(target, source) {
   await rm(path.join(target, "changes"), { recursive: true, force: true });
   await mkdir(path.join(target, "changes"), { recursive: true });
   await writeFile(path.join(target, "changes/_template.md"), template);
-  await writeFile(path.join(target, "changes/generated-project.md"), `---\nid: generated-project\ntitle: Initialize ${source.project.name}\nstatus: implemented\naffectedModules: [assembler]\ndocsImpact: [PROJECT.md, AGENT_MAP.md, /dp]\n---\n\n# Outcome\n\nThis independent product was generated from Starter source commit \`${source.sourceCommit}\`. It retains selected runtime code, compact Catalog and StyleKit reference snapshots, and a source receipt, but not the reusable Pack template library.\n\n# Verification\n\nGenerated identity, materialization receipt, Agent Map and Development Plan are present. Project-local dependency installation, type/build checks and provider/release evidence remain product gates.\n\n# Release\n\nNot released.\n`);
+  await writeFile(path.join(target, "changes/generated-project.md"), `---\nid: generated-project\ntitle: Initialize ${source.project.name}\nstatus: implemented\naffectedModules: [assembler]\ndocsImpact: [PROJECT.md, AGENT_MAP.md, /dp]\n---\n\n# Outcome\n\nThis independent product was generated from Starter source commit \`${source.sourceCommit}\`. It retains selected runtime code, one Starter-owned visual fallback, the optional Visual integration receipt contract, compact Catalog references and a source receipt, but not the reusable Pack or universal visual-provider libraries.\n\n# Verification\n\nGenerated identity, materialization receipt, Agent Map and Development Plan are present. Project-local dependency installation, type/build checks and provider/release evidence remain product gates.\n\n# Release\n\nNot released.\n`);
 }
 
 function initializeGit(target, slug) {

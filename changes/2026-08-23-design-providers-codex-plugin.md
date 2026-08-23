@@ -31,3 +31,7 @@ Factory and generated-project Setup can preserve one StyleKit global lock while 
 # Release
 
 Implemented locally. No Worker deployment, database change, Engine Channel publication or Production operation is part of this change.
+
+# Later ownership change
+
+`visual-product-decoupling` supersedes the optional Provider Catalog and `design-governance` ownership introduced here. The independent Visual repository now owns universal visual Providers and the Visual Skill. Starter retains only its functional fallback, a versioned integration receipt and plugin declaration; historical verification in this Change Spec remains evidence for the removed prototype, not current product architecture.

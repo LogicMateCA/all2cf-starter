@@ -9,7 +9,7 @@ const manifest = JSON.parse(await readFile(path.join(pluginRoot, ".codex-plugin/
 if (manifest.name !== "all2cf-project") failures.push("Plugin name must be all2cf-project");
 if (manifest.mcpServers || manifest.apps || manifest.hooks) failures.push("Plugin must not declare unavailable MCP, App or Hook capabilities");
 if (await stat(path.join(pluginRoot, "scripts")).then(() => true, () => false)) failures.push("Customer plugin must not ship execution scripts");
-const expected = new Set(["cloudflare-release", "design-governance", "expo-release", "project-change", "project-doctor", "project-onboarding", "runtime-upgrade", "starter-update"]);
+const expected = new Set(["cloudflare-release", "expo-release", "project-change", "project-doctor", "project-onboarding", "runtime-upgrade", "starter-update"]);
 const actual = new Set(await readdir(path.join(pluginRoot, "skills")));
 for (const name of expected) if (!actual.has(name)) failures.push(`Plugin is missing Skill ${name}`);
 for (const name of actual) if (!expected.has(name)) failures.push(`Unexpected plugin Skill ${name}`);

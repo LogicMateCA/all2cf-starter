@@ -10,7 +10,7 @@ import path from "node:path";
 import { promisify } from "node:util";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { validateAssemblyContracts } from "../../scripts/lib/assembly.mjs";
-import { validateDesignProviders } from "../../scripts/lib/design-providers.mjs";
+import { buildVisualFactoryRequest, validateVisualDiscovery, validateVisualIntegration } from "../../scripts/lib/visual-integration.mjs";
 import {
   resolveCfpgConnectCommand,
   validateCfpgConnection,
@@ -610,40 +610,6 @@ async function normalizedCfpgConnection(input: unknown, command: unknown) {
   return resolveCfpgConnectCommand(desiredCommand);
 }
 
-async function loadStylekitSnapshots(stylekitCatalog: {
-  styles: Array<{
-    slug: string;
-    classification: string;
-    globalEligibility: string;
-  }>;
-}) {
-  const summaries = await Promise.all(
-    stylekitCatalog.styles
-      .filter(
-        ({ classification, globalEligibility }) =>
-          classification === "base-visual" && globalEligibility === "eligible",
-      )
-      .map(async ({ slug }) => {
-        const source = await readFile(
-          path.join(starterSourceRoot, "design/stylekit", slug, "snapshot.json"),
-          "utf8",
-        );
-        const snapshot = JSON.parse(source);
-        return [
-          slug,
-          {
-            snapshotVersion: snapshot.snapshotVersion,
-            snapshotHash: sha256(source),
-            immutable: snapshot.immutable,
-            targets: snapshot.targets,
-            style: snapshot.style,
-          },
-        ] as const;
-      }),
-  );
-  return Object.fromEntries(summaries);
-}
-
 function isLoopbackHost(value: string | undefined) {
   if (!value) return false;
   try {
@@ -698,7 +664,7 @@ function localSetupApi(): Plugin {
           next: () => void,
         ) => {
           const url = new URL(request.url || "/", "http://starter.local");
-          if (!new Set(["/__starter/setup", "/__starter/provider-test", "/__starter/factory", "/__starter/update/receipt", "/__starter/update/check", "/__starter/update/status", "/__starter/update/diff", "/__starter/update/update"]).has(url.pathname))
+          if (!new Set(["/__starter/setup", "/__starter/provider-test", "/__starter/visual-discovery", "/__starter/factory", "/__starter/update/receipt", "/__starter/update/check", "/__starter/update/status", "/__starter/update/diff", "/__starter/update/update"]).has(url.pathname))
             return next();
           response.setHeader("Content-Type", "application/json; charset=utf-8");
           response.setHeader("Cache-Control", "no-store");
@@ -715,6 +681,42 @@ function localSetupApi(): Plugin {
           }
 
           try {
+            if (url.pathname === "/__starter/visual-discovery") {
+              if (request.method !== "POST") {
+                response.statusCode = 405;
+                response.end(json({ ok: false, error: "Method not allowed." }));
+                return;
+              }
+              const [contract, rootBlueprint] = await Promise.all([
+                readFile(path.join(starterSourceRoot, "integrations/visual.json"), "utf8").then(JSON.parse),
+                readFile(path.join(repositoryRoot, "starter.blueprint.json"), "utf8").then(JSON.parse),
+              ]);
+              let blueprint = rootBlueprint;
+              if (starterSourceRoot === repositoryRoot)
+                try {
+                  blueprint = JSON.parse(await readFile(path.join(repositoryRoot, ".starter/factory-draft.local.json"), "utf8")).blueprint || rootBlueprint;
+                } catch (error) {
+                  if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+                }
+              blueprint.visualIntegration ||= rootBlueprint.visualIntegration;
+              delete blueprint.designExtensions;
+              const visualRequest = buildVisualFactoryRequest(contract, blueprint, randomUUID());
+              if (!blueprint.visualIntegration?.enabled) {
+                response.end(json({ ok: true, status: "disabled", request: visualRequest, warnings: [] }));
+                return;
+              }
+              try {
+                const discoveryResponse = await providerFetch(visualRequest.discoveryUrl, { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(10_000) });
+                if (!discoveryResponse.ok) throw new Error(`Discovery returned HTTP ${discoveryResponse.status}`);
+                const discovery = await discoveryResponse.json() as Record<string, unknown>;
+                const discoveryFailures = validateVisualDiscovery(contract, visualRequest, discovery);
+                if (discoveryFailures.length) throw new Error(discoveryFailures.join("; "));
+                response.end(json({ ok: true, status: "configured", discovery, request: visualRequest, warnings: [] }));
+              } catch (error) {
+                response.end(json({ ok: true, status: "unavailable", request: visualRequest, warnings: [error instanceof Error ? error.message : String(error), "Starter baseline remains active."] }));
+              }
+              return;
+            }
             if (url.pathname.startsWith("/__starter/update/")) {
               if (url.pathname === "/__starter/update/receipt") {
                 if (request.method !== "GET") {
@@ -815,7 +817,7 @@ function localSetupApi(): Plugin {
               blueprintSource,
               catalogSource,
               designCatalogSource,
-              designProviderCatalogSource,
+              visualIntegrationContractSource,
               pageCatalogSource,
               configSource,
               stylekitCatalogSource,
@@ -840,7 +842,7 @@ function localSetupApi(): Plugin {
                 "utf8",
               ),
               readFile(
-                path.join(starterSourceRoot, "design/providers.json"),
+                path.join(starterSourceRoot, "integrations/visual.json"),
                 "utf8",
               ),
               readFile(path.join(starterSourceRoot, "pages/catalog.json"), "utf8"),
@@ -871,22 +873,13 @@ function localSetupApi(): Plugin {
             const manifest = JSON.parse(manifestSource);
             const catalog = JSON.parse(catalogSource);
             const designCatalog = JSON.parse(designCatalogSource);
-            const designProviderCatalog = JSON.parse(designProviderCatalogSource);
+            const visualIntegrationContract = JSON.parse(visualIntegrationContractSource);
             const pageCatalog = JSON.parse(pageCatalogSource);
             let config = JSON.parse(configSource);
             const stylekitCatalog = JSON.parse(stylekitCatalogSource);
-            const setupStylekitCatalog = {
-              ...stylekitCatalog,
-              styles: stylekitCatalog.styles.filter(
-                ({ classification, globalEligibility }: { classification: string; globalEligibility: string }) =>
-                  classification === "base-visual" && globalEligibility === "eligible",
-              ),
-            };
             const saasSources = JSON.parse(saasSourcesSource);
             const saasCapabilities = JSON.parse(saasCapabilitiesSource);
             const providerCatalog = JSON.parse(providerCatalogSource);
-            const stylekitSnapshots =
-              await loadStylekitSnapshots(stylekitCatalog);
             let initialBlueprint = JSON.parse(blueprintSource);
             if (starterSourceRoot === repositoryRoot) {
               try {
@@ -897,7 +890,8 @@ function localSetupApi(): Plugin {
                 if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
               }
             }
-            initialBlueprint.designExtensions ||= JSON.parse(blueprintSource).designExtensions;
+            initialBlueprint.visualIntegration ||= JSON.parse(blueprintSource).visualIntegration;
+            delete initialBlueprint.designExtensions;
             const initialSnapshotPath = path.join(
               starterSourceRoot,
               "design/stylekit",
@@ -916,10 +910,8 @@ function localSetupApi(): Plugin {
                   blueprint: initialBlueprint,
                   catalog,
                   designCatalog,
-                  designProviderCatalog,
+                  visualIntegrationContract,
                   pageCatalog,
-                  stylekitCatalog: setupStylekitCatalog,
-                  stylekitSnapshots,
                   stylekitSnapshot: {
                     ...JSON.parse(initialSnapshotSource),
                     snapshotHash: sha256(initialSnapshotSource),
@@ -999,7 +991,7 @@ function localSetupApi(): Plugin {
                 snapshotHash: sha256(snapshotSource),
               },
             );
-            failures.push(...validateDesignProviders(designProviderCatalog, blueprint));
+            failures.push(...validateVisualIntegration(visualIntegrationContract, blueprint));
             if (failures.length) {
               response.statusCode = 400;
               response.end(
@@ -1024,10 +1016,8 @@ function localSetupApi(): Plugin {
                 blueprint,
                 catalog,
                 designCatalog,
-                designProviderCatalog,
+                visualIntegrationContract,
                 pageCatalog,
-                stylekitCatalog: setupStylekitCatalog,
-                stylekitSnapshots,
                 stylekitSnapshot: { ...JSON.parse(snapshotSource), snapshotHash: sha256(snapshotSource) },
                 saasSources,
                 saasCapabilities,
@@ -1108,10 +1098,8 @@ function localSetupApi(): Plugin {
                 blueprint,
                 catalog,
                 designCatalog,
-                designProviderCatalog,
+                visualIntegrationContract,
                 pageCatalog,
-                stylekitCatalog: setupStylekitCatalog,
-                stylekitSnapshots,
                 stylekitSnapshot: {
                   ...JSON.parse(snapshotSource),
                   snapshotHash: sha256(snapshotSource),

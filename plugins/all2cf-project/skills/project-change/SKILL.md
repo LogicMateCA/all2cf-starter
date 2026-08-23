@@ -10,3 +10,5 @@ Start with `AGENT_MAP.md` and task-scoped `ai:context`. Modify product-owned fil
 For every material change, update one focused `changes/*.md` and affected canonical Markdown. Run `knowledge:sync`, `knowledge:check`, `agent-map:check`, and risk-proportional code checks. Generated `/dp` data is evidence, not source.
 
 Do not generalize a customer-specific feature into the canonical Starter or invoke `/factory` from this plugin.
+
+Universal visual design is independently owned. If the project has the Visual plugin, delegate visual exploration, design-system changes, references, Recipes and optional visual components to it. If it is unavailable, preserve the current project Design Profile and limit this Skill to functional UI changes using existing components.

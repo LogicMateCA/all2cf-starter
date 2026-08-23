@@ -104,7 +104,16 @@ type Blueprint = {
     snapshotVersion: string;
     snapshotHash: string;
   };
-  designExtensions: { catalogVersion: string; selected: string[] };
+  visualIntegration: {
+    enabled: boolean;
+    contractVersion: "1.0.1";
+    plugin: { id: "visual-design"; version: "0.1.0"; installation: "external-recommended" };
+    environment: "development" | "production";
+    status: "disabled" | "unavailable" | "configured" | "resolved";
+    profileReceipt: ".visual/receipt.json";
+    fallbackProfile: { id: string; version: string; sha256: string };
+    warnings: string[];
+  };
   pageSet: { selected: string[] };
   project: {
     name: string;
@@ -250,25 +259,6 @@ type StyleKitSnapshotSummary = {
   targets: Record<string, { status: string }>;
   style: StyleKitEntry;
 };
-type DesignProviderItem = {
-  id: string;
-  name: string;
-  category: string;
-  install: string;
-  performance: "light" | "moderate" | "heavy";
-  targets: string[];
-  requires: string[];
-};
-type DesignProvider = {
-  id: string;
-  name: string;
-  kind: "global-style" | "dynamic-component" | "design-recipe";
-  status: "local-verified" | "catalog-ready" | "reference-ready" | "planned";
-  distribution: string;
-  notes: string;
-  source: { url: string; revision: string; license: string };
-  items: DesignProviderItem[];
-};
 type ProviderCatalogOption = {
   id: string;
   name: string;
@@ -300,23 +290,19 @@ type SetupPayload = {
     sourcePolicy: string;
     profiles: DesignProfile[];
   };
-  designProviderCatalog: {
-    catalogVersion: string;
-    policy: string;
-    providers: DesignProvider[];
+  visualIntegrationContract: {
+    integrationVersion: "1.0.1";
+    status: string;
+    plugin: { id: "visual-design"; version: "0.1.0"; installation: "external-recommended"; bundled: false };
+    service: { developmentOrigin: string; productionOrigin: string; discoveryPath: string; mcpPath: string; requiredDiscoveryFields: string[] };
+    projectArchive: { profile: string; receipt: string };
+    fallback: { required: true; behavior: "starter-owned-baseline"; blocksFactory: false };
   };
   pageCatalog: {
     catalogVersion: string;
     policy: string;
     pages: PageDefinition[];
   };
-  stylekitCatalog: {
-    catalogVersion: string;
-    source: { revision: string };
-    count: number;
-    styles: StyleKitEntry[];
-  };
-  stylekitSnapshots: Record<string, StyleKitSnapshotSummary>;
   stylekitSnapshot: StyleKitSnapshotSummary;
   saasSources: {
     sources: Array<{ id: string; name: string; role: string }>;
@@ -613,20 +599,6 @@ function PageChoice({
   );
 }
 
-function StylePreview({ style }: { style: StyleKitEntry }) {
-  return (
-    <span className="style-preview" aria-hidden="true">
-      <img
-        src={`/stylekit-previews/${style.slug}.svg`}
-        alt=""
-        width="1200"
-        height="630"
-        decoding="async"
-      />
-    </span>
-  );
-}
-
 function ProviderCredentialEditor({
   provider,
   state,
@@ -714,6 +686,7 @@ export function SetupPage() {
   const [providerEditors, setProviderEditors] = useState<Record<string, boolean>>({});
   const [testRecipient, setTestRecipient] = useState("");
   const [providerTest, setProviderTest] = useState<ProviderTestState>({ status: "idle" });
+  const [visualTest, setVisualTest] = useState<ProviderTestState>({ status: "idle" });
   const [turnstileToken, setTurnstileToken] = useState("");
   const [turnstileTest, setTurnstileTest] = useState<ProviderTestState>({ status: "idle" });
   const [workersAiTest, setWorkersAiTest] = useState<ProviderTestState>({ status: "idle" });
@@ -725,8 +698,6 @@ export function SetupPage() {
   const [streamTest, setStreamTest] = useState<ProviderTestState>({ status: "idle" });
   const [releaseTests, setReleaseTests] = useState<Partial<Record<ReleaseProvider, ProviderTestState>>>({});
   const [cfpgCommands, setCfpgCommands] = useState({ development: "", production: "" });
-  const [stylekitQuery, setStylekitQuery] = useState("");
-  const [stylekitCategory, setStylekitCategory] = useState("all");
 
   useEffect(() => {
     void fetch("/__starter/setup", { headers: { Accept: "application/json" } })
@@ -794,22 +765,6 @@ export function SetupPage() {
   const selectedPages = payload?.blueprint.pageSet.selected || [];
   const stripeSelected = selectedPacks.some(
     ({ id }) => id === "saas.billing-stripe",
-  );
-  const stylekitStyles = payload?.stylekitCatalog.styles || [];
-  const globalStyles = stylekitStyles.filter(
-    (style) =>
-      style.classification === "base-visual" &&
-      style.globalEligibility === "eligible",
-  );
-  const stylekitCategories = [
-    ...new Set(globalStyles.map((style) => style.category)),
-  ].sort();
-  const visibleStyles = globalStyles.filter(
-    (style) =>
-      (stylekitCategory === "all" || style.category === stylekitCategory) &&
-      `${style.name} ${style.nameEn} ${style.slug} ${(style.tags || []).join(" ")}`
-        .toLowerCase()
-        .includes(stylekitQuery.toLowerCase().trim()),
   );
   const intentProposal = useMemo(() => {
     if (!payload) return [];
@@ -914,6 +869,18 @@ export function SetupPage() {
         provider,
         message: error instanceof Error ? error.message : String(error),
       });
+    }
+  };
+  const runVisualDiscoveryTest = async () => {
+    setVisualTest({ status: "testing", provider: "visual-design" });
+    try {
+      const response = await fetch("/__starter/visual-discovery", { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: "{}" });
+      const result = (await response.json()) as { error?: string; status?: string; discovery?: { serviceVersion?: string; protocolVersion?: string }; warnings?: string[] };
+      if (!response.ok) throw new Error(result.error || `Visual discovery returned HTTP ${response.status}.`);
+      if (result.status !== "configured") throw new Error(result.warnings?.join(" ") || "Visual discovery is unavailable; Starter baseline remains active.");
+      setVisualTest({ status: "success", provider: "visual-design", message: `Visual discovery is compatible${result.discovery?.serviceVersion ? `; service ${result.discovery.serviceVersion}` : ""}${result.discovery?.protocolVersion ? `; protocol ${result.discovery.protocolVersion}` : ""}.` });
+    } catch (error) {
+      setVisualTest({ status: "error", provider: "visual-design", message: error instanceof Error ? error.message : String(error) });
     }
   };
   const runTurnstileTest = async () => {
@@ -1337,58 +1304,19 @@ export function SetupPage() {
         })),
       },
     }));
-  const setStyleKit = (style: StyleKitEntry) => {
-    const snapshot = payload.stylekitSnapshots[style.slug];
-    if (!snapshot || payload.blueprint.stylekit.slug === style.slug) return;
-    markDirty();
-    setPayload((current) =>
-      current
-        ? {
-            ...current,
-            stylekitSnapshot: snapshot,
-            blueprint: {
-              ...current.blueprint,
-              stylekit: {
-                slug: style.slug,
-                sourceRevision: current.stylekitCatalog.source.revision,
-                snapshotVersion: snapshot.snapshotVersion,
-                snapshotHash: snapshot.snapshotHash,
-              },
-              designProfile: {
-                id: `stylekit-${style.slug}`,
-                version: snapshot.snapshotVersion,
-              },
-              selections: {
-                ...current.blueprint.selections,
-                design: current.blueprint.selections.design.map(
-                  (selection) => ({
-                    ...selection,
-                    lifecycle: selectLifecycle(
-                      selection.lifecycle,
-                      selection.id === "design.stylekit-adapted",
-                    ),
-                  }),
-                ),
-              },
-            },
-          }
-        : current,
-    );
-  };
-  const setDesignExtensionSelected = (id: string, selected: boolean) =>
-    updateBlueprint((blueprint) => {
-      const next = new Set(blueprint.designExtensions.selected);
-      if (selected) next.add(id);
-      else next.delete(id);
-      return {
-        ...blueprint,
-        preset: "custom",
-        designExtensions: {
-          catalogVersion: payload.designProviderCatalog.catalogVersion,
-          selected: [...next].sort(),
-        },
-      };
-    });
+  const setVisualIntegrationEnabled = (enabled: boolean) =>
+    updateBlueprint((blueprint) => ({
+      ...blueprint,
+      preset: "custom",
+      visualIntegration: {
+        ...blueprint.visualIntegration,
+        enabled,
+        status: enabled ? "unavailable" : "disabled",
+        warnings: enabled
+          ? ["Visual is external and optional; Starter baseline remains active until a compatible receipt is verified."]
+          : [],
+      },
+    }));
   const setPageSelected = (page: PageDefinition, selected: boolean) =>
     updateBlueprint((blueprint) => {
       const pageIds = new Set(blueprint.pageSet.selected);
@@ -1886,11 +1814,11 @@ export function SetupPage() {
           {currentStep.id === "design" ? (
             <div className="setup-stack">
               <section className="setup-panel">
-                <h2>Global StyleKit visual system</h2>
+                <h2>Starter baseline visual system</h2>
                 <p>
-                  Presentation is selected after the product, SaaS capabilities,
-                  providers, and pages. Keep the default or change it later;
-                  product behavior never depends on this visual choice.
+                  Starter keeps one restrained fallback so every generated product
+                  remains usable before independent visual design is connected.
+                  Product behavior never depends on the external service.
                 </p>
                 <div className="stylekit-pinned">
                   <strong>
@@ -1898,137 +1826,48 @@ export function SetupPage() {
                     {payload.blueprint.stylekit.slug}
                   </strong>
                   <small>
-                    StyleKit {payload.blueprint.stylekit.sourceRevision} ·
-                    snapshot {payload.stylekitSnapshot.snapshotVersion} ·{" "}
+                    Baseline {payload.stylekitSnapshot.snapshotVersion} ·{" "}
                     {payload.blueprint.stylekit.snapshotHash.slice(0, 12)}…
                   </small>
                 </div>
                 <p className="stylekit-materialization-note">
-                  Selecting a style updates the Blueprint after you save. Existing
-                  surfaces keep the currently materialized style until the saved
-                  plan is materialized locally; Development changes only after a
-                  separate release.
+                  This baseline is intentionally fixed and lightweight. It keeps Setup,
+                  authentication, product, Admin and Docs usable without an external
+                  visual service. Later visual direction belongs to the independent plugin.
                 </p>
-                <div className="setup-fields">
-                  <Field
-                    label="Search styles"
-                    value={stylekitQuery}
-                    onChange={setStylekitQuery}
-                    helper={`${globalStyles.length} complete global systems from ${payload.stylekitCatalog.count} classified source entries.`}
-                  />
-                  <label className="setup-field">
-                    <span>Category</span>
-                    <select
-                      value={stylekitCategory}
-                      onChange={(event) =>
-                        setStylekitCategory(event.target.value)
-                      }
-                    >
-                      <option value="all">All categories</option>
-                      {stylekitCategories.map((category) => (
-                        <option key={category} value={category}>
-                          {category}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
               </section>
-              {visibleStyles.length ? (
-                <div className="profile-grid">
-                  {visibleStyles.map((style) => {
-                    const selected =
-                      payload.blueprint.stylekit.slug === style.slug;
-                    const available = Boolean(
-                      payload.stylekitSnapshots[style.slug],
-                    );
-                    return (
-                      <button
-                        type="button"
-                        key={style.slug}
-                        disabled={!available}
-                        className={
-                          selected
-                            ? "profile-choice selected"
-                            : "profile-choice"
-                        }
-                        onClick={() => setStyleKit(style)}
-                      >
-                        <StylePreview style={style} />
-                        <span className="profile-swatches">
-                          {[
-                            style.colors?.primary,
-                            style.colors?.secondary,
-                            ...(style.colors?.accent || []).slice(0, 2),
-                          ].map((color, index) => (
-                            <i
-                              key={`${style.slug}-${index}`}
-                              style={{
-                                background: color || "var(--surface-soft)",
-                              }}
-                            />
-                          ))}
-                        </span>
-                        <span className="profile-title">
-                          <strong>{style.name}</strong>
-                          <small>
-                            {style.nameEn} / {style.adapterFamily} /{" "}
-                            {style.category}
-                            {available ? " / ready" : " / unavailable"}
-                          </small>
-                        </span>
-                        <p>{style.description}</p>
-                        <span className="profile-targets">
-                          {(style.tags || []).join(", ") ||
-                            "global visual system"}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <section className="setup-panel setup-empty">
-                  <strong>No matching global StyleKit systems.</strong>
-                  <p>Clear the current search or category filter.</p>
-                </section>
-              )}
               <section className="setup-panel">
                 <div className="panel-title">
                   <div>
-                    <h2>Optional visual capabilities</h2>
-                    <p>{payload.designProviderCatalog.policy}</p>
+                    <h2>AI visual design</h2>
+                    <p>
+                      Connect the independent visual-design plugin after project creation.
+                      Starter keeps its functional baseline when the plugin is not installed or its service is unavailable.
+                    </p>
                   </div>
-                  <small>{payload.blueprint.designExtensions.selected.length} selected</small>
+                  <small>{payload.blueprint.visualIntegration.enabled ? "recommended" : "disabled"}</small>
                 </div>
-                <div className="design-provider-stack">
-                  {payload.designProviderCatalog.providers
-                    .filter(({ kind, items }) => kind !== "global-style" && items.length)
-                    .map((provider) => (
-                      <details className="design-provider" key={provider.id}>
-                        <summary>
-                          <span><strong>{provider.name}</strong><small>{provider.kind} / {provider.source.license} / {provider.status}</small></span>
-                          <span>{provider.items.filter(({ id }) => payload.blueprint.designExtensions.selected.includes(id)).length} selected</span>
-                        </summary>
-                        <p>{provider.notes}</p>
-                        <div className="pack-grid">
-                          {provider.items.map((item) => {
-                            const selected = payload.blueprint.designExtensions.selected.includes(item.id);
-                            return (
-                              <label className={selected ? "pack-choice selected" : "pack-choice"} key={item.id}>
-                                <input type="checkbox" checked={selected} onChange={(event) => setDesignExtensionSelected(item.id, event.target.checked)} />
-                                <span className="pack-choice-main">
-                                  <span><strong>{item.name}</strong><small>{item.performance}</small></span>
-                                  <p>{item.category} / {item.targets.join(", ")}</p>
-                                  <small>{item.requires.join(" / ")}</small>
-                                </span>
-                                <span className="pack-check"><Check size={15} /></span>
-                              </label>
-                            );
-                          })}
-                        </div>
-                      </details>
-                    ))}
-                </div>
+                <label className={payload.blueprint.visualIntegration.enabled ? "pack-choice selected" : "pack-choice"}>
+                  <input type="checkbox" checked={payload.blueprint.visualIntegration.enabled} onChange={(event) => setVisualIntegrationEnabled(event.target.checked)} />
+                  <span className="pack-choice-main">
+                    <span><strong>Prepare this project for independent visual intelligence</strong><small>Optional</small></span>
+                    <p>Records the compatible plugin and Visual Receipt contract without bundling an external catalog or runtime.</p>
+                    <small>{payload.blueprint.visualIntegration.contractVersion} / {payload.blueprint.visualIntegration.status} / Starter baseline fallback</small>
+                  </span>
+                  <span className="pack-check"><Check size={15} /></span>
+                </label>
+                {payload.blueprint.visualIntegration.enabled ? (
+                  <div className="provider-secret-actions">
+                    <Button type="button" size="sm" variant="outline" disabled={visualTest.status === "testing"} onClick={() => void runVisualDiscoveryTest()}>
+                      {visualTest.status === "testing" ? "Checking visual service" : "Check visual service"}
+                    </Button>
+                    <small>This checks only capability discovery. It does not send project source, install a plugin, apply a profile, or call MCP tools.</small>
+                  </div>
+                ) : null}
+                {visualTest.message ? <p className={visualTest.status === "success" ? "provider-test-result success" : "provider-test-result error"} role="status">{visualTest.message}</p> : null}
+                <p className="stylekit-materialization-note">
+                  Project creation never waits for the external service. A resolved visual profile becomes active only after a compatible receipt and local materialization checks pass.
+                </p>
               </section>
             </div>
           ) : null}

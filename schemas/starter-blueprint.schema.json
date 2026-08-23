@@ -9,7 +9,7 @@
     "preset",
     "designProfile",
     "stylekit",
-    "designExtensions",
+    "visualIntegration",
     "pageSet",
     "project",
     "productIntent",
@@ -143,17 +143,29 @@
         "snapshotHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
       }
     },
-    "designExtensions": {
+    "visualIntegration": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["catalogVersion", "selected"],
+      "required": ["enabled", "contractVersion", "plugin", "environment", "status", "profileReceipt", "fallbackProfile", "warnings"],
       "properties": {
-        "catalogVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
-        "selected": {
-          "type": "array",
-          "uniqueItems": true,
-          "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9.-]*$" }
-        }
+        "enabled": { "type": "boolean" },
+        "contractVersion": { "const": "1.0.1" },
+        "plugin": {
+          "type": "object", "additionalProperties": false,
+          "required": ["id", "version", "installation"],
+          "properties": { "id": { "const": "visual-design" }, "version": { "const": "0.1.0" }, "installation": { "const": "external-recommended" } }
+        },
+        "environment": { "enum": ["development", "production"] },
+        "status": { "enum": ["disabled", "unavailable", "configured", "resolved"] },
+        "profileReceipt": { "const": ".visual/receipt.json" },
+        "fallbackProfile": {
+          "type": "object", "additionalProperties": false,
+          "required": ["id", "version", "sha256"],
+          "properties": {
+            "id": { "type": "string", "minLength": 1 }, "version": { "type": "string", "minLength": 1 }, "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+          }
+        },
+        "warnings": { "type": "array", "uniqueItems": true, "items": { "type": "string" } }
       }
     },
     "pageSet": {

@@ -2553,31 +2553,6 @@ dd {
   border-radius: 10px;
   background: var(--surface-soft);
 }
-.design-provider-stack {
-  display: grid;
-  gap: 14px;
-  margin-top: 18px;
-}
-.design-provider {
-  padding: 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface-soft);
-}
-.design-provider > summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  cursor: pointer;
-  list-style: none;
-}
-.design-provider > summary::-webkit-details-marker { display: none; }
-.design-provider > summary span:first-child { display: grid; gap: 5px; }
-.design-provider > summary small,
-.design-provider > summary span:last-child,
-.design-provider > p { color: var(--muted); font-size: 14px; line-height: 1.5; }
-.design-provider > p { margin: 16px 0; }
 .provider-catalog-grid > article > header {
   display: flex;
   align-items: flex-start;

@@ -12,3 +12,5 @@ Read `AGENTS.md`, then `AGENT_MAP.md`, `.starter/source.json`, and run `npm run 
 Treat local Markdown, Blueprint, receipts and code as project truth. All2CF MCP may later provide subscription, Engine, Pack and compatibility facts; it never replaces local code context. Use official Cloudflare MCP for current Cloudflare facts.
 
 Factory, Engine candidate construction, source Channel publication and canonical Pack maintenance are out of scope.
+
+Report the independent Visual plugin/receipt state when the project declares one, but do not load its catalog or assume it is installed. Visual project onboarding remains owned by that plugin.

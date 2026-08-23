@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "starter-project-plugins/v1",
+  "plugins": [
+    {
+      "id": "all2cf-project",
+      "version": "0.1.0",
+      "ownership": "functional-project-operations",
+      "installation": "bundled",
+      "path": "plugins/all2cf-project"
+    },
+    {
+      "id": "visual-design",
+      "version": "0.1.0",
+      "ownership": "independent-visual-intelligence",
+      "installation": "external-recommended",
+      "contract": "starter-integration@1.0.1",
+      "optional": true
+    }
+  ]
+}

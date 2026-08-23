@@ -13,9 +13,25 @@
     "snapshotVersion": "2.2.0",
     "snapshotHash": "6c738963515a50730fd1b6313e5627bf8760a62f28dd8ccb4933278686cfd806"
   },
-  "designExtensions": {
-    "catalogVersion": "0.1.0",
-    "selected": []
+  "visualIntegration": {
+    "enabled": true,
+    "contractVersion": "1.0.1",
+    "plugin": {
+      "id": "visual-design",
+      "version": "0.1.0",
+      "installation": "external-recommended"
+    },
+    "environment": "development",
+    "status": "unavailable",
+    "profileReceipt": ".visual/receipt.json",
+    "fallbackProfile": {
+      "id": "stylekit-editorial",
+      "version": "2.2.0",
+      "sha256": "6c738963515a50730fd1b6313e5627bf8760a62f28dd8ccb4933278686cfd806"
+    },
+    "warnings": [
+      "Visual plugin and service are optional; Starter baseline remains active until a compatible receipt is verified."
+    ]
   },
   "pageSet": {
     "selected": [

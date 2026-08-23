@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { validateAssemblyContracts } from "./assembly.mjs";
-import { validateDesignProviders } from "./design-providers.mjs";
+import { validateVisualIntegration } from "./visual-integration.mjs";
 
 const rootDocuments = [
   "PROJECT.md",
@@ -170,7 +170,7 @@ export async function collectKnowledge(root) {
     catalog,
     providerCatalog,
     designCatalog,
-    designProviderCatalog,
+    visualIntegration,
     stylekitSourceCatalog,
     saasSources,
     saasCapabilities,
@@ -186,9 +186,9 @@ export async function collectKnowledge(root) {
     readJson(root, "starter.blueprint.json"),
     readJson(sourceRoot, "catalog/catalog.json"),
     readJson(sourceRoot, "catalog/providers.json"),
-    readJson(sourceRoot, "design/catalog.json"),
-    readJson(sourceRoot, "design/providers.json"),
-    readJson(sourceRoot, "design/stylekit/source-catalog.json"),
+    readJson(root, "design/catalog.json"),
+    readJson(root, "integrations/visual.json"),
+    readJson(root, "design/stylekit/source-catalog.json"),
     readJson(sourceRoot, "catalog/saas-sources.json"),
     readJson(sourceRoot, "catalog/saas-capabilities.json"),
     readJson(sourceRoot, "pages/catalog.json"),
@@ -206,7 +206,7 @@ export async function collectKnowledge(root) {
   const stylekitSnapshots = await Promise.all(
     eligibleStylekitSystems.map(async ({ slug }) => {
       const snapshotPath = path.join(
-        sourceRoot,
+        root,
         "design/stylekit",
         slug,
         "snapshot.json",
@@ -258,9 +258,9 @@ export async function collectKnowledge(root) {
     throw new Error(
       `Assembly contracts are invalid:\n- ${assemblyFailures.join("\n- ")}`,
     );
-  const designProviderFailures = validateDesignProviders(designProviderCatalog, blueprint);
-  if (designProviderFailures.length)
-    throw new Error(`Design Provider contracts are invalid:\n- ${designProviderFailures.join("\n- ")}`);
+  const visualIntegrationFailures = validateVisualIntegration(visualIntegration, blueprint);
+  if (visualIntegrationFailures.length)
+    throw new Error(`Visual integration contracts are invalid:\n- ${visualIntegrationFailures.join("\n- ")}`);
   const modules = await collectModules(root);
 
   return {
@@ -291,10 +291,7 @@ export async function collectKnowledge(root) {
       },
       providerCatalog,
       designCatalog,
-      designProviderCatalog: {
-        ...designProviderCatalog,
-        selected: blueprint.designExtensions.selected,
-      },
+      visualIntegration,
       stylekit: {
         source: stylekitSourceCatalog.source,
         styleCount: stylekitSourceCatalog.count,

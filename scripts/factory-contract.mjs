@@ -18,19 +18,28 @@ try {
   const dirty = execFileSync("git", ["status", "--porcelain"], { cwd: target, encoding: "utf8" }).trim();
   const failures = [];
   if (!created.ok || created.project.slug !== slug) failures.push("create report mismatch");
-  if (created.fileCount > 700) failures.push(`generated project is too broad: ${created.fileCount} entries`);
+  if (created.fileCount > 500) failures.push(`generated project is too broad: ${created.fileCount} entries`);
   if (blueprint.setup.entry !== "/setup") failures.push("generated project does not retain /setup");
   if (source.sourceRoot !== root) failures.push("source root receipt mismatch");
   if (await exists(path.join(target, "packs"))) failures.push("Pack library leaked into generated project");
-  for (const reference of ["catalog/catalog.json", "catalog/providers.json", "pages/catalog.json", "design/providers.json", "design/stylekit/source-catalog.json"])
+  for (const reference of ["catalog/catalog.json", "catalog/providers.json", "pages/catalog.json", "integrations/visual.json", ".ai/plugins.json", "design/stylekit/source-catalog.json"])
     if (!(await exists(path.join(target, reference)))) failures.push(`Generated AI reference is missing ${reference}`);
+  if (await exists(path.join(target, "design/providers.json"))) failures.push("Universal Visual Provider Catalog leaked into the generated Starter project");
+  const generatedStyleCatalog = JSON.parse(await readFile(path.join(target, "design/stylekit/source-catalog.json"), "utf8"));
+  if (generatedStyleCatalog.count !== 1 || generatedStyleCatalog.styles?.[0]?.slug !== blueprint.stylekit.slug)
+    failures.push("Generated project did not retain exactly one Starter-owned visual fallback");
+  if (await exists(path.join(target, "apps/web/public/stylekit-previews"))) failures.push("Style library preview assets leaked into the generated project");
   if (!(await exists(path.join(target, "plugins/all2cf-project/.codex-plugin/plugin.json"))))
     failures.push("Generated project is missing the all2cf-project Codex plugin");
+  if (await exists(path.join(target, "plugins/all2cf-project/skills/design-governance/SKILL.md")))
+    failures.push("Functional all2cf-project plugin still owns visual design");
   for (const sourceOnly of ["scripts/source-release.mjs", "skills/starter-source-release/SKILL.md", "ALL2CF_FACTORY.md"])
     if (await exists(path.join(target, sourceOnly))) failures.push(`Canonical source-release file leaked into generated project: ${sourceOnly}`);
   const generatedPackage = JSON.parse(await readFile(path.join(target, "package.json"), "utf8"));
   if (Object.keys(generatedPackage.scripts || {}).some((script) => script.startsWith("source:") || script.startsWith("engine:")))
     failures.push("Canonical source-release commands leaked into generated project");
+  if (Object.keys(generatedPackage.scripts || {}).some((script) => script.startsWith("factory:") || script.startsWith("stylekit:")))
+    failures.push("Canonical Factory or StyleKit source commands leaked into generated project");
   if (await exists(path.join(target, "node_modules"))) failures.push("node_modules leaked into generated project");
   if (!created.archive || !(await exists(created.archive))) failures.push("portable archive was not generated");
   if (!/^[a-f0-9]{64}$/u.test(created.archiveSha256 || "")) failures.push("portable archive hash is missing");

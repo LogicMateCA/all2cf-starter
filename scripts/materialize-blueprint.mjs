@@ -7,7 +7,7 @@ import {
   validateAssemblyContracts,
   validateMaterializerDeliveryContracts,
 } from "./lib/assembly.mjs";
-import { validateDesignProviders } from "./lib/design-providers.mjs";
+import { validateVisualIntegration } from "./lib/visual-integration.mjs";
 import {
   renderDesignCSS,
   renderMobileDesign,
@@ -920,8 +920,8 @@ const catalog = JSON.parse(
 const designCatalog = JSON.parse(
   await readFile(path.join(sourceRoot, "design/catalog.json"), "utf8"),
 );
-const designProviderCatalog = JSON.parse(
-  await readFile(path.join(sourceRoot, "design/providers.json"), "utf8"),
+const visualIntegration = JSON.parse(
+  await readFile(path.join(sourceRoot, "integrations/visual.json"), "utf8"),
 );
 const pageCatalog = JSON.parse(
   await readFile(path.join(sourceRoot, "pages/catalog.json"), "utf8"),
@@ -974,7 +974,7 @@ const contractFailures = validateAssemblyContracts(
     snapshotHash: stylekitSnapshotHash,
   },
 );
-contractFailures.push(...validateDesignProviders(designProviderCatalog, blueprint));
+contractFailures.push(...validateVisualIntegration(visualIntegration, blueprint));
 if (contractFailures.length)
   throw new Error(
     `Assembly contract failed:\n- ${contractFailures.join("\n- ")}`,

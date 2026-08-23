@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://starter.local/schemas/visual-integration.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "integrationVersion", "status", "source", "plugin", "service", "projectArchive", "fallback", "ownership"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "starter-visual-integration/v1" },
+    "integrationVersion": { "const": "1.0.1" },
+    "status": { "enum": ["implemented", "development-verified", "production-released"] },
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["product", "contractId", "contractVersion", "contractStatus", "sourceCommit", "contractUrl"],
+      "properties": {
+        "product": { "const": "visual" }, "contractId": { "const": "starter-integration" }, "contractVersion": { "const": "1.0.1" }, "contractStatus": { "enum": ["draft", "stable"] },
+        "sourceCommit": { "type": "string", "pattern": "^[a-f0-9]{7,40}$" }, "contractUrl": { "type": "string", "pattern": "^https://" }
+      }
+    },
+    "plugin": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "version", "installation", "bundled"],
+      "properties": { "id": { "const": "visual-design" }, "version": { "type": "string" }, "installation": { "const": "external-recommended" }, "bundled": { "const": false } }
+    },
+    "service": {
+      "type": "object", "additionalProperties": false,
+      "required": ["developmentOrigin", "productionOrigin", "mcpPath", "discoveryPath", "capabilityDetection", "requiredDiscoveryFields"],
+      "properties": {
+        "developmentOrigin": { "const": "https://visualdev.logicm8.com" }, "productionOrigin": { "const": "https://visual.logicm8.com" },
+        "mcpPath": { "const": "/mcp" }, "discoveryPath": { "const": "/.well-known/visual-capabilities.json" }, "capabilityDetection": { "const": "runtime-required" },
+        "requiredDiscoveryFields": { "type": "array", "minItems": 7, "uniqueItems": true, "items": { "type": "string" } }
+      }
+    },
+    "projectArchive": {
+      "type": "object", "additionalProperties": false,
+      "required": ["root", "profile", "receipt", "references", "audits"],
+      "properties": { "root": { "const": ".visual/" }, "profile": { "const": ".visual/profile.json" }, "receipt": { "const": ".visual/receipt.json" }, "references": { "const": ".visual/references/" }, "audits": { "const": ".visual/audits/" } }
+    },
+    "fallback": {
+      "type": "object", "additionalProperties": false,
+      "required": ["required", "behavior", "blocksFactory"],
+      "properties": { "required": { "const": true }, "behavior": { "const": "starter-owned-baseline" }, "blocksFactory": { "const": false } }
+    },
+    "ownership": {
+      "type": "object", "additionalProperties": false,
+      "required": ["visual", "starter", "project"],
+      "properties": {
+        "visual": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "starter": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "project": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+      }
+    }
+  }
+}

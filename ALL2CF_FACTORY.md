@@ -60,6 +60,12 @@ The strict `factory-engine.json` remains the only manifest consumed by All2CF. `
 
 StyleKit is not an upstream auto-update channel. Engine candidates carry the current Starter-owned curated snapshots. A deliberate visual change must update the owned snapshot, adapters, contracts and visual evidence before the next source candidate.
 
+## Independent Visual integration
+
+Factory pins the independently owned draft `starter-integration@1.0.1` contract from Visual commit `9b1482690683cea17773ecd597c809731dcd882b`. It declares `visual-design@0.1.0` as an optional external plugin and can perform a read-only capability-discovery check against `visualdev.logicm8.com` or `visual.logicm8.com`. Discovery never sends project source, installs a plugin, invokes MCP tools or proves materialization.
+
+When Visual is disabled, uninstalled, offline, unauthorized, missing a requested capability or contract-incompatible, Factory continues with the Starter-owned baseline. A Visual response can become project state only after response validation, license constraints, collision-safe materialization and local verification; the resulting evidence belongs under `.visual/` and never replaces `.starter/source.json`.
+
 ## Current evidence
 
 Local directory generation, portable archive creation, project-specific Git/AI handoff, SQL/Drizzle verification, hosted Runner generation/verification, private GitHub delivery contracts, local and Engine-Channel status/diff, Pack addition with dependency closure, idempotent update and receipt-owned conflict refusal are verified. Remote All2CF MCP tools and any Development or Production deployment remain separate gates.

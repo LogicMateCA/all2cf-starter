@@ -271,13 +271,13 @@ async function exercisePage({ page, route, viewport, outputRoot, caseId }) {
 
   if (route === "/setup" || route === "/factory") {
     await page.getByRole("button", { name: "Design" }).click();
-    await page.getByRole("heading", { name: "Design" }).waitFor();
+    await page.getByRole("heading", { name: "Design", exact: true }).waitFor();
     await page
-      .getByRole("heading", { name: "Global StyleKit visual system" })
+      .getByRole("heading", { name: "Starter baseline visual system" })
       .waitFor();
-    interactions.push("stylekit-selector");
+    interactions.push("starter-visual-baseline");
     stateScreenshots.push(
-      await takeStateScreenshot(page, outputRoot, caseId, "stylekit-selector"),
+      await takeStateScreenshot(page, outputRoot, caseId, "starter-visual-baseline"),
     );
   }
 
