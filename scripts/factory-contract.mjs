@@ -40,6 +40,8 @@ try {
     failures.push("Canonical source-release commands leaked into generated project");
   if (Object.keys(generatedPackage.scripts || {}).some((script) => script.startsWith("factory:") || script.startsWith("stylekit:")))
     failures.push("Canonical Factory or StyleKit source commands leaked into generated project");
+  for (const sourceOnlyScript of ["dependencies:contract", "providers:contract", "design:contract", "typography:contract", "pages:contract", "saas:contract", "data-layer:drizzle:contract", "engine:channel:contract"])
+    if (generatedPackage.scripts?.[sourceOnlyScript]) failures.push(`Canonical source contract leaked into generated project: ${sourceOnlyScript}`);
   if (await exists(path.join(target, "node_modules"))) failures.push("node_modules leaked into generated project");
   if (!created.archive || !(await exists(created.archive))) failures.push("portable archive was not generated");
   if (!/^[a-f0-9]{64}$/u.test(created.archiveSha256 || "")) failures.push("portable archive hash is missing");

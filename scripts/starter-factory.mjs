@@ -152,15 +152,16 @@ async function writeIdentity(target, name, slug) {
 
 async function writeProjectScripts(target) {
   const manifest = await readJson(target, "package.json");
+  const sourceOnlyScripts = new Set(["dependencies:contract", "providers:contract", "design:contract", "typography:contract", "pages:contract", "saas:contract", "data-layer:drizzle:contract", "engine:channel:contract"]);
   for (const script of Object.keys(manifest.scripts || {}))
-    if (script.startsWith("source:") || script.startsWith("engine:") || script.startsWith("factory:") || script.startsWith("stylekit:")) delete manifest.scripts[script];
+    if (script.startsWith("source:") || script.startsWith("engine:") || script.startsWith("factory:") || script.startsWith("stylekit:") || sourceOnlyScripts.has(script)) delete manifest.scripts[script];
   Object.assign(manifest.scripts, {
     "starter:status": "node scripts/starter-link.mjs status",
     "starter:diff": "node scripts/starter-link.mjs diff",
     "starter:add": "node scripts/starter-link.mjs add",
     "starter:update": "node scripts/starter-link.mjs update",
   });
-  manifest.scripts.verify = "npm run starter:init && npm run ai:doctor && npm run agent-map:check && npm run plugin:contract && npm run visual:integration:contract && npm run release:contract && npm run database:provider:contract && npm run auth:social:contract && npm run design:contract && npm run typography:contract && npm run pages:contract && npm run starter:diff && npm run knowledge:sync && npm run knowledge:check && npm run change:check && npm run cf:types:check && npm run typecheck && npm run build:sites && npm run cache:contract && npm run bundle:check:marketing && npm run bundle:check:web && npm run bundle:check:docs && npm run cf:dry-run:dev && npm run cf:dry-run:production";
+  manifest.scripts.verify = "npm run starter:init && npm run ai:doctor && npm run agent-map:check && npm run plugin:contract && npm run visual:integration:contract && npm run release:contract && npm run database:provider:contract && npm run auth:social:contract && npm run starter:diff && npm run knowledge:sync && npm run knowledge:check && npm run change:check && npm run cf:types:check && npm run typecheck && npm run build:sites && npm run cache:contract && npm run bundle:check:marketing && npm run bundle:check:web && npm run bundle:check:docs && npm run cf:dry-run:dev && npm run cf:dry-run:production";
   await writeFile(path.join(target, "package.json"), json(manifest));
 }
 
