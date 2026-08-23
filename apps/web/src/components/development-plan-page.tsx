@@ -90,6 +90,7 @@ type Snapshot = {
       preset: string;
       designProfile: { id: string; version: string };
       stylekit: { slug: string; sourceRevision: string; snapshotVersion: string; snapshotHash: string };
+      designExtensions: { catalogVersion: string; selected: string[] };
       pageSet: { selected: string[] };
       setup: { entry: string; status: string; currentStep: string; completedSteps: string[] };
       selections: Record<"design" | "pages" | "saas" | "capabilities", BlueprintSelection[]>;
@@ -98,6 +99,7 @@ type Snapshot = {
     catalog: { schemaVersion: string; catalogVersion: string; policies: Record<string, string>; presets: Array<{ id: string; name: string; description: string; selections: string[] }>; packs: CatalogPack[] };
     providerCatalog: { schemaVersion: string; catalogVersion: string; categories: ProviderCatalogCategory[] };
     designCatalog: { schemaVersion: string; catalogVersion: string; sourcePolicy: string; profiles: DesignProfile[] };
+    designProviderCatalog: { catalogVersion: string; policy: string; selected: string[]; providers: Array<{ id: string; name: string; kind: string; status: string; distribution: string; source: { license: string }; notes: string; items: Array<{ id: string; name: string; performance: string }> }> };
     stylekit: { source: { revision: string; license: string }; styleCount: number; catalogVersion: string; classification: Record<string, number>; globalEligibleCount: number; selected: { slug: string; sourceRevision: string; snapshotVersion: string; snapshotHash: string }; snapshots: StyleKitSnapshot[] };
     pageCatalog: { schemaVersion: string; catalogVersion: string; policy: string; pages: PageDefinition[] };
     materialization: { schemaVersion: string; packs: Array<{ id: string; version: string; files: number }>; dependencyCount: number; generatedRoutesHash: string | null; generatedAuthServerHash: string | null; generatedAuthClientHash: string | null; generatedStorageAdapterHash?: string | null; generatedMobileConfigPluginsHash?: string | null; generatedWorkflowExportsHash?: string | null; generatedDurableObjectExportsHash?: string | null; generatedDesignWebHash?: string | null; generatedDesignMarketingHash?: string | null; generatedDesignDocsHash?: string | null; generatedDesignMobileHash?: string | null; generatedMarketingProjectHash?: string | null };
@@ -141,6 +143,7 @@ const fallback: Snapshot = {
       preset: "basic-product",
       designProfile: { id: "owned-neutral", version: "0.1.0" },
       stylekit: { slug: "unavailable", sourceRevision: "unavailable", snapshotVersion: "0.0.0", snapshotHash: "unavailable" },
+      designExtensions: { catalogVersion: "0.1.0", selected: [] },
       pageSet: { selected: [] },
       setup: { entry: "/setup", status: "not-started", currentStep: "identity", completedSteps: [] },
       selections: { design: [], pages: [], saas: [], capabilities: [] },
@@ -149,6 +152,7 @@ const fallback: Snapshot = {
     catalog: { schemaVersion: "starter-catalog/v1", catalogVersion: "0.3.0", policies: {}, presets: [], packs: [] },
     providerCatalog: { schemaVersion: "starter-provider-catalog/v1", catalogVersion: "1.0.0", categories: [] },
     designCatalog: { schemaVersion: "starter-design-catalog/v1", catalogVersion: "0.1.0", sourcePolicy: "Starter-owned profiles", profiles: [] },
+    designProviderCatalog: { catalogVersion: "0.1.0", policy: "Optional design capabilities", selected: [], providers: [] },
     stylekit: { source: { revision: "unavailable", license: "unknown" }, styleCount: 0, catalogVersion: "0.0.0", classification: {}, globalEligibleCount: 0, selected: { slug: "unavailable", sourceRevision: "unavailable", snapshotVersion: "0.0.0", snapshotHash: "unavailable" }, snapshots: [] },
     pageCatalog: { schemaVersion: "starter-page-catalog/v1", catalogVersion: "0.1.0", policy: "Starter-owned routes", pages: [] },
     materialization: { schemaVersion: "starter-materialization/v1", packs: [], dependencyCount: 0, generatedRoutesHash: null, generatedAuthServerHash: null, generatedAuthClientHash: null, generatedStorageAdapterHash: null, generatedMobileConfigPluginsHash: null, generatedWorkflowExportsHash: null, generatedDurableObjectExportsHash: null, generatedDesignWebHash: null, generatedDesignMarketingHash: null, generatedDesignDocsHash: null, generatedDesignMobileHash: null, generatedMarketingProjectHash: null },
@@ -315,6 +319,10 @@ export function DevelopmentPlanPage() {
             return <div className="catalog-row" key={category.id}><div><strong>{category.name}</strong><small>{category.id} / {category.kind}</small></div><div><p>{category.defaultOptionIds.join(", ")}</p><small>{category.required ? "required" : "optional with None"} / {category.selection}</small></div><div><strong>{selectable.map((option) => option.name).join(", ") || "None only"}</strong><small>{planned.length ? `Planned: ${planned.map((option) => option.name).join(", ")}` : "No planned options"}</small></div><span className={`status ${planned.length ? "implemented" : "local-verified"}`}>{selectable.length} ready / {planned.length} planned</span></div>;
           })}</Surface>
           <div className="preset-grid">{data.assembly.designCatalog.profiles.map((profile) => <Surface key={profile.id}><span className={`status ${profile.status}`}>{profile.status}</span><h3>{profile.name}</h3><p>{profile.description}</p><small>{profile.id} / v{profile.version} / variance {profile.dials.designVariance} / motion {profile.dials.motionIntensity} / density {profile.dials.visualDensity}</small></Surface>)}</div>
+          <div className="preset-grid">{data.assembly.designProviderCatalog.providers.filter(({ kind }) => kind !== "global-style").map((provider) => {
+            const selected = provider.items.filter(({ id }) => data.assembly.designProviderCatalog.selected.includes(id));
+            return <Surface key={provider.id}><span className={`status ${provider.status}`}>{provider.kind} / {provider.status}</span><h3>{provider.name}</h3><p>{provider.notes}</p><small>{provider.distribution} / {provider.source.license} / {provider.items.length} curated / {selected.length} selected{selected.length ? `: ${selected.map(({ name }) => name).join(", ")}` : ""}</small></Surface>;
+          })}</div>
           <div className="preset-grid">{data.assembly.stylekit.snapshots.map((snapshot) => {
             const selected = snapshot.slug === data.assembly.blueprint.stylekit.slug;
             const adaptersReady = Object.values(snapshot.targets).every(({ status }) => ["implemented", "local-verified", "development-verified", "production-released"].includes(status));

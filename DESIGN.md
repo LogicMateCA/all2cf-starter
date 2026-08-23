@@ -22,6 +22,11 @@ source: "starter"
 
 ## StyleKit-controlled Design Engine
 
+- The global visual lock and optional design capabilities are separate. `design/providers.json` registers optional Design Providers: StyleKit owns global tokens; ThreeUI Community and React Bits supply selected Web components; HTML Anything supplies selected page/design recipes. A provider selection never silently changes the global StyleKit snapshot.
+- Generated products record optional choices in `blueprint.designExtensions`. They carry the catalog, selection and AI rules, not an entire donor repository. ThreeUI Community installs by component subpath, React Bits Free installs from its official shadcn registry, and HTML Anything recipes are adapted into project-owned output without its Next.js editor or agent runtime.
+- Heavy Canvas/WebGL choices require client isolation, lazy loading, reduced-motion behavior and a static mobile fallback. Ordinary Product/Admin controls remain shadcn/ui. React Bits Pro and ThreeUI Pro/Beta are excluded from the shared Starter.
+- Project customization outranks every provider. AI preserves the current Design Profile and uses Product Design/taste capabilities for exploration or audit; StyleKit is a fallback source rather than a ceiling on future visual quality.
+
 - StyleKit is the pinned design-source library, not a small inspiration library. Its 146 audited entries include whole-site systems, layouts, effects/components and narrow references. Starter classifies them explicitly; `/setup` exposes only reviewed `global-system` entries as the base style and creates a Starter-owned immutable snapshot for the selected slug and revision.
 - Layout and enhancement entries never replace the global style lock. They are optional composable layers with declared compatible surfaces, requirements and conflicts. `reference-only` entries remain AI-readable inspiration and cannot enter an executable Blueprint.
 - A snapshot includes provenance and source hashes, complete semantic and component tokens, typography, spacing, radius, light/depth rules, interaction states, recipes, AI do/don't rules, required/forbidden patterns, reference assets, accessibility requirements and per-surface adapter status.

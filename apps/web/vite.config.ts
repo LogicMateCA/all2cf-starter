@@ -10,6 +10,7 @@ import path from "node:path";
 import { promisify } from "node:util";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { validateAssemblyContracts } from "../../scripts/lib/assembly.mjs";
+import { validateDesignProviders } from "../../scripts/lib/design-providers.mjs";
 import {
   resolveCfpgConnectCommand,
   validateCfpgConnection,
@@ -814,6 +815,7 @@ function localSetupApi(): Plugin {
               blueprintSource,
               catalogSource,
               designCatalogSource,
+              designProviderCatalogSource,
               pageCatalogSource,
               configSource,
               stylekitCatalogSource,
@@ -835,6 +837,10 @@ function localSetupApi(): Plugin {
               ),
               readFile(
                 path.join(starterSourceRoot, "design/catalog.json"),
+                "utf8",
+              ),
+              readFile(
+                path.join(starterSourceRoot, "design/providers.json"),
                 "utf8",
               ),
               readFile(path.join(starterSourceRoot, "pages/catalog.json"), "utf8"),
@@ -865,6 +871,7 @@ function localSetupApi(): Plugin {
             const manifest = JSON.parse(manifestSource);
             const catalog = JSON.parse(catalogSource);
             const designCatalog = JSON.parse(designCatalogSource);
+            const designProviderCatalog = JSON.parse(designProviderCatalogSource);
             const pageCatalog = JSON.parse(pageCatalogSource);
             let config = JSON.parse(configSource);
             const stylekitCatalog = JSON.parse(stylekitCatalogSource);
@@ -890,6 +897,7 @@ function localSetupApi(): Plugin {
                 if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
               }
             }
+            initialBlueprint.designExtensions ||= JSON.parse(blueprintSource).designExtensions;
             const initialSnapshotPath = path.join(
               starterSourceRoot,
               "design/stylekit",
@@ -908,6 +916,7 @@ function localSetupApi(): Plugin {
                   blueprint: initialBlueprint,
                   catalog,
                   designCatalog,
+                  designProviderCatalog,
                   pageCatalog,
                   stylekitCatalog: setupStylekitCatalog,
                   stylekitSnapshots,
@@ -990,6 +999,7 @@ function localSetupApi(): Plugin {
                 snapshotHash: sha256(snapshotSource),
               },
             );
+            failures.push(...validateDesignProviders(designProviderCatalog, blueprint));
             if (failures.length) {
               response.statusCode = 400;
               response.end(
@@ -1014,6 +1024,7 @@ function localSetupApi(): Plugin {
                 blueprint,
                 catalog,
                 designCatalog,
+                designProviderCatalog,
                 pageCatalog,
                 stylekitCatalog: setupStylekitCatalog,
                 stylekitSnapshots,
@@ -1097,6 +1108,7 @@ function localSetupApi(): Plugin {
                 blueprint,
                 catalog,
                 designCatalog,
+                designProviderCatalog,
                 pageCatalog,
                 stylekitCatalog: setupStylekitCatalog,
                 stylekitSnapshots,

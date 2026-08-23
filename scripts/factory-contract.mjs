@@ -22,8 +22,10 @@ try {
   if (blueprint.setup.entry !== "/setup") failures.push("generated project does not retain /setup");
   if (source.sourceRoot !== root) failures.push("source root receipt mismatch");
   if (await exists(path.join(target, "packs"))) failures.push("Pack library leaked into generated project");
-  for (const reference of ["catalog/catalog.json", "catalog/providers.json", "pages/catalog.json", "design/stylekit/source-catalog.json"])
+  for (const reference of ["catalog/catalog.json", "catalog/providers.json", "pages/catalog.json", "design/providers.json", "design/stylekit/source-catalog.json"])
     if (!(await exists(path.join(target, reference)))) failures.push(`Generated AI reference is missing ${reference}`);
+  if (!(await exists(path.join(target, "plugins/all2cf-project/.codex-plugin/plugin.json"))))
+    failures.push("Generated project is missing the all2cf-project Codex plugin");
   for (const sourceOnly of ["scripts/source-release.mjs", "skills/starter-source-release/SKILL.md", "ALL2CF_FACTORY.md"])
     if (await exists(path.join(target, sourceOnly))) failures.push(`Canonical source-release file leaked into generated project: ${sourceOnly}`);
   const generatedPackage = JSON.parse(await readFile(path.join(target, "package.json"), "utf8"));

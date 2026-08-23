@@ -21,6 +21,7 @@ This repository is a reusable starter. Replace neutral placeholders during proje
 - For generating a new independent project, read and follow `skills/starter-factory/SKILL.md`.
 - For building, checking or registering a canonical Starter Engine candidate, read and follow `skills/starter-source-release/SKILL.md`.
 - For checking, adding or updating reusable Packs in a generated project, read and follow `skills/starter-maintenance/SKILL.md`.
+- Generated products carry `plugins/all2cf-project`; it owns customer-project AI routing only. It must not gain `/factory`, canonical Engine publication, R2 artifact administration, or duplicate official Cloudflare MCP operations.
 - For Expo/EAS build, update, Apple App Store, Google Play, or rollback work, read and follow `skills/expo-release/SKILL.md`.
 - For dependency checks or upgrades, read and follow `skills/runtime-upgrade/SKILL.md`; use current stable compatible versions, not unreviewed prereleases.
 - For “检查 Starter 更新”, Engine upload, Development Channel publication or explicit Stable promotion, read and follow `skills/starter-update-release/SKILL.md`.

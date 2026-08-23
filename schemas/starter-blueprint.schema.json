@@ -9,6 +9,7 @@
     "preset",
     "designProfile",
     "stylekit",
+    "designExtensions",
     "pageSet",
     "project",
     "productIntent",
@@ -140,6 +141,19 @@
           "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
         },
         "snapshotHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "designExtensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["catalogVersion", "selected"],
+      "properties": {
+        "catalogVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "selected": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9.-]*$" }
+        }
       }
     },
     "pageSet": {

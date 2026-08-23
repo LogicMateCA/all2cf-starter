@@ -104,6 +104,7 @@ type Blueprint = {
     snapshotVersion: string;
     snapshotHash: string;
   };
+  designExtensions: { catalogVersion: string; selected: string[] };
   pageSet: { selected: string[] };
   project: {
     name: string;
@@ -249,6 +250,25 @@ type StyleKitSnapshotSummary = {
   targets: Record<string, { status: string }>;
   style: StyleKitEntry;
 };
+type DesignProviderItem = {
+  id: string;
+  name: string;
+  category: string;
+  install: string;
+  performance: "light" | "moderate" | "heavy";
+  targets: string[];
+  requires: string[];
+};
+type DesignProvider = {
+  id: string;
+  name: string;
+  kind: "global-style" | "dynamic-component" | "design-recipe";
+  status: "local-verified" | "catalog-ready" | "reference-ready" | "planned";
+  distribution: string;
+  notes: string;
+  source: { url: string; revision: string; license: string };
+  items: DesignProviderItem[];
+};
 type ProviderCatalogOption = {
   id: string;
   name: string;
@@ -279,6 +299,11 @@ type SetupPayload = {
     catalogVersion: string;
     sourcePolicy: string;
     profiles: DesignProfile[];
+  };
+  designProviderCatalog: {
+    catalogVersion: string;
+    policy: string;
+    providers: DesignProvider[];
   };
   pageCatalog: {
     catalogVersion: string;
@@ -1350,6 +1375,20 @@ export function SetupPage() {
         : current,
     );
   };
+  const setDesignExtensionSelected = (id: string, selected: boolean) =>
+    updateBlueprint((blueprint) => {
+      const next = new Set(blueprint.designExtensions.selected);
+      if (selected) next.add(id);
+      else next.delete(id);
+      return {
+        ...blueprint,
+        preset: "custom",
+        designExtensions: {
+          catalogVersion: payload.designProviderCatalog.catalogVersion,
+          selected: [...next].sort(),
+        },
+      };
+    });
   const setPageSelected = (page: PageDefinition, selected: boolean) =>
     updateBlueprint((blueprint) => {
       const pageIds = new Set(blueprint.pageSet.selected);
@@ -1953,6 +1992,44 @@ export function SetupPage() {
                   <p>Clear the current search or category filter.</p>
                 </section>
               )}
+              <section className="setup-panel">
+                <div className="panel-title">
+                  <div>
+                    <h2>Optional visual capabilities</h2>
+                    <p>{payload.designProviderCatalog.policy}</p>
+                  </div>
+                  <small>{payload.blueprint.designExtensions.selected.length} selected</small>
+                </div>
+                <div className="design-provider-stack">
+                  {payload.designProviderCatalog.providers
+                    .filter(({ kind, items }) => kind !== "global-style" && items.length)
+                    .map((provider) => (
+                      <details className="design-provider" key={provider.id}>
+                        <summary>
+                          <span><strong>{provider.name}</strong><small>{provider.kind} / {provider.source.license} / {provider.status}</small></span>
+                          <span>{provider.items.filter(({ id }) => payload.blueprint.designExtensions.selected.includes(id)).length} selected</span>
+                        </summary>
+                        <p>{provider.notes}</p>
+                        <div className="pack-grid">
+                          {provider.items.map((item) => {
+                            const selected = payload.blueprint.designExtensions.selected.includes(item.id);
+                            return (
+                              <label className={selected ? "pack-choice selected" : "pack-choice"} key={item.id}>
+                                <input type="checkbox" checked={selected} onChange={(event) => setDesignExtensionSelected(item.id, event.target.checked)} />
+                                <span className="pack-choice-main">
+                                  <span><strong>{item.name}</strong><small>{item.performance}</small></span>
+                                  <p>{item.category} / {item.targets.join(", ")}</p>
+                                  <small>{item.requires.join(" / ")}</small>
+                                </span>
+                                <span className="pack-check"><Check size={15} /></span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </details>
+                    ))}
+                </div>
+              </section>
             </div>
           ) : null}
           {currentStep.id === "pages" ? (

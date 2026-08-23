@@ -1,0 +1,73 @@
+{
+  "$schema": "../schemas/design-provider-catalog.schema.json",
+  "schemaVersion": "starter-design-provider-catalog/v1",
+  "catalogVersion": "0.1.0",
+  "policy": "The project-owned Design Profile remains authoritative. External providers supply optional recipes or components and never replace the global StyleKit lock, ship as an unselected runtime dependency, or bypass performance and license review.",
+  "providers": [
+    {
+      "id": "stylekit",
+      "name": "StyleKit",
+      "kind": "global-style",
+      "status": "local-verified",
+      "selectionMode": "single-required",
+      "distribution": "starter-owned-snapshots",
+      "source": { "url": "https://github.com/AnxForever/stylekit", "revision": "29141b684d5abb967558eb8083fbae91dbbc51b8", "license": "MIT" },
+      "notes": "Owns the global semantic token and visual-language lock through reviewed immutable snapshots.",
+      "items": []
+    },
+    {
+      "id": "threeui",
+      "name": "ThreeUI Community",
+      "kind": "dynamic-component",
+      "status": "catalog-ready",
+      "selectionMode": "multiple-optional",
+      "distribution": "upstream-package",
+      "source": { "url": "https://github.com/MengTo/threeui", "revision": "main", "license": "MIT" },
+      "notes": "React/WebGL components install on demand from @designcodeio/threeui. Pro and Beta content is excluded.",
+      "items": [
+        { "id": "threeui.orbital-sphere", "name": "Orbital Sphere", "category": "background", "install": "@designcodeio/threeui/components/OrbitalSphereBackground", "performance": "heavy", "targets": ["marketing"], "requires": ["client-only", "lazy-load", "static-mobile-fallback", "reduced-motion"] },
+        { "id": "threeui.globe", "name": "Globe", "category": "data-visual", "install": "@designcodeio/threeui/components/GlobeCollection", "performance": "heavy", "targets": ["marketing", "desktop-web"], "requires": ["client-only", "lazy-load", "static-mobile-fallback", "reduced-motion"] },
+        { "id": "threeui.brand-orbs", "name": "Brand Orbs", "category": "brand", "install": "@designcodeio/threeui/components/BrandOrbs", "performance": "heavy", "targets": ["marketing"], "requires": ["client-only", "lazy-load", "reduced-motion"] },
+        { "id": "threeui.structure-flow", "name": "Structure Flow", "category": "data-visual", "install": "@designcodeio/threeui/components/StructureFlowBackground", "performance": "heavy", "targets": ["marketing", "desktop-web"], "requires": ["client-only", "lazy-load", "static-mobile-fallback", "reduced-motion"] },
+        { "id": "threeui.lumen-cta", "name": "Lumen CTA", "category": "action", "install": "@designcodeio/threeui/components/LumenCta", "performance": "moderate", "targets": ["marketing"], "requires": ["lazy-load", "reduced-motion"] },
+        { "id": "threeui.animated-top-dock", "name": "Animated Top Dock", "category": "navigation", "install": "@designcodeio/threeui/components/AnimatedTopDock", "performance": "moderate", "targets": ["marketing"], "requires": ["client-only", "reduced-motion"] }
+      ]
+    },
+    {
+      "id": "react-bits",
+      "name": "React Bits",
+      "kind": "dynamic-component",
+      "status": "catalog-ready",
+      "selectionMode": "multiple-optional",
+      "distribution": "upstream-registry",
+      "source": { "url": "https://github.com/DavidHDev/react-bits", "revision": "main", "license": "MIT + Commons Clause" },
+      "notes": "Free components install from the official shadcn registry as TS-TW source. Starter does not mirror or resell the catalog; Pro requires the customer's own license and is not listed here.",
+      "items": [
+        { "id": "react-bits.blur-text", "name": "Blur Text", "category": "text", "install": "@react-bits/BlurText-TS-TW", "performance": "light", "targets": ["marketing"], "requires": ["reduced-motion"] },
+        { "id": "react-bits.split-text", "name": "Split Text", "category": "text", "install": "@react-bits/SplitText-TS-TW", "performance": "moderate", "targets": ["marketing"], "requires": ["client-only", "reduced-motion"] },
+        { "id": "react-bits.animated-content", "name": "Animated Content", "category": "motion", "install": "@react-bits/AnimatedContent-TS-TW", "performance": "light", "targets": ["marketing", "desktop-web"], "requires": ["client-only", "reduced-motion"] },
+        { "id": "react-bits.aurora", "name": "Aurora", "category": "background", "install": "@react-bits/Aurora-TS-TW", "performance": "heavy", "targets": ["marketing"], "requires": ["client-only", "lazy-load", "static-mobile-fallback", "reduced-motion"] },
+        { "id": "react-bits.animated-list", "name": "Animated List", "category": "component", "install": "@react-bits/AnimatedList-TS-TW", "performance": "moderate", "targets": ["marketing", "desktop-web"], "requires": ["client-only", "reduced-motion"] },
+        { "id": "react-bits.pixel-transition", "name": "Pixel Transition", "category": "media", "install": "@react-bits/PixelTransition-TS-TW", "performance": "moderate", "targets": ["marketing"], "requires": ["client-only", "lazy-load", "reduced-motion"] }
+      ]
+    },
+    {
+      "id": "html-anything",
+      "name": "HTML Anything",
+      "kind": "design-recipe",
+      "status": "reference-ready",
+      "selectionMode": "multiple-optional",
+      "distribution": "adapted-recipe-reference",
+      "source": { "url": "https://github.com/nexu-io/html-anything", "revision": "main", "license": "Apache-2.0" },
+      "notes": "Only focused Web recipes inform project-owned output. The Next.js editor, agent runner, social, deck and export runtimes never enter generated products.",
+      "items": [
+        { "id": "html-anything.prototype-web", "name": "Web Prototype", "category": "page-recipe", "install": "prototype-web", "performance": "light", "targets": ["marketing"], "requires": ["adapt-to-design-profile"] },
+        { "id": "html-anything.dashboard", "name": "Dashboard Recipe", "category": "page-recipe", "install": "dashboard", "performance": "light", "targets": ["desktop-web", "admin"], "requires": ["adapt-to-product-shell"] },
+        { "id": "html-anything.data-report", "name": "Data Report Recipe", "category": "page-recipe", "install": "data-report", "performance": "light", "targets": ["desktop-web", "admin"], "requires": ["real-data", "adapt-to-design-profile"] },
+        { "id": "html-anything.web-proto-editorial", "name": "Editorial Web Recipe", "category": "visual-recipe", "install": "web-proto-editorial", "performance": "light", "targets": ["marketing"], "requires": ["adapt-to-design-profile"] },
+        { "id": "html-anything.web-proto-brutalist", "name": "Brutalist Web Recipe", "category": "visual-recipe", "install": "web-proto-brutalist", "performance": "light", "targets": ["marketing"], "requires": ["adapt-to-design-profile"] },
+        { "id": "html-anything.web-proto-soft", "name": "Soft Web Recipe", "category": "visual-recipe", "install": "web-proto-soft", "performance": "light", "targets": ["marketing"], "requires": ["adapt-to-design-profile"] }
+      ]
+    }
+  ]
+}

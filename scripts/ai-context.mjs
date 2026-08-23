@@ -126,6 +126,7 @@ async function lightweightContext() {
     selection: {
       preset: blueprint.preset,
       stylekit: blueprint.stylekit,
+      designExtensions: blueprint.designExtensions,
       selected,
       materializedPacks: Object.keys(materialization.packs || {}),
     },
@@ -166,6 +167,7 @@ async function fullContext() {
       preset: context.assembly.blueprint.preset,
       designProfile: context.assembly.blueprint.designProfile,
       stylekitLock: context.assembly.blueprint.stylekit,
+      designExtensions: context.assembly.blueprint.designExtensions,
       pageSet: context.assembly.blueprint.pageSet,
       selections: context.assembly.blueprint.selections,
       providers: context.assembly.blueprint.providers,
@@ -174,6 +176,7 @@ async function fullContext() {
       catalogPresets: context.assembly.catalog.presets,
       catalogPacks: context.assembly.catalog.packs.map(({ id, kind, status, ownership, updatePolicy }) => ({ id, kind, status, ownership, updatePolicy })),
       designProfiles: context.assembly.designCatalog.profiles.map(({ id, version, packId, status, targets, dials, adapters }) => ({ id, version, packId, status, targets, dials, adapters })),
+      designProviders: context.assembly.designProviderCatalog.providers.map(({ id, kind, status, distribution, items }) => ({ id, kind, status, distribution, itemCount: items.length })),
       stylekit: context.assembly.stylekit,
       pages: context.assembly.pageCatalog.pages.map(({ id, packId, route, renderer, required, status }) => ({ id, packId, route, renderer, required, status, selected: context.assembly.blueprint.pageSet.selected.includes(id) })),
     },

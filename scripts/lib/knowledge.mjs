@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { validateAssemblyContracts } from "./assembly.mjs";
+import { validateDesignProviders } from "./design-providers.mjs";
 
 const rootDocuments = [
   "PROJECT.md",
@@ -169,6 +170,7 @@ export async function collectKnowledge(root) {
     catalog,
     providerCatalog,
     designCatalog,
+    designProviderCatalog,
     stylekitSourceCatalog,
     saasSources,
     saasCapabilities,
@@ -185,6 +187,7 @@ export async function collectKnowledge(root) {
     readJson(sourceRoot, "catalog/catalog.json"),
     readJson(sourceRoot, "catalog/providers.json"),
     readJson(sourceRoot, "design/catalog.json"),
+    readJson(sourceRoot, "design/providers.json"),
     readJson(sourceRoot, "design/stylekit/source-catalog.json"),
     readJson(sourceRoot, "catalog/saas-sources.json"),
     readJson(sourceRoot, "catalog/saas-capabilities.json"),
@@ -255,6 +258,9 @@ export async function collectKnowledge(root) {
     throw new Error(
       `Assembly contracts are invalid:\n- ${assemblyFailures.join("\n- ")}`,
     );
+  const designProviderFailures = validateDesignProviders(designProviderCatalog, blueprint);
+  if (designProviderFailures.length)
+    throw new Error(`Design Provider contracts are invalid:\n- ${designProviderFailures.join("\n- ")}`);
   const modules = await collectModules(root);
 
   return {
@@ -285,6 +291,10 @@ export async function collectKnowledge(root) {
       },
       providerCatalog,
       designCatalog,
+      designProviderCatalog: {
+        ...designProviderCatalog,
+        selected: blueprint.designExtensions.selected,
+      },
       stylekit: {
         source: stylekitSourceCatalog.source,
         styleCount: stylekitSourceCatalog.count,
