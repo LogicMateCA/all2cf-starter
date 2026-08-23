@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { execFileSync, spawnSync } from "node:child_process";
-import { access, copyFile, mkdir, mkdtemp, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
+import { access, copyFile, mkdir, mkdtemp, readFile, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -11,6 +11,7 @@ const option = (name) => args.find((value) => value.startsWith(`--${name}=`))?.s
 const flag = (name) => args.includes(`--${name}`);
 const json = (value) => `${JSON.stringify(value, null, 2)}\n`;
 const candidateRoot = path.join(root, ".all2cf", "engine-candidates");
+const channelRoot = path.join(root, ".all2cf", "engine-channels");
 const verificationPath = path.join(root, ".all2cf", "source-release-verification.local.json");
 const versionPattern = /^(\d+)\.(\d+)\.(\d+)(?:-(dev|rc)\.(\d+))?$/u;
 
@@ -119,7 +120,22 @@ async function status() {
       ? { sourceCommit: verification.sourceCommit, ok: verification.ok, completedAt: verification.completedAt }
       : null,
     candidates: await candidateDirectories(),
+    channels: await channelStatus(),
   };
+}
+
+async function channelStatus() {
+  if (!(await exists(channelRoot))) return [];
+  const entries = await readdir(channelRoot, { withFileTypes: true });
+  const channels = [];
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    const descriptor = path.join(channelRoot, entry.name, "channel.json");
+    if (!(await exists(descriptor))) continue;
+    const value = JSON.parse(await readFile(descriptor, "utf8"));
+    channels.push({ channel: value.channel || entry.name, version: value.engine?.version || null, sourceCommit: value.engine?.sourceCommit || null, artifactSha256: value.engine?.artifactSha256 || null, publishedAt: value.publishedAt || null, descriptor });
+  }
+  return channels.sort((left, right) => left.channel.localeCompare(right.channel));
 }
 
 async function portableBlueprint(dataLayer) {
@@ -164,7 +180,7 @@ async function verifyPortableProject(source, dataLayer, version) {
       readFile(path.join(target, ".starter", "materialization.json"), "utf8").then(JSON.parse),
       readFile(path.join(target, ".starter", "source.json"), "utf8").then(JSON.parse),
     ]);
-    if (sourceReceipt.sourceCommit !== source.commit || sourceReceipt.sourceDirty !== false || sourceReceipt.updateMode !== "all2cf-managed")
+    if (sourceReceipt.sourceCommit !== source.commit || sourceReceipt.sourceDirty !== false || sourceReceipt.updateMode !== "engine-channel")
       throw new Error(`${dataLayer} portable source receipt does not match the clean source commit`);
     if (dataLayer === "drizzle" && !receipt.packs?.["capability.data-layer-drizzle"])
       throw new Error("Drizzle proof did not materialize capability.data-layer-drizzle");
@@ -267,6 +283,19 @@ async function build(versionValue) {
       },
       stylekit: { policy: "starter-owned-curated-snapshots", upstreamAutomaticSync: false },
     };
+    const channel = {
+      schemaVersion: "all2cf-starter-channel/v1",
+      channel: "candidate",
+      engine: {
+        version,
+        sourceCommit: source.commit,
+        artifactSha256: firstHash,
+        artifactUrl: artifact,
+        manifestUrl: "factory-engine.json",
+        packVersions: manifest.packVersions,
+      },
+      publishedAt: null,
+    };
     const report = {
       schemaVersion: "starter-engine-candidate/v1",
       ok: true,
@@ -284,6 +313,7 @@ async function build(versionValue) {
     await Promise.all([
       writeFile(path.join(staging, "factory-engine.json"), json(manifest)),
       writeFile(path.join(staging, "registration.json"), json(registration)),
+      writeFile(path.join(staging, "channel.json"), json(channel)),
       writeFile(path.join(staging, "candidate-report.json"), json(report)),
       copyFile(verificationPath, path.join(staging, "source-verification.json")),
     ]);
@@ -293,6 +323,64 @@ async function build(versionValue) {
     await rm(staging, { recursive: true, force: true });
     throw error;
   }
+}
+
+async function publish(versionValue) {
+  const checked = await check(versionValue);
+  if (!checked.ok) throw new Error(`Engine candidate check failed: ${checked.failures.join("; ")}`);
+  const { version, candidate } = await resolveCandidate(versionValue);
+  const channelName = option("channel") || "development";
+  if (!/^[a-z][a-z0-9-]{1,31}$/u.test(channelName)) throw new Error("Channel name is invalid");
+  const target = path.resolve(option("target") || path.join(channelRoot, channelName));
+  if (target === root || target.startsWith(`${path.join(root, ".git")}${path.sep}`))
+    throw new Error("Channel target must not be the source root or Git metadata");
+  const manifest = JSON.parse(await readFile(path.join(candidate, "factory-engine.json"), "utf8"));
+  const currentPath = path.join(target, "channel.json");
+  let current = null;
+  if (await exists(currentPath)) current = JSON.parse(await readFile(currentPath, "utf8"));
+  if (current) {
+    const comparison = compareVersions(version, current.engine?.version);
+    if (comparison < 0) throw new Error(`Channel downgrade is forbidden: ${current.engine.version} -> ${version}`);
+    if (comparison === 0 && current.engine?.artifactSha256 !== manifest.artifactSha256)
+      throw new Error(`Channel version ${version} already points to a different artifact`);
+  }
+  const artifactDirectory = path.join(target, "artifacts", version);
+  const manifestDirectory = path.join(target, "manifests");
+  await Promise.all([mkdir(artifactDirectory, { recursive: true }), mkdir(manifestDirectory, { recursive: true })]);
+  const artifactTarget = path.join(artifactDirectory, manifest.artifact);
+  if (await exists(artifactTarget)) {
+    if (await sha256File(artifactTarget) !== manifest.artifactSha256)
+      throw new Error(`Published artifact path is occupied by a different file: ${artifactTarget}`);
+  } else {
+    await copyFile(path.join(candidate, manifest.artifact), artifactTarget);
+  }
+  const manifestTarget = path.join(manifestDirectory, `${version}.json`);
+  if (await exists(manifestTarget)) {
+    const publishedManifest = JSON.parse(await readFile(manifestTarget, "utf8"));
+    if (publishedManifest.artifactSha256 !== manifest.artifactSha256)
+      throw new Error(`Published manifest ${version} is immutable`);
+  } else {
+    await copyFile(path.join(candidate, "factory-engine.json"), manifestTarget);
+  }
+  const descriptor = {
+    schemaVersion: "all2cf-starter-channel/v1",
+    channel: channelName,
+    engine: {
+      version,
+      sourceCommit: manifest.sourceCommit,
+      artifactSha256: manifest.artifactSha256,
+      artifactUrl: `artifacts/${encodeURIComponent(version)}/${encodeURIComponent(manifest.artifact)}`,
+      manifestUrl: `manifests/${encodeURIComponent(version)}.json`,
+      packVersions: manifest.packVersions,
+    },
+    publishedAt: new Date().toISOString(),
+  };
+  const staging = path.join(target, `.channel-${process.pid}-${Date.now()}.json`);
+  await mkdir(target, { recursive: true });
+  await writeFile(staging, json(descriptor), { mode: 0o644 });
+  await rename(staging, currentPath);
+  const artifactStat = await stat(artifactTarget);
+  return { ok: true, command: "publish", version, target, channel: descriptor.channel, descriptor: currentPath, artifact: artifactTarget, artifactSha256: manifest.artifactSha256, artifactBytes: artifactStat.size, previousVersion: current?.engine?.version || null, deploymentAuthorized: false };
 }
 
 async function resolveCandidate(versionValue) {
@@ -308,6 +396,7 @@ async function check(versionValue) {
   const manifest = JSON.parse(await readFile(path.join(candidate, "factory-engine.json"), "utf8"));
   const report = JSON.parse(await readFile(path.join(candidate, "candidate-report.json"), "utf8"));
   const registration = JSON.parse(await readFile(path.join(candidate, "registration.json"), "utf8"));
+  const channel = JSON.parse(await readFile(path.join(candidate, "channel.json"), "utf8"));
   const verification = JSON.parse(await readFile(path.join(candidate, "source-verification.json"), "utf8"));
   const artifact = path.join(candidate, manifest.artifact || "");
   const failures = [];
@@ -318,6 +407,7 @@ async function check(versionValue) {
   if (verification.ok !== true || verification.version !== version || verification.sourceCommit !== source.commit || verification.projects?.length !== 2) failures.push("Source verification evidence is stale");
   if (report.reproducible !== true || report.reproducibleBuilds !== 2) failures.push("Reproducible build evidence is missing");
   if (registration.sourceCommit !== source.commit || registration.engineManifest?.artifactSha256 !== manifest.artifactSha256) failures.push("Registration bundle does not match the Engine manifest");
+  if (channel.schemaVersion !== "all2cf-starter-channel/v1" || channel.engine?.version !== version || channel.engine?.sourceCommit !== source.commit || channel.engine?.artifactSha256 !== manifest.artifactSha256) failures.push("Engine Channel descriptor does not match the candidate");
   if (!failures.length) {
     const replayRoot = await mkdtemp(path.join(candidateRoot, `.check-${version}-`));
     try {
@@ -378,6 +468,7 @@ async function main() {
   else if (command === "build") result = await build(version);
   else if (command === "check") result = await check(version);
   else if (command === "register") result = await register(version);
+  else if (command === "publish") result = await publish(version);
   else if (command === "candidate") result = await candidate(version);
   else throw new Error(`Unknown source release command ${command}`);
   console.log(json(result));

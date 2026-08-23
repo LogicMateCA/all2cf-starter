@@ -37,13 +37,15 @@ All2CF executes a SHA-256-verified Git archive without `.git` history and inject
 
 All2CF also sets `STARTER_FACTORY_PORTABLE=true`. Portable output removes canonical account, zone, domain and database-host topology, uses non-routable `example.invalid` identities, and leaves the generated product's local `/setup` responsible for binding customer infrastructure later.
 
-Portable output must also receive `STARTER_FACTORY_SOURCE_URL`. Its source receipt sets `sourceRoot: null` and `updateMode: all2cf-managed`; it never serializes the temporary Runner extraction path. Local linked-source projects retain their real source root and direct lifecycle commands.
+Portable output receives an exact source URL plus a stable Engine Channel URL, Engine version and Artifact SHA-256. Its `starter-source/v2` receipt sets `sourceRoot: null` and `updateMode: engine-channel`; it never serializes the temporary Runner extraction path. Local linked-source projects retain their real source root and direct lifecycle commands.
 
 The capsule generation hot path has no project `node_modules`. It uses Node-only identity and knowledge parsing. When an optional Pack changes dependencies, All2CF sets `STARTER_FACTORY_PACKAGE_LOCK_ONLY=true` so npm resolves the exact lockfile without installing the dependency tree; full installation remains an optional Verify job.
 
 ## Canonical source release
 
-The canonical Starter owns the Engine candidate before All2CF can advertise it. `source:status` is a fast clean-source and version-evidence check. `source:release:candidate -- --version=<version>` runs canonical verification, fully installs and verifies generated SQL and Drizzle portable projects, creates the exact Git archive twice, rejects unequal SHA-256 hashes, and emits an ignored candidate bundle under `.all2cf/engine-candidates/<version>/`.
+The canonical Starter owns the Engine candidate before any consumer can advertise it. `source:status` is a fast clean-source, candidate and Channel evidence check. `source:release:candidate -- --version=<version>` runs canonical verification, fully installs and verifies generated SQL and Drizzle portable projects, creates the exact Git archive twice, rejects unequal SHA-256 hashes, and emits an ignored candidate bundle under `.all2cf/engine-candidates/<version>/`. `source:publish:channel -- --version=<version> --channel=development` then retains the versioned Artifact and manifest and atomically advances only `channel.json`; downgrades and same-version hash replacement fail closed.
+
+Generated products use `starter:status` to read only the Channel descriptor. `starter:diff`, `starter:add` and `starter:update` download the exact same-origin Artifact, enforce a 96 MiB bound, verify SHA-256, reject unsafe tar paths and execute the Artifact's Factory against the product. The product source receipt advances only after successful materialization. Receipt-owned product changes remain protected and stop the update.
 
 The strict `factory-engine.json` remains the only manifest consumed by All2CF. `registration.json` describes the capsule and target paths plus required post-registration checks. `engine:register` defaults to a read-only plan, refuses dirty All2CF targets and requires an explicit `--apply` in an integration-owned clean worktree. Registration never commits, merges, deploys or removes a previous capsule.
 
@@ -51,4 +53,4 @@ StyleKit is not an upstream auto-update channel. Engine candidates carry the cur
 
 ## Current evidence
 
-Local directory generation, portable archive creation, project-specific Git/AI handoff, SQL/Drizzle verification, hosted Runner generation/verification, private GitHub delivery contracts, status/diff, Pack addition with dependency closure, idempotent update and receipt-owned conflict refusal are verified. The canonical source-release controller and its All2CF registration bundle require a clean-commit replay before being marked locally verified. Remote All2CF MCP tools and any Development or Production deployment remain separate gates.
+Local directory generation, portable archive creation, project-specific Git/AI handoff, SQL/Drizzle verification, hosted Runner generation/verification, private GitHub delivery contracts, local and Engine-Channel status/diff, Pack addition with dependency closure, idempotent update and receipt-owned conflict refusal are verified. Remote All2CF MCP tools and any Development or Production deployment remain separate gates.

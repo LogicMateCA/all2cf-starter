@@ -28,8 +28,15 @@ This Skill owns the boundary from one clean canonical Starter commit to an immut
 2. A target plan may use `--target=<clean-All2CF-integration-worktree>`. It must refuse a dirty target.
 3. Only the owning All2CF integration controller may add `--apply`. The command copies the new capsule and strict manifest and writes an ignored registration receipt; it does not delete the previous capsule, commit, merge, build, deploy or publish.
 4. The All2CF task must update its own Change Spec/docs, run typecheck, Runner SQL/Drizzle generation, API/browser verification and commit the integration separately.
-5. Customer update availability begins only after the new Engine is integrated into All2CF. Production or Development deployment still requires its separate explicit authorization.
+5. All2CF-hosted customer update availability begins only after the new Engine is integrated into All2CF. A locally published Channel is verification evidence only. Production or Development deployment still requires its separate explicit authorization.
+
+## Channel publication
+
+1. After `engine:check`, run `npm run source:publish:channel -- --version=<version> --channel=development`. The ignored local default is `.all2cf/engine-channels/<channel>`; use `--target=<channel-directory>` only for an explicit external publication root.
+2. Publication retains versioned Artifacts and manifests and atomically replaces only `channel.json`.
+3. It must refuse downgrade and same-version Artifact hash replacement. Re-publishing the exact same version and hash is idempotent.
+4. Local Channel publication proves the update mechanism but does not integrate All2CF or authorize deployment. All2CF may later serve the same descriptor and immutable files without changing the project maintenance contract.
 
 ## Evidence
 
-Report the Starter commit, Engine version, capsule SHA-256, two-build reproducibility result, SQL/Drizzle generated commits and archive hashes, verification completion time, registration target/receipt if applied, and every unverified external gate.
+Report the Starter commit, Engine version, capsule SHA-256, two-build reproducibility result, SQL/Drizzle generated commits and archive hashes, verification completion time, Channel target/previous version, registration target/receipt if applied, and every unverified external gate.

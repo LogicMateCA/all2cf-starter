@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { execFileSync, spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { cp, mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,6 +14,9 @@ const sha256 = (value) => createHash("sha256").update(value).digest("hex");
 const outputRoot = path.join(sourceRoot, ".factory-output");
 const portable = process.env.STARTER_FACTORY_PORTABLE === "true";
 const portableSourceUrl = process.env.STARTER_FACTORY_SOURCE_URL?.trim() || "";
+const portableChannelUrl = process.env.STARTER_FACTORY_CHANNEL_URL?.trim() || "";
+const portableEngineVersion = process.env.STARTER_FACTORY_ENGINE_VERSION?.trim() || "";
+const portableArtifactSha256 = process.env.STARTER_FACTORY_ARTIFACT_SHA256?.trim() || "";
 
 async function readJson(root, file) {
   return JSON.parse(await readFile(path.join(root, file), "utf8"));
@@ -41,7 +45,11 @@ function runProjectScript(projectRoot, script, scriptArgs = []) {
 
 function generateWorkerTypes(target) {
   const configured = process.env.STARTER_FACTORY_WRANGLER_BIN?.trim();
-  const executable = configured || path.join(sourceRoot, "node_modules", ".bin", process.platform === "win32" ? "wrangler.cmd" : "wrangler");
+  const binary = process.platform === "win32" ? "wrangler.cmd" : "wrangler";
+  const sourceBinary = path.join(sourceRoot, "node_modules", ".bin", binary);
+  const projectBinary = path.join(target, "node_modules", ".bin", binary);
+  const executable = configured || (existsSync(sourceBinary) ? sourceBinary : projectBinary);
+  if (!existsSync(executable)) throw new Error("Wrangler is unavailable; run npm ci in the generated project before Pack updates");
   for (const environment of ["development", "production"]) {
     const result = spawnSync(executable, [
       "types",
@@ -168,7 +176,7 @@ async function writeProductHandoff(target, source) {
   await writeFile(humanMapPath, humanMap.replace(
     "Reusable optional capability: start at `packs/<kind>/<pack>/pack.json`, then its templates. Apply through the materializer.",
     source.portable
-      ? "Reusable optional capabilities and source updates are managed through the pinned All2CF source URL in `.starter/source.json`. This portable product does not carry the complete Pack library or a mutable source checkout."
+      ? "Reusable optional capabilities and source updates are managed through the verified Engine Channel in `.starter/source.json`. This portable product does not carry the complete Pack library or a mutable source checkout."
       : "Reusable optional capability: inspect with `npm run starter:status`, preview with `npm run starter:diff`, and apply from the pinned source using `npm run starter:add -- <pack-id>` or `npm run starter:update`. The product does not carry the complete Pack library.",
   ));
   const agentsPath = path.join(target, "AGENTS.md");
@@ -180,7 +188,7 @@ async function writeProductHandoff(target, source) {
   const machineMapPath = path.join(target, ".ai/agent-map.json");
   const machineMap = await readJson(target, ".ai/agent-map.json");
   machineMap.rules.packs = source.portable
-    ? "This portable product uses all2cf-managed updates through .starter/source.json.sourceUrl. Never fabricate local Pack templates or treat the unavailable sourceRoot as a local path."
+    ? "This portable product uses verified Engine Channel updates through .starter/source.json.channelUrl. Never fabricate local Pack templates or treat the unavailable sourceRoot as a local path."
     : "Generated products do not carry the complete Pack template library. Use starter:status/diff/add/update through the pinned source receipt; never fabricate local Pack templates.";
   const present = async (relative) => stat(path.join(target, relative)).then(() => true, () => false);
   const productPackage = await readJson(target, "package.json");
@@ -260,7 +268,11 @@ async function createProject() {
     await mkdir(path.join(target, ".starter"), { recursive: true });
     if (portable && !/^https:\/\//u.test(portableSourceUrl))
       throw new Error("Portable Factory generation requires STARTER_FACTORY_SOURCE_URL");
-    const source = { schemaVersion: "starter-source/v1", sourceRoot: portable ? null : sourceRoot, sourceUrl: portable ? portableSourceUrl : null, updateMode: portable ? "all2cf-managed" : "linked-source", sourceCommit: sourceVersion(), sourceDirty: dirty, portable, generatedAt: new Date().toISOString(), project: { name, slug } };
+    if (portableChannelUrl && !/^https?:\/\//u.test(portableChannelUrl))
+      throw new Error("Portable Factory Channel URL must use HTTP or HTTPS");
+    if (portableArtifactSha256 && !/^[a-f0-9]{64}$/u.test(portableArtifactSha256))
+      throw new Error("Portable Factory artifact SHA-256 is invalid");
+    const source = { schemaVersion: "starter-source/v2", sourceRoot: portable ? null : sourceRoot, sourceUrl: portable ? portableSourceUrl : null, channelUrl: portable ? portableChannelUrl || null : null, updateMode: portable ? "engine-channel" : "linked-source", engineVersion: portable ? portableEngineVersion || null : null, artifactSha256: portable ? portableArtifactSha256 || null : null, sourceCommit: sourceVersion(), sourceDirty: dirty, portable, generatedAt: new Date().toISOString(), project: { name, slug } };
     await writeFile(path.join(target, ".starter/source.json"), json(source));
     if (portable) process.env.STARTER_FACTORY_BUILD_SOURCE_ROOT = sourceRoot;
     run("scripts/sync-project-identity.mjs", ["--reset", `--project-root=${target}`], target);

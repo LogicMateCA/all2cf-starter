@@ -63,9 +63,11 @@
     "factory:status": "node scripts/starter-factory.mjs status",
     "factory:diff": "node scripts/starter-factory.mjs diff",
     "factory:contract": "node scripts/factory-contract.mjs",
+    "engine:channel:contract": "node scripts/engine-channel-contract.mjs",
     "source:status": "node scripts/source-release.mjs status",
     "source:verify": "node scripts/source-release.mjs verify",
     "source:release:candidate": "node scripts/source-release.mjs candidate",
+    "source:publish:channel": "node scripts/source-release.mjs publish",
     "engine:build": "node scripts/source-release.mjs build",
     "engine:check": "node scripts/source-release.mjs check",
     "engine:register": "node scripts/source-release.mjs register",
@@ -109,7 +111,7 @@
     "cf:types:check": "wrangler types --check --config cloudflare/wrangler.development.jsonc workers/app/worker-configuration.development.d.ts && wrangler types --check --config cloudflare/wrangler.production.jsonc workers/app/worker-configuration.production.d.ts",
     "cf:dry-run:dev": "wrangler deploy --dry-run --config cloudflare/wrangler.development.jsonc --outdir dist/worker-development",
     "cf:dry-run:production": "wrangler deploy --dry-run --config cloudflare/wrangler.production.jsonc --outdir dist/worker-production",
-    "verify": "npm run ai:doctor && npm run agent-map:check && npm run factory:contract && npm run data-layer:drizzle:contract && npm run release:contract && npm run dependencies:contract && npm run providers:contract && npm run database:provider:contract && npm run auth:social:contract && npm run design:contract && npm run typography:contract && npm run pages:contract && npm run saas:contract && npm run stylekit:previews && npm run stylekit:contract && npm run stylekit:boundary && npm run starter:materialize:check && npm run knowledge:sync && npm run knowledge:check && npm run change:check && npm run cf:types:check && npm run typecheck && npm run build:sites && npm run cache:contract && npm run bundle:check:marketing && npm run bundle:check:web && npm run bundle:check:docs && npm run cf:dry-run:dev && npm run cf:dry-run:production"
+    "verify": "npm run ai:doctor && npm run agent-map:check && npm run factory:contract && npm run engine:channel:contract && npm run data-layer:drizzle:contract && npm run release:contract && npm run dependencies:contract && npm run providers:contract && npm run database:provider:contract && npm run auth:social:contract && npm run design:contract && npm run typography:contract && npm run pages:contract && npm run saas:contract && npm run stylekit:previews && npm run stylekit:contract && npm run stylekit:boundary && npm run starter:materialize:check && npm run knowledge:sync && npm run knowledge:check && npm run change:check && npm run cf:types:check && npm run typecheck && npm run build:sites && npm run cache:contract && npm run bundle:check:marketing && npm run bundle:check:web && npm run bundle:check:docs && npm run cf:dry-run:dev && npm run cf:dry-run:production"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "5.20260820.1",
