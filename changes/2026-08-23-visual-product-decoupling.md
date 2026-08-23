@@ -1,7 +1,7 @@
 ---
 id: visual-product-decoupling
 title: Decouple universal visual intelligence from Starter
-status: local-verified
+status: development-verified
 affectedModules: [assembler, marketing, web, mobile]
 docsImpact: [PROJECT.md, ARCHITECTURE.md, DESIGN.md, AGENT_MAP.md, features/assembler/MODULE.md, /dp]
 ---
@@ -32,4 +32,6 @@ Starter remains a functional Cloudflare/SaaS foundation while the universal visu
 
 # Release
 
-Locally verified. Development deployment remains pending; Production is not authorized.
+Development was first verified from commit `7ec954c775ec4b64195c5be24b20a846b5012c8b` with artifact `e173dfd35056f76161076509192de2dffa5e0c893cdd5d37711c0571954d1061`, deployment `6bda1725-af56-4f69-9e83-82ae3058c323` and Worker version `5223c2ec-a943-4aea-8149-2e95930780e7` at 100% traffic on `starter-dev` / `dev.logicm8.com`.
+
+`/`, `/dp`, `/login`, `/api/health`, `/api/version`, `/api/health/database`, auth-method/session/preferences boundaries and an exact-byte R2 put/get/delete proof passed. Live identity was `development / starter / starterdev / starterdev / PostgreSQL 18.4`. The release applied the only pending Development migration, `0009_baseline_query_indexes.sql`; all earlier migrations were already present. Production was not authorized and remains unchanged.
