@@ -18,6 +18,7 @@ const socialSecretRequirements = {
   apple: ["APPLE_CLIENT_ID", "APPLE_TEAM_ID", "APPLE_KEY_ID", "APPLE_PRIVATE_KEY_BASE64", "APPLE_APP_BUNDLE_IDENTIFIER"],
 };
 const socialSecretNames = new Set(Object.values(socialSecretRequirements).flat());
+const emailSecretNames = new Set(["CFSEND_API_URL", "CFSEND_API_KEY", "CFSEND_FROM", "RESEND_API_KEY", "RESEND_FROM"]);
 const stripeSelected = selectedPacks.has("saas.billing-stripe");
 const outgoingWebhooksSelected = selectedPacks.has("saas.outgoing-webhooks");
 const storageProvider = blueprint.providers?.storage?.provider || "none";
@@ -338,7 +339,7 @@ async function writeWrangler(environment, hyperdriveId) {
     ...(value.secrets || {}),
     required: [
       ...new Set([
-        ...(value.secrets?.required || []).filter((name) => !socialSecretNames.has(name)),
+        ...(value.secrets?.required || []).filter((name) => !socialSecretNames.has(name) && !emailSecretNames.has(name)),
         "BETTER_AUTH_SECRET",
         ...[...selectedSocialProviders].flatMap((provider) => socialSecretRequirements[provider] || []),
         ...(emailProvider === "cfsend"

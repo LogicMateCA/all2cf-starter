@@ -19,6 +19,8 @@ if (!controllerSource.includes("dirtyAfterVerification") || !controllerSource.in
   failures.push("release controller must recheck Git after all verification generators");
 if (!packageModel.scripts["cf:types"]?.includes("wrangler types"))
   failures.push("explicit cf:types generator is missing");
+if (!controllerSource.includes("emailSecretNames") || !controllerSource.includes("!emailSecretNames.has(name)"))
+  failures.push("release controller must remove stale mutually exclusive email-provider secrets");
 
 console.log(JSON.stringify({ ok: failures.length === 0, syncCount, typesMode: "check-only", buildMode: "sites-only", postVerifyCleanCheck: true, failures }, null, 2));
 if (failures.length) process.exitCode = 1;

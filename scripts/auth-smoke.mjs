@@ -406,6 +406,9 @@ ${smokeHandlers.join("\n")}
     secrets: {
       required: [...new Set([
         ...(baseConfig.secrets?.required || []),
+        "CFSEND_API_URL",
+        "CFSEND_API_KEY",
+        "CFSEND_FROM",
         ...(stripeSelected
           ? ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "STRIPE_PRICE_PRO"]
           : []),
