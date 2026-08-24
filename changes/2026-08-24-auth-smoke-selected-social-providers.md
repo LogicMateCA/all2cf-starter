@@ -14,6 +14,8 @@ Email selection is equally exclusive at release time. Rewriting a Wrangler confi
 
 The disposable Auth smoke remains provider-independent: its temporary Wrangler config explicitly declares the three CFsend contract-double secrets that its own env-file supplies. This local test requirement never leaks back into the generated project's real Development Worker configuration.
 
+Remote Development smoke is also selection-driven. It requires `/api/auth-methods` to equal the exact selected Google/GitHub/Apple set, validates each selected provider's secure host-only authorization state cookie, and treats an empty method list as the correct result for an explicit no-social project.
+
 # Verification
 
 The social-provider contract covers selected, deferred, explicit-empty, legacy-default and unselected health states. The full SQL-first and Drizzle portable verification gates, Auth smoke, types, builds, bundle budgets and both Wrangler dry-runs must pass before a new Engine candidate exists.

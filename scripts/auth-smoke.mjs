@@ -621,10 +621,12 @@ if (remote) {
   const methods = await request("/api/auth-methods", {
     headers: { Origin: origin },
   });
+  const actualSocialProviders = (methods.payload?.methods || []).map((method) => method.key).sort();
+  const expectedSocialProviders = [...selectedSocialProviders].sort();
   assert(
     methods.response.status === 200 &&
-      methods.payload?.methods?.some((method) => method.key === "google"),
-    "edge auth methods are unavailable",
+      JSON.stringify(actualSocialProviders) === JSON.stringify(expectedSocialProviders),
+    "edge auth methods do not match the selected social providers",
   );
   const session = await request("/api/session", {
     headers: { Origin: origin },
@@ -634,49 +636,41 @@ if (remote) {
       session.payload?.error?.code === "UNAUTHORIZED",
     "edge session endpoint did not reject an anonymous request",
   );
-  const google = await request("/api/auth/sign-in/social", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Origin: origin },
-    body: JSON.stringify({
-      provider: "google",
-      callbackURL: "/app",
-      disableRedirect: true,
-    }),
-  });
-  const stateCookies =
-    typeof google.response.headers.getSetCookie === "function"
-      ? google.response.headers.getSetCookie()
-      : [google.response.headers.get("set-cookie")].filter(Boolean);
-  const secureState =
-    stateCookies.length > 0 &&
-    stateCookies.every(
-      (value) =>
-        /;\s*HttpOnly/iu.test(value) &&
-        /;\s*Secure/iu.test(value) &&
-        !/;\s*Domain=/iu.test(value),
+  for (const provider of expectedSocialProviders) {
+    const authorization = await request("/api/auth/sign-in/social", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Origin: origin },
+      body: JSON.stringify({ provider, callbackURL: "/app", disableRedirect: true }),
+    });
+    const stateCookies =
+      typeof authorization.response.headers.getSetCookie === "function"
+        ? authorization.response.headers.getSetCookie()
+        : [authorization.response.headers.get("set-cookie")].filter(Boolean);
+    const secureState = stateCookies.length > 0 && stateCookies.every(
+      (value) => /;\s*HttpOnly/iu.test(value) && /;\s*Secure/iu.test(value) && !/;\s*Domain=/iu.test(value),
     );
-  assert(
-    google.response.status === 200 && secureState,
-    "edge Google authorization state cookie is not secure and host-only",
-  );
-  await database.connect();
-  try {
-    await database.query(
-      `delete from app_auth_rate_limit
-        where key like '%|/sign-in/social'
-          and "lastRequest" >= $1
-          and "lastRequest" <= $2`,
-      [socialCheckStartedAt, Date.now() + 5_000],
-    );
-    const residue = await database.query(
-      `select count(*)::int as count from app_auth_rate_limit
-        where key like '%|/sign-in/social'
-          and "lastRequest" >= $1`,
-      [socialCheckStartedAt],
-    );
-    assert(residue.rows[0]?.count === 0, "edge Google authorization left rate-limit test residue");
-  } finally {
-    await database.end().catch(() => undefined);
+    assert(authorization.response.status === 200 && secureState, `edge ${provider} authorization state cookie is not secure and host-only`);
+  }
+  if (expectedSocialProviders.length) {
+    await database.connect();
+    try {
+      await database.query(
+        `delete from app_auth_rate_limit
+          where key like '%|/sign-in/social'
+            and "lastRequest" >= $1
+            and "lastRequest" <= $2`,
+        [socialCheckStartedAt, Date.now() + 5_000],
+      );
+      const residue = await database.query(
+        `select count(*)::int as count from app_auth_rate_limit
+          where key like '%|/sign-in/social'
+            and "lastRequest" >= $1`,
+        [socialCheckStartedAt],
+      );
+      assert(residue.rows[0]?.count === 0, "edge social authorization left rate-limit test residue");
+    } finally {
+      await database.end().catch(() => undefined);
+    }
   }
   console.log(
     JSON.stringify(
@@ -686,9 +680,8 @@ if (remote) {
         checks: [
           "auth-methods",
           "anonymous-session-denial",
-          "google-authorization",
-          "secure-host-only-state-cookie",
-          "rate-limit-test-residue-cleanup",
+          ...expectedSocialProviders.map((provider) => `${provider}-authorization-secure-host-only-state-cookie`),
+          ...(expectedSocialProviders.length ? ["rate-limit-test-residue-cleanup"] : ["no-social-provider-selected"]),
         ],
       },
       null,
