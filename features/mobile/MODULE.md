@@ -14,6 +14,7 @@ Purpose: provide a touch-first Expo Router SDK 57 application shell for Mobile W
 - Local Setup owns write-only Expo/EAS, App Store Connect and Google Play release credential readiness plus read-only account/project/app tests. Those tests do not replace EAS build, installed-device, store submission or rollback evidence.
 - Production requires the explicit phrase `正式发布移动端` or `production`.
 - Native fingerprints decide Build versus Update; runtimeVersion remains appVersion.
+- `mobile:targets` reports EAS Cloud, local Xcode, local Android SDK and optional connected-Mac availability. A bounded connected-Mac probe requires Darwin, Xcode and an exact remote Git commit; it is a debugging/build execution target and never substitutes for EAS project identity or store evidence.
 - Tamagui 2.7.7 is the selected Mobile UI foundation, using `@tamagui/core` and package-level component imports with a minimal owned theme/token configuration.
 - Expo Web uses Metro and `single` output. Desktop Web remains a separate shadcn/ui application and shares no Mobile UI code.
 - Tamagui Compiler remains blocked on the current TypeScript 6/7 toolchain; runtime-only Web/iOS/Android exports are verified and compiler performance is unclaimed.

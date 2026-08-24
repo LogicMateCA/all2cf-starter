@@ -13,6 +13,7 @@ The target is selected from the user's words, not from the current branch or a d
 
 - Inspect `apps/mobile/package.json` and invoke its existing scripts for lint, typecheck, unit/E2E, and app verification. Do not copy their implementation into this skill.
 - Inspect `apps/mobile/eas.json` and Expo config before choosing a profile or channel. Use the repository's configured EAS commands and flags.
+- Run `npm run mobile:targets` to record host, EAS Cloud, local iOS, local Android and connected-Mac availability. `-- --probe` performs a bounded SSH read-back when `MOBILE_MAC_HOST`, `MOBILE_MAC_PROJECT_ROOT`, and optionally `MOBILE_MAC_SSH_KEY_PATH` are configured. The remote commit must match the release commit before Xcode work.
 - In this Starter repository, use root orchestration only when applicable: `npm run starter:provision`, `npm run release:dev`, `npm run release:production`, and the root `verify` checks. These do not replace mobile verification.
 - If a required script, profile, environment, or EAS capability is absent, report the missing gate instead of inventing a command or silently changing scope.
 

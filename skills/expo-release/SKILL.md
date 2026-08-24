@@ -19,6 +19,7 @@ The Starter baseline currently has local verification only. Until a real Expo pr
 ## Required workflow
 
 1. Read repository instructions, inspect `apps/mobile/package.json`, Expo config, `eas.json`, native directories, and environment/profile files. Use existing project scripts; do not duplicate their implementation or invent a UI kit/chart library. In this starter, check root scripts such as `npm run starter:provision`, `npm run release:dev`, and `npm run release:production` when applicable.
+   Run `npm run mobile:targets` before planning. Use `npm run mobile:targets -- --probe` only when `MOBILE_MAC_HOST` and `MOBILE_MAC_PROJECT_ROOT` are configured; it must prove Darwin, Xcode and the remote Git commit. A configured or reachable Mac is Xcode/debug evidence, not an EAS project, signed archive, submission or store release.
 2. Require a clean Git worktree and record the exact commit. Do not release from uncommitted or mixed-product changes.
 3. Run the mobile verification scripts from `apps/mobile/package.json` (including lint, typecheck, unit/E2E, and build checks when present). Record command, result, and artifact/log location. A successful command alone is not proof of route or API parity.
 4. Resolve and record the exact API environment/base URL, EAS profile, channel, app identifier, and Expo project. Fail closed on missing or conflicting values; do not silently substitute development credentials.

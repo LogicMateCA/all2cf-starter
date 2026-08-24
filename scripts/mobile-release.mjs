@@ -23,6 +23,46 @@ function required(name) {
   return value;
 }
 
+function optional(name) {
+  return process.env[name] || projectEnv.get(name) || profile.get(name) || "";
+}
+
+function executable(command) {
+  return spawnSync(command, ["-version"], { encoding: "utf8", stdio: "ignore" }).status === 0;
+}
+
+function shellQuote(value) { return `'${String(value).replaceAll("'", `'"'"'`)}'`; }
+
+function executionTargets({ probeConnectedMac = false } = {}) {
+  const macHost = optional("MOBILE_MAC_HOST");
+  const macProjectRoot = optional("MOBILE_MAC_PROJECT_ROOT");
+  const macKeyPath = optional("MOBILE_MAC_SSH_KEY_PATH");
+  const connectedMacConfigured = Boolean(macHost && macProjectRoot);
+  let connectedMac = { configured: connectedMacConfigured, reachable: false, xcode: false, commit: null, reason: connectedMacConfigured ? "not probed" : "MOBILE_MAC_HOST and MOBILE_MAC_PROJECT_ROOT are not configured" };
+  if (connectedMacConfigured && probeConnectedMac) {
+    const args = ["-o", "BatchMode=yes", "-o", "ConnectTimeout=8"];
+    if (macKeyPath) args.push("-i", macKeyPath);
+    args.push(macHost, "sh", "-lc", `cd ${shellQuote(macProjectRoot)} && uname -s && xcodebuild -version | head -2 && git rev-parse HEAD`);
+    const result = spawnSync("ssh", args, { encoding: "utf8", timeout: 15_000 });
+    const lines = String(result.stdout || "").trim().split(/\r?\n/u);
+    const commit = lines.find((line) => /^[a-f0-9]{40}$/u.test(line)) || null;
+    connectedMac = {
+      configured: true,
+      reachable: result.status === 0 && lines[0] === "Darwin",
+      xcode: result.status === 0 && lines.some((line) => line.startsWith("Xcode ")),
+      commit,
+      reason: result.status === 0 ? null : String(result.stderr || "Connected Mac probe failed").trim().slice(0, 300),
+    };
+  }
+  return {
+    host: { platform: process.platform, architecture: process.arch },
+    easCloud: { configured: Boolean(optional("EXPO_TOKEN") && optional("EXPO_PROJECT_ID")) },
+    localIos: { available: process.platform === "darwin" && executable("xcodebuild") },
+    localAndroid: { available: Boolean(optional("ANDROID_HOME") || optional("ANDROID_SDK_ROOT")) && executable("java") },
+    connectedMac,
+  };
+}
+
 async function readState() {
   try { return JSON.parse(await readFile(statePath, "utf8")); }
   catch { return { schemaVersion: "starter-mobile-release/v1", releases: {} }; }
@@ -83,7 +123,13 @@ async function doctor() {
     endpoints[environment] = { url, status: response.status, ok: response.ok };
     if (!response.ok) throw new Error(`${environment} mobile API is unavailable`);
   }
-  console.log(JSON.stringify({ ok: true, sdk: 57, easProfiles: Object.keys(easConfig.build), endpoints }, null, 2));
+  console.log(JSON.stringify({ ok: true, sdk: 57, easProfiles: Object.keys(easConfig.build), executionTargets: executionTargets(), endpoints }, null, 2));
+}
+
+async function targets() {
+  const result = executionTargets({ probeConnectedMac: process.argv.includes("--probe") });
+  console.log(JSON.stringify({ ok: true, executionTargets: result }, null, 2));
+  return result;
 }
 
 async function verify() {
@@ -124,17 +170,24 @@ async function plan(environment) {
   const current = fingerprints(profile);
   const previous = state.releases[environment];
   const action = previous && sameFingerprint(previous.fingerprints, current) && previous.builds ? "update" : "build";
-  const result = { environment, profile, commit, fingerprints: current, previous: previous ? { commit: previous.commit, fingerprints: previous.fingerprints, builds: previous.builds } : null, action };
+  const targets = executionTargets();
+  const routes = action === "update"
+    ? { ios: targets.easCloud.configured ? "eas-update" : "unavailable", android: targets.easCloud.configured ? "eas-update" : "unavailable" }
+    : {
+        ios: targets.easCloud.configured ? "eas-cloud-build" : targets.localIos.available ? "local-xcode" : targets.connectedMac.configured ? "connected-mac" : "unavailable",
+        android: targets.easCloud.configured ? "eas-cloud-build" : targets.localAndroid.available ? "local-android" : "unavailable",
+      };
+  const result = { environment, profile, commit, fingerprints: current, previous: previous ? { commit: previous.commit, fingerprints: previous.fingerprints, builds: previous.builds } : null, action, routes, executionTargets: targets };
   console.log(JSON.stringify(result, null, 2));
   return result;
 }
 
 async function release(environment) {
-  required("EXPO_TOKEN");
-  required("EXPO_PROJECT_ID");
   if (git(["status", "--porcelain"])) throw new Error("Mobile release requires a clean Git worktree");
   await verify();
   const releasePlan = await plan(environment);
+  if (!releasePlan.executionTargets.easCloud.configured)
+    throw new Error("Remote mobile release requires EXPO_TOKEN and EXPO_PROJECT_ID. Use mobile:targets -- --probe to verify a connected Mac for Xcode debugging; connected Mac evidence does not replace EAS project identity or store submission.");
   const message = `${environment} ${releasePlan.commit.slice(0, 12)}`;
   let remote;
 
@@ -184,11 +237,12 @@ async function recordE2e(environment, evidence) {
 
 const [command = "help", environment, evidence] = process.argv.slice(2);
 if (command === "doctor") await doctor();
+else if (command === "targets") await targets();
 else if (command === "verify") await verify();
 else if (command === "plan") await plan(environment || "development");
 else if (command === "release") await release(environment || "development");
 else if (command === "record-e2e") await recordE2e(environment || "preview", evidence);
 else {
-  console.log("mobile-release commands: doctor | verify | plan <environment> | release <environment> | record-e2e <environment> <evidence-id>");
+  console.log("mobile-release commands: doctor | targets [--probe] | verify | plan <environment> | release <environment> | record-e2e <environment> <evidence-id>");
   process.exitCode = 1;
 }
