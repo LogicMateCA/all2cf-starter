@@ -293,6 +293,23 @@ async function ensureHyperdrive(environment, serviceId) {
   return full.id;
 }
 
+async function adoptExistingHyperdrive(environment, hyperdriveId) {
+  if (!/^[a-f0-9]{32}$/iu.test(hyperdriveId))
+    throw new Error("STARTER_EXISTING_HYPERDRIVE_ID must be a 32-character Cloudflare ID");
+  const database = config[environment].database;
+  const full = await cloudflare("GET", `/accounts/${config.cloudflare.accountId}/hyperdrive/configs/${hyperdriveId}`);
+  if (full.origin?.database !== database.database || full.origin?.user !== database.user)
+    throw new Error(`${environment} existing Hyperdrive has an unexpected database or user identity`);
+  state.resources[`${environment}Hyperdrive`] = {
+    id: full.id,
+    name: full.name,
+    database: database.database,
+    serviceId: full.origin?.service_id || null,
+    adopted: true,
+  };
+  return full.id;
+}
+
 async function writeWrangler(environment, hyperdriveId) {
   const target = config[environment];
   const configuredEmailProvider = config.email?.provider || "cfsend";
@@ -475,11 +492,17 @@ async function provision(environment = "all") {
     throw new Error("provision environment must be development, production, or all");
   await requireProvisionPreflight();
   if (environment === "all" || environment === "development") {
-    ensureDevelopmentDatabase();
-    await saveState();
-    const developmentServiceId = await ensureVpcService();
-    await saveState();
-    const developmentHyperdriveId = await ensureHyperdrive("development", developmentServiceId);
+    const existingHyperdriveId = process.env.STARTER_EXISTING_HYPERDRIVE_ID || "";
+    let developmentHyperdriveId;
+    if (existingHyperdriveId) {
+      developmentHyperdriveId = await adoptExistingHyperdrive("development", existingHyperdriveId);
+    } else {
+      ensureDevelopmentDatabase();
+      await saveState();
+      const developmentServiceId = await ensureVpcService();
+      await saveState();
+      developmentHyperdriveId = await ensureHyperdrive("development", developmentServiceId);
+    }
     await saveState();
     await writeWrangler("development", developmentHyperdriveId);
     await ensureConfiguredR2Buckets("development");

@@ -39,7 +39,8 @@ try {
   await assert.rejects(() => run({ schemaVersion: "starter-cloudflare-control-plane-snapshot/v1", source: "all2cf-control-plane", controlPlane: { service: "unknown", authorization: "saved-owner-connection", projectId: "project-proof" }, ...common }));
   const starterctl = await readFile(path.join(root, "scripts/starterctl.mjs"), "utf8");
   assert.match(starterctl, /STARTER_CONTROL_PLANE === "all2cf"/u);
-  console.log(JSON.stringify({ ok: true, authorities: [mcp.evidence, all2cf.evidence], untrustedRejected: true, environmentGate: true }, null, 2));
+  assert.match(starterctl, /STARTER_EXISTING_HYPERDRIVE_ID/u);
+  console.log(JSON.stringify({ ok: true, authorities: [mcp.evidence, all2cf.evidence], untrustedRejected: true, environmentGate: true, existingHyperdrive: true }, null, 2));
 } finally {
   await rm(temporary, { recursive: true, force: true });
 }
