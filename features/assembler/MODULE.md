@@ -69,6 +69,8 @@ Google, GitHub and Apple are executable social login choices. Setup may select a
 
 PostgreSQL transport is environment-specific. Development and Production independently choose native Hyperdrive or CFPG Service Binding while retaining the same SQL-first/Drizzle application and migration model. Older Blueprints without the environment map continue to use their global provider value.
 
+All local and operator-facing database commands remain native PostgreSQL commands regardless of the selected Worker transport. The provider contract locks the four `db:migrate:*` scripts to `scripts/database-migrate.mjs` and rejects CFPG-specific migration behavior.
+
 Local Factory/Setup drafts may save a selected CFPG environment before its connection command is available. The deferred environment stays visibly incomplete and materialization/release still fail closed until its immutable descriptor has been validated.
 
 Assembler ownership stops at connector materialization. CFPG owns database provisioning, migrations, its Database Worker and readiness evidence; Starter never substitutes an internal migration Worker or duplicates CFPG control-plane behavior.

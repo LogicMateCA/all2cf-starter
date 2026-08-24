@@ -14,6 +14,8 @@ Materialization installs `@all2cf/database-connect` when either environment sele
 
 The boundary is deliberately narrow: Starter owns connector configuration only. All2CF/CFPG owns database provisioning, schema migration execution, Database Worker lifecycle and readiness. Starter must not implement a substitute CFPG migration Worker.
 
+All local development, SQL, migration, Drizzle, test and ordinary PostgreSQL commands remain native PostgreSQL commands for every project. CFPG is optional and may only alter the selected Cloudflare Worker runtime binding; automated verification locks this invariant.
+
 Factory/Setup may persist an intentionally deferred CFPG selection without a command. Saving the draft remains possible, but materialization and release fail closed until the selected environment has a validated descriptor.
 
 # Verification

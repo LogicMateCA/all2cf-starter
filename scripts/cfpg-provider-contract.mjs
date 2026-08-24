@@ -16,11 +16,20 @@ import { validateAssemblyContracts } from "./lib/assembly.mjs";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const blueprint = JSON.parse(await readFile(path.join(root, "starter.blueprint.json"), "utf8"));
 const manifest = JSON.parse(await readFile(path.join(root, "starter.manifest.json"), "utf8"));
+const packageJson = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
+const nativeMigrationSource = await readFile(path.join(root, "scripts/database-migrate.mjs"), "utf8");
 const catalog = JSON.parse(await readFile(path.join(root, "catalog/catalog.json"), "utf8"));
 const designCatalog = JSON.parse(await readFile(path.join(root, "design/catalog.json"), "utf8"));
 const pageCatalog = JSON.parse(await readFile(path.join(root, "pages/catalog.json"), "utf8"));
 const stylekit = JSON.parse(await readFile(path.join(root, "design/stylekit", blueprint.stylekit.slug, "snapshot.json"), "utf8"));
 const saved = blueprint.providers.database.cfpg.development;
+
+assert.equal(packageJson.scripts["db:migrate:status"], "node scripts/database-migrate.mjs --environment=development");
+assert.equal(packageJson.scripts["db:migrate:dev"], "node scripts/database-migrate.mjs --environment=development --apply");
+assert.equal(packageJson.scripts["db:migrate:production:status"], "node scripts/database-migrate.mjs --environment=production");
+assert.equal(packageJson.scripts["db:migrate:production"], "node scripts/database-migrate.mjs --environment=production --apply");
+assert.match(nativeMigrationSource, /import \{ Client \} from "pg"/u);
+assert.doesNotMatch(nativeMigrationSource, /all2cf\/database-connect|ALL2CF_DATABASE|cfpg/iu);
 
 const assemblyFailures = (database, options = {}) => validateAssemblyContracts(
   manifest,
@@ -131,4 +140,5 @@ console.log(JSON.stringify({
   serviceBinding: "ALL2CF_DATABASE",
   nativeRestoreVerified: true,
   environmentIsolationVerified: true,
+  nativePostgresCommandsLocked: true,
 }, null, 2));
