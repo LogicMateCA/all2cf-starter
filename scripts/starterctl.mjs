@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseJsonc } from "jsonc-parser";
 import { parseEnv } from "./lib/env-profile.mjs";
+import { renderSocialProviderSelection } from "./lib/social-providers.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const config = JSON.parse(await readFile(path.join(root, "starter.config.json"), "utf8"));
@@ -328,7 +329,7 @@ async function writeWrangler(environment, hyperdriveId) {
     AUTH_CANONICAL_ORIGIN: `https://${target.domain}`,
     AUTH_REQUIRE_EMAIL_VERIFICATION: "true",
     AUTH_EMAIL_PROVIDER: emailProvider,
-    AUTH_SOCIAL_PROVIDERS: [...selectedSocialProviders].join(","),
+    AUTH_SOCIAL_PROVIDERS: renderSocialProviderSelection(selectedSocialProviders),
     RESEND_API_URL: config.email?.resendApiUrl || "https://api.resend.com",
     ...(emailProvider === "cloudflare-email" ? { CLOUDFLARE_EMAIL_FROM: required("CLOUDFLARE_EMAIL_FROM") } : {}),
     MOBILE_DEEP_LINK_SCHEMES: [`${config.project.slug}-dev://`, `${config.project.slug}-preview://`, `${config.project.slug}://`].join(","),

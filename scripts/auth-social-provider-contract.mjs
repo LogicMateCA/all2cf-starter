@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { selectedSocialProviders, socialProviderMethods } from "./lib/social-providers.mjs";
+import { renderSocialProviderSelection, selectedSocialProviders, socialProviderMethods } from "./lib/social-providers.mjs";
 import { decodeJwt, decodeProtectedHeader, exportPKCS8, generateKeyPair } from "jose";
 import { generateAppleClientSecret } from "./lib/apple-oauth.mjs";
 import { socialProviderHealthMatches } from "./lib/social-provider-health.mjs";
@@ -41,6 +41,10 @@ assert.deepEqual(
   selectedSocialProviders({ ...base, AUTH_SOCIAL_PROVIDERS: "github,unknown,apple" }),
   ["github", "apple"],
 );
+assert.deepEqual(selectedSocialProviders({ ...base, AUTH_SOCIAL_PROVIDERS: "" }), []);
+assert.deepEqual(selectedSocialProviders(Object.fromEntries(Object.entries(base).filter(([key]) => key !== "AUTH_SOCIAL_PROVIDERS"))), ["google"]);
+assert.equal(renderSocialProviderSelection([]), "none");
+assert.equal(renderSocialProviderSelection(["github", "apple"]), "github,apple");
 
 const health = new Map([
   ["google", { status: "not-selected", details: { selected: false } }],

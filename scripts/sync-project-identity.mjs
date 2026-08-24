@@ -1,6 +1,7 @@
 import { readFile, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { renderSocialProviderSelection } from "./lib/social-providers.mjs";
 
 const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const projectRootArgument = process.argv.find((value) => value.startsWith("--project-root="));
@@ -48,7 +49,7 @@ const socialSecrets = {
 for (const file of ["cloudflare/wrangler.development.jsonc", "cloudflare/wrangler.production.jsonc"]) {
   const worker = JSON.parse(await readFile(path.join(root, file), "utf8"));
   worker.vars ||= {};
-  worker.vars.AUTH_SOCIAL_PROVIDERS = blueprint.providers.socialAuth.join(",");
+  worker.vars.AUTH_SOCIAL_PROVIDERS = renderSocialProviderSelection(blueprint.providers.socialAuth);
   const required = new Set(
     (worker.secrets?.required || []).filter((name) => !socialSecretNames.has(name)),
   );

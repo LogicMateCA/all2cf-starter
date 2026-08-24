@@ -8,6 +8,7 @@ import { parse as parseJsonc } from "jsonc-parser";
 import { Client } from "pg";
 import { parseEnv, renderEnv } from "./lib/env-profile.mjs";
 import { socialProviderHealthMatches } from "./lib/social-provider-health.mjs";
+import { renderSocialProviderSelection } from "./lib/social-providers.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const remote = process.argv.includes("--remote");
@@ -398,6 +399,7 @@ ${smokeHandlers.join("\n")}
       AUTH_CANONICAL_ORIGIN: origin,
       AUTH_REQUIRE_EMAIL_VERIFICATION: "true",
       AUTH_EMAIL_PROVIDER: "cfsend",
+      AUTH_SOCIAL_PROVIDERS: renderSocialProviderSelection(selectedSocialProviders),
       ...(twilioSmsSelected ? { TWILIO_API_BASE_URL: `http://127.0.0.1:${smsPort}` } : {}),
       ...(cloudflareStreamSelected ? { STREAM_API_BASE_URL: `http://127.0.0.1:${streamPort}` } : {}),
     },
@@ -2583,7 +2585,7 @@ try {
   const realtimeHealth = healthComponents.get("realtime");
   assert(
     operationsHealth.response.status === 200 &&
-      operationsHealth.payload?.data?.service === "starter" &&
+      operationsHealth.payload?.data?.service === starter.project.slug &&
       databaseHealth?.status === "ok" &&
       typeof databaseHealth?.details?.latencyMs === "number" &&
       emailHealth?.details?.provider === "cfsend" &&

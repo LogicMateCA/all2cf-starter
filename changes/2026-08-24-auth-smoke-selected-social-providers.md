@@ -8,11 +8,11 @@ docsImpact: [features/auth/MODULE.md, features/operations/MODULE.md, /dp]
 
 # Outcome
 
-Make the disposable Auth smoke compare Operations Health with the generated Blueprint's selected Google, GitHub and Apple providers. Selected providers must be configured and healthy; unselected providers must truthfully report `not-selected`. The smoke no longer hard-codes Google as required for projects that intentionally select no social login or another provider.
+Make the disposable Auth smoke compare Operations Health with the generated Blueprint's selected Google, GitHub and Apple providers and the generated project's own service slug. Selected providers must be configured and healthy; unselected providers must truthfully report `not-selected`. The shared parser distinguishes an absent legacy setting (Google default) from an explicit selection, while generated Wrangler configs encode no-social as the durable `none` sentinel because Cloudflare may omit empty-string vars. Runtime methods and health therefore cannot silently re-enable Google, and copied projects are not mistaken for the canonical `starter` service.
 
 # Verification
 
-The social-provider contract covers selected, deferred and unselected health states. The full SQL-first and Drizzle portable verification gates, Auth smoke, types, builds, bundle budgets and both Wrangler dry-runs must pass before a new Engine candidate exists.
+The social-provider contract covers selected, deferred, explicit-empty, legacy-default and unselected health states. The full SQL-first and Drizzle portable verification gates, Auth smoke, types, builds, bundle budgets and both Wrangler dry-runs must pass before a new Engine candidate exists.
 
 # Threat model
 
