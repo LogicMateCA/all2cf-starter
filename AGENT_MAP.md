@@ -45,3 +45,4 @@ The machine-readable route table is `.ai/agent-map.json`. `npm run agent-map:che
 - Permanent SaaS shell: start in `apps/web/src/components`, `workers/app`, and the matching `features/*/MODULE.md`.
 - Historical reasoning: search `changes/` by feature name or `affectedModules`; never read all Change Specs by default.
 - Provider facts or Cloudflare operations: follow the exact matched Skill and current live evidence requirements.
+- A `/setup` All2CF database-connector task belongs to `project-assembly`. It may change only command validation and receipt-owned adapter materialization; CFPG provisioning, migration, backup, runtime and lifecycle remain outside Starter.

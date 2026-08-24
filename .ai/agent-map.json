@@ -27,7 +27,7 @@
     {
       "id": "project-assembly",
       "summary": "Source Factory, reproducible Engine candidates, monotonic update Channels, repeatable update releases, generated-project Setup, Blueprint selection, verified lifecycle updates, Pack materialization, identity synchronization, and /dp generation.",
-      "triggers": ["factory", "source release", "engine candidate", "engine channel", "engine update", "check starter updates", "publish starter development", "capsule", "engine register", "create project", "generated project update", "setup", "blueprint", "preset", "materialize", "starter status", "starter diff", "starter add", "starter update", "assembler", "identity sync", "源库发布", "检查 Starter 更新", "发布 Starter 开发版", "生成项目", "项目更新", "初始化", "配置", "模板", "选择模块"],
+      "triggers": ["factory", "source release", "engine candidate", "engine channel", "engine update", "check starter updates", "publish starter development", "capsule", "engine register", "create project", "generated project update", "setup", "setup database connector", "starter database connector", "blueprint", "preset", "materialize", "starter status", "starter diff", "starter add", "starter update", "assembler", "identity sync", "源库发布", "检查 Starter 更新", "发布 Starter 开发版", "生成项目", "项目更新", "初始化", "配置", "模板", "选择模块"],
       "moduleIds": ["assembler"],
       "primaryFiles": ["apps/web/src/components/setup-page.tsx", "apps/web/vite.config.ts", "scripts/starter-factory.mjs", "scripts/source-release.mjs", "scripts/materialize-blueprint.mjs", "scripts/sync-project-identity.mjs", "starter.blueprint.json", "catalog/catalog.json"],
       "docs": ["features/assembler/MODULE.md", "PROJECT.md"],

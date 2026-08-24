@@ -2039,12 +2039,12 @@ export function SetupPage() {
             <div className="setup-stack provider-setup">
               <section className="setup-panel provider-summary">
                 <div><span>Authentication</span><strong>{payload.blueprint.providers.auth}</strong><small>Better Auth core and selected official plugins</small></div>
-                <div><span>Database</span><strong>Development {databaseTransport(payload.blueprint.providers.database, "development") === "cfpg" ? "CFPG" : "Native PostgreSQL"}</strong><small>Production {databaseTransport(payload.blueprint.providers.database, "production") === "cfpg" ? "CFPG" : "Native PostgreSQL"} / {payload.blueprint.providers.database.access}</small></div>
+                <div><span>Database</span><strong>Development {databaseTransport(payload.blueprint.providers.database, "development") === "cfpg" ? "All2CF connector" : "Native PostgreSQL"}</strong><small>Production {databaseTransport(payload.blueprint.providers.database, "production") === "cfpg" ? "All2CF connector" : "Native PostgreSQL"} / {payload.blueprint.providers.database.access}</small></div>
                 <div><span>Billing</span><strong>{payload.blueprint.providers.billing}</strong><small>Activated only when the Billing pack is materialized</small></div>
               </section>
 
               <section className="setup-panel provider-section">
-                <header><h2>PostgreSQL</h2><p>Application code always uses the native pg contract. Choose SQL-first or Drizzle for product-domain code; Hyperdrive and CFPG only change how pg connects.</p></header>
+                <header><h2>PostgreSQL</h2><p>Application code always uses the native pg contract. Choose SQL-first or Drizzle for product-domain code. Hyperdrive is native; the optional All2CF adapter only changes how the Worker connects.</p></header>
                 <div className="storage-provider-options" role="group" aria-label="Product data layer">
                   {(["sql-first", "drizzle"] as const).map((access) => <button type="button" key={access} aria-pressed={payload.blueprint.providers.database.access === access} onClick={() => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, database: { ...blueprint.providers.database, access } }, selections: { ...blueprint.selections, capabilities: blueprint.selections.capabilities.map((selection) => selection.id === "capability.data-layer-drizzle" ? { ...selection, lifecycle: { ...selection.lifecycle, selected: access === "drizzle", ...(access === "drizzle" ? {} : { localVerified: false, developmentVerified: false, productionReleased: false }) } } : selection) } }))}><strong>{access === "sql-first" ? "SQL" : "Drizzle"}</strong><span>{access === "sql-first" ? "Smallest and AI-first." : "Typed product-domain schema over the same pg connection."}</span></button>)}
                 </div>
@@ -2055,17 +2055,17 @@ export function SetupPage() {
                       <div className="provider-option-grid" role="radiogroup" aria-label={`${environment} database runtime`}>
                         {[
                           { id: "native-postgresql", name: "Native PostgreSQL", note: "PostgreSQL through this environment's isolated Hyperdrive binding." },
-                          { id: "cfpg", name: "CFPG", note: "All2CF Database through @all2cf/database-connect and ALL2CF_DATABASE." },
+                          { id: "cfpg", name: "All2CF database connector", note: "Optional @all2cf/database-connect adapter. The external database remains owned and managed by All2CF Database." },
                         ].map(({ id, name, note }) => {
                           const selected = databaseTransport(payload.blueprint.providers.database, environment) === id;
                           return <div className={selected ? "provider-option selected" : "provider-option"} key={id}><label><input type="radio" name={`database-provider-${environment}`} checked={selected} onChange={() => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, database: { ...blueprint.providers.database, transports: { development: databaseTransport(blueprint.providers.database, "development"), production: databaseTransport(blueprint.providers.database, "production"), [environment]: id as DatabasePolicy["provider"] } } } }))} /><span><strong>{name}</strong><small>{note}</small></span></label></div>;
                         })}
                       </div>
-                      {databaseTransport(payload.blueprint.providers.database, environment) === "cfpg" ? <label className="setup-field"><span>CFPG connect command</span><Input type="text" autoComplete="off" value={cfpgCommands[environment]} placeholder="npx @all2cf/database-connect@0.2.0-rc.2 db_..." onChange={(event) => updateCfpgCommand(environment, event.target.value)} /><small>{payload.blueprint.providers.database.cfpg?.[environment]?.databaseId || (cfpgCommands[environment] ? "Save to validate this command." : "Configure later; this environment cannot be materialized until provided.")}</small></label> : null}
+                      {databaseTransport(payload.blueprint.providers.database, environment) === "cfpg" ? <label className="setup-field"><span>All2CF connector command</span><Input type="text" autoComplete="off" value={cfpgCommands[environment]} placeholder="npx @all2cf/database-connect@0.2.0-rc.2 db_..." onChange={(event) => updateCfpgCommand(environment, event.target.value)} /><small>{payload.blueprint.providers.database.cfpg?.[environment]?.databaseId || (cfpgCommands[environment] ? "Save to validate this connector command." : "Configure later; this environment cannot be materialized until provided.")}</small></label> : null}
                     </div>
                   ))}
                 </div>
-                <p>Each environment is independent. Saving validates selected CFPG commands against All2CF; it does not connect or deploy automatically. If both use CFPG, they must use different database IDs.</p>
+                <p>Each environment is independent. Saving validates the supplied connector descriptor; it never creates, migrates, upgrades or manages the external database. If both environments use the connector, they require different database IDs.</p>
               </section>
 
               <section className="setup-panel provider-section">

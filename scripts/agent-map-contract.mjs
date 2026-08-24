@@ -45,6 +45,8 @@ if (auth.parsed.agentMap.matches[0]?.id !== "auth-account" || !auth.parsed.recom
   failures.push("Task routing did not resolve auth-account");
 const mobile = context(["--module", "mobile"]);
 if (mobile.parsed.agentMap.matches[0]?.id !== "mobile-expo") failures.push("Module routing did not resolve mobile-expo");
+const setupConnector = context(["--task", "收口 Starter setup database connector 边界"]);
+if (setupConnector.parsed.agentMap.matches[0]?.id !== "project-assembly") failures.push("Starter connector task escaped project-assembly");
 
 console.log(JSON.stringify({
   ok: failures.length === 0,
@@ -54,6 +56,7 @@ console.log(JSON.stringify({
   defaultReads: base.parsed.recommendedReads.length,
   authRoute: auth.parsed.agentMap.matches[0]?.id || null,
   mobileRoute: mobile.parsed.agentMap.matches[0]?.id || null,
+  setupConnectorRoute: setupConnector.parsed.agentMap.matches[0]?.id || null,
   failures,
 }, null, 2));
 if (failures.length) process.exitCode = 1;
