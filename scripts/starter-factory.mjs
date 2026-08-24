@@ -77,7 +77,7 @@ async function ensureNewDirectory(target) {
   await mkdir(target, { recursive: true });
 }
 
-const transientPrefixes = [".git", ".all2cf", ".factory-output", "node_modules", "dist", "test-results", "tmp", "cloudflare/.wrangler", "cloudflare/dist", "apps/mobile/dist", "apps/web/dist", "apps/docs/dist", "apps/marketing/dist"];
+const transientPrefixes = [".git", ".all2cf", ".factory-output", "node_modules", "dist", "test-results", "tmp", "cloudflare/.wrangler", "cloudflare/dist", "apps/mobile/android", "apps/mobile/ios", "apps/mobile/dist", "apps/web/dist", "apps/docs/dist", "apps/marketing/dist"];
 const secretFiles = new Set([".dev.vars", "apps/web/.env.local", "apps/mobile/.env.local"]);
 function shouldCopy(source) {
   const relative = path.relative(sourceRoot, source).replaceAll(path.sep, "/");

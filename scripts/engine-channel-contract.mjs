@@ -35,7 +35,7 @@ try {
   runSync("mkdir", ["-p", channelRoot]);
   runSync("tar", [
     "--exclude=.git", "--exclude=.all2cf", "--exclude=.factory-output", "--exclude=node_modules",
-    "--exclude=dist", "--exclude=test-results", "--exclude=tmp", "-czf", archive, "-C", root, ".",
+    "--exclude=dist", "--exclude=test-results", "--exclude=tmp", "--exclude=apps/mobile/android", "--exclude=apps/mobile/ios", "-czf", archive, "-C", root, ".",
   ]);
   const artifactSha256 = createHash("sha256").update(await readFile(archive)).digest("hex");
   server = http.createServer(async (request, response) => {

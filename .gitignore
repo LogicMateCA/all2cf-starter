@@ -11,6 +11,9 @@ dist/
 !.env.example
 !*.env.example
 apps/mobile/.expo/
+apps/mobile/android/
+apps/mobile/ios/
+.all2cf/mobile-builds/
 apps/docs/.astro/
 apps/marketing/.astro/
 apps/mobile/.env.local

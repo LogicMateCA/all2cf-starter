@@ -42,5 +42,25 @@ services:
       STARTER_BROWSER_EXECUTABLE_PATH: /ms-playwright/chromium-1234/chrome-linux64/chrome
     command: ["sleep", "infinity"]
 
+  starter-android-builder:
+    build:
+      context: .
+      dockerfile: Dockerfile.android
+    profiles: ["mobile"]
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - starter-node-modules:/workspace/node_modules
+      - starter-android-gradle-cache:/root/.gradle
+      - /opt/android-sdk:/opt/android-sdk
+      - /root/.ssh/miner-mac-worker:/run/starter-secrets/mobile-mac-key:ro
+      - /root/.ssh/known_hosts:/root/.ssh/known_hosts:ro
+    environment:
+      ANDROID_HOME: /opt/android-sdk
+      ANDROID_SDK_ROOT: /opt/android-sdk
+      MOBILE_MAC_SSH_KEY_PATH: /run/starter-secrets/mobile-mac-key
+    command: ["sleep", "infinity"]
+
 volumes:
   starter-node-modules:
+  starter-android-gradle-cache:

@@ -69,6 +69,11 @@ export const providerSetupLinks = {
     { label: "Expo access tokens", href: "https://expo.dev/accounts" },
     { label: "EAS project setup", href: "https://docs.expo.dev/build/setup/" },
   ],
+  "mobile-local-build": [
+    { label: "Expo local builds", href: "https://docs.expo.dev/guides/local-app-overview/" },
+    { label: "Android signed builds", href: "https://developer.android.com/studio/publish/app-signing" },
+    { label: "Xcode archives", href: "https://developer.apple.com/documentation/xcode/distributing-your-app-for-beta-testing-and-releases" },
+  ],
   "apple-app-store": [
     { label: "App Store Connect API", href: "https://appstoreconnect.apple.com/access/integrations/api" },
     { label: "API key guide", href: "https://developer.apple.com/documentation/appstoreconnectapi/creating-api-keys-for-app-store-connect-api" },

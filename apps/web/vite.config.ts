@@ -68,6 +68,7 @@ const providerCredentialFields = {
   "cloudflare-release": ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"],
   "github-release": ["GITHUB_TOKEN"],
   "expo-eas": ["EXPO_TOKEN", "EXPO_OWNER", "EXPO_PROJECT_ID"],
+  "mobile-local-build": ["MOBILE_ANDROID_BUILDER", "MOBILE_IOS_BUILDER", "ANDROID_HOME", "MOBILE_ANDROID_ARCHITECTURES", "ANDROID_RELEASE_KEYSTORE", "ANDROID_RELEASE_STORE_PASSWORD", "ANDROID_RELEASE_KEY_ALIAS", "ANDROID_RELEASE_KEY_PASSWORD", "MOBILE_MAC_HOST", "MOBILE_MAC_PROJECT_ROOT", "MOBILE_MAC_SSH_KEY_PATH", "IOS_EXPORT_OPTIONS_PLIST"],
   "apple-app-store": ["ASC_KEY_ID", "ASC_ISSUER_ID", "ASC_API_KEY_BASE64", "ASC_APP_ID"],
   "google-play": ["GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64", "GOOGLE_PLAY_PACKAGE_NAME"],
 } as const;
@@ -115,7 +116,15 @@ async function providerCredentialStatus() {
   ]);
   return Object.fromEntries(
     Object.entries(providerCredentialFields).map(([provider, fields]) => {
-      const missing = fields.filter(
+      const requiredFields = provider === "mobile-local-build"
+        ? [
+            "MOBILE_ANDROID_BUILDER",
+            "MOBILE_IOS_BUILDER",
+            ...(new Set([project.get("MOBILE_ANDROID_BUILDER"), shared.get("MOBILE_ANDROID_BUILDER")].filter(Boolean)).has("eas") ? [] : ["ANDROID_HOME"]),
+            ...(new Set([project.get("MOBILE_IOS_BUILDER"), shared.get("MOBILE_IOS_BUILDER")].filter(Boolean)).has("connected-mac") ? ["MOBILE_MAC_HOST", "MOBILE_MAC_PROJECT_ROOT"] : []),
+          ]
+        : fields;
+      const missing = requiredFields.filter(
         (field) => !(project.get(field) || shared.get(field) || "").trim(),
       );
       const projectFields = fields.filter((field) => Boolean(project.get(field)?.trim()));
@@ -515,7 +524,7 @@ async function testReleasePlatformProvider(input: unknown) {
   if (!input || typeof input !== "object") throw new Error("Provider test payload is required.");
   const body = input as { provider?: unknown; providerSecrets?: unknown };
   const provider = String(body.provider || "").trim().toLowerCase();
-  if (!new Set(["cloudflare-release", "github-release", "expo-eas", "apple-app-store", "google-play"]).has(provider))
+  if (!new Set(["cloudflare-release", "github-release", "expo-eas", "mobile-local-build", "apple-app-store", "google-play"]).has(provider))
     throw new Error("Unknown release platform.");
   const profiles = JSON.parse(await readFile(path.join(repositoryRoot, "profiles/providers.json"), "utf8")) as { defaultPath: string };
   const profilePath = process.env.STARTER_DEV_PROFILE_PATH || profiles.defaultPath;
@@ -563,6 +572,14 @@ async function testReleasePlatformProvider(input: unknown) {
     const payload = JSON.parse(output.slice(output.indexOf("{"))) as { id?: string; name?: string; ownerAccount?: { name?: string } };
     if (payload.id !== requiredValue("EXPO_PROJECT_ID")) throw new Error("EAS returned a different project ID.");
     return { provider, identity: `${payload.ownerAccount?.name || requiredValue("EXPO_OWNER")}/${payload.name || payload.id}`, verified: true };
+  }
+  if (provider === "mobile-local-build") {
+    const env = { ...process.env, ...Object.fromEntries(providerCredentialFields[provider].map((name) => [name, values.get(name) || ""])) };
+    const { stdout } = await execFileAsync(process.execPath, ["scripts/mobile-release.mjs", "targets", "--probe"], { cwd: repositoryRoot, encoding: "utf8", timeout: 30_000, maxBuffer: 2 * 1024 * 1024, env });
+    const payload = JSON.parse(stdout) as { executionTargets?: { localAndroid?: { available?: boolean }; localIos?: { available?: boolean }; connectedMac?: { reachable?: boolean; xcode?: boolean; commit?: string | null } } };
+    if (!payload.executionTargets?.localAndroid?.available) throw new Error("Configured Android SDK/Java target is unavailable from this project.");
+    if (!payload.executionTargets.localIos?.available && !(payload.executionTargets.connectedMac?.reachable && payload.executionTargets.connectedMac?.xcode)) throw new Error("Neither local Xcode nor the configured connected Mac is available.");
+    return { provider, identity: `Android local + ${payload.executionTargets.localIos?.available ? "local Xcode" : `Mac ${payload.executionTargets.connectedMac?.commit || "connected"}`}`, verified: true };
   }
   if (provider === "apple-app-store") {
     const now = Math.floor(Date.now() / 1000);

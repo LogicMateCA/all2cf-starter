@@ -327,7 +327,7 @@ type SetupPayload = {
     categories: ProviderCatalogCategory[];
   };
   providerCredentials: Record<
-    "google" | "github" | "apple" | "cfsend" | "resend" | "cloudflare-email-service" | "stripe" | "s3-compatible" | "turnstile" | "expo-push" | "twilio-sms" | "cloudflare-stream" | "cloudflare-release" | "github-release" | "expo-eas" | "apple-app-store" | "google-play",
+    "google" | "github" | "apple" | "cfsend" | "resend" | "cloudflare-email-service" | "stripe" | "s3-compatible" | "turnstile" | "expo-push" | "twilio-sms" | "cloudflare-stream" | "cloudflare-release" | "github-release" | "expo-eas" | "mobile-local-build" | "apple-app-store" | "google-play",
     {
       configured: boolean;
       source: "project" | "shared" | "mixed" | "missing";
@@ -341,7 +341,7 @@ type ProviderTestState = {
   provider?: string;
   message?: string;
 };
-type ReleaseProvider = "cloudflare-release" | "github-release" | "expo-eas" | "apple-app-store" | "google-play";
+type ReleaseProvider = "cloudflare-release" | "github-release" | "expo-eas" | "mobile-local-build" | "apple-app-store" | "google-play";
 
 const providerSecretFields = {
   google: [
@@ -416,6 +416,20 @@ const providerSecretFields = {
     { name: "EXPO_TOKEN", label: "Expo access token", secret: true },
     { name: "EXPO_OWNER", label: "Expo account / organization", secret: false },
     { name: "EXPO_PROJECT_ID", label: "EAS project ID", secret: false },
+  ],
+  "mobile-local-build": [
+    { name: "MOBILE_ANDROID_BUILDER", label: "Android builder: auto, local or eas", secret: false },
+    { name: "MOBILE_IOS_BUILDER", label: "iOS builder: auto, local, connected-mac or eas", secret: false },
+    { name: "ANDROID_HOME", label: "Android SDK path", secret: false },
+    { name: "MOBILE_ANDROID_ARCHITECTURES", label: "Development ABIs (default arm64-v8a)", secret: false },
+    { name: "ANDROID_RELEASE_KEYSTORE", label: "Android upload keystore path", secret: false },
+    { name: "ANDROID_RELEASE_STORE_PASSWORD", label: "Android keystore password", secret: true },
+    { name: "ANDROID_RELEASE_KEY_ALIAS", label: "Android key alias", secret: false },
+    { name: "ANDROID_RELEASE_KEY_PASSWORD", label: "Android key password", secret: true },
+    { name: "MOBILE_MAC_HOST", label: "Connected Mac SSH host", secret: false },
+    { name: "MOBILE_MAC_PROJECT_ROOT", label: "Project path on Mac", secret: false },
+    { name: "MOBILE_MAC_SSH_KEY_PATH", label: "Mac SSH key path", secret: false },
+    { name: "IOS_EXPORT_OPTIONS_PLIST", label: "iOS ExportOptions.plist path", secret: false },
   ],
   "apple-app-store": [
     { name: "ASC_KEY_ID", label: "API key ID", secret: false },
@@ -2251,6 +2265,7 @@ export function SetupPage() {
                     { id: "cloudflare-release", name: "Cloudflare Workers", note: "Verifies the active token and exact account without deploying." },
                     { id: "github-release", name: "GitHub", note: "Verifies the token's authenticated GitHub identity without changing a repository." },
                     { id: "expo-eas", name: "Expo / EAS", note: "Verifies that EAS CLI resolves the exact configured project." },
+                    { id: "mobile-local-build", name: "Local Android + Mac/Xcode", note: "Verifies the local Android SDK and either local Xcode or an exact-commit connected Mac. EAS remains optional." },
                     { id: "apple-app-store", name: "Apple App Store Connect", note: "Signs a short-lived API JWT and reads the exact configured app." },
                     { id: "google-play", name: "Google Play", note: "Exchanges the service-account JWT and reads the configured Android app's subscriptions surface." },
                   ] satisfies Array<{ id: ReleaseProvider; name: string; note: string }>).map(({ id, name, note }) => {
