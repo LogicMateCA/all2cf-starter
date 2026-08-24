@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { selectedSocialProviders, socialProviderMethods } from "./lib/social-providers.mjs";
 import { decodeJwt, decodeProtectedHeader, exportPKCS8, generateKeyPair } from "jose";
 import { generateAppleClientSecret } from "./lib/apple-oauth.mjs";
+import { socialProviderHealthMatches } from "./lib/social-provider-health.mjs";
 const base = {
   APP_ENV: "test",
   SERVICE_NAME: "starter",
@@ -41,6 +42,14 @@ assert.deepEqual(
   ["github", "apple"],
 );
 
+const health = new Map([
+  ["google", { status: "not-selected", details: { selected: false } }],
+  ["github", { status: "ok", details: { selected: true, configured: true } }],
+  ["apple", { status: "not-selected", details: { selected: false } }],
+]);
+assert.equal(socialProviderHealthMatches(new Set(["github"]), health), true);
+assert.equal(socialProviderHealthMatches(new Set(["google"]), health), false);
+
 const { privateKey } = await generateKeyPair("ES256", { extractable: true });
 const privateKeyPem = await exportPKCS8(privateKey);
 const appleSecret = await generateAppleClientSecret({
@@ -57,4 +66,4 @@ assert.equal(appleClaims.sub, "com.example.web");
 assert.equal(appleClaims.aud, "https://appleid.apple.com");
 assert.equal(appleClaims.exp - appleClaims.iat, 180 * 24 * 60 * 60);
 
-console.log(JSON.stringify({ ok: true, providers: ["google", "github", "apple"], checks: ["selection", "configured", "deferred", "unknown-provider-rejection", "apple-es256-client-secret"] }, null, 2));
+console.log(JSON.stringify({ ok: true, providers: ["google", "github", "apple"], checks: ["selection", "configured", "deferred", "unknown-provider-rejection", "apple-es256-client-secret", "operations-health-selection"] }, null, 2));

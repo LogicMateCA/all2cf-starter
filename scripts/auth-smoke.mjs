@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { parse as parseJsonc } from "jsonc-parser";
 import { Client } from "pg";
 import { parseEnv, renderEnv } from "./lib/env-profile.mjs";
+import { socialProviderHealthMatches } from "./lib/social-provider-health.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const remote = process.argv.includes("--remote");
@@ -26,6 +27,7 @@ const starter = JSON.parse(
 const blueprint = JSON.parse(
   await readFile(path.join(root, "starter.blueprint.json"), "utf8"),
 );
+const selectedSocialProviders = new Set(blueprint.providers?.socialAuth || []);
 const selectedPacks = new Set(
   Object.values(blueprint.selections)
     .flat()
@@ -2567,7 +2569,6 @@ try {
   );
   const databaseHealth = healthComponents.get("database");
   const emailHealth = healthComponents.get("email");
-  const googleHealth = healthComponents.get("google");
   const stripeHealth = healthComponents.get("stripe");
   const queueHealth = healthComponents.get("outgoing-webhooks");
   const turnstileHealth = healthComponents.get("turnstile");
@@ -2588,8 +2589,8 @@ try {
       emailHealth?.details?.provider === "cfsend" &&
       emailHealth?.details?.configured === true &&
       emailHealth?.details?.sent24h >= 1 &&
-      googleHealth?.details?.configured === true,
-    "operations health omitted active database, CFsend, or Google evidence",
+      socialProviderHealthMatches(selectedSocialProviders, healthComponents),
+    "operations health omitted active database, email, or selected social-provider evidence",
   );
   assert(
     workflowsSelected
@@ -2698,7 +2699,7 @@ try {
     "operations health misreported optional Queue delivery evidence",
   );
   checks.push(
-    "operations-health-admin-database-email-google-optional-provider-evidence",
+    "operations-health-admin-database-email-selected-social-optional-provider-evidence",
   );
   if (entitlementsSelected) {
     const adminAccess = await request(
