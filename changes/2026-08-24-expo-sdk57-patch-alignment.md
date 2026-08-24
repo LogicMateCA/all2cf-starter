@@ -20,6 +20,6 @@ Require `expo install --check`, Expo Doctor, mobile TypeScript, Android/iOS/Web 
 
 # Release
 
-Implemented and fully verified locally. Expo dependency check reports up to date, Expo Doctor passes 21/21, iOS/Android/Web export and mobile budgets pass, and the Development plan records native fingerprints Android `417d10fcd2d125b1e609f365dc92fb341c987a8d` and iOS `cb95ca245dd812a41a1777a05bd4a8c9600484e0` with action `build`. The complete repository `verify` gate, both Worker dry-runs, Factory, update, Plugin, Visual, design and AI contracts pass.
+Implemented and fully verified locally. Engine `2.0.0-dev.24` is the explicitly selected Development candidate. Expo dependency check reports up to date, Expo Doctor passes 21/21, iOS/Android/Web export and mobile budgets pass, and the Development plan records native fingerprints Android `417d10fcd2d125b1e609f365dc92fb341c987a8d` and iOS `cb95ca245dd812a41a1777a05bd4a8c9600484e0` with action `build`. The complete repository `verify` gate, both Worker dry-runs, Factory, update, Plugin, Visual, design and AI contracts pass.
 
 Development remote EAS Build remains unavailable because neither `EXPO_TOKEN` nor `EXPO_PROJECT_ID` is configured and no connected Mac address is registered. Preview, Production, App Store and Google Play are not authorized or claimed by this change.
