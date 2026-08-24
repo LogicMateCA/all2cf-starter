@@ -345,6 +345,15 @@
           "properties": {
             "engine": { "const": "postgresql" },
             "provider": { "enum": ["native-postgresql", "cfpg"] },
+            "transports": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["development", "production"],
+              "properties": {
+                "development": { "enum": ["native-postgresql", "cfpg"] },
+                "production": { "enum": ["native-postgresql", "cfpg"] }
+              }
+            },
             "access": { "enum": ["sql-first", "drizzle"] },
             "initialState": { "const": "empty" },
             "schemaSource": { "const": "selected-pack-baseline" },

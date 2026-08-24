@@ -16,6 +16,10 @@ export type CfpgConnection = {
 export function parseCfpgConnectCommand(value: unknown): { command: string; databaseId: string; version: string } | null;
 export function resolveCfpgConnectCommand(value: unknown, fetchImpl?: typeof fetch): Promise<CfpgConnection | null>;
 export function validateCfpgConnection(connection: CfpgConnection | null | undefined, label: string): string[];
+export function databaseProviderForEnvironment(databasePolicy: {
+  provider?: "native-postgresql" | "cfpg";
+  transports?: Partial<Record<"development" | "production", "native-postgresql" | "cfpg">>;
+} | null | undefined, environment: "development" | "production"): "native-postgresql" | "cfpg";
 export function configureDatabaseRuntime(model: Record<string, any>, input: {
   provider: "native-postgresql" | "cfpg";
   environment: "development" | "production";

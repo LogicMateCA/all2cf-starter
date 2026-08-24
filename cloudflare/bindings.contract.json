@@ -17,13 +17,13 @@
       "kind": "hyperdrive",
       "status": "selected-native-postgresql",
       "requiredPerEnvironment": false,
-      "requiredWhen": "database.provider=native-postgresql"
+      "requiredWhen": "database.transports.<environment>=native-postgresql (legacy fallback: database.provider)"
     },
     "ALL2CF_DATABASE": {
       "kind": "service_binding",
       "status": "selected-cfpg",
       "requiredPerEnvironment": false,
-      "requiredWhen": "database.provider=cfpg",
+      "requiredWhen": "database.transports.<environment>=cfpg (legacy fallback: database.provider)",
       "entrypoint": "All2CFDatabase",
       "mutuallyExclusiveWith": "HYPERDRIVE"
     },

@@ -6,16 +6,69 @@ import {
   CFPG_CONNECTOR_PACKAGE,
   CFPG_CONNECTOR_VERSION,
   configureDatabaseRuntime,
+  databaseProviderForEnvironment,
   parseCfpgConnectCommand,
   resolveCfpgConnectCommand,
   validateCfpgConnection,
 } from "./lib/cfpg.mjs";
+import { validateAssemblyContracts } from "./lib/assembly.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const blueprint = JSON.parse(await readFile(path.join(root, "starter.blueprint.json"), "utf8"));
+const manifest = JSON.parse(await readFile(path.join(root, "starter.manifest.json"), "utf8"));
+const catalog = JSON.parse(await readFile(path.join(root, "catalog/catalog.json"), "utf8"));
+const designCatalog = JSON.parse(await readFile(path.join(root, "design/catalog.json"), "utf8"));
+const pageCatalog = JSON.parse(await readFile(path.join(root, "pages/catalog.json"), "utf8"));
+const stylekit = JSON.parse(await readFile(path.join(root, "design/stylekit", blueprint.stylekit.slug, "snapshot.json"), "utf8"));
 const saved = blueprint.providers.database.cfpg.development;
 
+const assemblyFailures = (database, options = {}) => validateAssemblyContracts(
+  manifest,
+  { ...structuredClone(blueprint), providers: { ...structuredClone(blueprint.providers), database } },
+  catalog,
+  designCatalog,
+  pageCatalog,
+  stylekit,
+  options,
+);
+
 assert.equal(blueprint.providers.database.provider, "native-postgresql");
+assert.deepEqual(blueprint.providers.database.transports, {
+  development: "native-postgresql",
+  production: "native-postgresql",
+});
+assert.equal(databaseProviderForEnvironment(blueprint.providers.database, "development"), "native-postgresql");
+assert.equal(databaseProviderForEnvironment({ provider: "cfpg" }, "production"), "cfpg");
+assert.equal(databaseProviderForEnvironment({ provider: "cfpg", transports: { development: "native-postgresql" } }, "development"), "native-postgresql");
+assert.equal(databaseProviderForEnvironment({ provider: "cfpg", transports: { development: "native-postgresql" } }, "production"), "cfpg");
+assert.throws(
+  () => databaseProviderForEnvironment({ transports: { development: "invalid" } }, "development"),
+  /invalid/u,
+);
+assert.match(
+  assemblyFailures({ ...structuredClone(blueprint.providers.database), transports: { development: "invalid", production: "native-postgresql" } }).join("\n"),
+  /development is invalid/u,
+);
+assert.deepEqual(assemblyFailures({ ...structuredClone(blueprint.providers.database), transports: { development: "native-postgresql", production: "native-postgresql" } }), []);
+assert.deepEqual(assemblyFailures({ ...structuredClone(blueprint.providers.database), transports: { development: "cfpg", production: "native-postgresql" } }), []);
+const deferredDevelopment = { ...structuredClone(blueprint.providers.database), transports: { development: "cfpg", production: "native-postgresql" }, cfpg: { development: null, production: null } };
+assert.match(assemblyFailures(deferredDevelopment).join("\n"), /requires its connection descriptor/u);
+assert.deepEqual(assemblyFailures(deferredDevelopment, { allowDeferredCfpg: true }), []);
+const distinctProduction = {
+  ...structuredClone(saved),
+  connectCommand: saved.connectCommand.replace(saved.databaseId, "db_11111111111111111111111111111111"),
+  databaseId: "db_11111111111111111111111111111111",
+  databaseWorker: "database-worker-production",
+};
+assert.deepEqual(assemblyFailures({ ...structuredClone(blueprint.providers.database), transports: { development: "cfpg", production: "cfpg" }, cfpg: { development: saved, production: distinctProduction } }), []);
+assert.match(
+  assemblyFailures({ ...structuredClone(blueprint.providers.database), transports: { development: "cfpg", production: "cfpg" }, cfpg: { development: saved, production: saved } }).join("\n"),
+  /must be different/u,
+);
+const legacyDatabase = structuredClone(blueprint.providers.database);
+delete legacyDatabase.transports;
+legacyDatabase.provider = "native-postgresql";
+assert.deepEqual(assemblyFailures(legacyDatabase), []);
 assert.deepEqual(validateCfpgConnection(saved, "development"), []);
 assert.deepEqual(parseCfpgConnectCommand(saved.connectCommand), {
   command: saved.connectCommand,
@@ -77,4 +130,5 @@ console.log(JSON.stringify({
   databaseId: saved.databaseId,
   serviceBinding: "ALL2CF_DATABASE",
   nativeRestoreVerified: true,
+  environmentIsolationVerified: true,
 }, null, 2));

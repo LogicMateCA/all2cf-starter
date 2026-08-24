@@ -435,6 +435,10 @@
     "database": {
       "engine": "postgresql",
       "provider": "native-postgresql",
+      "transports": {
+        "development": "native-postgresql",
+        "production": "native-postgresql"
+      },
       "access": "sql-first",
       "initialState": "empty",
       "schemaSource": "selected-pack-baseline",

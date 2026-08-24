@@ -1,4 +1,4 @@
-import { validateCfpgConnection } from "./cfpg.mjs";
+import { databaseProviderForEnvironment, validateCfpgConnection } from "./cfpg.mjs";
 
 export function validateAssemblyContracts(
   manifest,
@@ -7,6 +7,7 @@ export function validateAssemblyContracts(
   designCatalog,
   pageCatalog,
   stylekit = null,
+  options = {},
 ) {
   const failures = [];
   if (blueprint.schemaVersion !== "starter-blueprint/v1")
@@ -80,16 +81,28 @@ export function validateAssemblyContracts(
     failures.push("Drizzle Pack selection must match the Blueprint database access layer");
   if (!new Set(["native-postgresql", "cfpg"]).has(databasePolicy.provider))
     failures.push("Blueprint database policy provider must be native-postgresql or cfpg");
-  for (const environment of ["development", "production"])
+  const environmentProviders = {};
+  for (const environment of ["development", "production"]) {
+    let environmentProvider;
+    try { environmentProvider = databaseProviderForEnvironment(databasePolicy, environment); }
+    catch (error) { failures.push(error.message); continue; }
+    environmentProviders[environment] = environmentProvider;
     failures.push(
       ...validateCfpgConnection(
         databasePolicy.cfpg?.[environment],
         `Blueprint database policy cfpg.${environment}`,
       ),
     );
+    if (environmentProvider === "cfpg" && !databasePolicy.cfpg?.[environment] && !options.allowDeferredCfpg)
+      failures.push(`Blueprint database policy ${environment} CFPG transport requires its connection descriptor`);
+  }
   const developmentCfpgId = databasePolicy.cfpg?.development?.databaseId;
   const productionCfpgId = databasePolicy.cfpg?.production?.databaseId;
-  if (developmentCfpgId && developmentCfpgId === productionCfpgId)
+  if (
+    environmentProviders.development === "cfpg" &&
+    environmentProviders.production === "cfpg" &&
+    developmentCfpgId && developmentCfpgId === productionCfpgId
+  )
     failures.push("Development and Production CFPG databases must be different");
   const storagePolicy = blueprint.providers?.storage || {};
   if (!new Set(["none", "cloudflare-r2", "s3-compatible"]).has(storagePolicy.provider))

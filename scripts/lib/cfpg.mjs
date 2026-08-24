@@ -2,6 +2,13 @@ export const CFPG_CONNECTOR_PACKAGE = "@all2cf/database-connect";
 export const CFPG_CONNECTOR_VERSION = "0.2.0-rc.2";
 export const CFPG_INSTALL_API = "https://app.all2cf.com";
 
+export function databaseProviderForEnvironment(databasePolicy, environment) {
+  const provider = databasePolicy?.transports?.[environment] || databasePolicy?.provider || "native-postgresql";
+  if (!new Set(["native-postgresql", "cfpg"]).has(provider))
+    throw new Error(`Database transport for ${environment} is invalid`);
+  return provider;
+}
+
 const commandPattern = /^npx\s+@all2cf\/database-connect@([^\s]+)\s+(db_[a-f0-9]{32})$/u;
 
 export function parseCfpgConnectCommand(value) {

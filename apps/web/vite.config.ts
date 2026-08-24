@@ -12,6 +12,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { validateAssemblyContracts } from "../../scripts/lib/assembly.mjs";
 import { buildVisualFactoryRequest, validateVisualDiscovery, validateVisualIntegration } from "../../scripts/lib/visual-integration.mjs";
 import {
+  databaseProviderForEnvironment,
   resolveCfpgConnectCommand,
   validateCfpgConnection,
 } from "../../scripts/lib/cfpg.mjs";
@@ -939,6 +940,7 @@ function localSetupApi(): Plugin {
                 "Blueprint and Starter configuration are required.",
               );
             const cfpgCommands = payload.cfpgCommands || {};
+            const submittedDatabase = submittedBlueprint.providers.database;
             const blueprint = {
               ...submittedBlueprint,
               providers: {
@@ -946,14 +948,12 @@ function localSetupApi(): Plugin {
                 database: {
                   ...submittedBlueprint.providers.database,
                   cfpg: {
-                    development: await normalizedCfpgConnection(
-                      submittedBlueprint.providers.database.cfpg?.development,
-                      cfpgCommands.development,
-                    ),
-                    production: await normalizedCfpgConnection(
-                      submittedBlueprint.providers.database.cfpg?.production,
-                      cfpgCommands.production,
-                    ),
+                    development: databaseProviderForEnvironment(submittedDatabase, "development") === "cfpg"
+                      ? await normalizedCfpgConnection(submittedDatabase.cfpg?.development, cfpgCommands.development)
+                      : submittedDatabase.cfpg?.development || null,
+                    production: databaseProviderForEnvironment(submittedDatabase, "production") === "cfpg"
+                      ? await normalizedCfpgConnection(submittedDatabase.cfpg?.production, cfpgCommands.production)
+                      : submittedDatabase.cfpg?.production || null,
                   },
                 },
               },
@@ -990,6 +990,7 @@ function localSetupApi(): Plugin {
                 snapshot: JSON.parse(snapshotSource),
                 snapshotHash: sha256(snapshotSource),
               },
+              { allowDeferredCfpg: true },
             );
             failures.push(...validateVisualIntegration(visualIntegrationContract, blueprint));
             if (failures.length) {

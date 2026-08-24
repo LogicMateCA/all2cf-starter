@@ -19,6 +19,7 @@ import {
   CFPG_CONNECTOR_PACKAGE,
   CFPG_CONNECTOR_VERSION,
   configureDatabaseRuntime,
+  databaseProviderForEnvironment,
 } from "./lib/cfpg.mjs";
 
 const scriptRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -441,7 +442,7 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
   const model = JSON.parse(source);
   const environment = configPath.includes(".development.") ? "development" : "production";
   const receiptDatabase = configureDatabaseRuntime(model, {
-    provider: blueprint.providers.database.provider,
+    provider: databaseProviderForEnvironment(blueprint.providers.database, environment),
     environment,
     connection: blueprint.providers.database.cfpg[environment],
     previous: previousRuntime?.database,
@@ -1001,9 +1002,9 @@ const desiredMobileConfigPlugins = new Set();
 const desiredCloudflareSecrets = new Map();
 const desiredCloudflareQueues = new Map();
 
-if (blueprint.providers.database.provider === "cfpg") {
+if (["development", "production"].some((environment) => databaseProviderForEnvironment(blueprint.providers.database, environment) === "cfpg")) {
   for (const environment of ["development", "production"])
-    if (!blueprint.providers.database.cfpg?.[environment])
+    if (databaseProviderForEnvironment(blueprint.providers.database, environment) === "cfpg" && !blueprint.providers.database.cfpg?.[environment])
       throw new Error(
         `CFPG ${environment} connection command must be saved before materialization.`,
       );

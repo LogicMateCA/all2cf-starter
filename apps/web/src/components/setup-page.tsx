@@ -28,6 +28,10 @@ type Pack = {
 type DatabasePolicy = {
   engine: "postgresql";
   provider: "native-postgresql" | "cfpg";
+  transports?: {
+    development: "native-postgresql" | "cfpg";
+    production: "native-postgresql" | "cfpg";
+  };
   access: "sql-first" | "drizzle";
   initialState: "empty";
   schemaSource: "selected-pack-baseline";
@@ -37,6 +41,8 @@ type DatabasePolicy = {
     production: CfpgConnection | null;
   };
 };
+const databaseTransport = (policy: DatabasePolicy, environment: "development" | "production") =>
+  policy.transports?.[environment] || policy.provider;
 type StorageEnvironment = {
   bucket: string;
   publicDomain: string;
@@ -2033,7 +2039,7 @@ export function SetupPage() {
             <div className="setup-stack provider-setup">
               <section className="setup-panel provider-summary">
                 <div><span>Authentication</span><strong>{payload.blueprint.providers.auth}</strong><small>Better Auth core and selected official plugins</small></div>
-                <div><span>Database</span><strong>{payload.blueprint.providers.database.provider === "cfpg" ? "CFPG" : "Native PostgreSQL"}</strong><small>{payload.blueprint.providers.database.initialState} / {payload.blueprint.providers.database.access}</small></div>
+                <div><span>Database</span><strong>Development {databaseTransport(payload.blueprint.providers.database, "development") === "cfpg" ? "CFPG" : "Native PostgreSQL"}</strong><small>Production {databaseTransport(payload.blueprint.providers.database, "production") === "cfpg" ? "CFPG" : "Native PostgreSQL"} / {payload.blueprint.providers.database.access}</small></div>
                 <div><span>Billing</span><strong>{payload.blueprint.providers.billing}</strong><small>Activated only when the Billing pack is materialized</small></div>
               </section>
 
@@ -2042,41 +2048,24 @@ export function SetupPage() {
                 <div className="storage-provider-options" role="group" aria-label="Product data layer">
                   {(["sql-first", "drizzle"] as const).map((access) => <button type="button" key={access} aria-pressed={payload.blueprint.providers.database.access === access} onClick={() => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, database: { ...blueprint.providers.database, access } }, selections: { ...blueprint.selections, capabilities: blueprint.selections.capabilities.map((selection) => selection.id === "capability.data-layer-drizzle" ? { ...selection, lifecycle: { ...selection.lifecycle, selected: access === "drizzle", ...(access === "drizzle" ? {} : { localVerified: false, developmentVerified: false, productionReleased: false }) } } : selection) } }))}><strong>{access === "sql-first" ? "SQL" : "Drizzle"}</strong><span>{access === "sql-first" ? "Smallest and AI-first." : "Typed product-domain schema over the same pg connection."}</span></button>)}
                 </div>
-                <div className="provider-option-grid" role="radiogroup" aria-label="Database runtime">
-                  {[
-                    { id: "native-postgresql", name: "Native PostgreSQL", note: "PostgreSQL 18 through one isolated Hyperdrive binding per environment." },
-                    { id: "cfpg", name: "CFPG", note: "All2CF Database through @all2cf/database-connect and ALL2CF_DATABASE." },
-                  ].map(({ id, name, note }) => {
-                    const selected = payload.blueprint.providers.database.provider === id;
-                    return <div className={selected ? "provider-option selected" : "provider-option"} key={id}>
-                      <label>
-                        <input type="radio" name="database-provider" checked={selected} onChange={() => updateBlueprint((blueprint) => ({
-                          ...blueprint,
-                          providers: { ...blueprint.providers, database: { ...blueprint.providers.database, provider: id as DatabasePolicy["provider"] } },
-                        }))} />
-                        <span><strong>{name}</strong><small>{note}</small></span>
-                      </label>
-                    </div>;
-                  })}
+                <div className="storage-environment-grid">
+                  {(["development", "production"] as const).map((environment) => (
+                    <div key={environment}>
+                      <h3>{environment === "development" ? "Development" : "Production"}</h3>
+                      <div className="provider-option-grid" role="radiogroup" aria-label={`${environment} database runtime`}>
+                        {[
+                          { id: "native-postgresql", name: "Native PostgreSQL", note: "PostgreSQL through this environment's isolated Hyperdrive binding." },
+                          { id: "cfpg", name: "CFPG", note: "All2CF Database through @all2cf/database-connect and ALL2CF_DATABASE." },
+                        ].map(({ id, name, note }) => {
+                          const selected = databaseTransport(payload.blueprint.providers.database, environment) === id;
+                          return <div className={selected ? "provider-option selected" : "provider-option"} key={id}><label><input type="radio" name={`database-provider-${environment}`} checked={selected} onChange={() => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, database: { ...blueprint.providers.database, transports: { development: databaseTransport(blueprint.providers.database, "development"), production: databaseTransport(blueprint.providers.database, "production"), [environment]: id as DatabasePolicy["provider"] } } } }))} /><span><strong>{name}</strong><small>{note}</small></span></label></div>;
+                        })}
+                      </div>
+                      {databaseTransport(payload.blueprint.providers.database, environment) === "cfpg" ? <label className="setup-field"><span>CFPG connect command</span><Input type="text" autoComplete="off" value={cfpgCommands[environment]} placeholder="npx @all2cf/database-connect@0.2.0-rc.2 db_..." onChange={(event) => updateCfpgCommand(environment, event.target.value)} /><small>{payload.blueprint.providers.database.cfpg?.[environment]?.databaseId || (cfpgCommands[environment] ? "Save to validate this command." : "Configure later; this environment cannot be materialized until provided.")}</small></label> : null}
+                    </div>
+                  ))}
                 </div>
-                {payload.blueprint.providers.database.provider === "cfpg" ? (
-                  <div className="database-command-grid">
-                    {(["development", "production"] as const).map((environment) => (
-                      <label key={environment}>
-                        <span>{environment === "development" ? "Development CFPG connect command" : "Production CFPG connect command"}</span>
-                        <Input
-                          type="text"
-                          autoComplete="off"
-                          value={cfpgCommands[environment]}
-                          placeholder="npx @all2cf/database-connect@0.2.0-rc.2 db_..."
-                          onChange={(event) => updateCfpgCommand(environment, event.target.value)}
-                        />
-                        <small>{payload.blueprint.providers.database.cfpg?.[environment]?.databaseId || (cfpgCommands[environment] ? "Save to validate this command." : "Configure later; this environment cannot be materialized until provided.")}</small>
-                      </label>
-                    ))}
-                    <p>Development and Production must use different CFPG database IDs. Saving validates each command against All2CF; it does not connect or deploy automatically.</p>
-                  </div>
-                ) : null}
+                <p>Each environment is independent. Saving validates selected CFPG commands against All2CF; it does not connect or deploy automatically. If both use CFPG, they must use different database IDs.</p>
               </section>
 
               <section className="setup-panel provider-section">
@@ -2515,7 +2504,7 @@ export function SetupPage() {
                     <dt>Database</dt>
                     <dd>
                       {payload.blueprint.providers.database.initialState}{" "}
-                      {payload.blueprint.providers.database.provider} from{" "}
+                      Development {databaseTransport(payload.blueprint.providers.database, "development")} / Production {databaseTransport(payload.blueprint.providers.database, "production")} from{" "}
                       {payload.blueprint.providers.database.schemaSource}
                     </dd>
                   </div>
