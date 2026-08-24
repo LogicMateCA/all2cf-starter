@@ -2,7 +2,7 @@
   "$schema": "../../../schemas/starter-pack.schema.json",
   "schemaVersion": "starter-pack/v1",
   "id": "capability.expo-push",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "source": {
     "name": "Expo Notifications and Push Service",
     "url": "https://docs.expo.dev/push-notifications/",
@@ -16,7 +16,7 @@
     { "source": "templates/1102_expo_push.sql", "target": "db/migrations/1102_expo_push.sql" }
   ],
   "dependencies": [
-    { "packageFile": "apps/mobile/package.json", "section": "dependencies", "name": "expo-notifications", "version": "~57.0.12" }
+    { "packageFile": "apps/mobile/package.json", "section": "dependencies", "name": "expo-notifications", "version": "~57.0.14" }
   ],
   "routes": [],
   "workerFeature": { "module": "../features/expo-push-worker", "export": "expoPushFeature" },
