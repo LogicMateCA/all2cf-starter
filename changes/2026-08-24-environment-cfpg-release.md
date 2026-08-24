@@ -12,6 +12,8 @@ Add environment-specific PostgreSQL transports to the Blueprint. Development and
 
 Materialization installs `@all2cf/database-connect` when either environment selects CFPG, applies the `pg` alias and `ALL2CF_DATABASE` Service Binding only to that environment, and preserves Hyperdrive in the other environment.
 
+The boundary is deliberately narrow: Starter owns connector configuration only. All2CF/CFPG owns database provisioning, schema migration execution, Database Worker lifecycle and readiness. Starter must not implement a substitute CFPG migration Worker.
+
 Factory/Setup may persist an intentionally deferred CFPG selection without a command. Saving the draft remains possible, but materialization and release fail closed until the selected environment has a validated descriptor.
 
 # Verification
@@ -28,4 +30,4 @@ Roll back the Engine candidate and Development Channel. Generated projects remai
 
 # Release
 
-Not released. The temporary CFPG migration Worker and All2CF Development orchestration remain separate gates.
+Not released. All2CF/CFPG must expose a ready connector deployment path before CFPG can pass real Development acceptance; Starter will fail closed until then. Native PostgreSQL/Hyperdrive Development remains independently usable.
