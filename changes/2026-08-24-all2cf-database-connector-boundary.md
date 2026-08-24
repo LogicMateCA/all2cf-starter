@@ -20,4 +20,4 @@ Run Agent Map, database-provider, assembly, design, type, knowledge synchronizat
 
 # Release
 
-Implemented in the canonical source candidate. No Engine publication, Development deployment, Production deployment or CFPG mutation is part of this change.
+Implemented in the canonical source. Engine `2.0.0-dev.23` is the explicitly selected Development candidate. Its reproducible Artifact, SQL-first/Drizzle verification, local Development Channel publication and All2CF Development integration must pass before this section can claim release. Stable, Production and every CFPG resource remain unchanged.
