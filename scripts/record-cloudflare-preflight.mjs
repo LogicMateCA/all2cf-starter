@@ -14,7 +14,9 @@ const config = JSON.parse(configSource);
 const configHash = createHash("sha256").update(configSource).digest("hex");
 const snapshot = JSON.parse(await readFile(path.resolve(root, snapshotArgument), "utf8"));
 const snapshotAge = Date.now() - new Date(snapshot.checkedAt).getTime();
-if (snapshot.schemaVersion !== "starter-cloudflare-mcp-snapshot/v1" || snapshot.source !== "official-cloudflare-mcp" || snapshot.configHash !== configHash || snapshot.accountId !== config.cloudflare.accountId || !Number.isFinite(snapshotAge) || snapshotAge < 0 || snapshotAge > 15 * 60 * 1000) throw new Error("Cloudflare MCP snapshot is stale or does not match starter.config.json");
+const officialMcp = snapshot.schemaVersion === "starter-cloudflare-mcp-snapshot/v1" && snapshot.source === "official-cloudflare-mcp";
+const all2cfControlPlane = snapshot.schemaVersion === "starter-cloudflare-control-plane-snapshot/v1" && snapshot.source === "all2cf-control-plane" && snapshot.controlPlane?.service === "all2cf" && snapshot.controlPlane?.authorization === "saved-owner-connection" && typeof snapshot.controlPlane?.projectId === "string";
+if ((!officialMcp && !all2cfControlPlane) || snapshot.configHash !== configHash || snapshot.accountId !== config.cloudflare.accountId || !Number.isFinite(snapshotAge) || snapshotAge < 0 || snapshotAge > 15 * 60 * 1000) throw new Error("Cloudflare preflight snapshot is stale, untrusted, or does not match starter.config.json");
 if (!new Set(["available", "unavailable"]).has(snapshot.workerStudio)) throw new Error("Cloudflare MCP snapshot has an invalid Worker Studio capability state");
 
 const expected = {
@@ -38,7 +40,8 @@ for (const [group, targets] of Object.entries(expected)) {
 if (collisions.length) throw new Error(`Provisioning blocked by Cloudflare collisions: ${collisions.map((item) => `${item.group}:${item.target}`).join(", ")}`);
 const receipt = {
   schemaVersion: "starter-cloudflare-preflight/v1",
-  evidence: "official-cloudflare-mcp-snapshot",
+  evidence: officialMcp ? "official-cloudflare-mcp-snapshot" : "all2cf-control-plane-snapshot",
+  authority: officialMcp ? { source: "official-cloudflare-mcp" } : snapshot.controlPlane,
   checkedAt: new Date().toISOString(),
   snapshotCheckedAt: snapshot.checkedAt,
   snapshotHash: createHash("sha256").update(JSON.stringify(snapshot)).digest("hex"),

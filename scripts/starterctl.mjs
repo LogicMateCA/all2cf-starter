@@ -153,12 +153,13 @@ async function saveState() {
 async function requireProvisionPreflight() {
   let receipt;
   try { receipt = JSON.parse(await readFile(preflightPath, "utf8")); }
-  catch { throw new Error("Cloudflare provisioning requires a current official MCP preflight receipt; run the MCP preflight, then npm run cf:preflight:record"); }
+  catch { throw new Error("Cloudflare provisioning requires a current official MCP or All2CF control-plane preflight receipt"); }
   const configSource = await readFile(path.join(root, "starter.config.json"), "utf8");
   const configHash = createHash("sha256").update(configSource).digest("hex");
   const age = Date.now() - new Date(receipt.checkedAt).getTime();
-  if (receipt.schemaVersion !== "starter-cloudflare-preflight/v1" || receipt.evidence !== "official-cloudflare-mcp-snapshot" || !receipt.snapshotHash || receipt.configHash !== configHash || receipt.accountId !== config.cloudflare.accountId || receipt.projectSlug !== config.project.slug || receipt.collisions?.length || !Number.isFinite(age) || age < 0 || age > 30 * 60 * 1000) {
-    throw new Error("Cloudflare MCP preflight receipt is stale or does not match the current project configuration");
+  const trustedEvidence = receipt.evidence === "official-cloudflare-mcp-snapshot" || (receipt.evidence === "all2cf-control-plane-snapshot" && receipt.authority?.service === "all2cf" && receipt.authority?.authorization === "saved-owner-connection" && process.env.STARTER_CONTROL_PLANE === "all2cf");
+  if (receipt.schemaVersion !== "starter-cloudflare-preflight/v1" || !trustedEvidence || !receipt.snapshotHash || receipt.configHash !== configHash || receipt.accountId !== config.cloudflare.accountId || receipt.projectSlug !== config.project.slug || receipt.collisions?.length || !Number.isFinite(age) || age < 0 || age > 30 * 60 * 1000) {
+    throw new Error("Cloudflare preflight receipt is stale, untrusted, or does not match the current project configuration");
   }
 }
 

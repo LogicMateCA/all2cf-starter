@@ -32,6 +32,7 @@
     "database:provider:contract": "node scripts/cfpg-provider-contract.mjs",
     "identity:sync": "node scripts/sync-project-identity.mjs",
     "cf:preflight:record": "node scripts/record-cloudflare-preflight.mjs",
+    "cf:preflight:contract": "node scripts/cloudflare-preflight-contract.mjs",
     "release:contract": "node scripts/release-contract.mjs",
     "dependencies:contract": "node scripts/dependency-contract.mjs",
     "dependencies:check": "node scripts/dependency-check.mjs",

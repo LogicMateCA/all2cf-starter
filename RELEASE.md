@@ -28,6 +28,7 @@ Generating a project through `/factory` is not a Cloudflare or App release. The 
 - [ ] `/dp` regenerated from source and `knowledge:check` passed; live Development/Production release shows the exact released commit and Change Spec
 - [ ] Relevant tests, build, migration, and route checks passed
 - [ ] Cloudflare facts/operations checked through official MCP first
+- [ ] If All2CF manages Development release, control-plane receipt identifies All2CF and the saved Owner connection; it does not claim MCP provenance
 - [ ] Worker Studio capabilities detected where applicable
 - [ ] Rollback and monitoring plan recorded
 
