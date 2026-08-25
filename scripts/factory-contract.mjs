@@ -29,10 +29,12 @@ try {
   if (generatedStyleCatalog.count !== 1 || generatedStyleCatalog.styles?.[0]?.slug !== blueprint.stylekit.slug)
     failures.push("Generated project did not retain exactly one Starter-owned visual fallback");
   if (await exists(path.join(target, "apps/web/public/stylekit-previews"))) failures.push("Style library preview assets leaked into the generated project");
-  if (!(await exists(path.join(target, "plugins/all2cf-project/.codex-plugin/plugin.json"))))
-    failures.push("Generated project is missing the all2cf-project Codex plugin");
-  if (await exists(path.join(target, "plugins/all2cf-project/skills/design-governance/SKILL.md")))
-    failures.push("Functional all2cf-project plugin still owns visual design");
+  if (await exists(path.join(target, "plugins")))
+    failures.push("Global Codex plugin source leaked into the generated project");
+  const generatedPlugins = JSON.parse(await readFile(path.join(target, ".ai/plugins.json"), "utf8"));
+  const generatedProjectPlugin = generatedPlugins.plugins?.find(({ id }) => id === "all2cf-project");
+  if (!generatedProjectPlugin || generatedProjectPlugin.installation !== "external-recommended" || generatedProjectPlugin.optional !== true || generatedProjectPlugin.path)
+    failures.push("Generated project does not declare the optional global all2cf-project plugin correctly");
   for (const sourceOnly of ["scripts/source-release.mjs", "skills/starter-source-release/SKILL.md", "ALL2CF_FACTORY.md"])
     if (await exists(path.join(target, sourceOnly))) failures.push(`Canonical source-release file leaked into generated project: ${sourceOnly}`);
   const generatedPackage = JSON.parse(await readFile(path.join(target, "package.json"), "utf8"));
@@ -40,7 +42,7 @@ try {
     failures.push("Canonical source-release commands leaked into generated project");
   if (Object.keys(generatedPackage.scripts || {}).some((script) => script.startsWith("factory:") || script.startsWith("stylekit:")))
     failures.push("Canonical Factory or StyleKit source commands leaked into generated project");
-  for (const sourceOnlyScript of ["dependencies:contract", "providers:contract", "design:contract", "typography:contract", "pages:contract", "saas:contract", "data-layer:drizzle:contract", "engine:channel:contract"])
+  for (const sourceOnlyScript of ["plugin:contract", "dependencies:contract", "providers:contract", "design:contract", "typography:contract", "pages:contract", "saas:contract", "data-layer:drizzle:contract", "engine:channel:contract"])
     if (generatedPackage.scripts?.[sourceOnlyScript]) failures.push(`Canonical source contract leaked into generated project: ${sourceOnlyScript}`);
   if (/starter:(?:status|diff|add|update)/u.test(generatedPackage.scripts?.verify || ""))
     failures.push("Generated verification must not require a pre-publication update Channel");

@@ -13,8 +13,8 @@ const visualPlugin = plugins.plugins?.find(({ id }) => id === "visual-design");
 const projectPlugin = plugins.plugins?.find(({ id }) => id === "all2cf-project");
 if (!visualPlugin || visualPlugin.installation !== "external-recommended" || visualPlugin.optional !== true)
   failures.push("Project plugin declaration must keep visual-design external and optional");
-if (!projectPlugin || projectPlugin.installation !== "bundled")
-  failures.push("Project plugin declaration must keep all2cf-project bundled");
+if (!projectPlugin || projectPlugin.installation !== "external-recommended" || projectPlugin.optional !== true || projectPlugin.path)
+  failures.push("Project plugin declaration must keep all2cf-project global, optional and project-path independent");
 const visualRoot = "/opt/1panel/apps/visual";
 if (existsSync(path.join(visualRoot, ".git"))) {
   const upstream = JSON.parse(execFileSync("git", ["show", `${contract.source.sourceCommit}:contracts/starter-integration.json`], { cwd: visualRoot, encoding: "utf8" }));

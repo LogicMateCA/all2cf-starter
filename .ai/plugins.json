@@ -5,8 +5,9 @@
       "id": "all2cf-project",
       "version": "0.1.0",
       "ownership": "functional-project-operations",
-      "installation": "bundled",
-      "path": "plugins/all2cf-project"
+      "installation": "external-recommended",
+      "optional": true,
+      "detection": [".starter/source.json", ".ai/manifest.json", "AGENT_MAP.md"]
     },
     {
       "id": "visual-design",
