@@ -56,7 +56,7 @@ export function App() {
     return <RouteLoading />;
   }
   else if (path === "/setup" || path === "/factory") page = <SetupPage />;
-  else if (path === "/update") page = <UpdatePage />;
+  else if (path === "/update" || path === "/all2cf") page = <UpdatePage />;
   else if (path === "/dp") page = <DevelopmentPlanPage />;
   else {
     const capabilityRoute = capabilityRoutes.find((route) => route.path === path);

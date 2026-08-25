@@ -16,6 +16,8 @@ Assembly control flow:
 
 `product brief` → source `/factory` → ignored Factory Draft → deterministic source/target materialization → independent product `/setup` + Agent Map + receipt → local verification → Development release → explicit Production release
 
+The generated product is operationally complete without an All2CF connection. Local `/all2cf` may import an expiring project-scoped connection file from its All2CF card to enable paid source updates and future managed operations. Disconnect removes the ignored local credential immediately and revokes its remote token when the service is reachable; source, providers, database and deployment ownership are unchanged.
+
 - `apps/marketing` is the static-first Astro public product site. Only Blueprint-selected Page Catalog routes are materialized; its default route output requires no client JavaScript.
 - `apps/web` is a Desktop Web product optimized for mouse, keyboard, large-screen density, dashboards, tables, and complex operations. Its deploy artifact is mounted under `/_app`, while `/login`, `/app`, `/support`, `/admin`, and `/dp` ask the Worker asset binding for that shell.
 - `apps/mobile` is a separate touch-first Expo Router product whose UI source targets Mobile Web, iOS, and Android.

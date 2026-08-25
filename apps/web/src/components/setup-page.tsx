@@ -1537,6 +1537,7 @@ export function SetupPage() {
             Save draft
           </Button>
           <a href="/dp">View plan</a>
+          {!__STARTER_FACTORY_MODE__ ? <a href="/all2cf">All2CF connection</a> : null}
         </div>
       </header>
       <div className="setup-layout">

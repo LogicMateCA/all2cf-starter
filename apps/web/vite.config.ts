@@ -660,10 +660,9 @@ async function starterUpdateReceipt() {
 }
 
 async function runStarterUpdateAction(action: "status" | "diff" | "update", accessToken: string) {
-  if (!accessToken) throw new Error("Connect an All2CF update token before checking for updates.");
   const result = await execFileAsync(process.execPath, [path.join(repositoryRoot, "scripts/starter-link.mjs"), action], {
     cwd: repositoryRoot,
-    env: { ...process.env, ALL2CF_UPDATE_TOKEN: accessToken },
+    env: accessToken ? { ...process.env, ALL2CF_UPDATE_TOKEN: accessToken } : process.env,
     maxBuffer: 8 * 1024 * 1024,
     timeout: 120_000,
   });
@@ -682,7 +681,7 @@ function localSetupApi(): Plugin {
           next: () => void,
         ) => {
           const url = new URL(request.url || "/", "http://starter.local");
-          if (!new Set(["/__starter/setup", "/__starter/provider-test", "/__starter/visual-discovery", "/__starter/factory", "/__starter/update/receipt", "/__starter/update/check", "/__starter/update/status", "/__starter/update/diff", "/__starter/update/update"]).has(url.pathname))
+          if (!new Set(["/__starter/setup", "/__starter/provider-test", "/__starter/visual-discovery", "/__starter/factory", "/__starter/update/receipt", "/__starter/update/check", "/__starter/update/status", "/__starter/update/diff", "/__starter/update/update", "/__starter/all2cf/status", "/__starter/all2cf/connect", "/__starter/all2cf/disconnect", "/__starter/all2cf/doctor"]).has(url.pathname))
             return next();
           response.setHeader("Content-Type", "application/json; charset=utf-8");
           response.setHeader("Cache-Control", "no-store");
@@ -760,6 +759,36 @@ function localSetupApi(): Plugin {
               }
               const result = await runStarterUpdateAction(action as "status" | "diff" | "update", accessToken);
               response.end(json({ ok: true, ...result }));
+              return;
+            }
+            if (url.pathname.startsWith("/__starter/all2cf/")) {
+              const action = url.pathname.slice("/__starter/all2cf/".length);
+              if (action === "status" || action === "doctor") {
+                if (request.method !== "GET") { response.statusCode = 405; response.end(json({ ok: false, error: "Method not allowed." })); return; }
+                const result = await execFileAsync(process.execPath, ["scripts/all2cf-project.mjs", action], { cwd: repositoryRoot, maxBuffer: 1024 * 1024 });
+                response.end(result.stdout);
+                return;
+              }
+              if (request.method !== "POST") { response.statusCode = 405; response.end(json({ ok: false, error: "Method not allowed." })); return; }
+              if (action === "disconnect") {
+                const result = await execFileAsync(process.execPath, ["scripts/all2cf-project.mjs", "disconnect"], { cwd: repositoryRoot, maxBuffer: 1024 * 1024 });
+                response.end(result.stdout);
+                return;
+              }
+              if (action === "connect") {
+                const payload = await readRequestJson(request);
+                const temporary = path.join(repositoryRoot, ".starter/all2cf-connection.import.local.json");
+                await writeFile(temporary, `${JSON.stringify(payload.connection || {}, null, 2)}\n`, { mode: 0o600 });
+                try {
+                  const result = await execFileAsync(process.execPath, ["scripts/all2cf-project.mjs", "connect", temporary], { cwd: repositoryRoot, maxBuffer: 1024 * 1024 });
+                  response.end(result.stdout);
+                } finally {
+                  await unlink(temporary).catch(() => undefined);
+                }
+                return;
+              }
+              response.statusCode = 404;
+              response.end(json({ ok: false, error: "Unknown All2CF action." }));
               return;
             }
             if (url.pathname === "/__starter/factory") {

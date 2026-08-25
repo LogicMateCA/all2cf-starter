@@ -63,9 +63,8 @@ function generateWorkerTypes(target) {
 }
 
 function refreshPortablePackageLock(target) {
-  if (!portable) return;
   const result = spawnSync("npm", ["install", "--package-lock-only", "--ignore-scripts", "--no-audit", "--no-fund"], { cwd: target, encoding: "utf8" });
-  if (result.status !== 0) throw new Error(result.stderr || result.stdout || "Portable package-lock refresh failed");
+  if (result.status !== 0) throw new Error(result.stderr || result.stdout || "Generated package-lock refresh failed");
 }
 
 async function ensureNewDirectory(target) {
