@@ -630,13 +630,14 @@ function ProviderCredentialEditor({
 }: {
   provider: keyof typeof providerSecretFields;
   state: SetupPayload["providerCredentials"][keyof SetupPayload["providerCredentials"]];
-  editing: boolean;
+  editing?: boolean;
   values: Record<string, string>;
   onEditing: (editing: boolean) => void;
   onChange: (name: string, value: string) => void;
   callbackUrls?: string[];
 }) {
   const fields = providerSecretFields[provider];
+  const expanded = editing ?? true;
   return (
     <div className="provider-credentials">
       <div className="provider-credential-state">
@@ -662,7 +663,7 @@ function ProviderCredentialEditor({
           {callbackUrls.map((url) => <code key={url}>{url}</code>)}
         </div>
       ) : null}
-      {editing ? (
+      {expanded ? (
         <div className="provider-secret-fields">
           {fields.map((field) => (
             <label key={field.name}>
@@ -703,7 +704,7 @@ export function SetupPage() {
   const [saveError, setSaveError] = useState("");
   const [dirty, setDirty] = useState(false);
   const [providerSecrets, setProviderSecrets] = useState<Record<string, string>>({});
-  const [providerEditors, setProviderEditors] = useState<Record<string, boolean>>({});
+  const [providerEditors, setProviderEditors] = useState<Partial<Record<keyof typeof providerSecretFields, boolean>>>({});
   const [testRecipient, setTestRecipient] = useState("");
   const [providerTest, setProviderTest] = useState<ProviderTestState>({ status: "idle" });
   const [visualTest, setVisualTest] = useState<ProviderTestState>({ status: "idle" });
@@ -2107,7 +2108,7 @@ export function SetupPage() {
                         return <div key={environment}><h3>{environment === "development" ? "Development" : "Production"}</h3><Field label="Bucket" value={value.bucket} onChange={(bucket) => update({ bucket })} /><Field label="Public domain (optional)" value={value.publicDomain} onChange={(publicDomain) => update({ publicDomain })} />{payload.blueprint.providers.storage.provider === "s3-compatible" ? <><Field label="S3 endpoint" value={value.s3Endpoint} onChange={(s3Endpoint) => update({ s3Endpoint })} /><Field label="Region" value={value.s3Region} onChange={(s3Region) => update({ s3Region })} /><label className="platform-option"><input type="checkbox" checked={value.s3ForcePathStyle} onChange={(event) => update({ s3ForcePathStyle: event.target.checked })} />Force path-style URLs</label></> : <p>Local Worker development uses an empty simulated R2 bucket; cloud provisioning creates this environment's real bucket.</p>}</div>;
                       })}
                     </div>
-                    {payload.blueprint.providers.storage.provider === "s3-compatible" ? <ProviderCredentialEditor provider="s3-compatible" state={payload.providerCredentials["s3-compatible"]} editing={Boolean(providerEditors["s3-compatible"])} values={providerSecrets} onEditing={(editing) => setProviderEditing("s3-compatible", editing)} onChange={updateProviderSecret} /> : <div className="provider-resource-links"><a href="https://dash.cloudflare.com/?to=/:account/r2/overview" target="_blank" rel="noreferrer">Open Cloudflare R2<ExternalLink size={14} /></a><a href="https://developers.cloudflare.com/r2/" target="_blank" rel="noreferrer">R2 documentation<ExternalLink size={14} /></a></div>}
+                    {payload.blueprint.providers.storage.provider === "s3-compatible" ? <ProviderCredentialEditor provider="s3-compatible" state={payload.providerCredentials["s3-compatible"]} editing={providerEditors["s3-compatible"]} values={providerSecrets} onEditing={(editing) => setProviderEditing("s3-compatible", editing)} onChange={updateProviderSecret} /> : <div className="provider-resource-links"><a href="https://dash.cloudflare.com/?to=/:account/r2/overview" target="_blank" rel="noreferrer">Open Cloudflare R2<ExternalLink size={14} /></a><a href="https://developers.cloudflare.com/r2/" target="_blank" rel="noreferrer">R2 documentation<ExternalLink size={14} /></a></div>}
                   </div>
                 ) : null}
               </section>
@@ -2138,7 +2139,7 @@ export function SetupPage() {
                         </div>
                       ))}
                     </div>
-                    <ProviderCredentialEditor provider="turnstile" state={payload.providerCredentials.turnstile} editing={Boolean(providerEditors.turnstile)} values={providerSecrets} onEditing={(editing) => setProviderEditing("turnstile", editing)} onChange={updateProviderSecret} />
+                    <ProviderCredentialEditor provider="turnstile" state={payload.providerCredentials.turnstile} editing={providerEditors.turnstile} values={providerSecrets} onEditing={(editing) => setProviderEditing("turnstile", editing)} onChange={updateProviderSecret} />
                     <div className="provider-resource-links">{providerSetupLinks.turnstile.map((link) => <a href={link.href} target="_blank" rel="noreferrer" key={link.href}>{link.label}<ExternalLink size={14} /></a>)}</div>
                     {payload.blueprint.providers.antiAbuse.development.siteKey ? <div className="provider-email-test"><div><strong>Real Siteverify test</strong><p>Complete the Development widget, then validate its one-time token with the saved or newly entered Development secret.</p></div><TurnstileChallenge siteKey={payload.blueprint.providers.antiAbuse.development.siteKey} action="starter_setup_test" onToken={(token) => { setTurnstileToken(token); if (token) setTurnstileTest({ status: "idle" }); }} onError={(message) => setTurnstileTest({ status: "error", provider: "turnstile", message })} /><Button type="button" variant="outline" disabled={!turnstileToken || turnstileTest.status === "testing"} onClick={() => void runTurnstileTest()}>{turnstileTest.status === "testing" ? "Validating challenge" : "Validate Turnstile"}</Button>{turnstileTest.message ? <p className={turnstileTest.status === "success" ? "provider-test-result success" : "provider-test-result error"} role="status">{turnstileTest.message}</p> : null}</div> : <p className="provider-test-unavailable">Enter the Development site key to load the validation widget.</p>}
                     <div className="provider-live-test"><Button asChild type="button" size="sm" variant="outline"><a href={`https://${payload.config.development.domain}/login`} target="_blank" rel="noreferrer">Test protected auth on Development<ExternalLink size={13} /></a></Button><small>After a Development release, this opens the real Better Auth sign-up, sign-in and password-reset enforcement path.</small></div>
@@ -2198,7 +2199,7 @@ export function SetupPage() {
                       {(["development", "production"] as const).map((environment) => <div key={environment}><h3>{environment === "development" ? "Development Expo project" : "Production Expo project"}</h3><Field label="EAS project ID" value={payload.blueprint.providers.push[environment].projectId} onChange={(projectId) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, push: { ...blueprint.providers.push, [environment]: { projectId } } } }))} /><p>Use a different EAS project ID for each environment so device tokens and credentials cannot cross release lanes.</p></div>)}
                     </div>
                     <label className="platform-option"><input type="checkbox" checked={payload.blueprint.providers.push.accessTokenRequired} onChange={(event) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, push: { ...blueprint.providers.push, accessTokenRequired: event.target.checked } } }))} />Require Expo Push access-token security</label>
-                    {payload.blueprint.providers.push.accessTokenRequired ? <ProviderCredentialEditor provider="expo-push" state={payload.providerCredentials["expo-push"]} editing={Boolean(providerEditors["expo-push"])} values={providerSecrets} onEditing={(editing) => setProviderEditing("expo-push", editing)} onChange={updateProviderSecret} /> : null}
+                    {payload.blueprint.providers.push.accessTokenRequired ? <ProviderCredentialEditor provider="expo-push" state={payload.providerCredentials["expo-push"]} editing={providerEditors["expo-push"]} values={providerSecrets} onEditing={(editing) => setProviderEditing("expo-push", editing)} onChange={updateProviderSecret} /> : null}
                     <div className="provider-resource-links">{providerSetupLinks["expo-push"].map((link) => <a href={link.href} target="_blank" rel="noreferrer" key={link.href}>{link.label}<ExternalLink size={14} /></a>)}</div>
                     <div className="provider-email-test"><div><strong>Real Development push test</strong><p>Paste an ExpoPushToken from a signed-in physical Development build. Setup sends a fixed message and returns only the Expo ticket ID.</p></div><label><span>Development ExpoPushToken</span><Input value={expoPushToken} autoComplete="off" onChange={(event) => { setExpoPushToken(event.target.value); setExpoPushTest({ status: "idle" }); }} placeholder="ExpoPushToken[...]" /></label><Button type="button" variant="outline" disabled={expoPushTest.status === "testing" || !expoPushToken.trim()} onClick={() => void runExpoPushTest()}>{expoPushTest.status === "testing" ? "Sending push" : "Send Development push"}</Button>{expoPushTest.message ? <p className={expoPushTest.status === "success" ? "provider-test-result success" : "provider-test-result error"} role="status">{expoPushTest.message}</p> : null}</div>
                   </div>
@@ -2216,7 +2217,7 @@ export function SetupPage() {
                 {payload.blueprint.providers.sms.provider === "twilio" ? (
                   <div className="storage-provider-config">
                     <div className="storage-environment-grid">{(["development", "production"] as const).map((environment) => <div key={environment}><h3>{environment === "development" ? "Development Twilio region" : "Production Twilio region"}</h3><Field label="API base URL" value={payload.blueprint.providers.sms[environment].apiBaseUrl} onChange={(apiBaseUrl) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, sms: { ...blueprint.providers.sms, [environment]: { apiBaseUrl } } } }))} /><p>Use <code>https://api.twilio.com</code> or the documented regional base URL. Setup requires HTTPS.</p></div>)}</div>
-                    <ProviderCredentialEditor provider="twilio-sms" state={payload.providerCredentials["twilio-sms"]} editing={Boolean(providerEditors["twilio-sms"])} values={providerSecrets} onEditing={(editing) => setProviderEditing("twilio-sms", editing)} onChange={updateProviderSecret} />
+                    <ProviderCredentialEditor provider="twilio-sms" state={payload.providerCredentials["twilio-sms"]} editing={providerEditors["twilio-sms"]} values={providerSecrets} onEditing={(editing) => setProviderEditing("twilio-sms", editing)} onChange={updateProviderSecret} />
                     <div className="provider-resource-links">{providerSetupLinks["twilio-sms"].map((link) => <a href={link.href} target="_blank" rel="noreferrer" key={link.href}>{link.label}<ExternalLink size={14} /></a>)}</div>
                     <div className="provider-email-test"><div><strong>Real Development SMS test</strong><p>Twilio receives a fixed message. Setup returns only the provider SID, initial status and recipient last four digits.</p></div><label><span>Test recipient (E.164)</span><Input type="tel" value={smsRecipient} autoComplete="tel" onChange={(event) => { setSmsRecipient(event.target.value); setSmsTest({ status: "idle" }); }} placeholder="+14035551234" /></label><Button type="button" variant="outline" disabled={smsTest.status === "testing" || !smsRecipient.trim()} onClick={() => void runSmsTest()}>{smsTest.status === "testing" ? "Sending SMS" : "Send Development SMS"}</Button>{smsTest.message ? <p className={smsTest.status === "success" ? "provider-test-result success" : "provider-test-result error"} role="status">{smsTest.message}</p> : null}</div>
                   </div>
@@ -2237,7 +2238,7 @@ export function SetupPage() {
               <section className="setup-panel provider-section">
                 <header><h2>Video streaming</h2><p>Cloudflare Stream creates one-time direct upload URLs so clients never receive the API token. This initial Pack supports public playback; private signed playback remains unavailable until signing-token generation is implemented.</p></header>
                 <div className="provider-option-grid" role="radiogroup" aria-label="Video Provider">{[{ id: "none", name: "None", note: "No video upload, encoding, webhook or playback runtime." }, { id: "cloudflare-stream", name: "Cloudflare Stream", note: "User-owned direct uploads, encoding state and public HLS/DASH playback." }].map(({ id, name, note }) => { const selected = payload.blueprint.providers.media.stream.provider === id; return <div className={selected ? "provider-option selected" : "provider-option"} key={id}><label><input type="radio" name="stream-provider" checked={selected} onChange={() => setStreamProvider(id as MediaPolicy["stream"]["provider"])} /><span><strong>{name}</strong><small>{note}</small></span></label></div>; })}</div>
-                {payload.blueprint.providers.media.stream.provider === "cloudflare-stream" ? <div className="storage-provider-config"><label className="setup-field"><span>Maximum video duration</span><select value={payload.blueprint.providers.media.stream.maxDurationSeconds} onChange={(event) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, media: { ...blueprint.providers.media, stream: { ...blueprint.providers.media.stream, maxDurationSeconds: Number(event.target.value) } } } }))}><option value={300}>5 minutes</option><option value={600}>10 minutes</option><option value={1800}>30 minutes</option><option value={3600}>1 hour</option></select></label><div className="storage-environment-grid">{(["development", "production"] as const).map((environment) => { const value = payload.blueprint.providers.media.stream[environment]; const update = (patch: Partial<typeof value>) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, media: { ...blueprint.providers.media, stream: { ...blueprint.providers.media.stream, [environment]: { ...blueprint.providers.media.stream[environment], ...patch } } } } })); return <div key={environment}><h3>{environment === "development" ? "Development Stream" : "Production Stream"}</h3><Field label="Account ID" value={value.accountId} onChange={(accountId) => update({ accountId })} /><Field label="Allowed origins" value={value.allowedOrigins.join(", ")} onChange={(origins) => update({ allowedOrigins: parseList(origins) })} /><Field label="API base URL" value={value.apiBaseUrl} onChange={(apiBaseUrl) => update({ apiBaseUrl })} /></div>; })}</div><ProviderCredentialEditor provider="cloudflare-stream" state={payload.providerCredentials["cloudflare-stream"]} editing={Boolean(providerEditors["cloudflare-stream"])} values={providerSecrets} onEditing={(editing) => setProviderEditing("cloudflare-stream", editing)} onChange={updateProviderSecret} /><div className="provider-resource-links">{providerSetupLinks["cloudflare-stream"].map((link) => <a href={link.href} target="_blank" rel="noreferrer" key={link.href}>{link.label}<ExternalLink size={14} /></a>)}</div><div className="provider-email-test"><div><strong>Real Stream token test</strong><p>Creates a one-time one-second direct-upload draft and immediately deletes it without uploading media.</p></div><Button type="button" variant="outline" disabled={streamTest.status === "testing"} onClick={() => void runStreamTest()}>{streamTest.status === "testing" ? "Testing Stream" : "Test Development Stream"}</Button>{streamTest.message ? <p className={streamTest.status === "success" ? "provider-test-result success" : "provider-test-result error"} role="status">{streamTest.message}</p> : null}</div></div> : null}
+                {payload.blueprint.providers.media.stream.provider === "cloudflare-stream" ? <div className="storage-provider-config"><label className="setup-field"><span>Maximum video duration</span><select value={payload.blueprint.providers.media.stream.maxDurationSeconds} onChange={(event) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, media: { ...blueprint.providers.media, stream: { ...blueprint.providers.media.stream, maxDurationSeconds: Number(event.target.value) } } } }))}><option value={300}>5 minutes</option><option value={600}>10 minutes</option><option value={1800}>30 minutes</option><option value={3600}>1 hour</option></select></label><div className="storage-environment-grid">{(["development", "production"] as const).map((environment) => { const value = payload.blueprint.providers.media.stream[environment]; const update = (patch: Partial<typeof value>) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, media: { ...blueprint.providers.media, stream: { ...blueprint.providers.media.stream, [environment]: { ...blueprint.providers.media.stream[environment], ...patch } } } } })); return <div key={environment}><h3>{environment === "development" ? "Development Stream" : "Production Stream"}</h3><Field label="Account ID" value={value.accountId} onChange={(accountId) => update({ accountId })} /><Field label="Allowed origins" value={value.allowedOrigins.join(", ")} onChange={(origins) => update({ allowedOrigins: parseList(origins) })} /><Field label="API base URL" value={value.apiBaseUrl} onChange={(apiBaseUrl) => update({ apiBaseUrl })} /></div>; })}</div><ProviderCredentialEditor provider="cloudflare-stream" state={payload.providerCredentials["cloudflare-stream"]} editing={providerEditors["cloudflare-stream"]} values={providerSecrets} onEditing={(editing) => setProviderEditing("cloudflare-stream", editing)} onChange={updateProviderSecret} /><div className="provider-resource-links">{providerSetupLinks["cloudflare-stream"].map((link) => <a href={link.href} target="_blank" rel="noreferrer" key={link.href}>{link.label}<ExternalLink size={14} /></a>)}</div><div className="provider-email-test"><div><strong>Real Stream token test</strong><p>Creates a one-time one-second direct-upload draft and immediately deletes it without uploading media.</p></div><Button type="button" variant="outline" disabled={streamTest.status === "testing"} onClick={() => void runStreamTest()}>{streamTest.status === "testing" ? "Testing Stream" : "Test Development Stream"}</Button>{streamTest.message ? <p className={streamTest.status === "success" ? "provider-test-result success" : "provider-test-result error"} role="status">{streamTest.message}</p> : null}</div></div> : null}
               </section>
 
               <section className="setup-panel provider-section">
@@ -2270,7 +2271,7 @@ export function SetupPage() {
                     { id: "google-play", name: "Google Play", note: "Exchanges the service-account JWT and reads the configured Android app's subscriptions surface." },
                   ] satisfies Array<{ id: ReleaseProvider; name: string; note: string }>).map(({ id, name, note }) => {
                     const test = releaseTests[id] || { status: "idle" as const };
-                    return <div className="storage-provider-config" key={id}><div><strong>{name}</strong><p>{note}</p></div><ProviderCredentialEditor provider={id} state={payload.providerCredentials[id]} editing={Boolean(providerEditors[id])} values={providerSecrets} onEditing={(editing) => setProviderEditing(id, editing)} onChange={updateProviderSecret} /><div className="provider-email-test"><Button type="button" variant="outline" disabled={test.status === "testing"} onClick={() => void runReleasePlatformTest(id)}>{test.status === "testing" ? `Testing ${name}` : `Test ${name}`}</Button>{test.message ? <p className={test.status === "success" ? "provider-test-result success" : "provider-test-result error"} role="status">{test.message}</p> : null}</div></div>;
+                    return <div className="storage-provider-config" key={id}><div><strong>{name}</strong><p>{note}</p></div><ProviderCredentialEditor provider={id} state={payload.providerCredentials[id]} editing={providerEditors[id]} values={providerSecrets} onEditing={(editing) => setProviderEditing(id, editing)} onChange={updateProviderSecret} /><div className="provider-email-test"><Button type="button" variant="outline" disabled={test.status === "testing"} onClick={() => void runReleasePlatformTest(id)}>{test.status === "testing" ? `Testing ${name}` : `Test ${name}`}</Button>{test.message ? <p className={test.status === "success" ? "provider-test-result success" : "provider-test-result error"} role="status">{test.message}</p> : null}</div></div>;
                   })}
                 </div>
               </section>
@@ -2303,7 +2304,7 @@ export function SetupPage() {
                     <ProviderCredentialEditor
                       provider={provider as "google" | "github" | "apple"}
                       state={payload.providerCredentials[provider as "google" | "github" | "apple"]}
-                      editing={Boolean(providerEditors[provider])}
+                      editing={providerEditors[provider as "google" | "github" | "apple"]}
                       values={providerSecrets}
                       onEditing={(editing) => setProviderEditing(provider as "google" | "github" | "apple", editing)}
                       onChange={updateProviderSecret}
@@ -2345,7 +2346,7 @@ export function SetupPage() {
                 <ProviderCredentialEditor
                   provider={payload.blueprint.providers.email.default as keyof typeof providerSecretFields}
                   state={payload.providerCredentials[payload.blueprint.providers.email.default as keyof SetupPayload["providerCredentials"]]}
-                  editing={Boolean(providerEditors[payload.blueprint.providers.email.default])}
+                  editing={providerEditors[payload.blueprint.providers.email.default as keyof typeof providerSecretFields]}
                   values={providerSecrets}
                   onEditing={(editing) => setProviderEditing(payload.blueprint.providers.email.default as keyof typeof providerSecretFields, editing)}
                   onChange={updateProviderSecret}
@@ -2396,7 +2397,7 @@ export function SetupPage() {
                 <ProviderCredentialEditor
                   provider="stripe"
                   state={payload.providerCredentials.stripe}
-                  editing={Boolean(providerEditors.stripe)}
+                  editing={providerEditors.stripe}
                   values={providerSecrets}
                   onEditing={(editing) => setProviderEditing("stripe", editing)}
                   onChange={updateProviderSecret}

@@ -270,6 +270,18 @@ async function exercisePage({ page, route, viewport, outputRoot, caseId }) {
   }
 
   if (route === "/setup" || route === "/factory") {
+    await page.getByRole("button", { name: "Providers" }).click();
+    const socialSignIn = page.locator("section").filter({
+      has: page.getByRole("heading", { name: "Social sign-in", exact: true }),
+    });
+    await socialSignIn.getByText("Client ID", { exact: true }).waitFor();
+    await socialSignIn.getByText("Client secret", { exact: true }).waitFor();
+    await socialSignIn.getByRole("button", { name: "Configure later" }).click();
+    if (await socialSignIn.getByText("Client ID", { exact: true }).count())
+      throw new Error("Configure later did not collapse the Google credential fields");
+    await socialSignIn.getByRole("button", { name: /credentials|now/iu }).click();
+    await socialSignIn.getByText("Client ID", { exact: true }).waitFor();
+    interactions.push("selected-provider-credentials-visible");
     await page.getByRole("button", { name: "Design" }).click();
     await page.getByRole("heading", { name: "Design", exact: true }).waitFor();
     await page
