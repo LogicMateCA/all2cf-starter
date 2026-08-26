@@ -201,7 +201,7 @@ async function applyProductShape(target) {
   manifest.scripts.build = "npm run build:dp && npm run build:sites";
   manifest.scripts.verify = productType === "website"
     ? "npm run ai:doctor && npm run agent-map:check && npm run visual:integration:contract && npm run knowledge:sync && npm run knowledge:check && npm run change:check && npm run typecheck && npm run build:sites && npm run cache:contract && npm run bundle:check:marketing"
-    : "npm run starter:init && npm run ai:doctor && npm run agent-map:check && npm run visual:integration:contract && npm run release:contract && npm run database:provider:contract && npm run auth:social:contract && npm run knowledge:sync && npm run knowledge:check && npm run change:check && npm run cf:types:check && npm run typecheck && npm run build:sites && npm run cache:contract && npm run bundle:check:mobile && npm run cf:dry-run:dev && npm run cf:dry-run:production";
+    : "npm run starter:init && npm run ai:doctor && npm run agent-map:check && npm run visual:integration:contract && npm run release:contract && npm run database:provider:contract && npm run auth:social:contract && npm run knowledge:sync && npm run knowledge:check && npm run change:check && npm run cf:types:check && npm run typecheck && npm run build:sites && npm run cache:contract && npm run cf:dry-run:dev && npm run cf:dry-run:production";
   if (!keepMarketing) for (const name of ["build:marketing", "bundle:check:marketing"]) delete manifest.scripts[name];
   if (!keepDocs) for (const name of ["build:docs", "bundle:check:docs", "dev:docs"]) delete manifest.scripts[name];
   if (!shipWebApplication) for (const name of ["build:web", "bundle:check:web"]) delete manifest.scripts[name];
