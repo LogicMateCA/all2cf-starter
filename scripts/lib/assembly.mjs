@@ -532,9 +532,17 @@ export function validateAssemblyContracts(
         `Blueprint Page ${pageId} requires selected pack ${page.packId}`,
       );
   }
-  for (const page of pages.values())
-    if (page.required && !selectedPages.has(page.id))
-      failures.push(`Blueprint required Page ${page.id} must remain selected`);
+  const productType = blueprint.project?.productType || "web-saas";
+  const requiredPages = productType === "web-saas"
+    ? new Set([...pages.values()].filter(({ required }) => required).map(({ id }) => id))
+    : productType === "website"
+      ? new Set(["marketing.home", "legal.privacy", "legal.terms", "system.not-found"])
+      : blueprint.project?.companionSite === "none"
+        ? new Set()
+        : new Set(["marketing.home", "legal.privacy", "legal.terms", "system.not-found"]);
+  for (const pageId of requiredPages)
+    if (!selectedPages.has(pageId))
+      failures.push(`Blueprint required Page ${pageId} must remain selected for ${productType}`);
 
   const manifestEnvironments = (manifest.environments || [])
     .map(({ id }) => id)

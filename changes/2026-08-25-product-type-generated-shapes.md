@@ -15,6 +15,7 @@ Factory first selects the primary product architecture rather than several SaaS 
 - Add product-shape fields to the Blueprint and immutable Factory configuration.
 - Materialize selections first, then prune unshipped runtime surfaces and source-only scripts without removing local Setup ownership.
 - Record `.starter/product-shape.json` so AI and release tooling know which outputs are deployable.
+- Apply required-page invariants by product type: full account/Admin/Support requirements for Web SaaS, public legal/system requirements for websites and only selected companion-site requirements for Mobile App.
 - Keep D1 out of scope; dynamic Web SaaS and Mobile API products remain PostgreSQL SQL-first/Drizzle.
 
 # Verification
