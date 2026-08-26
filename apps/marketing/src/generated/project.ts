@@ -9,10 +9,7 @@ export const project = {
     "zh"
   ],
   "platforms": [
-    "desktop-web",
-    "mobile-web",
-    "ios",
-    "android"
+    "desktop-web"
   ],
   "designProfile": {
     "id": "stylekit-editorial",

@@ -65,10 +65,7 @@
     "companionSite": "full",
     "webAdmin": true,
     "platforms": [
-      "desktop-web",
-      "mobile-web",
-      "ios",
-      "android"
+      "desktop-web"
     ],
     "locales": [
       "en",

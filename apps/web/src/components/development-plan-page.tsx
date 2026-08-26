@@ -126,7 +126,7 @@ const fallback: Snapshot = {
   generatedAt: new Date(0).toISOString(),
   source: { commit: null, branch: null, dirty: false, starterVersion: "0.1.0", state: "template" },
   project: {
-    title: "Cloudflare AI Starter",
+    title: __STARTER_PROJECT_NAME__,
     status: "template",
     owner: null,
     summary: "A reusable, AI-readable product foundation with explicit development and production release lanes.",

@@ -245,7 +245,7 @@ export function ProductShell({
           <span className="saas-brand-mark">
             <CircleDot size={17} />
           </span>
-          <strong>Cloudflare AI Starter</strong>
+          <strong>{__STARTER_PROJECT_NAME__}</strong>
         </a>
         <div className="saas-workspace-switcher">
           <button

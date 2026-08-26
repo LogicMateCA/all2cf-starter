@@ -22,11 +22,16 @@ import {
 } from "../../workers/app/auth-email-provider.ts";
 
 const repositoryRoot = fileURLToPath(new URL("../../", import.meta.url));
+const starterConfig = JSON.parse(
+  await readFile(path.join(repositoryRoot, "starter.config.json"), "utf8"),
+) as { project: { name: string; slug: string } };
 let starterSourceRoot = repositoryRoot;
+let starterFactoryMode = true;
 try {
   const sourceReceipt = JSON.parse(
     await readFile(path.join(repositoryRoot, ".starter/source.json"), "utf8"),
   ) as { sourceRoot?: string };
+  starterFactoryMode = false;
   if (sourceReceipt.sourceRoot)
     starterSourceRoot = path.resolve(sourceReceipt.sourceRoot);
 } catch (error) {
@@ -709,7 +714,7 @@ function localSetupApi(): Plugin {
                 readFile(path.join(repositoryRoot, "starter.blueprint.json"), "utf8").then(JSON.parse),
               ]);
               let blueprint = rootBlueprint;
-              if (starterSourceRoot === repositoryRoot)
+              if (starterFactoryMode)
                 try {
                   blueprint = JSON.parse(await readFile(path.join(repositoryRoot, ".starter/factory-draft.local.json"), "utf8")).blueprint || rootBlueprint;
                 } catch (error) {
@@ -792,7 +797,7 @@ function localSetupApi(): Plugin {
               return;
             }
             if (url.pathname === "/__starter/factory") {
-              if (starterSourceRoot !== repositoryRoot || request.method !== "POST") {
+              if (!starterFactoryMode || request.method !== "POST") {
                 response.statusCode = 405;
                 response.end(json({ error: "Project generation is available only from the canonical Factory." }));
                 return;
@@ -928,7 +933,7 @@ function localSetupApi(): Plugin {
             const saasCapabilities = JSON.parse(saasCapabilitiesSource);
             const providerCatalog = JSON.parse(providerCatalogSource);
             let initialBlueprint = JSON.parse(blueprintSource);
-            if (starterSourceRoot === repositoryRoot) {
+            if (starterFactoryMode) {
               try {
                 const draft = JSON.parse(await readFile(path.join(repositoryRoot, ".starter/factory-draft.local.json"), "utf8"));
                 initialBlueprint = draft.blueprint;
@@ -1047,7 +1052,7 @@ function localSetupApi(): Plugin {
               return;
             }
 
-            if (starterSourceRoot === repositoryRoot) {
+            if (starterFactoryMode) {
               nextConfig.email.provider =
                 blueprint.providers.email.default === "cloudflare-email-service"
                   ? "cloudflare-email"
@@ -1216,7 +1221,8 @@ function optionalMapLibreWorker(): Plugin {
 export default defineConfig(({ command }) => ({
   base: command === "build" ? "/_app/" : "/",
   define: {
-    __STARTER_FACTORY_MODE__: JSON.stringify(starterSourceRoot === repositoryRoot),
+    __STARTER_FACTORY_MODE__: JSON.stringify(starterFactoryMode),
+    __STARTER_PROJECT_NAME__: JSON.stringify(starterConfig.project.name),
   },
   plugins: [localSetupApi(), react(), tailwindcss(), optionalMapLibreWorker()],
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },

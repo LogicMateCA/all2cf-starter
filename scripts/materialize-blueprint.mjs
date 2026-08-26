@@ -911,6 +911,11 @@ function renderMarketingProject(
 }
 
 const blueprint = JSON.parse(await readFile(blueprintPath, "utf8"));
+const requestedPlatforms = new Set(blueprint.project?.platforms || []);
+const materializeMobile = blueprint.project?.productType === "mobile-app" || (
+  blueprint.project?.productType === "web-saas" &&
+  ["mobile-web", "ios", "android"].some((platform) => requestedPlatforms.has(platform))
+);
 const state = await readState();
 const starterManifest = JSON.parse(
   await readFile(path.join(root, "starter.manifest.json"), "utf8"),
@@ -1524,7 +1529,7 @@ const generatedRegistries = [
     baseline: null,
     packId: "page.core-product-site",
   },
-];
+].filter((registry) => materializeMobile || !registry.path.startsWith(path.join(root, "apps/mobile/")));
 for (const registry of generatedRegistries) {
   const current = await optionalRead(registry.path);
   if (current === registry.desired) continue;
@@ -1559,7 +1564,7 @@ const desiredState = {
   generatedWorkflowExportsHash: sha256(desiredWorkflowExportsSource),
   generatedDurableObjectExportsHash: sha256(desiredDurableObjectExportsSource),
   generatedStorageAdapterHash: sha256(desiredStorageAdapterSource),
-  generatedMobileConfigPluginsHash: sha256(desiredMobileConfigPluginSource),
+  ...(materializeMobile ? { generatedMobileConfigPluginsHash: sha256(desiredMobileConfigPluginSource) } : {}),
   generatedCloudflareConfigs: desiredCloudflareConfigReceipts,
   generatedDesignWebHash: sha256(desiredDesignCSS),
   generatedDesignMarketingHash: sha256(desiredDesignCSS),
@@ -1567,7 +1572,7 @@ const desiredState = {
   generatedStyleAdapterWebHash: sha256(desiredWebStyleAdapterCSS),
   generatedStyleAdapterMarketingHash: sha256(desiredMarketingStyleAdapterCSS),
   generatedStyleAdapterDocsHash: sha256(desiredDocsStyleAdapterCSS),
-  generatedDesignMobileHash: sha256(desiredMobileDesign),
+  ...(materializeMobile ? { generatedDesignMobileHash: sha256(desiredMobileDesign) } : {}),
   generatedMarketingProjectHash: sha256(desiredMarketingProject),
 };
 for (const { manifest } of selectedManifests)

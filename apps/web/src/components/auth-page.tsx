@@ -120,7 +120,7 @@ export function AuthPage() {
   const description = step === "email" ? `Use your work email${socialMethods.length ? " or a configured social provider" : ""}.` : step === "password" ? email : step === "register" ? `Create an account for ${email}.` : step === "password-setup" ? `${email} already uses a linked sign-in method.` : step === "forgot" ? `We will send instructions to ${email}.` : step === "reset" ? "Use at least 8 characters." : step === "complete" ? "You can now sign in with your new password." : `Instructions were sent to ${email}.`;
 
   return <main className="auth-shell">
-    <a className="auth-brand" href="/"><span><ShieldCheck size={18} /></span><strong>Cloudflare AI Starter</strong></a>
+    <a className="auth-brand" href="/"><span><ShieldCheck size={18} /></span><strong>{__STARTER_PROJECT_NAME__}</strong></a>
     <section className="auth-card" aria-live="polite">
       {step !== "email" && step !== "reset" && step !== "complete" && step !== "check-email" ? <button className="auth-back" onClick={goBack}><ArrowLeft size={16} />Back</button> : null}
       <header className="auth-heading"><h1>{title}</h1><p>{description}</p></header>

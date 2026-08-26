@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -24,7 +25,9 @@ export const publicRoutes = [
 ];
 
 export const localSetupRoutes = [
-  { surface: "factory", route: "/factory", status: 200 },
+  existsSync(path.join(root, ".starter/source.json"))
+    ? { surface: "setup", route: "/setup", status: 200 }
+    : { surface: "factory", route: "/factory", status: 200 },
 ];
 
 export const authenticatedRoutes = [
@@ -538,6 +541,12 @@ export async function runBrowserAcceptance({
   }
 
   const distRoot = path.join(root, "dist/web");
+  const artifactSha256 = await stat(distRoot)
+    .then((entry) => entry.isDirectory() ? hashDirectory(distRoot) : null)
+    .catch((error) => {
+      if (error?.code === "ENOENT") return null;
+      throw error;
+    });
   const report = {
     schema: "starter-browser-acceptance/v1",
     generatedAt: generatedAt.toISOString(),
@@ -546,7 +555,7 @@ export async function runBrowserAcceptance({
     source: {
       commit: execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim(),
       dirty: Boolean(execFileSync("git", ["status", "--porcelain"], { cwd: root, encoding: "utf8" }).trim()),
-      artifactSha256: (await stat(distRoot)).isDirectory() ? await hashDirectory(distRoot) : null,
+      artifactSha256,
     },
     cases,
     failures,
@@ -583,9 +592,10 @@ export async function runBrowserAcceptance({
 
 if (path.resolve(process.argv[1] || "") === fileURLToPath(import.meta.url)) {
   const args = parseArguments(process.argv.slice(2));
+  const mode = args.mode || "public";
   await runBrowserAcceptance({
-    mode: args.mode || "public",
-    baseUrl: args["base-url"] || process.env.STARTER_BROWSER_BASE_URL,
+    mode,
+    baseUrl: args["base-url"] || process.env.STARTER_BROWSER_BASE_URL || (mode === "local-setup" ? "http://127.0.0.1:5173" : undefined),
     outputRoot: args.output ? path.resolve(args.output) : undefined,
     cookieHeader: process.env.STARTER_BROWSER_COOKIE || "",
   });

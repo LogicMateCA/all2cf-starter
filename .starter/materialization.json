@@ -150,7 +150,6 @@
   "generatedWorkflowExportsHash": "5ef77fcb4dce679d3af8b545ae0b24ddcf257cab2b5fc8502fe1381f29e8fb4a",
   "generatedDurableObjectExportsHash": "5ef77fcb4dce679d3af8b545ae0b24ddcf257cab2b5fc8502fe1381f29e8fb4a",
   "generatedStorageAdapterHash": "fe2cb36c76e3aa69970b8b7838e61a8a366d6e81535c151e2e2ca02a9d034a9e",
-  "generatedMobileConfigPluginsHash": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
   "generatedCloudflareConfigs": {
     "cloudflare/wrangler.development.jsonc": {
       "queues": [
@@ -251,6 +250,5 @@
   "generatedStyleAdapterWebHash": "dcded3c84ec8f641510d5e981a1b532037c60784e0b048c6315b7a26b03e5a9c",
   "generatedStyleAdapterMarketingHash": "e961c2786c60ad928d281de4f46be9dc5c3c4464e0bcfe122769816986dd3a0c",
   "generatedStyleAdapterDocsHash": "1ba0db06e657c210171b2537575d6915490ef863dc533e079f90a32d520ef5bb",
-  "generatedDesignMobileHash": "5f59cd732c9dcb719456a40296653291aa28345bdb48319668793556a2b6d9e5",
-  "generatedMarketingProjectHash": "4e6a796e30d5385dd441f594dfd6f72d23af2a42b6cd0e5b5769a081385fd686"
+  "generatedMarketingProjectHash": "71634d713f5c86e2c468a0b6a22a56c67b84f6bd45a9c7ab3b6bfbee0f91ed96"
 }

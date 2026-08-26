@@ -1,12 +1,17 @@
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
+import { readFileSync } from "node:fs";
+
+const starter = JSON.parse(
+  readFileSync(new URL("../../starter.config.json", import.meta.url), "utf8"),
+);
 
 export default defineConfig({
   outDir: "../../dist/docs-site",
   build: { assets: "_docs" },
   integrations: [
     starlight({
-      title: "Cloudflare AI Starter",
+      title: starter.project.name,
       description: "Build, understand, verify, and release a Starter-based product.",
       disable404Route: true,
       favicon: "/docs/favicon.svg",

@@ -69,6 +69,7 @@ source: "starter"
 - Product flows, UX audits, and visual exploration use the Product Design skill.
 - Frontend visual direction and anti-generic taste use the applicable taste skill.
 - `/setup` recommends a small set of compatible design profiles from the product brief. The user selects one; AI records it in the Blueprint before materializing pages.
+- On narrow screens, Setup keeps readable step labels in a horizontally scrollable step rail with the active step visible. It must never satisfy overflow checks by overlapping, clipping or shrinking the seven labels below the global type floor.
 - Every Design or Page pack carries reference screenshots, target-specific empty/loading/error states, accessibility gates, and performance budgets before it can become `local-verified`. A locally verified Design Profile does not automatically promote every target adapter or every Page Catalog entry.
 
 ## Platform component strategy

@@ -116,22 +116,22 @@ async function writeIdentity(target, name, slug) {
     config.production.database.container = "";
     config.production.database.adminUser = "";
     config.production.database.vpcServiceId = "";
-    blueprint.providers.storage.development.bucket = `${slug}-dev-objects`;
-    blueprint.providers.storage.production.bucket = `${slug}-objects`;
-    blueprint.providers.storage.development.publicDomain = "";
-    blueprint.providers.storage.production.publicDomain = "";
-    blueprint.providers.search.development.indexName = `${slug}-dev-vectorize`;
-    blueprint.providers.search.production.indexName = `${slug}-vectorize`;
     blueprint.providers.media.stream.development.accountId = "00000000000000000000000000000000";
     blueprint.providers.media.stream.production.accountId = "00000000000000000000000000000000";
-    blueprint.providers.media.stream.development.allowedOrigins = [`${slug}-dev.example.invalid`];
-    blueprint.providers.media.stream.production.allowedOrigins = [`${slug}.example.invalid`];
   }
   config.project = { name, slug };
   config.development.worker = `${slug}-dev`;
   config.production.worker = slug;
   config.development.domain = `${slug}-dev.${config.cloudflare.zoneName}`;
   config.production.domain = `${slug}.${config.cloudflare.zoneName}`;
+  blueprint.providers.storage.development.bucket = `${slug}-dev-objects`;
+  blueprint.providers.storage.production.bucket = `${slug}-objects`;
+  blueprint.providers.storage.development.publicDomain = "";
+  blueprint.providers.storage.production.publicDomain = "";
+  blueprint.providers.search.development.indexName = `${slug}-dev-vectorize`;
+  blueprint.providers.search.production.indexName = `${slug}-vectorize`;
+  blueprint.providers.media.stream.development.allowedOrigins = [config.development.domain];
+  blueprint.providers.media.stream.production.allowedOrigins = [config.production.domain];
   for (const [environment, suffix] of [["development", "dev"], ["production", ""]]) {
     const identity = suffix ? `${slug}${suffix}` : slug;
     config[environment].database.database = identity;
@@ -151,7 +151,23 @@ async function writeIdentity(target, name, slug) {
 
 async function writeProjectScripts(target) {
   const manifest = await readJson(target, "package.json");
-  const sourceOnlyScripts = new Set(["plugin:contract", "dependencies:contract", "providers:contract", "design:contract", "typography:contract", "pages:contract", "saas:contract", "data-layer:drizzle:contract", "engine:channel:contract"]);
+  const sourceOnlyScripts = new Set([
+    "plugin:contract",
+    "dependencies:contract",
+    "providers:contract",
+    "design:contract",
+    "typography:contract",
+    "pages:contract",
+    "saas:contract",
+    "data-layer:drizzle:contract",
+    "engine:channel:contract",
+    "factory:contract",
+    "product-shape:contract",
+    "product-shape:builds",
+    "starter:materialize",
+    "starter:materialize:apply",
+    "starter:materialize:check",
+  ]);
   for (const script of Object.keys(manifest.scripts || {}))
     if (script.startsWith("source:") || script.startsWith("engine:") || script.startsWith("factory:") || script.startsWith("stylekit:") || sourceOnlyScripts.has(script)) delete manifest.scripts[script];
   Object.assign(manifest.scripts, {
@@ -183,7 +199,11 @@ async function applyProductShape(target) {
   const keepDocs = productType === "web-saas" || (productType === "website" && websiteType === "docs") || (productType === "mobile-app" && companionSite === "full");
   const shipWebApplication = productType === "web-saas" || (productType === "mobile-app" && webAdmin);
   const shipWorker = productType !== "website";
-  const shipMobile = productType === "mobile-app" || productType === "web-saas";
+  const requestedPlatforms = new Set(product.platforms || []);
+  const shipMobile = productType === "mobile-app" || (
+    productType === "web-saas" &&
+    ["mobile-web", "ios", "android"].some((platform) => requestedPlatforms.has(platform))
+  );
 
   if (!keepMarketing) await rm(path.join(target, "apps/marketing"), { recursive: true, force: true });
   if (!keepDocs) await rm(path.join(target, "apps/docs"), { recursive: true, force: true });
@@ -199,23 +219,130 @@ async function applyProductShape(target) {
   ].filter(Boolean);
   manifest.scripts["build:sites"] = siteBuilds.length ? `${siteBuilds.join(" && ")} && npm run merge:sites` : "node scripts/empty-sites-build.mjs";
   manifest.scripts.build = "npm run build:dp && npm run build:sites";
-  manifest.scripts.verify = productType === "website"
-    ? "npm run ai:doctor && npm run agent-map:check && npm run visual:integration:contract && npm run knowledge:sync && npm run knowledge:check && npm run change:check && npm run typecheck && npm run build:sites && npm run cache:contract && npm run bundle:check:marketing"
-    : "npm run starter:init && npm run ai:doctor && npm run agent-map:check && npm run visual:integration:contract && npm run release:contract && npm run database:provider:contract && npm run auth:social:contract && npm run knowledge:sync && npm run knowledge:check && npm run change:check && npm run cf:types:check && npm run typecheck && npm run build:sites && npm run cache:contract && npm run cf:dry-run:dev && npm run cf:dry-run:production";
+  const verification = productType === "website"
+    ? ["ai:doctor", "agent-map:check", "visual:integration:contract", "knowledge:sync", "knowledge:check", "change:check", "typecheck", "build:sites", "cache:contract"]
+    : ["starter:init", "ai:doctor", "agent-map:check", "visual:integration:contract", "release:contract", "database:provider:contract", "auth:social:contract", "knowledge:sync", "knowledge:check", "change:check", "cf:types:check", "typecheck", "build:sites", "cache:contract"];
+  if (keepMarketing) verification.push("bundle:check:marketing");
+  if (shipWebApplication) verification.push("bundle:check:web");
+  if (keepDocs) verification.push("bundle:check:docs");
+  if (shipWorker) verification.push("cf:dry-run:dev", "cf:dry-run:production");
+  manifest.scripts.verify = verification.map((name) => `npm run ${name}`).join(" && ");
   if (!keepMarketing) for (const name of ["build:marketing", "bundle:check:marketing"]) delete manifest.scripts[name];
   if (!keepDocs) for (const name of ["build:docs", "bundle:check:docs", "dev:docs"]) delete manifest.scripts[name];
   if (!shipWebApplication) for (const name of ["build:web", "bundle:check:web"]) delete manifest.scripts[name];
-  if (!shipMobile) for (const name of ["bundle:check:mobile"]) delete manifest.scripts[name];
+  if (!shipMobile) {
+    for (const name of Object.keys(manifest.scripts))
+      if (name.startsWith("mobile:")) delete manifest.scripts[name];
+  }
   if (!shipWorker) {
     for (const name of Object.keys(manifest.scripts))
       if (/^(?:cf:|dev:worker|release:|rollback:|starter:provision|db:migrate)/u.test(name)) delete manifest.scripts[name];
   }
   await writeFile(path.join(target, "package.json"), json(manifest));
+  if (!shipMobile) {
+    await rm(path.join(target, "Dockerfile.android"), { force: true });
+    await rm(path.join(target, "features/mobile"), { recursive: true, force: true });
+    await rm(path.join(target, "skills/expo-release"), { recursive: true, force: true });
+    const agentMapPath = path.join(target, ".ai/agent-map.json");
+    const agentMap = await readJson(target, ".ai/agent-map.json");
+    agentMap.routes = (agentMap.routes || []).filter(({ id }) => id !== "mobile-expo");
+    const present = async (relative) => stat(path.join(target, relative)).then(() => true, () => false);
+    for (const route of agentMap.routes) {
+      for (const key of ["primaryFiles", "docs", "skills"])
+        route[key] = (await Promise.all((route[key] || []).map(async (relative) => [relative, await present(relative)])))
+          .filter(([, fileExists]) => fileExists)
+          .map(([relative]) => relative);
+      route.checks = (route.checks || []).filter((check) => {
+        const match = check.match(/^npm run ([^ ]+)/u);
+        return !match || Boolean(manifest.scripts?.[match[1]]);
+      });
+      if (route.id === "performance")
+        route.summary = "Web and Worker budgets, request fan-out, caching, Core Web Vitals, database query plans, and startup cost.";
+    }
+    await writeFile(agentMapPath, json(agentMap));
+    const aiManifestPath = path.join(target, ".ai/manifest.json");
+    const aiManifest = await readJson(target, ".ai/manifest.json");
+    aiManifest.skills = (aiManifest.skills || []).filter((skill) => skill !== "expo-release");
+    await writeFile(aiManifestPath, json(aiManifest));
+    const starterManifestPath = path.join(target, "starter.manifest.json");
+    const starterManifest = await readJson(target, "starter.manifest.json");
+    starterManifest.applications = (starterManifest.applications || []).filter((application) => application !== "mobile");
+    starterManifest.modules = (starterManifest.modules || []).filter((moduleId) => moduleId !== "mobile");
+    starterManifest.technology = (starterManifest.technology || []).filter(({ area }) => !new Set(["Mobile", "Expo release"]).has(area));
+    await writeFile(starterManifestPath, json(starterManifest));
+    const humanMapPath = path.join(target, "AGENT_MAP.md");
+    const humanMap = await readFile(humanMapPath, "utf8");
+    await writeFile(humanMapPath, humanMap
+      .split("\n")
+      .filter((line) => !line.startsWith("| `mobile-expo` |"))
+      .join("\n"));
+    const agentsPath = path.join(target, "AGENTS.md");
+    const agents = await readFile(agentsPath, "utf8");
+    await writeFile(agentsPath, agents.replace("- For Expo/EAS build, update, Apple App Store, Google Play, or rollback work, read and follow `skills/expo-release/SKILL.md`.\n", ""));
+  }
+  const outputNames = [
+    keepMarketing ? "Marketing" : null,
+    keepDocs ? "Docs" : null,
+    shipWebApplication ? "Web application" : null,
+    shipMobile ? "Mobile application" : null,
+    shipWorker ? "Worker API" : null,
+  ].filter(Boolean);
+  const projectPath = path.join(target, "PROJECT.md");
+  const projectSource = await readFile(projectPath, "utf8");
+  await writeFile(projectPath, projectSource.replace(
+    /^Factory supports three primary product architectures\..*?shipped consumer Web application\.$/mu,
+    `This generated ${productType} product ships ${outputNames.join(", ")}. The exact deployment-surface receipt is \`.starter/product-shape.json\`; local Setup tooling does not add an unselected consumer application.`,
+  ));
+  const architecturePath = path.join(target, "ARCHITECTURE.md");
+  let architecture = await readFile(architecturePath, "utf8");
+  architecture = architecture.replace(
+    /^Product type and selected platforms control deployable surfaces before dependency locking and release\..*?consumer Web output\.$/mu,
+    `The generated product shape ships ${outputNames.join(", ")} and omits every unselected runtime before dependency locking. Local \`/setup\` is tooling and does not imply another consumer output.`,
+  );
+  if (!shipMobile) {
+    architecture = architecture
+      .split("\n")
+      .filter((line) => ![
+        "- `apps/mobile` is a separate touch-first Expo Router product whose UI source targets Mobile Web, iOS, and Android.",
+        "- Desktop and Mobile do not share pages, navigation, layout, UI components, or presentation tokens. They may share API/domain types, auth and permission contracts, i18n keys, telemetry events, and base brand assets.",
+        "- Mobile Web uses Expo Router's `single` output because it is an authenticated application rather than an SEO-oriented document site. Its hosting domain and release target remain undecided.",
+      ].includes(line))
+      .join("\n");
+  }
+  await writeFile(architecturePath, architecture);
   await writeFile(path.join(target, ".starter/product-shape.json"), json({ schemaVersion: "starter-product-shape/v1", productType, websiteType, companionSite, webAdmin, outputs: { marketing: keepMarketing, docs: keepDocs, webApplication: shipWebApplication, mobile: shipMobile, workerApi: shipWorker }, localSetup: "apps/web" }));
 }
 
 async function pruneSourceLibrary(target) {
-  for (const relative of ["packs", "plugins", "skills/starter-source-release", "scripts/source-release.mjs", "ALL2CF_FACTORY.md", "node_modules", "dist", "test-results", "cloudflare/.wrangler", "cloudflare/dist"])
+  for (const relative of [
+    "packs",
+    "plugins",
+    "skills/starter-source-release",
+    "skills/starter-factory",
+    "skills/starter-update-release",
+    "scripts/source-release.mjs",
+    "scripts/starter-factory.mjs",
+    "scripts/factory-contract.mjs",
+    "scripts/product-shape-contract.mjs",
+    "scripts/product-shape-builds.mjs",
+    "scripts/engine-channel-contract.mjs",
+    "scripts/drizzle-pack-contract.mjs",
+    "scripts/all2cf-plugin-contract.mjs",
+    "scripts/dependency-contract.mjs",
+    "scripts/design-profile-contract.mjs",
+    "scripts/page-catalog-contract.mjs",
+    "scripts/provider-catalog-contract.mjs",
+    "scripts/saas-foundation-contract.mjs",
+    "scripts/stylekit-boundary.mjs",
+    "scripts/typography-contract.mjs",
+    ".starter/factory-draft.local.json",
+    "ALL2CF_FACTORY.md",
+    "node_modules",
+    "dist",
+    "test-results",
+    "cloudflare/.wrangler",
+    "cloudflare/dist",
+  ])
     await rm(path.join(target, relative), { recursive: true, force: true });
   const blueprint = await readJson(target, "starter.blueprint.json");
   const stylekitRoot = path.join(target, "design/stylekit");
@@ -234,18 +361,68 @@ async function pruneSourceLibrary(target) {
 async function writeProductHandoff(target, source) {
   const humanMapPath = path.join(target, "AGENT_MAP.md");
   const humanMap = await readFile(humanMapPath, "utf8");
-  await writeFile(humanMapPath, humanMap.replace(
-    "Reusable optional capability: start at `packs/<kind>/<pack>/pack.json`, then its templates. Apply through the materializer.",
-    source.portable
-      ? "Reusable optional capabilities and source updates are managed through the verified Engine Channel in `.starter/source.json`. This portable product does not carry the complete Pack library or a mutable source checkout."
-      : "Reusable optional capability: inspect with `npm run starter:status`, preview with `npm run starter:diff`, and apply from the pinned source using `npm run starter:add -- <pack-id>` or `npm run starter:update`. The product does not carry the complete Pack library.",
-  ));
+  await writeFile(humanMapPath, humanMap
+    .replace(
+      "Reusable optional capability: start at `packs/<kind>/<pack>/pack.json`, then its templates. Apply through the materializer.",
+      source.portable
+        ? "Reusable optional capabilities and source updates are managed through the verified Engine Channel in `.starter/source.json`. This portable product does not carry the complete Pack library or a mutable source checkout."
+        : "Reusable optional capability: inspect with `npm run starter:status`, preview with `npm run starter:diff`, and apply from the pinned source using `npm run starter:add -- <pack-id>` or `npm run starter:update`. The product does not carry the complete Pack library.",
+    )
+    .replace(
+      "| `project-assembly` | Factory, source Engine candidates and Channels, update-release Skill, generated-project Setup, Blueprint, lifecycle updates, materializer, identity sync, `/dp` generation |",
+      "| `project-assembly` | Project-local Setup, Blueprint, lifecycle updates, receipt-aware Starter maintenance, identity sync and `/dp` generation |",
+    ));
   const agentsPath = path.join(target, "AGENTS.md");
   const agents = await readFile(agentsPath, "utf8");
-  await writeFile(agentsPath, agents.replace("- For building, checking or registering a canonical Starter Engine candidate, read and follow `skills/starter-source-release/SKILL.md`.\n", ""));
+  await writeFile(agentsPath, agents
+    .replace(
+      "- The canonical source repository creates projects through local `/factory`; generated products retain local `/setup`. Factory drafts and output must never rewrite canonical source identity. Generated products use their `.starter/source.json` receipt and `starter:status/diff/add/update` commands instead of carrying the complete reusable source library.\n",
+      "- This generated product uses local `/setup`. It is independently runnable and carries only its selected output, source receipt, focused Agent Map, and receipt-aware Starter maintenance commands.\n",
+    )
+    .replace("- For generating a new independent project, read and follow `skills/starter-factory/SKILL.md`.\n", "")
+    .replace("- For building, checking or registering a canonical Starter Engine candidate, read and follow `skills/starter-source-release/SKILL.md`.\n", "")
+    .replace("- For “检查 Starter 更新”, Engine upload, Development Channel publication or explicit Stable promotion, read and follow `skills/starter-update-release/SKILL.md`.\n", ""));
   const projectPath = path.join(target, "PROJECT.md");
   const project = await readFile(projectPath, "utf8");
-  await writeFile(projectPath, project.replace("- `skills/starter-source-release/SKILL.md` owns clean-source SQL/Drizzle verification, reproducible immutable Engine candidates and guarded All2CF registration plans. It never deploys.\n", ""));
+  await writeFile(projectPath, project
+    .replace(
+      "Blueprint-driven project factory for AI-led Cloudflare SaaS products. The reusable baseline owns the normal SaaS platform, application shell, administration, account, notification, support, documentation and operations behavior. Source-only `/factory` captures what a new SaaS does and generates an independent product; that product retains `/setup`, compact Catalog and StyleKit reference snapshots for later configuration and AI context, but not the reusable Pack template library.",
+      "An independent AI-ready Cloudflare product generated from a verified Starter source. This repository owns its selected SaaS platform, application shell, administration, account, notification, support, documentation and operations behavior; local `/setup` controls project configuration without depending on the canonical Factory at runtime.",
+    )
+    .replace(
+      /- Configuration boundary: .*?\/admin` operates product data\./u,
+      "- Configuration boundary: local `/setup` writes this project's Blueprint and configuration. Local `/dp` is the current project projection; deployed `/dp` is read-only evidence for that exact released commit; `/admin` operates product data.",
+    )
+    .replace(
+      /- `packs\/` contains .*?Deselection remains visible as pending removal until apply completes\./u,
+      "- `.starter/materialization.json` records the selected receipt-owned files, dependencies, routes, bindings and lifecycle state. Optional additions and source updates are applied only through the verified Starter maintenance flow; this project does not carry the canonical Pack library.",
+    )
+    .split("\n")
+    .filter((line) => ![
+      "- `skills/starter-factory/SKILL.md` owns clean-source independent project generation, portable packaging, initial Git/AI handoff and creation evidence.",
+      "- `skills/starter-source-release/SKILL.md` owns clean-source SQL/Drizzle verification, reproducible immutable Engine candidates, monotonic Engine Channel publication and guarded All2CF registration plans. It never deploys.",
+      "- `skills/starter-update-release/SKILL.md` owns the repeatable controller workflow for read-only update checks, verified Development Engine/R2/Channel publication and explicitly authorized Stable promotion.",
+    ].includes(line))
+    .join("\n"));
+  const architecturePath = path.join(target, "ARCHITECTURE.md");
+  const architecture = await readFile(architecturePath, "utf8");
+  await writeFile(architecturePath, architecture
+    .replace(
+      "`product brief` → source `/factory` → ignored Factory Draft → deterministic source/target materialization → independent product `/setup` + Agent Map + receipt → local verification → Development release → explicit Production release",
+      "local `/setup` → reviewed Blueprint and Provider state → receipt-aware project output → local verification → Development release → explicit Production release",
+    )
+    .replace(
+      /- `\/factory` is the canonical source repository's local-only creation UI\..*?deployed Workers reject `\/factory`, `\/setup` and `\/__starter\/\*`\./u,
+      "- `/setup` is this generated project's local-only configuration UI. It writes the reviewed Blueprint/config and refreshes `/dp` without mutating Cloudflare or database infrastructure directly; deployed Workers reject `/setup` and `/__starter/*`.",
+    )
+    .replace(
+      /- Optional source templates live under `packs\/` and are excluded from application imports\..*?Deselection removes only receipt-matching assets and refuses changed owned infrastructure declarations\./u,
+      "- Optional source templates are not shipped. The materialization receipt identifies owned generated routes, bindings, dependencies and resources; Starter maintenance refuses to overwrite product-modified output.",
+    ));
+  const aiManifest = await readJson(target, ".ai/manifest.json");
+  delete aiManifest.sourceOfTruth.packTemplates;
+  aiManifest.skills = (aiManifest.skills || []).filter((skill) => skill !== "starter-source-release");
+  await writeFile(path.join(target, ".ai/manifest.json"), json(aiManifest));
   const machineMapPath = path.join(target, ".ai/agent-map.json");
   const machineMap = await readJson(target, ".ai/agent-map.json");
   machineMap.rules.packs = source.portable
@@ -253,6 +430,11 @@ async function writeProductHandoff(target, source) {
     : "Generated products do not carry the complete Pack template library. Use starter:status/diff/add/update through the pinned source receipt; never fabricate local Pack templates.";
   const present = async (relative) => stat(path.join(target, relative)).then(() => true, () => false);
   const productPackage = await readJson(target, "package.json");
+  const assemblyRoute = (machineMap.routes || []).find(({ id }) => id === "project-assembly");
+  if (assemblyRoute) {
+    assemblyRoute.summary = "Project-local Setup, Blueprint selection, receipt-aware Starter maintenance, identity synchronization, and /dp generation.";
+    assemblyRoute.triggers = ["setup", "setup database connector", "starter database connector", "blueprint", "starter status", "starter diff", "starter add", "starter update", "identity sync", "项目更新", "初始化", "配置"];
+  }
   machineMap.firstRunReads = (await Promise.all((machineMap.firstRunReads || []).map(async (relative) => [relative, await present(relative)]))).filter(([, fileExists]) => fileExists).map(([relative]) => relative);
   for (const route of machineMap.routes || []) {
     for (const key of ["primaryFiles", "docs", "skills"])
@@ -265,11 +447,9 @@ async function writeProductHandoff(target, source) {
     if (!route.docs.length) route.docs = ["PROJECT.md"];
     if (!route.checks.length) route.checks = ["npm run typecheck"];
   }
-  if (source.portable) {
-    const changePolicy = await readJson(target, ".ai/change-policy.json");
-    changePolicy.enforcedAfter = "root";
-    await writeFile(path.join(target, ".ai/change-policy.json"), json(changePolicy));
-  }
+  const changePolicy = await readJson(target, ".ai/change-policy.json");
+  changePolicy.enforcedAfter = "root";
+  await writeFile(path.join(target, ".ai/change-policy.json"), json(changePolicy));
   await writeFile(machineMapPath, json(machineMap));
   const template = await readFile(path.join(target, "changes/_template.md"), "utf8");
   await rm(path.join(target, "changes"), { recursive: true, force: true });
@@ -343,13 +523,14 @@ async function createProject() {
     if (portable) process.env.STARTER_FACTORY_BUILD_SOURCE_ROOT = sourceRoot;
     run("scripts/sync-project-identity.mjs", ["--reset", `--project-root=${target}`], target);
     const materialization = await materialize(target, "--apply");
-    refreshPortablePackageLock(target);
-    if (portable) generateWorkerTypes(target);
     await writeProjectScripts(target);
     await pruneSourceLibrary(target);
     await writeProductHandoff(target, source);
-    runProjectScript(target, "scripts/build-dp.mjs");
     await applyProductShape(target);
+    refreshPortablePackageLock(target);
+    if (existsSync(path.join(target, "cloudflare/wrangler.development.jsonc")))
+      generateWorkerTypes(target);
+    runProjectScript(target, "scripts/build-dp.mjs");
     const report = { ok: true, command: "create", target, archive: path.join(outputRoot, `${slug}.tar.gz`), project: { name, slug }, source, fileCount: (await readdir(target, { recursive: true })).length, blueprintHash: sha256(await readFile(path.join(target, "starter.blueprint.json"))), materialization: JSON.parse(materialization) };
     await writeFile(path.join(target, ".starter/generation-report.json"), json(report));
     initializeGit(target, slug);

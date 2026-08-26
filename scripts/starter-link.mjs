@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -127,6 +128,28 @@ async function statusRemote() {
   };
 }
 
+async function statusDetachedLinkedSource() {
+  const materialization = JSON.parse(await readFile(materializationPath, "utf8"));
+  return {
+    ok: true,
+    command: "status",
+    target: projectRoot,
+    source: {
+      installedCommit: receipt.sourceCommit,
+      availableCommit: null,
+      updateAvailable: null,
+      available: false,
+      reason: "linked-source-unavailable",
+    },
+    packs: Object.entries(materialization.packs || {}).map(([id, installed]) => ({
+      id,
+      installed: installed.version,
+      available: null,
+      updateAvailable: null,
+    })),
+  };
+}
+
 function safeArchiveListing(archive) {
   const result = spawnSync("tar", ["-tzf", archive], { encoding: "utf8" });
   if (result.status !== 0) throw new Error(result.stderr || "Starter Engine archive cannot be listed");
@@ -176,9 +199,16 @@ async function updateReceipt(channel) {
 
 async function main() {
   if (receipt.sourceRoot) {
-    const output = runFactory(receipt.sourceRoot, process.argv.slice(2));
-    if (output) process.stdout.write(`${output}\n`);
-    return;
+    if (existsSync(path.join(receipt.sourceRoot, "scripts/starter-factory.mjs"))) {
+      const output = runFactory(receipt.sourceRoot, process.argv.slice(2));
+      if (output) process.stdout.write(`${output}\n`);
+      return;
+    }
+    if (command === "status") {
+      process.stdout.write(json(await statusDetachedLinkedSource()));
+      return;
+    }
+    throw new Error("The linked Starter source is unavailable. Connect this project to All2CF or restore the pinned source before diff, add, or update.");
   }
   if (command === "status") {
     process.stdout.write(json(await statusRemote()));

@@ -44,7 +44,11 @@ const auth = context(["--task", "修复登录邮箱验证"]);
 if (auth.parsed.agentMap.matches[0]?.id !== "auth-account" || !auth.parsed.recommendedReads.includes("workers/app/auth-config.ts"))
   failures.push("Task routing did not resolve auth-account");
 const mobile = context(["--module", "mobile"]);
-if (mobile.parsed.agentMap.matches[0]?.id !== "mobile-expo") failures.push("Module routing did not resolve mobile-expo");
+if ((manifest.modules || []).includes("mobile")) {
+  if (mobile.parsed.agentMap.matches[0]?.id !== "mobile-expo") failures.push("Module routing did not resolve mobile-expo");
+} else if (mobile.parsed.agentMap.matches.some(({ id }) => id === "mobile-expo")) {
+  failures.push("Mobile route remained selectable after Mobile was removed from the product shape");
+}
 const setupConnector = context(["--task", "收口 Starter setup database connector 边界"]);
 if (setupConnector.parsed.agentMap.matches[0]?.id !== "project-assembly") failures.push("Starter connector task escaped project-assembly");
 

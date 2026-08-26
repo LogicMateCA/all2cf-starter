@@ -48,7 +48,19 @@ const socialSecrets = {
 };
 for (const file of ["cloudflare/wrangler.development.jsonc", "cloudflare/wrangler.production.jsonc"]) {
   const worker = JSON.parse(await readFile(path.join(root, file), "utf8"));
+  const environment = file.includes("development") ? "development" : "production";
+  const target = config[environment];
+  worker.name = target.worker;
   worker.vars ||= {};
+  worker.vars.SERVICE_NAME = slug;
+  worker.vars.APP_NAME = name;
+  worker.vars.AUTH_CANONICAL_ORIGIN = `https://${target.domain}`;
+  worker.vars.MOBILE_DEEP_LINK_SCHEMES = `${slug}-dev://,${slug}-preview://,${slug}://`;
+  worker.routes = (worker.routes || []).map((route) =>
+    typeof route === "string"
+      ? target.domain
+      : { ...route, pattern: target.domain },
+  );
   worker.vars.AUTH_SOCIAL_PROVIDERS = renderSocialProviderSelection(blueprint.providers.socialAuth);
   const required = new Set(
     (worker.secrets?.required || []).filter((name) => !socialSecretNames.has(name)),
@@ -88,7 +100,14 @@ for (const [file, suffix] of [["package.json", "root"], ["apps/web/package.json"
 const projectSource = await readFile(path.join(root, "PROJECT.md"), "utf8");
 const titlePattern = /^title:\s*"[^"]*"/mu;
 if (!titlePattern.test(projectSource)) throw new Error("PROJECT.md title frontmatter was not found");
-writes.push({ file: "PROJECT.md", content: projectSource.replace(titlePattern, `title: "${name.replaceAll('"', '\\"')}"`) });
+const sourcePattern = /^source:\s*"[^"]*"/mu;
+if (!sourcePattern.test(projectSource)) throw new Error("PROJECT.md source frontmatter was not found");
+writes.push({
+  file: "PROJECT.md",
+  content: projectSource
+    .replace(titlePattern, `title: "${name.replaceAll('"', '\\"')}"`)
+    .replace(sourcePattern, `source: "${slug}"`),
+});
 
 const applicationNamespace = `${config.cloudflare.zoneName.split(".").reverse().join(".")}.${slug.replaceAll("-", "")}`;
 const maestroSource = await readFile(path.join(root, "apps/mobile/.maestro/smoke.yml"), "utf8");
