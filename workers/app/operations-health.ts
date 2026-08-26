@@ -1,5 +1,6 @@
 import type { Pool } from "pg";
 import type { AuthRuntimeEnv } from "./auth-runtime";
+import { selectedAuthFeatures } from "./generated/auth-plugins";
 import { selectedSocialProviders } from "../../scripts/lib/social-providers.mjs";
 import type { SocialProviderId } from "../../scripts/lib/social-providers.mjs";
 
@@ -298,7 +299,7 @@ export async function collectOperationsHealth(
   }
 
   const pushTable = await relationExists(database, "app_push_device");
-  const expoPushSelected = env.PUSH_PROVIDER === "expo-push" || pushTable;
+  const expoPushSelected = env.PUSH_PROVIDER === "expo-push";
   if (!expoPushSelected) {
     components.push({
       id: "expo-push",
@@ -341,7 +342,7 @@ export async function collectOperationsHealth(
   }
 
   const smsTable = await relationExists(database, "app_sms_delivery");
-  const twilioSmsSelected = env.SMS_PROVIDER === "twilio" || smsTable;
+  const twilioSmsSelected = env.SMS_PROVIDER === "twilio";
   if (!twilioSmsSelected) {
     components.push({
       id: "twilio-sms",
@@ -418,7 +419,7 @@ export async function collectOperationsHealth(
   }
 
   const streamTable = await relationExists(database, "app_stream_asset");
-  const cloudflareStreamSelected = env.STREAM_PROVIDER === "cloudflare-stream" || streamTable;
+  const cloudflareStreamSelected = env.STREAM_PROVIDER === "cloudflare-stream";
   if (!cloudflareStreamSelected) {
     components.push({ id: "cloudflare-stream", label: "Cloudflare Stream", status: "not-selected", summary: "Video streaming is not materialized.", details: { selected: false } });
   } else {
@@ -436,7 +437,7 @@ export async function collectOperationsHealth(
   }
 
   const cronTable = await relationExists(database, "app_cron_heartbeat");
-  const cronSelected = env.CRON_PROVIDER === "cloudflare-cron" || cronTable;
+  const cronSelected = env.CRON_PROVIDER === "cloudflare-cron";
   if (!cronSelected) {
     components.push({ id: "cron", label: "Cloudflare Cron", status: "not-selected", summary: "Scheduled background work is not materialized.", details: { selected: false } });
   } else {
@@ -462,11 +463,7 @@ export async function collectOperationsHealth(
   }
 
   const stripeTable = await relationExists(database, "app_stripe_webhook_event");
-  const stripeSelected =
-    stripeTable ||
-    present(env.STRIPE_SECRET_KEY) ||
-    present(env.STRIPE_WEBHOOK_SECRET) ||
-    present(env.STRIPE_PRICE_PRO);
+  const stripeSelected = selectedAuthFeatures.stripeBilling;
   if (!stripeSelected) {
     components.push({
       id: "stripe",
@@ -514,7 +511,7 @@ export async function collectOperationsHealth(
 
   const webhookTable = await relationExists(database, "app_webhook_delivery");
   const queueBound = Boolean(env.OUTGOING_WEBHOOK_QUEUE);
-  const queueSelected = webhookTable || queueBound;
+  const queueSelected = queueBound;
   if (!queueSelected) {
     components.push({
       id: "outgoing-webhooks",

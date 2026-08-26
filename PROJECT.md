@@ -93,7 +93,7 @@ StyleKit upstream synchronization is deliberately frozen. The source catalog rem
 
 Authentication email is a product contract rather than an environment convenience: CFsend is the default provider, Resend is switchable, and Cloudflare Email Service is opt-in. Copied projects must configure one real provider before credential registration can be released.
 
-Operations health is a baseline product contract, not an external monitoring suite. Public `/api/health` proves only Worker liveness; platform Admin `/api/admin/health` actively measures PostgreSQL reachability and reports credential-safe email, selected Google/GitHub/Apple login, optional Stripe, and optional Queue delivery evidence. The dashboard never creates synthetic provider traffic.
+Operations health is a baseline product contract, not an external monitoring suite. Public `/api/health` proves only Worker liveness; platform Admin `/api/admin/health` actively measures PostgreSQL reachability and reports credential-safe email, selected Google/GitHub/Apple login, optional Stripe, and optional Queue delivery evidence. Blueprint-generated registries, bindings and Provider variables determine whether an optional capability is selected; historical tables or leftover credentials are readiness evidence only and can never select a feature. The dashboard never creates synthetic provider traffic.
 
 ## Active foundation correction
 
