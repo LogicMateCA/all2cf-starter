@@ -21,6 +21,7 @@ Factory first selects the primary product architecture rather than several SaaS 
 # Verification
 
 - Generate clean Web SaaS, Blog website and mobile-only baselines.
+- Shape fixtures reset optional Pack, Page and storage selections so absence checks prove the selected product rather than pruning a pre-materialized unrelated SaaS configuration.
 - Prove expected output presence/absence, independent dependency installation, type checks and selected builds.
 - Run mobile bundle budgets only after the explicit Expo export gate; ordinary generated verification cannot assume export artifacts already exist.
 - Verify All2CF persistence, fixed-dialog decisions, Runner generation, source download and mobile reflow.

@@ -22,6 +22,8 @@ for (const item of cases) {
     const selected = permanent.has(selection.id) || (item.id === "website-blog-build" && selection.id === "page.optional-growth");
     selection.lifecycle = { ...selection.lifecycle, selected, materialized: false, localVerified: false, developmentVerified: false, productionReleased: false };
   }
+  blueprint.pageSet.selected = item.id === "website-blog-build" ? ["marketing.home", "growth.blog", "legal.privacy", "legal.terms", "system.not-found"] : [];
+  blueprint.providers.storage.provider = "none";
   try {
     await writeFile(input, `${JSON.stringify({ blueprint, config: baseConfig }, null, 2)}\n`);
     execFileSync(process.execPath, [path.join(root, "scripts/starter-factory.mjs"), "create", `--slug=${slug}`, `--name=${slug}`, `--input=${path.relative(root, input)}`, "--allow-dirty"], { cwd: root, stdio: "inherit" });

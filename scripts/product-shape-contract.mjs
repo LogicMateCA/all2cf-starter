@@ -20,9 +20,13 @@ for (const item of cases) {
   const input = path.join(root, `.starter/product-shape-${item.id}.local.json`);
   const blueprint = structuredClone(baseBlueprint);
   blueprint.project = { ...blueprint.project, ...item.project, name: slug, slug };
-  for (const group of Object.values(blueprint.selections)) for (const selection of group) {
-    const selected = permanent.has(selection.id) || (item.id === "website-blog" && selection.id === "page.optional-growth");
-    selection.lifecycle = { ...selection.lifecycle, selected, materialized: false, localVerified: false, developmentVerified: false, productionReleased: false };
+  if (item.id !== "web-saas") {
+    for (const group of Object.values(blueprint.selections)) for (const selection of group) {
+      const selected = permanent.has(selection.id) || (item.id === "website-blog" && selection.id === "page.optional-growth");
+      selection.lifecycle = { ...selection.lifecycle, selected, materialized: false, localVerified: false, developmentVerified: false, productionReleased: false };
+    }
+    blueprint.pageSet.selected = item.id === "website-blog" ? ["marketing.home", "growth.blog", "legal.privacy", "legal.terms", "system.not-found"] : [];
+    blueprint.providers.storage.provider = "none";
   }
   try {
     await writeFile(input, `${JSON.stringify({ blueprint, config: baseConfig }, null, 2)}\n`);
