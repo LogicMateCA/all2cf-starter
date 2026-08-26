@@ -187,6 +187,10 @@
         "name",
         "slug",
         "brief",
+        "productType",
+        "websiteType",
+        "companionSite",
+        "webAdmin",
         "platforms",
         "locales",
         "defaultLocale"
@@ -195,6 +199,10 @@
         "name": { "type": "string", "minLength": 1 },
         "slug": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
         "brief": { "type": "string" },
+        "productType": { "enum": ["web-saas", "website", "mobile-app"] },
+        "websiteType": { "enum": ["product", "company", "landing", "blog", "docs", "portfolio", "directory", "custom"] },
+        "companionSite": { "enum": ["none", "landing", "full"] },
+        "webAdmin": { "type": "boolean" },
         "platforms": {
           "type": "array",
           "items": { "enum": ["desktop-web", "mobile-web", "ios", "android"] },

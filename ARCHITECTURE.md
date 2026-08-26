@@ -16,6 +16,8 @@ Assembly control flow:
 
 `product brief` → source `/factory` → ignored Factory Draft → deterministic source/target materialization → independent product `/setup` + Agent Map + receipt → local verification → Development release → explicit Production release
 
+Product type controls deployable surfaces before release. Web SaaS retains Marketing, Docs, Web App and Worker API. Website/content retains Astro output (and Docs when selected) while pruning Worker, database, Cloudflare runtime and mobile source. Mobile App retains Expo and Worker API, with companion Astro and Web Admin controlled independently. Local `/setup` is tooling and does not imply a consumer Web output.
+
 The generated product is operationally complete without an All2CF connection. Local `/all2cf` may import an expiring project-scoped connection file from its All2CF card to enable paid source updates and future managed operations. Disconnect removes the ignored local credential immediately and revokes its remote token when the service is reachable; source, providers, database and deployment ownership are unchanged.
 
 The functional Codex plugin follows the same independence boundary. One user-level `all2cf-project` installation detects generated repositories from `.starter/source.json`, `.ai/manifest.json` and `AGENT_MAP.md`; Factory output does not contain plugin source. Local project rules and commands remain authoritative, so missing or disabled plugin state never blocks installation, build, release or maintenance.

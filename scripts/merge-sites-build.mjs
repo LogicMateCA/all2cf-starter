@@ -22,25 +22,34 @@ async function copyWithoutOverwrite(source, target) {
   await cp(source, target, { recursive: true, errorOnExist: true, force: false });
 }
 
-await Promise.all([
-  requireDirectory(marketingRoot, "Marketing"),
-  requireDirectory(appRoot, "React application"),
-  requireDirectory(docsRoot, "Docs"),
-]);
+const available = {
+  marketing: await exists(marketingRoot),
+  application: await exists(appRoot),
+  docs: await exists(docsRoot),
+};
+if (!available.marketing && !available.application && !available.docs)
+  throw new Error("No selected site build output is available to merge");
 await rm(targetRoot, { recursive: true, force: true });
-await cp(marketingRoot, targetRoot, { recursive: true });
-await copyWithoutOverwrite(appRoot, path.join(targetRoot, "_app"));
+if (available.marketing) await cp(marketingRoot, targetRoot, { recursive: true });
+else {
+  await mkdir(targetRoot, { recursive: true });
+  if (available.application) await cp(appRoot, targetRoot, { recursive: true });
+}
+if (available.marketing && available.application)
+  await copyWithoutOverwrite(appRoot, path.join(targetRoot, "_app"));
 
 const appDevelopmentPlan = path.join(appRoot, "dp");
-if (await exists(appDevelopmentPlan)) {
+if (available.application && await exists(appDevelopmentPlan)) {
   await rm(path.join(targetRoot, "_app/dp"), { recursive: true, force: true });
   await copyWithoutOverwrite(appDevelopmentPlan, path.join(targetRoot, "dp"));
 }
 
-const docsEntries = await readdir(docsRoot, { withFileTypes: true });
-const allowedDocsEntries = new Set(["docs", "_docs", "pagefind"]);
-const unexpected = docsEntries.map(({ name }) => name).filter((name) => !allowedDocsEntries.has(name));
-if (unexpected.length) throw new Error(`Unexpected root output from Docs: ${unexpected.join(", ")}`);
-for (const entry of docsEntries) await copyWithoutOverwrite(path.join(docsRoot, entry.name), path.join(targetRoot, entry.name));
+if (available.docs) {
+  const docsEntries = await readdir(docsRoot, { withFileTypes: true });
+  const allowedDocsEntries = new Set(["docs", "_docs", "pagefind"]);
+  const unexpected = docsEntries.map(({ name }) => !allowedDocsEntries.has(name) ? name : null).filter(Boolean);
+  if (unexpected.length) throw new Error(`Unexpected root output from Docs: ${unexpected.join(", ")}`);
+  for (const entry of docsEntries) await copyWithoutOverwrite(path.join(docsRoot, entry.name), path.join(targetRoot, entry.name));
+}
 
-console.log(`Merged Marketing, React application, and Docs into ${path.relative(root, targetRoot)}`);
+console.log(`Merged selected site outputs (${Object.entries(available).filter(([, enabled]) => enabled).map(([name]) => name).join(", ")}) into ${path.relative(root, targetRoot)}`);

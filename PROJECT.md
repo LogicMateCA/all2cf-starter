@@ -11,6 +11,8 @@ source: "starter"
 
 Blueprint-driven project factory for AI-led Cloudflare SaaS products. The reusable baseline owns the normal SaaS platform, application shell, administration, account, notification, support, documentation and operations behavior. Source-only `/factory` captures what a new SaaS does and generates an independent product; that product retains `/setup`, compact Catalog and StyleKit reference snapshots for later configuration and AI context, but not the reusable Pack template library.
 
+Factory supports three primary product architectures. `web-saas` ships the authenticated Web product and Worker API. `website` ships a static-first Astro content product and omits application Worker, PostgreSQL and mobile runtime output. `mobile-app` ships Expo iOS/Android plus a Worker API and independently selects no companion site, a landing site, a full site and optional Web Admin. `.starter/product-shape.json` is the generated deployment-surface receipt; local Setup tooling may remain present without becoming a shipped consumer Web application.
+
 ## Users and boundaries
 
 - Primary users: product owners and AI development controllers

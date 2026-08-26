@@ -130,6 +130,14 @@ async function readJsonc(root, relativePath) {
   }
 }
 
+async function readOptionalJsonc(root, relativePath) {
+  try { return await readJsonc(root, relativePath); }
+  catch (error) {
+    if (error.cause?.code === "ENOENT") return {};
+    throw error;
+  }
+}
+
 function environmentFromConfig(id, config, manifestEnvironment) {
   const routes = Array.isArray(config.routes)
     ? config.routes
@@ -196,8 +204,8 @@ export async function collectKnowledge(root) {
     readJson(root, ".ai/manifest.json"),
     readFile(path.join(root, ".ai/orchestration.yaml"), "utf8"),
     readJson(root, "cloudflare/bindings.contract.json"),
-    readJsonc(root, "cloudflare/wrangler.development.jsonc"),
-    readJsonc(root, "cloudflare/wrangler.production.jsonc"),
+    readOptionalJsonc(root, "cloudflare/wrangler.development.jsonc"),
+    readOptionalJsonc(root, "cloudflare/wrangler.production.jsonc"),
   ]);
   const eligibleStylekitSystems = stylekitSourceCatalog.styles.filter(
     ({ classification, globalEligibility }) =>

@@ -164,6 +164,56 @@ async function writeProjectScripts(target) {
   await writeFile(path.join(target, "package.json"), json(manifest));
 }
 
+async function applyProductShape(target) {
+  const blueprint = await readJson(target, "starter.blueprint.json");
+  const product = blueprint.project || {};
+  const productType = product.productType || "web-saas";
+  const websiteType = product.websiteType || "product";
+  const companionSite = product.companionSite || "full";
+  const webAdmin = product.webAdmin !== false;
+  if (!new Set(["web-saas", "website", "mobile-app"]).has(productType))
+    throw new Error(`Unsupported product type ${productType}`);
+  if (!new Set(["product", "company", "landing", "blog", "docs", "portfolio", "directory", "custom"]).has(websiteType))
+    throw new Error(`Unsupported website type ${websiteType}`);
+  if (!new Set(["none", "landing", "full"]).has(companionSite))
+    throw new Error(`Unsupported companion site ${companionSite}`);
+
+  const manifest = await readJson(target, "package.json");
+  const keepMarketing = productType !== "mobile-app" || companionSite !== "none";
+  const keepDocs = productType === "web-saas" || (productType === "website" && websiteType === "docs") || (productType === "mobile-app" && companionSite === "full");
+  const shipWebApplication = productType === "web-saas" || (productType === "mobile-app" && webAdmin);
+  const shipWorker = productType !== "website";
+  const shipMobile = productType === "mobile-app" || productType === "web-saas";
+
+  if (!keepMarketing) await rm(path.join(target, "apps/marketing"), { recursive: true, force: true });
+  if (!keepDocs) await rm(path.join(target, "apps/docs"), { recursive: true, force: true });
+  if (!shipMobile) await rm(path.join(target, "apps/mobile"), { recursive: true, force: true });
+  if (!shipWorker) {
+    for (const relative of ["workers", "db", "cloudflare/wrangler.development.jsonc", "cloudflare/wrangler.production.jsonc", "cloudflare/release.contract.json", "cloudflare/release-state.schema.json"]) await rm(path.join(target, relative), { recursive: true, force: true });
+  }
+
+  const siteBuilds = [
+    keepMarketing ? "npm run build:marketing" : null,
+    shipWebApplication ? "npm run build:web" : null,
+    keepDocs ? "npm run build:docs" : null,
+  ].filter(Boolean);
+  manifest.scripts["build:sites"] = siteBuilds.length ? `${siteBuilds.join(" && ")} && npm run merge:sites` : "node scripts/empty-sites-build.mjs";
+  manifest.scripts.build = "npm run build:dp && npm run build:sites";
+  manifest.scripts.verify = productType === "website"
+    ? "npm run ai:doctor && npm run agent-map:check && npm run visual:integration:contract && npm run knowledge:sync && npm run knowledge:check && npm run change:check && npm run typecheck && npm run build:sites && npm run cache:contract && npm run bundle:check:marketing"
+    : "npm run starter:init && npm run ai:doctor && npm run agent-map:check && npm run visual:integration:contract && npm run release:contract && npm run database:provider:contract && npm run auth:social:contract && npm run knowledge:sync && npm run knowledge:check && npm run change:check && npm run cf:types:check && npm run typecheck && npm run build:sites && npm run cache:contract && npm run bundle:check:mobile && npm run cf:dry-run:dev && npm run cf:dry-run:production";
+  if (!keepMarketing) for (const name of ["build:marketing", "bundle:check:marketing"]) delete manifest.scripts[name];
+  if (!keepDocs) for (const name of ["build:docs", "bundle:check:docs", "dev:docs"]) delete manifest.scripts[name];
+  if (!shipWebApplication) for (const name of ["build:web", "bundle:check:web"]) delete manifest.scripts[name];
+  if (!shipMobile) for (const name of ["bundle:check:mobile"]) delete manifest.scripts[name];
+  if (!shipWorker) {
+    for (const name of Object.keys(manifest.scripts))
+      if (/^(?:cf:|dev:worker|release:|rollback:|starter:provision|db:migrate)/u.test(name)) delete manifest.scripts[name];
+  }
+  await writeFile(path.join(target, "package.json"), json(manifest));
+  await writeFile(path.join(target, ".starter/product-shape.json"), json({ schemaVersion: "starter-product-shape/v1", productType, websiteType, companionSite, webAdmin, outputs: { marketing: keepMarketing, docs: keepDocs, webApplication: shipWebApplication, mobile: shipMobile, workerApi: shipWorker }, localSetup: "apps/web" }));
+}
+
 async function pruneSourceLibrary(target) {
   for (const relative of ["packs", "plugins", "skills/starter-source-release", "scripts/source-release.mjs", "ALL2CF_FACTORY.md", "node_modules", "dist", "test-results", "cloudflare/.wrangler", "cloudflare/dist"])
     await rm(path.join(target, relative), { recursive: true, force: true });
@@ -299,6 +349,7 @@ async function createProject() {
     await pruneSourceLibrary(target);
     await writeProductHandoff(target, source);
     runProjectScript(target, "scripts/build-dp.mjs");
+    await applyProductShape(target);
     const report = { ok: true, command: "create", target, archive: path.join(outputRoot, `${slug}.tar.gz`), project: { name, slug }, source, fileCount: (await readdir(target, { recursive: true })).length, blueprintHash: sha256(await readFile(path.join(target, "starter.blueprint.json"))), materialization: JSON.parse(materialization) };
     await writeFile(path.join(target, ".starter/generation-report.json"), json(report));
     initializeGit(target, slug);

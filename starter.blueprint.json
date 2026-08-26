@@ -60,6 +60,10 @@
     "name": "Cloudflare AI Starter",
     "slug": "starter",
     "brief": "A reusable Cloudflare-first product assembler controlled through an AI-readable setup blueprint.",
+    "productType": "web-saas",
+    "websiteType": "product",
+    "companionSite": "full",
+    "webAdmin": true,
     "platforms": [
       "desktop-web",
       "mobile-web",
