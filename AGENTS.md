@@ -5,6 +5,7 @@ This repository is a reusable starter. Replace neutral placeholders during proje
 ## Operating rules
 
 - Inspect existing code and constraints before changing anything. Keep changes surgical and verifiable.
+- When any product exposes a bug in reusable foundation behavior, fix the immediate product only as needed for recovery, then port the generalized correction, regression contract, documentation, and update path into the canonical Starter. Product-specific business behavior stays in the product. A foundation bug is not complete while Starter can still generate or retain it.
 - After first project setup, begin ordinary work with `AGENT_MAP.md` and `npm run ai:context -- --task "<request>"`. Do not load every Module, Change Spec, Catalog, or Pack by default. Use `--full` only for first initialization, whole-project architecture, or release/cutover audit.
 - The canonical source repository creates projects through local `/factory`; generated products retain local `/setup`. Factory drafts and output must never rewrite canonical source identity. Generated products use their `.starter/source.json` receipt and `starter:status/diff/add/update` commands instead of carrying the complete reusable source library.
 - Cloudflare facts, APIs, configuration, and operations must be checked through official Cloudflare MCP first. If MCP is unavailable, record the limitation before using another authoritative source.

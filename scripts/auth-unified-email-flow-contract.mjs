@@ -19,6 +19,8 @@ assert.match(worker, /emailOTP\(\{/u, "The Worker must install Better Auth Email
 assert.match(worker, /disableSignUp: true/u, "OTP must never create an unknown account");
 assert.match(worker, /storeOTP: "hashed"/u, "OTP must be hashed at rest");
 assert.match(worker, /allowedAttempts: 5/u, "OTP attempts must be bounded");
+assert.match(worker, /const cookiePrefix =/u, "Every generated project must derive its own Better Auth cookie prefix");
+assert.match(worker, /cookiePrefix,/u, "The generated cookie prefix must be applied to Better Auth");
 assert.doesNotMatch(routes, /APP_ENV === "production"[\s\S]{0,160}publicLookupRestricted/u, "Production must not fall back to a guessed password screen");
 assert.match(outbox, /'email-otp'/u, "The base outbox must accept OTP messages");
 assert.match(organizationOutbox, /'email-otp'/u, "The Organization pack must preserve OTP messages when extending the outbox constraint");
