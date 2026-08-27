@@ -3,12 +3,12 @@ import { ProductShell } from "@/components/product-shell";
 import { AccountSettings } from "@/components/account-settings";
 import { NotificationCenter, RecentActivity } from "@/components/notification-bell";
 import { Button } from "@/components/ui/button";
-import { authClient } from "@/lib/auth-client";
+import { useResilientSession } from "@/lib/use-resilient-session";
 import { message } from "@/lib/i18n";
 import { usePreferences } from "@/lib/preferences";
 
 export function ProtectedApp() {
-  const { data: session, isPending } = authClient.useSession();
+  const { data: session, isPending } = useResilientSession();
   const { locale } = usePreferences();
   const settings = window.location.pathname === "/app/settings";
   const notifications = window.location.pathname === "/app/notifications";

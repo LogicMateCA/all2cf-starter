@@ -14,6 +14,7 @@ Every generated project has one email entry instead of separate sign-in and regi
 
 Add Better Auth Email OTP to the shared Worker and Web client, enforce hashed ten-minute OTPs with bounded attempts, remove the production-only lookup fallback, and replace the visible registration and linked-provider setup branches with the unified state machine. Existing verification-link handling remains compatible.
 The authentication contract also requires every generated project to derive and apply its own Better Auth cookie prefix so sibling products and historical host cookies cannot shadow sessions.
+The protected Web entry retains the last confirmed identity across a transient null response and performs a bounded Better Auth confirmation before redirecting to sign-in.
 
 # Verification
 

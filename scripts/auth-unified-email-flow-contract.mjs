@@ -7,6 +7,8 @@ const worker = await readFile(new URL("../workers/app/auth-config.ts", import.me
 const routes = await readFile(new URL("../workers/app/index.ts", import.meta.url), "utf8");
 const outbox = await readFile(new URL("../db/migrations/0002_auth_constraints_and_outbox.sql", import.meta.url), "utf8");
 const organizationOutbox = await readFile(new URL("../packs/saas/team-organizations/templates/0005_organization.sql", import.meta.url), "utf8");
+const protectedApp = await readFile(new URL("../apps/web/src/components/protected-app.tsx", import.meta.url), "utf8");
+const resilientSession = await readFile(new URL("../apps/web/src/lib/use-resilient-session.ts", import.meta.url), "utf8");
 
 assert.doesNotMatch(web, /Create (?:an )?account|Create your account|"register"|password-setup/u, "Web auth must expose one email continuation flow, not a registration branch");
 assert.match(web, /next\.hasPassword\) setStep\("password"\)/u, "Existing credentials must route to password entry");
@@ -24,5 +26,7 @@ assert.match(worker, /cookiePrefix,/u, "The generated cookie prefix must be appl
 assert.doesNotMatch(routes, /APP_ENV === "production"[\s\S]{0,160}publicLookupRestricted/u, "Production must not fall back to a guessed password screen");
 assert.match(outbox, /'email-otp'/u, "The base outbox must accept OTP messages");
 assert.match(organizationOutbox, /'email-otp'/u, "The Organization pack must preserve OTP messages when extending the outbox constraint");
+assert.match(protectedApp, /useResilientSession\(\)/u, "Protected Web entry must not clear identity on one transient null session response");
+assert.match(resilientSession, /authClient\.getSession\(\)/u, "Transient session loss must be confirmed against Better Auth before logout");
 
 console.log(JSON.stringify({ ok: true, flow: "email -> password | choose-password | ownership-otp" }, null, 2));
