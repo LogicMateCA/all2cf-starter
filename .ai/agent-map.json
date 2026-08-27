@@ -9,6 +9,7 @@
   ],
   "firstRunReads": [
     "PROJECT.md",
+    ".ai/features.json",
     "starter.config.json",
     "catalog/catalog.json",
     "catalog/providers.json",
@@ -32,7 +33,7 @@
       "primaryFiles": ["apps/web/src/components/setup-page.tsx", "apps/web/vite.config.ts", "scripts/starter-factory.mjs", "scripts/source-release.mjs", "scripts/materialize-blueprint.mjs", "scripts/sync-project-identity.mjs", "starter.blueprint.json", "catalog/catalog.json"],
       "docs": ["features/assembler/MODULE.md", "PROJECT.md"],
       "checks": ["npm run source:status", "npm run factory:contract", "npm run starter:materialize:check", "npm run saas:contract", "npm run knowledge:check"],
-      "skills": ["skills/project-context/SKILL.md", "skills/starter-bootstrap/SKILL.md", "skills/starter-source-release/SKILL.md", "skills/starter-update-release/SKILL.md"]
+      "skills": ["skills/project-context/SKILL.md", "skills/feature-lifecycle/SKILL.md", "skills/starter-bootstrap/SKILL.md", "skills/starter-source-release/SKILL.md", "skills/starter-update-release/SKILL.md"]
     },
     {
       "id": "auth-account",

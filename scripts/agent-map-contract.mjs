@@ -51,6 +51,11 @@ if ((manifest.modules || []).includes("mobile")) {
 }
 const setupConnector = context(["--task", "收口 Starter setup database connector 边界"]);
 if (setupConnector.parsed.agentMap.matches[0]?.id !== "project-assembly") failures.push("Starter connector task escaped project-assembly");
+try {
+  execFileSync(process.execPath, ["scripts/feature-lifecycle.mjs", "coverage"], { cwd: root, encoding: "utf8" });
+} catch (error) {
+  failures.push(`Feature registry coverage failed: ${String(error.stderr || error.message || error)}`);
+}
 
 console.log(JSON.stringify({
   ok: failures.length === 0,

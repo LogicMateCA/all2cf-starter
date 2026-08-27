@@ -57,6 +57,12 @@ try {
   ])
     if (await exists(path.join(target, sourceOnly))) failures.push(`Canonical source-release file leaked into generated project: ${sourceOnly}`);
   const generatedPackage = JSON.parse(await readFile(path.join(target, "package.json"), "utf8"));
+  for (const required of [".ai/features.json", "scripts/feature-lifecycle.mjs", "skills/feature-lifecycle/SKILL.md"])
+    if (!(await exists(path.join(target, required)))) failures.push(`Generated project is missing feature lifecycle file ${required}`);
+  for (const command of ["feature:add", "feature:adopt", "feature:sync", "feature:coverage"])
+    if (!generatedPackage.scripts?.[command]) failures.push(`Generated project is missing ${command}`);
+  if (generatedPackage.scripts?.["feature:coverage"])
+    runProjectScript(target, "scripts/feature-lifecycle.mjs", ["coverage"]);
   if (Object.keys(generatedPackage.scripts || {}).some((script) => script.startsWith("source:") || script.startsWith("engine:")))
     failures.push("Canonical source-release commands leaked into generated project");
   if (Object.keys(generatedPackage.scripts || {}).some((script) => script.startsWith("factory:") || script.startsWith("stylekit:")))

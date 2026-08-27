@@ -64,6 +64,7 @@
     "cloudflare-release",
     "expo-release",
     "runtime-upgrade",
-    "project-context"
+    "project-context",
+    "feature-lifecycle"
   ]
 }
