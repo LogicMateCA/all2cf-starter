@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TurnstileChallenge } from "@/components/turnstile-challenge";
 
-type AuthStep = "email" | "password" | "register" | "password-setup" | "forgot" | "check-email" | "reset" | "complete";
-type EmailLookup = { publicLookupRestricted?: boolean; exists?: boolean; name?: string; emailVerified?: boolean; hasPassword?: boolean; linkedProviders?: string[] };
+type AuthStep = "email" | "password" | "choose-password" | "ownership-code" | "forgot-code" | "reset-password" | "check-email" | "reset" | "complete";
+type EmailLookup = { exists?: boolean; name?: string; emailVerified?: boolean; hasPassword?: boolean; linkedProviders?: string[] };
 type SocialMethod = { key: "google" | "github" | "apple"; label: string; enabled: boolean };
 type AntiAbuse = { provider: "none" | "turnstile"; siteKey: string };
 
@@ -26,9 +26,9 @@ export function AuthPage() {
   const resetToken = query.get("token") || "";
   const [step, setStep] = useState<AuthStep>(resetToken ? "reset" : "email");
   const [email, setEmail] = useState(query.get("email") || "");
-  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [otp, setOtp] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -62,9 +62,9 @@ export function AuthPage() {
       if (!response.ok) throw new Error(payload.error?.message || "Unable to continue.");
       const next = payload.data || {};
       setLookup(next);
-      if (next.publicLookupRestricted || next.hasPassword) setStep("password");
-      else if (next.exists) setStep("password-setup");
-      else setStep("register");
+      if (next.hasPassword) setStep("password");
+      else if (next.exists) await requestOwnershipCode();
+      else setStep("choose-password");
     } catch (caught) { setError(messageFrom(caught, "Unable to continue.")); }
     finally { setBusy(false); }
   }
@@ -79,11 +79,11 @@ export function AuthPage() {
     else window.location.assign(returnTo);
   }
 
-  async function register(event: FormEvent) {
+  async function createWithPassword(event: FormEvent) {
     event.preventDefault();
     setBusy(true); setError("");
     try {
-      const response = await fetch("/api/auth-flow/register", { method: "POST", headers: { "Content-Type": "application/json", ...(antiAbuse.provider === "turnstile" ? { "x-captcha-response": captchaToken } : {}) }, body: JSON.stringify({ email, name, password, confirmPassword }) });
+      const response = await fetch("/api/auth-flow/register", { method: "POST", headers: { "Content-Type": "application/json", ...(antiAbuse.provider === "turnstile" ? { "x-captcha-response": captchaToken } : {}) }, body: JSON.stringify({ email, password, confirmPassword }) });
       const payload = await response.json() as { error?: { message?: string } };
       if (!response.ok) throw new Error(payload.error?.message || "Unable to create the account.");
       setStep("check-email");
@@ -91,13 +91,37 @@ export function AuthPage() {
     finally { setBusy(false); }
   }
 
+  async function requestOwnershipCode() {
+    setBusy(true); setError("");
+    const result = await authClient.emailOtp.requestPasswordReset({ email: email.trim().toLowerCase() });
+    setBusy(false);
+    if (result.error) setError("Unable to send a verification code right now.");
+    else setStep("ownership-code");
+  }
+
   async function sendReset(event?: FormEvent) {
     event?.preventDefault();
     setBusy(true); setError("");
-    const result = await authClient.requestPasswordReset({ email: email.trim().toLowerCase(), redirectTo: `${window.location.origin}/login`, fetchOptions: antiAbuse.provider === "turnstile" ? { headers: { "x-captcha-response": captchaToken } } : undefined });
+    const result = await authClient.emailOtp.requestPasswordReset({ email: email.trim().toLowerCase(), fetchOptions: antiAbuse.provider === "turnstile" ? { headers: { "x-captcha-response": captchaToken } } : undefined });
     setBusy(false);
     if (result.error) setError("Unable to send password instructions right now.");
-    else setStep("check-email");
+    else setStep("forgot-code");
+  }
+
+  function confirmOtp(event: FormEvent) {
+    event.preventDefault(); setError("");
+    if (!/^\d{6}$/u.test(otp)) { setError("Enter the complete 6-digit code."); return; }
+    setStep("reset-password");
+  }
+
+  async function saveOtpPassword(event: FormEvent) {
+    event.preventDefault();
+    if (password.length < 8 || password !== confirmPassword) { setError(password !== confirmPassword ? "Passwords do not match." : "Use at least 8 characters."); return; }
+    setBusy(true); setError("");
+    const result = await authClient.emailOtp.resetPassword({ email: email.trim().toLowerCase(), otp, password });
+    setBusy(false);
+    if (result.error) setError("This verification code is invalid or has expired.");
+    else { setOtp(""); setPassword(""); setConfirmPassword(""); setStep("complete"); }
   }
 
   async function resetPassword(event: FormEvent) {
@@ -116,8 +140,8 @@ export function AuthPage() {
     if (result?.error) { setBusy(false); setError(`${provider} sign-in could not be started.`); }
   }
 
-  const title = step === "email" ? "Sign in or create an account" : step === "password" ? `Welcome${lookup?.name ? `, ${lookup.name}` : " back"}` : step === "register" ? "Create your account" : step === "password-setup" ? "Finish account setup" : step === "forgot" ? "Reset your password" : step === "reset" ? "Choose a new password" : step === "complete" ? "Password updated" : "Check your email";
-  const description = step === "email" ? `Use your work email${socialMethods.length ? " or a configured social provider" : ""}.` : step === "password" ? email : step === "register" ? `Create an account for ${email}.` : step === "password-setup" ? `${email} already uses a linked sign-in method.` : step === "forgot" ? `We will send instructions to ${email}.` : step === "reset" ? "Use at least 8 characters." : step === "complete" ? "You can now sign in with your new password." : `Instructions were sent to ${email}.`;
+  const title = step === "email" ? "Continue with your email" : step === "password" ? `Welcome${lookup?.name ? `, ${lookup.name}` : " back"}` : step === "choose-password" ? "Choose your password" : step === "ownership-code" ? "Confirm this email is yours" : step === "forgot-code" ? "Check your email" : step === "reset-password" || step === "reset" ? "Choose a new password" : step === "complete" ? "Password updated" : "Check your email";
+  const description = step === "email" ? `Enter your email${socialMethods.length ? " or continue with a configured provider" : ""}.` : step === "password" ? email : step === "choose-password" ? `Set a password for ${email}. We will verify the address before access is granted.` : step === "ownership-code" ? `This email already has a linked sign-in. Enter the code sent to ${email} before setting a password.` : step === "forgot-code" ? `Enter the code sent to ${email}.` : step === "reset-password" || step === "reset" ? "Use at least 8 characters." : step === "complete" ? "You can now sign in with your email and password." : `Verification instructions were sent to ${email}.`;
 
   return <main className="auth-shell">
     <a className="auth-brand" href="/"><span><ShieldCheck size={18} /></span><strong>{__STARTER_PROJECT_NAME__}</strong></a>
@@ -138,21 +162,19 @@ export function AuthPage() {
         {antiAbuse.provider === "turnstile" ? <TurnstileChallenge siteKey={antiAbuse.siteKey} action="credential_sign_in" onToken={setCaptchaToken} onError={setError} /> : null}
         {error ? <p className="form-error" role="alert">{error}</p> : null}
         <Button type="submit" size="lg" disabled={busy || !password || (antiAbuse.provider === "turnstile" && !captchaToken)}>{busy ? <Loader2 className="spin" /> : null}Sign in</Button>
-        <button type="button" className="text-action" onClick={() => { resetTransientState(); setStep("forgot"); }}>Forgot password?</button>
-        {lookup?.publicLookupRestricted ? <button type="button" className="text-action secondary" onClick={() => { resetTransientState(); setStep("register"); }}>Create an account</button> : null}
+        <button type="button" className="text-action" onClick={() => { resetTransientState(); void sendReset(); }}>Forgot password?</button>
       </form> : null}
 
-      {step === "register" ? <form onSubmit={register} className="auth-form">
-        <div className="field"><Label htmlFor="name">Name</Label><Input id="name" name="name" autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} required autoFocus /></div>
+      {step === "choose-password" ? <form onSubmit={createWithPassword} className="auth-form">
         <PasswordField value={password} setValue={setPassword} show={showPassword} setShow={setShowPassword} autoComplete="new-password" />
         <div className="field"><Label htmlFor="confirm-password">Confirm password</Label><Input id="confirm-password" type={showPassword ? "text" : "password"} autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required /></div>
         {antiAbuse.provider === "turnstile" ? <TurnstileChallenge siteKey={antiAbuse.siteKey} action="credential_sign_up" onToken={setCaptchaToken} onError={setError} /> : null}
         {error ? <p className="form-error" role="alert">{error}</p> : null}
-        <Button type="submit" size="lg" disabled={busy || !name || !password || !confirmPassword || (antiAbuse.provider === "turnstile" && !captchaToken)}>{busy ? <Loader2 className="spin" /> : null}Create account</Button>
+        <Button type="submit" size="lg" disabled={busy || !password || !confirmPassword || (antiAbuse.provider === "turnstile" && !captchaToken)}>{busy ? <Loader2 className="spin" /> : null}Continue</Button>
       </form> : null}
 
-      {step === "password-setup" ? <div className="auth-form"><p className="auth-note">Continue with a configured linked provider, or request an email to create a password.</p>{socialMethods.map((method) => <Button key={method.key} size="lg" onClick={() => void signInSocial(method.key)} disabled={busy}>Continue with {method.label}</Button>)}<Button size="lg" variant="outline" onClick={() => void sendReset()} disabled={busy}>Set a password by email</Button></div> : null}
-      {step === "forgot" ? <form onSubmit={sendReset} className="auth-form">{antiAbuse.provider === "turnstile" ? <TurnstileChallenge siteKey={antiAbuse.siteKey} action="credential_password_reset" onToken={setCaptchaToken} onError={setError} /> : null}{error ? <p className="form-error" role="alert">{error}</p> : null}<Button type="submit" size="lg" disabled={busy || (antiAbuse.provider === "turnstile" && !captchaToken)}>{busy ? <Loader2 className="spin" /> : <Mail />}Send reset instructions</Button></form> : null}
+      {step === "ownership-code" || step === "forgot-code" ? <form onSubmit={confirmOtp} className="auth-form"><div className="field"><Label htmlFor="otp">6-digit verification code</Label><Input id="otp" inputMode="numeric" pattern="[0-9]{6}" autoComplete="one-time-code" value={otp} onChange={(event) => setOtp(event.target.value.replace(/\D/gu, "").slice(0, 6))} required autoFocus /></div>{error ? <p className="form-error" role="alert">{error}</p> : null}<Button type="submit" size="lg" disabled={otp.length !== 6}>Continue</Button><button type="button" className="text-action" onClick={() => void (step === "ownership-code" ? requestOwnershipCode() : sendReset())}>Send a new code</button></form> : null}
+      {step === "reset-password" ? <form onSubmit={saveOtpPassword} className="auth-form"><PasswordField value={password} setValue={setPassword} show={showPassword} setShow={setShowPassword} autoComplete="new-password" autoFocus /><div className="field"><Label htmlFor="confirm-otp-password">Confirm password</Label><Input id="confirm-otp-password" type={showPassword ? "text" : "password"} autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required /></div>{error ? <p className="form-error" role="alert">{error}</p> : null}<Button type="submit" size="lg" disabled={busy || password.length < 8 || confirmPassword.length < 8}>{busy ? <Loader2 className="spin" /> : null}Save password</Button></form> : null}
       {step === "reset" ? <form onSubmit={resetPassword} className="auth-form"><PasswordField value={password} setValue={setPassword} show={showPassword} setShow={setShowPassword} autoComplete="new-password" autoFocus /><div className="field"><Label htmlFor="confirm-reset-password">Confirm password</Label><Input id="confirm-reset-password" type={showPassword ? "text" : "password"} autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required /></div>{error ? <p className="form-error" role="alert">{error}</p> : null}<Button type="submit" size="lg" disabled={busy}>{busy ? <Loader2 className="spin" /> : null}Update password</Button></form> : null}
       {step === "check-email" ? <div className="auth-result"><span><Mail size={23} /></span><p>The response is intentionally the same whether or not an account exists.</p><Button variant="outline" onClick={goBack}>Return to sign in</Button></div> : null}
       {step === "complete" ? <div className="auth-result"><span><CheckCircle2 size={23} /></span><Button asChild><a href={`/login?email=${encodeURIComponent(email)}&returnTo=${encodeURIComponent(returnTo)}`}>Sign in</a></Button></div> : null}

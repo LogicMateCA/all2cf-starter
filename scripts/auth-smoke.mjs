@@ -815,6 +815,63 @@ try {
   checks.push("known-email");
   checks.push("credential-issuer-identity");
 
+  const socialOnlyEmail = `social-only-${randomUUID()}@example.test`;
+  const socialOnlyUserId = randomUUID();
+  await database.query(
+    `insert into app_user (id, name, email, email_verified, created_at, updated_at)
+     values ($1, 'Social Only', $2, true, now(), now())`,
+    [socialOnlyUserId, socialOnlyEmail],
+  );
+  await database.query(
+    `insert into app_account (id, issuer, account_id, provider_id, user_id, created_at, updated_at)
+     values ($1, 'https://accounts.google.com', $2, 'google', $3, now(), now())`,
+    [randomUUID(), `google-${socialOnlyUserId}`, socialOnlyUserId],
+  );
+  const socialLookup = await request("/api/auth-flow/check-email", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Origin: origin },
+    body: JSON.stringify({ email: socialOnlyEmail }),
+  });
+  assert(
+    socialLookup.response.status === 200 &&
+      socialLookup.payload?.data?.exists === true &&
+      socialLookup.payload?.data?.hasPassword === false &&
+      socialLookup.payload?.data?.linkedProviders?.includes("google"),
+    "social-only email lookup did not require ownership proof",
+  );
+  const otpRequest = await request("/api/auth/email-otp/request-password-reset", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Origin: origin },
+    body: JSON.stringify({ email: socialOnlyEmail }),
+  });
+  assert(otpRequest.response.ok, "social-only ownership OTP was not accepted");
+  const otpOutbox = await database.query(
+    `select text_body from app_auth_email_outbox
+     where recipient = $1 and kind = 'email-otp' order by created_at desc limit 1`,
+    [socialOnlyEmail],
+  );
+  const ownershipOtp = String(otpOutbox.rows[0]?.text_body || "").match(/\b(\d{6})\b/u)?.[1];
+  assert(ownershipOtp, "social-only ownership OTP was not delivered through the auth outbox");
+  const socialPassword = "Social-Only-Password-1!";
+  const otpReset = await request("/api/auth/email-otp/reset-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Origin: origin },
+    body: JSON.stringify({ email: socialOnlyEmail, otp: ownershipOtp, password: socialPassword }),
+  });
+  assert(otpReset.response.ok, "verified social-only email could not set its first password");
+  const socialCredential = await database.query(
+    `select password from app_account where user_id = $1 and provider_id = 'credential'`,
+    [socialOnlyUserId],
+  );
+  assert(socialCredential.rows[0]?.password, "social-only ownership proof did not create a credential account");
+  const socialPasswordLogin = await request("/api/auth/sign-in/email", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Origin: origin },
+    body: JSON.stringify({ email: socialOnlyEmail, password: socialPassword, callbackURL: "/app" }),
+  });
+  assert(socialPasswordLogin.response.ok, "social-only account could not sign in with its verified first password");
+  checks.push("social-only-email-ownership-otp-first-password");
+
   const unverifiedLogin = await request("/api/auth/sign-in/email", {
     method: "POST",
     headers: { "Content-Type": "application/json", Origin: origin },

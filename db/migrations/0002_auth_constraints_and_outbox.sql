@@ -2,7 +2,7 @@ create unique index "app_account_issuer_account_id_uidx" on "app_account" ("issu
 
 create table "app_auth_email_outbox" (
   "id" text primary key,
-  "kind" text not null check ("kind" in ('email-verification', 'password-reset')),
+  "kind" text not null check ("kind" in ('email-verification', 'password-reset', 'email-otp')),
   "recipient" text not null,
   "subject" text not null,
   "text_body" text not null,

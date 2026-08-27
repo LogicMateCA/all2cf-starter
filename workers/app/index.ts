@@ -427,11 +427,6 @@ app.post("/api/auth-flow/check-email", async (c) => {
       },
       400,
     );
-  if (c.env.APP_ENV === "production")
-    return c.json({ data: { publicLookupRestricted: true } }, 200, {
-      "Cache-Control": "no-store",
-    });
-
   const client = createDatabaseClient(c.env, `${c.env.SERVICE_NAME}-admin`);
   try {
     await client.connect();

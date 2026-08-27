@@ -1,7 +1,7 @@
 alter table "app_session" add column "active_organization_id" text;
 alter table "app_session" add column "active_team_id" text;
 alter table "app_auth_email_outbox" drop constraint "app_auth_email_outbox_kind_check";
-alter table "app_auth_email_outbox" add constraint "app_auth_email_outbox_kind_check" check ("kind" in ('email-verification', 'password-reset', 'organization-invitation'));
+alter table "app_auth_email_outbox" add constraint "app_auth_email_outbox_kind_check" check ("kind" in ('email-verification', 'password-reset', 'email-otp', 'organization-invitation'));
 
 create table "app_organization" (
   "id" text not null primary key,

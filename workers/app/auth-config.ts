@@ -1,13 +1,13 @@
 import { betterAuth } from "better-auth";
 import { expo } from "@better-auth/expo";
 import { createAuthMiddleware, isAPIError } from "better-auth/api";
-import { admin } from "better-auth/plugins";
+import { admin, emailOTP } from "better-auth/plugins";
 import type { Pool } from "pg";
 import { createSelectedAuthPlugins } from "./generated/auth-plugins";
 import { generateAppleClientSecret } from "../../scripts/lib/apple-oauth.mjs";
 
 export type AuthEmail = {
-  kind: "email-verification" | "password-reset" | "organization-invitation";
+  kind: "email-verification" | "password-reset" | "email-otp" | "organization-invitation";
   to: string;
   subject: string;
   text: string;
@@ -69,6 +69,10 @@ function authEmailHtml(
   url: string,
 ) {
   return `<!doctype html><html><body style="margin:0;background:#f4f7fb;font-family:Arial,sans-serif;color:#111827"><div style="max-width:560px;margin:40px auto;background:#fff;border:1px solid #dbe3ee;border-radius:16px;padding:32px"><h1 style="font-size:24px;margin:0 0 14px">${escapeHtml(title)}</h1><p style="line-height:1.65;color:#475569">${escapeHtml(message)}</p><a href="${escapeHtml(url)}" style="display:inline-block;margin-top:10px;padding:12px 18px;border-radius:9px;background:#172033;color:#fff;text-decoration:none;font-weight:700">${escapeHtml(action)}</a></div></body></html>`;
+}
+
+function authOtpHtml(appName: string, otp: string) {
+  return `<!doctype html><html><body style="margin:0;background:#f4f7fb;font-family:Arial,sans-serif;color:#111827"><div style="max-width:560px;margin:40px auto;background:#fff;border:1px solid #dbe3ee;border-radius:16px;padding:32px"><h1 style="font-size:24px;margin:0 0 14px">Confirm your email</h1><p style="line-height:1.65;color:#475569">Enter this code in ${escapeHtml(appName)} to confirm that this email belongs to you.</p><div style="margin:24px 0;border:2px solid #172033;border-radius:14px;background:#f8fafc;padding:22px;text-align:center;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:38px;font-weight:800;letter-spacing:10px">${escapeHtml(otp)}</div><p style="color:#64748b;font-size:13px">This code expires in 10 minutes. If you did not request it, you can ignore this email.</p></div></body></html>`;
 }
 
 export function createStarterAuth(input: StarterAuthInput) {
@@ -202,6 +206,22 @@ export function createStarterAuth(input: StarterAuthInput) {
     },
     plugins: [
       expo(),
+      emailOTP({
+        disableSignUp: true,
+        storeOTP: "hashed",
+        expiresIn: 10 * 60,
+        allowedAttempts: 5,
+        async sendVerificationOTP({ email, otp }) {
+          await input.enqueueEmail({
+            kind: "email-otp",
+            to: email,
+            subject: `Confirm your ${input.appName} email`,
+            text: `Your ${input.appName} verification code is ${otp}. It expires in 10 minutes.`,
+            html: authOtpHtml(input.appName, otp),
+            url: "",
+          });
+        },
+      }),
       admin({
         defaultRole: "user",
         adminRoles: ["admin"],
@@ -386,6 +406,8 @@ export function createStarterAuth(input: StarterAuthInput) {
         "/sign-in/email": { window: 10, max: 3 },
         "/sign-up/email": { window: 60, max: 5 },
         "/request-password-reset": { window: 60, max: 3 },
+        "/email-otp/request-password-reset": { window: 60, max: 3 },
+        "/email-otp/reset-password": { window: 60, max: 5 },
       },
     },
     advanced: {

@@ -97,7 +97,7 @@
         "apps/web/src/features/organization-auth-client-plugin.ts": "a0c32f40056adb67bd1e7b21bb8062ead1eb6c85f8c76e83569ebf414b30955f",
         "apps/web/src/components/features/organization-page.tsx": "a6e8f1c605c3e0bcaf59199cb9d3d63957daa04387cf862584501ae5ada97973",
         "apps/web/src/components/features/organization-page.css": "750c644a3ee8f437a33d7fb2de758e5d2ebf52c5cd9ff43483798c2b85e533b8",
-        "db/migrations/1001_organization.sql": "40303fdce844a030107701373921f35abdb3fc255c5a0b26834764110ff02bb0"
+        "db/migrations/1001_organization.sql": "75c02e13fc3afd9ddaca77a802c119fb4b7656b46cdcf2ab9bd4f35c183827d5"
       }
     },
     "saas.usage": {
