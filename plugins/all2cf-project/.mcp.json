@@ -3,7 +3,7 @@
     "all2cf": {
       "type": "http",
       "url": "https://app.all2cf.com/api/platform/mcp",
-      "note": "All2CF project identity, Starter receipts, paid update authorization and managed build state. Uses OAuth on first connection. Use the official Cloudflare MCP for native Cloudflare inventory and mutations."
+      "note": "All2CF project identity, runtime and release receipts, AI handoff, and paid Starter update authorization. Uses OAuth on first connection. All native Cloudflare inventory and mutations belong to the official Cloudflare MCP."
     }
   }
 }
