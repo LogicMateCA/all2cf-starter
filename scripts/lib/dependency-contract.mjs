@@ -43,7 +43,8 @@ export function validateBetterAuthAlignment(policy, declared, packManifests) {
   const entries = (track?.packages || [])
     .flatMap((name) => (declared.get(name) || []).map((entry) => ({ name, version: entry.version, source: entry.file })));
   for (const { file, value } of packManifests) {
-    if (String(value.source?.name || "").startsWith("Better Auth") && value.source?.revision) {
+    const officialPackage = (value.dependencies || []).some(({ name }) => (track?.packages || []).includes(name));
+    if (officialPackage && String(value.source?.name || "").startsWith("Better Auth") && value.source?.revision) {
       entries.push({ name: `${value.id}:source`, version: value.source.revision, source: file });
     }
   }

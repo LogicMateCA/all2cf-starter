@@ -222,6 +222,26 @@
         }
       },
       {
+        "id": "saas.billing-polar",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.billing-autumn",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
         "id": "saas.entitlements",
         "lifecycle": {
           "selected": true,

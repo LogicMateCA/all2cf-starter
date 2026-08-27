@@ -13,6 +13,10 @@ export type SelectedAuthPluginInput = {
   stripeSecretKey?: string;
   stripeWebhookSecret?: string;
   stripePricePro?: string;
+  polarAccessToken?: string;
+  polarWebhookSecret?: string;
+  polarProductPro?: string;
+  autumnSecretKey?: string;
   turnstileSecretKey?: string;
 };
 

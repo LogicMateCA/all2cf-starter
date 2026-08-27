@@ -200,9 +200,12 @@ export function validateAssemblyContracts(
     String(pushPolicy.production?.projectId || ""),
   ];
   if (pushPolicy.provider === "expo-push") {
-    if (pushProjectIds.some((id) => !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(id)))
+    const configured = pushProjectIds.filter(Boolean);
+    if (configured.length === 1)
+      failures.push("Expo Push project IDs must be configured together or both deferred");
+    if (configured.some((id) => !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(id)))
       failures.push("Expo Push requires valid Development and Production EAS project IDs");
-    if (pushProjectIds[0] === pushProjectIds[1])
+    if (configured.length === 2 && pushProjectIds[0] === pushProjectIds[1])
       failures.push("Development and Production Expo Push project IDs must be different");
   }
   const expoPushSelection = Object.values(blueprint.selections || {})

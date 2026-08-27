@@ -335,7 +335,7 @@
         "auth": { "type": "string" },
         "socialAuth": {
           "type": "array",
-          "items": { "enum": ["google", "github", "apple"] },
+          "items": { "enum": ["google", "github", "apple", "microsoft", "discord", "facebook", "linkedin"] },
           "uniqueItems": true
         },
         "database": {

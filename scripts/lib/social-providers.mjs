@@ -1,4 +1,4 @@
-export const supportedSocialProviders = ["google", "github", "apple"];
+export const supportedSocialProviders = ["google", "github", "apple", "microsoft", "discord", "facebook", "linkedin"];
 
 export function renderSocialProviderSelection(providers) {
   const selected = [...providers].filter((value) => supportedSocialProviders.includes(value));
@@ -23,8 +23,12 @@ export function socialProviderMethods(env) {
         env.APPLE_PRIVATE_KEY_BASE64 &&
         env.APPLE_APP_BUNDLE_IDENTIFIER,
     ),
+    microsoft: Boolean(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+    discord: Boolean(env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET),
+    facebook: Boolean(env.FACEBOOK_CLIENT_ID && env.FACEBOOK_CLIENT_SECRET),
+    linkedin: Boolean(env.LINKEDIN_CLIENT_ID && env.LINKEDIN_CLIENT_SECRET),
   };
-  const labels = { google: "Google", github: "GitHub", apple: "Apple" };
+  const labels = { google: "Google", github: "GitHub", apple: "Apple", microsoft: "Microsoft", discord: "Discord", facebook: "Facebook", linkedin: "LinkedIn" };
   return selectedSocialProviders(env).map((key) => ({
     key,
     kind: "social",

@@ -60,7 +60,7 @@
       "summary": "Organizations, teams, invitations, Stripe Billing, entitlements, and usage metering.",
       "triggers": ["organization", "team", "invitation", "stripe", "billing", "subscription", "entitlement", "usage", "quota", "组织", "团队", "订阅", "计费"],
       "moduleIds": ["organizations", "billing", "entitlements", "usage"],
-      "primaryFiles": ["packs/saas/team-organizations/pack.json", "packs/saas/billing-stripe/pack.json", "packs/saas/entitlements/pack.json", "packs/saas/usage/pack.json", "workers/app/features/stripe-auth-plugin.ts"],
+      "primaryFiles": ["packs/saas/team-organizations/pack.json", "packs/saas/billing-stripe/pack.json", "packs/saas/billing-polar/pack.json", "packs/saas/billing-autumn/pack.json", "packs/saas/entitlements/pack.json", "packs/saas/usage/pack.json"],
       "docs": ["features/organizations/MODULE.md", "features/billing/MODULE.md", "features/entitlements/MODULE.md", "features/usage/MODULE.md"],
       "checks": ["npm run saas:contract", "npm run auth:smoke:dev"],
       "skills": []

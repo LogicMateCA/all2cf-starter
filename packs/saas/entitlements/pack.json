@@ -10,7 +10,7 @@
     "license": "UNLICENSED",
     "relationship": "starter-original"
   },
-  "requiresPacks": ["saas.billing-stripe"],
+  "requiresPacks": [],
   "files": [
     {
       "source": "templates/entitlements-worker.ts",

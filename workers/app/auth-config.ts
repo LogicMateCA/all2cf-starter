@@ -31,12 +31,24 @@ type StarterAuthInput = {
   appleKeyId?: string;
   applePrivateKeyBase64?: string;
   appleAppBundleIdentifier?: string;
+  microsoftClientId?: string;
+  microsoftClientSecret?: string;
+  discordClientId?: string;
+  discordClientSecret?: string;
+  facebookClientId?: string;
+  facebookClientSecret?: string;
+  linkedinClientId?: string;
+  linkedinClientSecret?: string;
   mobileSchemes: string[];
   requireEmailVerification: boolean;
   enqueueEmail: (email: AuthEmail) => Promise<void>;
   stripeSecretKey?: string;
   stripeWebhookSecret?: string;
   stripePricePro?: string;
+  polarAccessToken?: string;
+  polarWebhookSecret?: string;
+  polarProductPro?: string;
+  autumnSecretKey?: string;
   turnstileSecretKey?: string;
 };
 
@@ -71,6 +83,10 @@ export function createStarterAuth(input: StarterAuthInput) {
     input.appleKeyId &&
     input.applePrivateKeyBase64 &&
     input.appleAppBundleIdentifier;
+  const microsoftReady = selectedSocialProviders.has("microsoft") && input.microsoftClientId && input.microsoftClientSecret;
+  const discordReady = selectedSocialProviders.has("discord") && input.discordClientId && input.discordClientSecret;
+  const facebookReady = selectedSocialProviders.has("facebook") && input.facebookClientId && input.facebookClientSecret;
+  const linkedinReady = selectedSocialProviders.has("linkedin") && input.linkedinClientId && input.linkedinClientSecret;
   const cookiePrefix =
     input.appName
       .toLowerCase()
@@ -211,6 +227,10 @@ export function createStarterAuth(input: StarterAuthInput) {
         stripeSecretKey: input.stripeSecretKey,
         stripeWebhookSecret: input.stripeWebhookSecret,
         stripePricePro: input.stripePricePro,
+        polarAccessToken: input.polarAccessToken,
+        polarWebhookSecret: input.polarWebhookSecret,
+        polarProductPro: input.polarProductPro,
+        autumnSecretKey: input.autumnSecretKey,
         turnstileSecretKey: input.turnstileSecretKey,
       }),
     ],
@@ -299,6 +319,10 @@ export function createStarterAuth(input: StarterAuthInput) {
             }),
           }
         : {}),
+      ...(microsoftReady ? { microsoft: { clientId: input.microsoftClientId!, clientSecret: input.microsoftClientSecret! } } : {}),
+      ...(discordReady ? { discord: { clientId: input.discordClientId!, clientSecret: input.discordClientSecret! } } : {}),
+      ...(facebookReady ? { facebook: { clientId: input.facebookClientId!, clientSecret: input.facebookClientSecret! } } : {}),
+      ...(linkedinReady ? { linkedin: { clientId: input.linkedinClientId!, clientSecret: input.linkedinClientSecret! } } : {}),
     },
     emailAndPassword: {
       enabled: true,

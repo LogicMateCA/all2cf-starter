@@ -12,7 +12,6 @@
   },
   "requiresPacks": [
     "saas.api-keys",
-    "saas.billing-stripe",
     "saas.entitlements",
     "saas.usage",
     "saas.outgoing-webhooks"

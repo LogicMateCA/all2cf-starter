@@ -1,0 +1,24 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "saas.billing-polar",
+  "version": "0.1.0",
+  "source": { "name": "Better Auth Polar", "url": "https://better-auth.com/docs/plugins/polar", "revision": "1.8.4", "license": "MIT", "relationship": "tracked-upstream" },
+  "files": [
+    { "source": "templates/polar-auth-plugin.ts", "target": "workers/app/features/polar-auth-plugin.ts" },
+    { "source": "templates/polar-auth-client-plugin.ts", "target": "apps/web/src/features/polar-auth-client-plugin.ts" },
+    { "source": "templates/billing-page.tsx", "target": "apps/web/src/components/features/billing-page.tsx" },
+    { "source": "templates/billing-page.css", "target": "apps/web/src/components/features/billing-page.css" }
+  ],
+  "dependencies": [
+    { "packageFile": "workers/app/package.json", "section": "dependencies", "name": "@polar-sh/better-auth", "version": "1.8.4" },
+    { "packageFile": "workers/app/package.json", "section": "dependencies", "name": "@polar-sh/sdk", "version": "0.47.1" },
+    { "packageFile": "apps/web/package.json", "section": "dependencies", "name": "@polar-sh/better-auth", "version": "1.8.4" }
+  ],
+  "routes": [{ "path": "/app/billing", "module": "../components/features/billing-page", "export": "BillingPage", "workerFirst": false }],
+  "authPlugins": {
+    "server": { "module": "../features/polar-auth-plugin", "export": "createPolarAuthPlugin" },
+    "client": { "module": "../features/polar-auth-client-plugin", "export": "createPolarAuthClientPlugin" }
+  },
+  "cloudflare": { "requiredSecrets": ["POLAR_ACCESS_TOKEN", "POLAR_WEBHOOK_SECRET", "POLAR_PRODUCT_PRO"] }
+}

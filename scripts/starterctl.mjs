@@ -16,6 +16,10 @@ const socialSecretRequirements = {
   google: ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"],
   github: ["GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET"],
   apple: ["APPLE_CLIENT_ID", "APPLE_TEAM_ID", "APPLE_KEY_ID", "APPLE_PRIVATE_KEY_BASE64", "APPLE_APP_BUNDLE_IDENTIFIER"],
+  microsoft: ["MICROSOFT_CLIENT_ID", "MICROSOFT_CLIENT_SECRET"],
+  discord: ["DISCORD_CLIENT_ID", "DISCORD_CLIENT_SECRET"],
+  facebook: ["FACEBOOK_CLIENT_ID", "FACEBOOK_CLIENT_SECRET"],
+  linkedin: ["LINKEDIN_CLIENT_ID", "LINKEDIN_CLIENT_SECRET"],
 };
 const socialSecretNames = new Set(Object.values(socialSecretRequirements).flat());
 const emailSecretNames = new Set(["CFSEND_API_URL", "CFSEND_API_KEY", "CFSEND_FROM", "RESEND_API_KEY", "RESEND_FROM"]);

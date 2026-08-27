@@ -30,6 +30,12 @@ export const providerSetupLinks = {
   apple: [
     { label: "Configure Sign in with Apple", href: "https://developer.apple.com/documentation/signinwithapple/configuring-your-environment-for-sign-in-with-apple" },
   ],
+  microsoft: [{ label: "Microsoft Entra applications", href: "https://entra.microsoft.com/" }],
+  discord: [{ label: "Discord applications", href: "https://discord.com/developers/applications" }],
+  facebook: [{ label: "Meta applications", href: "https://developers.facebook.com/apps/" }],
+  linkedin: [{ label: "LinkedIn applications", href: "https://www.linkedin.com/developers/apps" }],
+  polar: [{ label: "Polar dashboard", href: "https://polar.sh/" }],
+  autumn: [{ label: "Autumn dashboard", href: "https://app.useautumn.com/" }],
   turnstile: [
     { label: "Create Turnstile widgets", href: "https://dash.cloudflare.com/?to=/:account/turnstile" },
     { label: "Turnstile setup guide", href: "https://developers.cloudflare.com/turnstile/get-started/" },

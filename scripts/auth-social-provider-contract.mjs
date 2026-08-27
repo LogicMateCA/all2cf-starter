@@ -21,10 +21,15 @@ const base = {
   APPLE_KEY_ID: "KEY123",
   APPLE_PRIVATE_KEY_BASE64: "not-used-by-method-discovery",
   APPLE_APP_BUNDLE_IDENTIFIER: "com.example.app",
+  MICROSOFT_CLIENT_ID: "microsoft-client", MICROSOFT_CLIENT_SECRET: "microsoft-secret",
+  DISCORD_CLIENT_ID: "discord-client", DISCORD_CLIENT_SECRET: "discord-secret",
+  FACEBOOK_CLIENT_ID: "facebook-client", FACEBOOK_CLIENT_SECRET: "facebook-secret",
+  LINKEDIN_CLIENT_ID: "linkedin-client", LINKEDIN_CLIENT_SECRET: "linkedin-secret",
 };
 
-const all = socialProviderMethods({ ...base, AUTH_SOCIAL_PROVIDERS: "google,github,apple" });
-assert.deepEqual(all.map(({ key }) => key), ["google", "github", "apple"]);
+const supported = ["google", "github", "apple", "microsoft", "discord", "facebook", "linkedin"];
+const all = socialProviderMethods({ ...base, AUTH_SOCIAL_PROVIDERS: supported.join(",") });
+assert.deepEqual(all.map(({ key }) => key), supported);
 assert.ok(all.every(({ enabled }) => enabled));
 
 const deferred = socialProviderMethods({
@@ -70,4 +75,4 @@ assert.equal(appleClaims.sub, "com.example.web");
 assert.equal(appleClaims.aud, "https://appleid.apple.com");
 assert.equal(appleClaims.exp - appleClaims.iat, 180 * 24 * 60 * 60);
 
-console.log(JSON.stringify({ ok: true, providers: ["google", "github", "apple"], checks: ["selection", "configured", "deferred", "unknown-provider-rejection", "apple-es256-client-secret", "operations-health-selection"] }, null, 2));
+console.log(JSON.stringify({ ok: true, providers: supported, checks: ["selection", "configured", "deferred", "unknown-provider-rejection", "apple-es256-client-secret", "operations-health-selection"] }, null, 2));

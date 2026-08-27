@@ -25,9 +25,21 @@ export type AuthRuntimeEnv = {
   APPLE_KEY_ID?: string;
   APPLE_PRIVATE_KEY_BASE64?: string;
   APPLE_APP_BUNDLE_IDENTIFIER?: string;
+  MICROSOFT_CLIENT_ID?: string;
+  MICROSOFT_CLIENT_SECRET?: string;
+  DISCORD_CLIENT_ID?: string;
+  DISCORD_CLIENT_SECRET?: string;
+  FACEBOOK_CLIENT_ID?: string;
+  FACEBOOK_CLIENT_SECRET?: string;
+  LINKEDIN_CLIENT_ID?: string;
+  LINKEDIN_CLIENT_SECRET?: string;
   STRIPE_SECRET_KEY?: string;
   STRIPE_WEBHOOK_SECRET?: string;
   STRIPE_PRICE_PRO?: string;
+  POLAR_ACCESS_TOKEN?: string;
+  POLAR_WEBHOOK_SECRET?: string;
+  POLAR_PRODUCT_PRO?: string;
+  AUTUMN_SECRET_KEY?: string;
   CFSEND_API_URL?: string;
   CFSEND_API_KEY?: string;
   CFSEND_FROM?: string;
@@ -134,12 +146,24 @@ export async function withRequestAuth<T>(env: AuthRuntimeEnv, ctx: RequestExecut
     appleKeyId: env.APPLE_KEY_ID,
     applePrivateKeyBase64: env.APPLE_PRIVATE_KEY_BASE64,
     appleAppBundleIdentifier: env.APPLE_APP_BUNDLE_IDENTIFIER,
+    microsoftClientId: env.MICROSOFT_CLIENT_ID,
+    microsoftClientSecret: env.MICROSOFT_CLIENT_SECRET,
+    discordClientId: env.DISCORD_CLIENT_ID,
+    discordClientSecret: env.DISCORD_CLIENT_SECRET,
+    facebookClientId: env.FACEBOOK_CLIENT_ID,
+    facebookClientSecret: env.FACEBOOK_CLIENT_SECRET,
+    linkedinClientId: env.LINKEDIN_CLIENT_ID,
+    linkedinClientSecret: env.LINKEDIN_CLIENT_SECRET,
     mobileSchemes: mobileSchemes(env),
     requireEmailVerification: env.AUTH_REQUIRE_EMAIL_VERIFICATION === "true",
     enqueueEmail,
     stripeSecretKey: env.STRIPE_SECRET_KEY,
     stripeWebhookSecret: env.STRIPE_WEBHOOK_SECRET,
     stripePricePro: env.STRIPE_PRICE_PRO,
+    polarAccessToken: env.POLAR_ACCESS_TOKEN,
+    polarWebhookSecret: env.POLAR_WEBHOOK_SECRET,
+    polarProductPro: env.POLAR_PRODUCT_PRO,
+    autumnSecretKey: env.AUTUMN_SECRET_KEY,
     turnstileSecretKey: env.TURNSTILE_SECRET_KEY,
   });
 

@@ -327,7 +327,7 @@ type SetupPayload = {
     categories: ProviderCatalogCategory[];
   };
   providerCredentials: Record<
-    "google" | "github" | "apple" | "cfsend" | "resend" | "cloudflare-email-service" | "stripe" | "s3-compatible" | "turnstile" | "expo-push" | "twilio-sms" | "cloudflare-stream" | "cloudflare-release" | "github-release" | "expo-eas" | "mobile-local-build" | "apple-app-store" | "google-play",
+    "google" | "github" | "apple" | "microsoft" | "discord" | "facebook" | "linkedin" | "cfsend" | "resend" | "cloudflare-email-service" | "stripe" | "polar" | "autumn" | "s3-compatible" | "turnstile" | "expo-push" | "twilio-sms" | "cloudflare-stream" | "cloudflare-release" | "github-release" | "expo-eas" | "mobile-local-build" | "apple-app-store" | "google-play",
     {
       configured: boolean;
       source: "project" | "shared" | "mixed" | "missing";
@@ -359,6 +359,10 @@ const providerSecretFields = {
     { name: "APPLE_PRIVATE_KEY_BASE64", label: "P8 private key (base64)", secret: true },
     { name: "APPLE_APP_BUNDLE_IDENTIFIER", label: "iOS bundle identifier", secret: false },
   ],
+  microsoft: [{ name: "MICROSOFT_CLIENT_ID", label: "Client ID", secret: false }, { name: "MICROSOFT_CLIENT_SECRET", label: "Client secret", secret: true }],
+  discord: [{ name: "DISCORD_CLIENT_ID", label: "Client ID", secret: false }, { name: "DISCORD_CLIENT_SECRET", label: "Client secret", secret: true }],
+  facebook: [{ name: "FACEBOOK_CLIENT_ID", label: "Client ID", secret: false }, { name: "FACEBOOK_CLIENT_SECRET", label: "Client secret", secret: true }],
+  linkedin: [{ name: "LINKEDIN_CLIENT_ID", label: "Client ID", secret: false }, { name: "LINKEDIN_CLIENT_SECRET", label: "Client secret", secret: true }],
   cfsend: [
     { name: "CFSEND_API_URL", label: "Runtime URL", secret: false },
     { name: "CFSEND_API_KEY", label: "API key", secret: true },
@@ -377,6 +381,8 @@ const providerSecretFields = {
     { name: "STRIPE_WEBHOOK_SECRET", label: "Webhook signing secret", secret: true },
     { name: "STRIPE_PRICE_PRO", label: "Pro Price ID", secret: false },
   ],
+  polar: [{ name: "POLAR_ACCESS_TOKEN", label: "Access token", secret: true }, { name: "POLAR_WEBHOOK_SECRET", label: "Webhook secret", secret: true }, { name: "POLAR_PRODUCT_PRO", label: "Pro product ID", secret: false }],
+  autumn: [{ name: "AUTUMN_SECRET_KEY", label: "Secret key", secret: true }],
   "s3-compatible": [
     { name: "S3_ACCESS_KEY_ID", label: "Access Key ID", secret: false },
     { name: "S3_SECRET_ACCESS_KEY", label: "Secret Access Key", secret: true },
@@ -787,6 +793,8 @@ export function SetupPage() {
   const stripeSelected = selectedPacks.some(
     ({ id }) => id === "saas.billing-stripe",
   );
+  const billingProvider = payload?.blueprint.providers.billing === "better-auth-polar" ? "polar" : payload?.blueprint.providers.billing === "better-auth-autumn" ? "autumn" : "stripe";
+  const billingSelected = selectedPacks.some(({ id }) => id.startsWith("saas.billing-"));
   const intentProposal = useMemo(() => {
     if (!payload) return [];
     const proposals: Array<{ id: string; reason: string }> = [];
@@ -2284,6 +2292,10 @@ export function SetupPage() {
                     { id: "google", name: "Google", note: "OAuth redirect flow for Web and Expo.", href: providerSetupLinks.google[0].href },
                     { id: "github", name: "GitHub", note: "OAuth sign-in with verified email access.", href: providerSetupLinks.github[0].href },
                     { id: "apple", name: "Apple", note: "Web redirect and native iOS audience support.", href: providerSetupLinks.apple[0].href },
+                    { id: "microsoft", name: "Microsoft", note: "Microsoft Entra ID and personal accounts.", href: providerSetupLinks.microsoft[0].href },
+                    { id: "discord", name: "Discord", note: "Community and consumer identity.", href: providerSetupLinks.discord[0].href },
+                    { id: "facebook", name: "Facebook", note: "Meta OAuth application.", href: providerSetupLinks.facebook[0].href },
+                    { id: "linkedin", name: "LinkedIn", note: "Professional identity provider.", href: providerSetupLinks.linkedin[0].href },
                   ].map(({ id, name, note, href }) => {
                     const selected = payload.blueprint.providers.socialAuth.includes(id);
                     return <div className={selected ? "provider-option selected" : "provider-option"} key={id}>
@@ -2303,11 +2315,11 @@ export function SetupPage() {
                 {payload.blueprint.providers.socialAuth.map((provider) => (
                   <div className="provider-test-stack" key={provider}>
                     <ProviderCredentialEditor
-                      provider={provider as "google" | "github" | "apple"}
-                      state={payload.providerCredentials[provider as "google" | "github" | "apple"]}
-                      editing={providerEditors[provider as "google" | "github" | "apple"]}
+                      provider={provider as "google" | "github" | "apple" | "microsoft" | "discord" | "facebook" | "linkedin"}
+                      state={payload.providerCredentials[provider as "google" | "github" | "apple" | "microsoft" | "discord" | "facebook" | "linkedin"]}
+                      editing={providerEditors[provider as "google" | "github" | "apple" | "microsoft" | "discord" | "facebook" | "linkedin"]}
                       values={providerSecrets}
-                      onEditing={(editing) => setProviderEditing(provider as "google" | "github" | "apple", editing)}
+                      onEditing={(editing) => setProviderEditing(provider as "google" | "github" | "apple" | "microsoft" | "discord" | "facebook" | "linkedin", editing)}
                       onChange={updateProviderSecret}
                       callbackUrls={[
                         `https://${payload.config.development.domain}/api/auth/callback/${provider}`,
@@ -2392,15 +2404,15 @@ export function SetupPage() {
 
               <section className="setup-panel provider-section">
                 <header>
-                  <h2>Stripe Billing</h2>
-                  <p>{stripeSelected ? "The Billing pack is selected. Test keys, a signed webhook secret and a real Price ID are required before its Development release." : "The Billing pack is not selected. You may prepare Stripe Test credentials now or configure them later if Billing is added."}</p>
+                  <h2>{billingProvider === "stripe" ? "Stripe" : billingProvider === "polar" ? "Polar" : "Autumn"} Billing</h2>
+                  <p>{billingSelected ? "The selected Billing adapter is materialized. Complete its test credentials before Development billing verification." : "Billing is not selected and may be configured later."}</p>
                 </header>
                 <ProviderCredentialEditor
-                  provider="stripe"
-                  state={payload.providerCredentials.stripe}
-                  editing={providerEditors.stripe}
+                  provider={billingProvider}
+                  state={payload.providerCredentials[billingProvider]}
+                  editing={providerEditors[billingProvider]}
                   values={providerSecrets}
-                  onEditing={(editing) => setProviderEditing("stripe", editing)}
+                  onEditing={(editing) => setProviderEditing(billingProvider, editing)}
                   onChange={updateProviderSecret}
                 />
               </section>
