@@ -118,13 +118,25 @@
       ]
     },
     {
-      "id": "notification-channels", "name": "Notification channels", "kind": "provider", "required": true, "selection": "multiple", "defaultOptionIds": ["in-app", "email", "expo-push"], "capabilityIds": ["notifications.inbox"],
+      "id": "notification-channels", "name": "Notification channels", "kind": "provider", "required": true, "selection": "multiple", "defaultOptionIds": ["in-app", "email"], "capabilityIds": ["notifications.inbox"],
       "options": [
         { "id": "in-app", "name": "In-app", "status": "local-verified", "delivery": "baseline", "selectable": true, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": true, "mode": "contract" }, "setupLinks": [], "notes": "User-isolated Product Shell inbox." },
         { "id": "email", "name": "Email", "status": "development-verified", "delivery": "baseline", "selectable": true, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": true, "mode": "delivery" }, "setupLinks": [], "notes": "Uses the selected authentication/product email provider." },
-        { "id": "expo-push", "name": "Expo Push", "status": "implemented", "delivery": "materializer", "selectable": true, "credentials": ["EXPO_PROJECT_ID", "EXPO_PUSH_ACCESS_TOKEN"], "bindings": [], "dependencies": ["expo-notifications"], "verification": { "available": true, "mode": "delivery" }, "setupLinks": ["https://docs.expo.dev/push-notifications/overview/"], "notes": "Native iOS/Android device registration and Expo Push delivery. Physical-device receipt verification remains required." },
-        { "id": "web-push", "name": "Web Push", "status": "planned", "delivery": "planned", "selectable": false, "credentials": ["WEB_PUSH_PUBLIC_KEY", "WEB_PUSH_PRIVATE_KEY"], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "delivery" }, "setupLinks": ["https://developer.mozilla.org/docs/Web/API/Push_API"], "notes": "Browser push subscriptions." },
-        { "id": "twilio-sms", "name": "Twilio SMS", "status": "implemented", "delivery": "materializer", "selectable": true, "credentials": ["TWILIO_ACCOUNT_SID", "TWILIO_API_KEY", "TWILIO_API_SECRET", "TWILIO_FROM"], "bindings": [], "dependencies": [], "verification": { "available": true, "mode": "delivery" }, "setupLinks": ["https://console.twilio.com/"], "notes": "Server-only SMS using production API-key authentication, E.164 validation, SQL idempotency and provider SID evidence." }
+        { "id": "web-push", "name": "Web Push", "status": "planned", "delivery": "planned", "selectable": false, "credentials": ["WEB_PUSH_PUBLIC_KEY", "WEB_PUSH_PRIVATE_KEY"], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "delivery" }, "setupLinks": ["https://developer.mozilla.org/docs/Web/API/Push_API"], "notes": "Browser push subscriptions." }
+      ]
+    },
+    {
+      "id": "push", "name": "Native push", "kind": "provider", "required": false, "selection": "single", "defaultOptionIds": ["none"], "capabilityIds": ["notifications.push"],
+      "options": [
+        { "id": "none", "name": "None", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "none" }, "setupLinks": [], "notes": "No native push runtime when iOS and Android are absent or the generated project removes its mobile default." },
+        { "id": "expo-push", "name": "Expo Push", "status": "implemented", "delivery": "materializer", "selectable": true, "credentials": ["EXPO_PROJECT_ID", "EXPO_PUSH_ACCESS_TOKEN"], "bindings": [], "dependencies": ["expo-notifications"], "verification": { "available": true, "mode": "delivery" }, "setupLinks": ["https://docs.expo.dev/push-notifications/overview/"], "notes": "Automatically selected by Factory for native iOS/Android outputs; removable later in generated-project Setup." }
+      ]
+    },
+    {
+      "id": "sms", "name": "SMS", "kind": "provider", "required": false, "selection": "single", "defaultOptionIds": ["none"], "capabilityIds": ["notifications.sms"],
+      "options": [
+        { "id": "none", "name": "None", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "none" }, "setupLinks": [], "notes": "No SMS provider, secrets or delivery ledger." },
+        { "id": "twilio-sms", "name": "Twilio SMS", "status": "implemented", "delivery": "materializer", "selectable": true, "credentials": ["TWILIO_ACCOUNT_SID", "TWILIO_API_KEY", "TWILIO_API_SECRET", "TWILIO_FROM"], "bindings": [], "dependencies": [], "verification": { "available": true, "mode": "delivery" }, "setupLinks": ["https://console.twilio.com/"], "notes": "Server-only SMS with E.164 validation, SQL idempotency and provider SID evidence." }
       ]
     },
     {

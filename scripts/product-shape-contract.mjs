@@ -34,7 +34,12 @@ for (const item of cases) {
     for (const relative of item.present) if (!await exists(path.join(target, relative))) failures.push(`${item.id} is missing ${relative}`);
     for (const relative of item.absent) if (await exists(path.join(target, relative))) failures.push(`${item.id} retained ${relative}`);
     const shape = JSON.parse(await readFile(path.join(target, ".starter/product-shape.json"), "utf8"));
+    const generatedBlueprint = JSON.parse(await readFile(path.join(target, "starter.blueprint.json"), "utf8"));
     if (shape.productType !== item.project.productType) failures.push(`${item.id} receipt product type mismatch`);
+    const pushSelection = generatedBlueprint.selections.capabilities.find(({ id }) => id === "capability.expo-push");
+    const expectsPush = item.project.platforms.some((platform) => platform === "ios" || platform === "android");
+    if ((generatedBlueprint.providers.push.provider === "expo-push") !== expectsPush || pushSelection?.lifecycle.selected !== expectsPush)
+      failures.push(`${item.id} Expo Push default does not match native mobile outputs`);
     const status = execFileSync("git", ["status", "--porcelain"], { cwd: target, encoding: "utf8" }).trim();
     if (status) failures.push(`${item.id} generated a dirty baseline`);
   } finally {

@@ -180,6 +180,25 @@ async function writeProjectScripts(target) {
   await writeFile(path.join(target, "package.json"), json(manifest));
 }
 
+async function applyAutomaticProviderDefaults(target) {
+  const blueprint = await readJson(target, "starter.blueprint.json");
+  const product = blueprint.project || {};
+  const platforms = new Set(product.platforms || []);
+  const nativeMobile = product.productType === "mobile-app" || platforms.has("ios") || platforms.has("android");
+  blueprint.providers.push.provider = nativeMobile ? "expo-push" : "none";
+  for (const selection of blueprint.selections.capabilities || [])
+    if (selection.id === "capability.expo-push") {
+      selection.lifecycle.selected = nativeMobile;
+      if (!nativeMobile) {
+        selection.lifecycle.materialized = false;
+        selection.lifecycle.localVerified = false;
+        selection.lifecycle.developmentVerified = false;
+        selection.lifecycle.productionReleased = false;
+      }
+    }
+  await writeFile(path.join(target, "starter.blueprint.json"), json(blueprint));
+}
+
 async function applyProductShape(target) {
   const blueprint = await readJson(target, "starter.blueprint.json");
   const product = blueprint.project || {};
@@ -506,6 +525,7 @@ async function createProject() {
       ]);
     }
     await writeIdentity(target, name, slug);
+    await applyAutomaticProviderDefaults(target);
     await mkdir(path.join(target, ".starter"), { recursive: true });
     if (portable && !/^https:\/\//u.test(portableSourceUrl))
       throw new Error("Portable Factory generation requires STARTER_FACTORY_SOURCE_URL");

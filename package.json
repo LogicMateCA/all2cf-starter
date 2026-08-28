@@ -74,6 +74,7 @@
     "factory:status": "node scripts/starter-factory.mjs status",
     "factory:diff": "node scripts/starter-factory.mjs diff",
     "factory:contract": "node scripts/factory-contract.mjs",
+    "factory:ux:contract": "node scripts/factory-setup-ux-contract.mjs",
     "product-shape:contract": "node scripts/product-shape-contract.mjs",
     "product-shape:builds": "node scripts/product-shape-builds.mjs",
     "engine:channel:contract": "node scripts/engine-channel-contract.mjs",
