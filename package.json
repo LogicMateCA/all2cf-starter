@@ -2,6 +2,7 @@
   "name": "@starter/root",
   "version": "0.1.0",
   "private": true,
+  "license": "AGPL-3.0-or-later",
   "type": "module",
   "workspaces": [
     "apps/*",
@@ -40,6 +41,7 @@
     "cf:preflight:contract": "node scripts/cloudflare-preflight-contract.mjs",
     "release:contract": "node scripts/release-contract.mjs",
     "dependencies:contract": "node scripts/dependency-contract.mjs",
+    "license:contract": "node scripts/license-contract.mjs",
     "dependencies:check": "node scripts/dependency-check.mjs",
     "design:contract": "node scripts/design-profile-contract.mjs",
     "visual:integration:contract": "node scripts/visual-integration-contract.mjs",
