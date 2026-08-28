@@ -28,12 +28,12 @@
     {
       "id": "project-assembly",
       "summary": "Source Factory, reproducible Engine candidates, monotonic update Channels, repeatable update releases, generated-project Setup, Blueprint selection, verified lifecycle updates, Pack materialization, identity synchronization, and /dp generation.",
-      "triggers": ["factory", "source release", "engine candidate", "engine channel", "engine update", "check starter updates", "publish starter development", "capsule", "engine register", "create project", "generated project update", "setup", "setup database connector", "starter database connector", "blueprint", "preset", "materialize", "starter status", "starter diff", "starter add", "starter update", "assembler", "identity sync", "源库发布", "检查 Starter 更新", "发布 Starter 开发版", "生成项目", "项目更新", "初始化", "配置", "模板", "选择模块"],
+      "triggers": ["factory", "source release", "engine candidate", "engine channel", "engine update", "check starter updates", "publish starter development", "capsule", "engine register", "create project", "generated project update", "legacy project adoption", "adopt old project", "setup", "setup database connector", "starter database connector", "blueprint", "preset", "materialize", "starter status", "starter diff", "starter add", "starter update", "assembler", "identity sync", "源库发布", "检查 Starter 更新", "发布 Starter 开发版", "生成项目", "项目更新", "旧项目接入", "初始化", "配置", "模板", "选择模块"],
       "moduleIds": ["assembler"],
-      "primaryFiles": ["apps/web/src/components/setup-page.tsx", "apps/web/vite.config.ts", "scripts/starter-factory.mjs", "scripts/source-release.mjs", "scripts/materialize-blueprint.mjs", "scripts/sync-project-identity.mjs", "starter.blueprint.json", "catalog/catalog.json"],
+      "primaryFiles": ["apps/web/src/components/setup-page.tsx", "apps/web/vite.config.ts", "scripts/starter-factory.mjs", "scripts/project-adoption.mjs", "scripts/source-release.mjs", "scripts/materialize-blueprint.mjs", "scripts/sync-project-identity.mjs", "starter.blueprint.json", "catalog/catalog.json"],
       "docs": ["features/assembler/MODULE.md", "PROJECT.md"],
-      "checks": ["npm run source:status", "npm run factory:contract", "npm run starter:materialize:check", "npm run saas:contract", "npm run knowledge:check"],
-      "skills": ["skills/project-context/SKILL.md", "skills/feature-lifecycle/SKILL.md", "skills/starter-bootstrap/SKILL.md", "skills/starter-source-release/SKILL.md", "skills/starter-update-release/SKILL.md"]
+      "checks": ["npm run source:status", "npm run factory:contract", "npm run project:adopt:contract", "npm run starter:materialize:check", "npm run saas:contract", "npm run knowledge:check"],
+      "skills": ["skills/project-context/SKILL.md", "skills/feature-lifecycle/SKILL.md", "skills/project-adoption/SKILL.md", "skills/starter-bootstrap/SKILL.md", "skills/starter-source-release/SKILL.md", "skills/starter-update-release/SKILL.md"]
     },
     {
       "id": "auth-account",

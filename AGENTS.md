@@ -7,6 +7,7 @@ This repository is a reusable starter. Replace neutral placeholders during proje
 - Inspect existing code and constraints before changing anything. Keep changes surgical and verifiable.
 - When any product exposes a bug in reusable foundation behavior, fix the immediate product only as needed for recovery, then port the generalized correction, regression contract, documentation, and update path into the canonical Starter. Product-specific business behavior stays in the product. A foundation bug is not complete while Starter can still generate or retain it.
 - After first project setup, begin ordinary work with `AGENT_MAP.md` and `npm run ai:context -- --task "<request>"`. Do not load every Module, Change Spec, Catalog, or Pack by default. Use `--full` only for first initialization, whole-project architecture, or release/cutover audit.
+- Adopt older projects through `project:adopt:scan`, `project:adopt:plan`, `project:adopt:apply`, and `project:adopt:verify`. Automatic adoption may install AI routing and maintenance receipts, but it must preserve product-owned business code, schema, and custom design; inferred feature directories remain review candidates.
 - The canonical source repository creates projects through local `/factory`; generated products retain local `/setup`. Factory drafts and output must never rewrite canonical source identity. Generated products use their `.starter/source.json` receipt and `starter:status/diff/add/update` commands instead of carrying the complete reusable source library.
 - Cloudflare facts, APIs, configuration, and operations must be checked through official Cloudflare MCP first. If MCP is unavailable, record the limitation before using another authoritative source.
 - Detect Worker Studio MCP capabilities at runtime; never assume a Worker Studio tool or binding exists.
@@ -19,6 +20,7 @@ This repository is a reusable starter. Replace neutral placeholders during proje
 - Route Product Design work through the Product Design skill, and visual/frontend taste work through the applicable taste skill.
 - For Cloudflare build, deploy, inspection, or rollback work, read and follow `skills/cloudflare-release/SKILL.md`.
 - For copying or initializing this Starter, read and follow `skills/starter-bootstrap/SKILL.md`.
+- For bringing an older or independent project under Starter AI-context and maintenance contracts, read and follow `skills/project-adoption/SKILL.md`.
 - For generating a new independent project, read and follow `skills/starter-factory/SKILL.md`.
 - For building, checking or registering a canonical Starter Engine candidate, read and follow `skills/starter-source-release/SKILL.md`.
 - For checking, adding or updating reusable Packs in a generated project, read and follow `skills/starter-maintenance/SKILL.md`.
