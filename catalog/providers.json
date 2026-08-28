@@ -108,7 +108,7 @@
       ]
     },
     {
-      "id": "maps", "name": "Maps and geocoding", "kind": "provider", "required": false, "selection": "multiple", "defaultOptionIds": ["none"], "capabilityIds": ["capability.mapcn-web"],
+      "id": "maps", "name": "Maps and geocoding", "kind": "provider", "required": false, "selection": "single", "defaultOptionIds": ["none"], "capabilityIds": ["capability.mapcn-web"],
       "options": [
         { "id": "none", "name": "None", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "none" }, "setupLinks": [], "notes": "No map runtime or tile cost." },
         { "id": "mapcn", "name": "MapCN / MapLibre", "status": "local-verified", "delivery": "materializer", "selectable": true, "credentials": [], "bindings": [], "dependencies": ["maplibre-gl"], "verification": { "available": true, "mode": "contract" }, "setupLinks": ["https://maplibre.org/"], "notes": "Owned Web map components; a real style/tile source remains project configuration." },

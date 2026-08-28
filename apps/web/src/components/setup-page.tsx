@@ -703,7 +703,7 @@ export function SetupPage() {
   const [payload, setPayload] = useState<SetupPayload | null>(null);
   const [generation, setGeneration] = useState<{ status: "idle" | "generating" | "done" | "error"; message?: string; target?: string }>({ status: "idle" });
   const [stepIndex, setStepIndex] = useState(0);
-  const [providerTab, setProviderTab] = useState<"database" | "identity" | "communication" | "billing" | "ai-media" | "runtime" | "release">("database");
+  const [providerTab, setProviderTab] = useState<"database" | "identity" | "communication" | "billing" | "maps" | "ai-media" | "runtime" | "release">("database");
   const [loadError, setLoadError] = useState("");
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">(
     "idle",
@@ -1459,6 +1459,9 @@ export function SetupPage() {
     payload.blueprint.selections[groupForKind[pack.kind]].find(
       ({ id }) => id === pack.id,
     )!;
+  const mapsCategory = payload.providerCatalog.categories.find(({ id }) => id === "maps")!;
+  const mapPack = payload.catalog.packs.find(({ id }) => id === "capability.mapcn-web")!;
+  const selectedMapProvider = selectionFor(mapPack).lifecycle.selected ? "mapcn" : "none";
 
   const save = async ({
     finish = false,
@@ -2101,7 +2104,7 @@ export function SetupPage() {
           ) : null}
           {currentStep.id === "capabilities" ? (
             <div className="pack-grid">
-              {packsFor("capability").filter((pack) => !new Set(["capability.expo-push", "capability.twilio-sms"]).has(pack.id)).map((pack) => (
+              {packsFor("capability").filter((pack) => !new Set(["capability.expo-push", "capability.twilio-sms", "capability.object-storage", "capability.mapcn-web"]).has(pack.id)).map((pack) => (
                 <PackChoice
                   key={pack.id}
                   pack={pack}
@@ -2122,9 +2125,16 @@ export function SetupPage() {
               </section>
               <nav className="provider-tabs" aria-label="Provider categories">
                 {([
-                  ["database", "Database"], ["identity", "Identity"], ["communication", "Communication"], ["billing", "Billing"], ["ai-media", "AI & media"], ["runtime", "Runtime"], ["release", "Release"],
+                  ["database", "Database"], ["identity", "Identity"], ["communication", "Communication"], ["billing", "Billing"], ["maps", "Maps"], ["ai-media", "AI & media"], ["runtime", "Runtime"], ["release", "Release"],
                 ] as const).map(([id, label]) => <button type="button" key={id} className={providerTab === id ? "active" : ""} onClick={() => setProviderTab(id)}>{label}</button>)}
               </nav>
+
+              <section className="setup-panel provider-section" hidden={providerTab !== "maps"}>
+                <header><h2>Maps and geocoding</h2><p>Selecting None generates no map code or dependency. A Provider becomes selectable only after its adapter, credentials, Setup links, verification and removal contract are implemented.</p></header>
+                <div className="provider-option-grid" role="radiogroup" aria-label="Maps Provider">
+                  {mapsCategory.options.filter(({ id }) => id !== "maptiler").map((option) => { const selected = selectedMapProvider === option.id; return <button type="button" className={selected ? "provider-option selected" : "provider-option"} aria-pressed={selected} disabled={!option.selectable} onClick={() => setPackSelected(mapPack, option.id === "mapcn")} key={option.id}><span className="pack-check">{selected ? <Check size={15} /> : null}</span><span><strong>{option.id === "mapcn" ? "MapCN + MapLibre" : option.id === "google-places" ? "Google Maps" : option.name}</strong><small>{option.selectable ? option.notes : "Planned · adapter not yet available"}</small></span></button>; })}
+                </div>
+              </section>
 
               <section className="setup-panel provider-section" hidden={providerTab !== "database"}>
                 <header><h2>PostgreSQL</h2><p>Application code always uses the native pg contract. Choose SQL-first or Drizzle for product-domain code. Hyperdrive is native; the optional All2CF adapter only changes how the Worker connects.</p></header>
