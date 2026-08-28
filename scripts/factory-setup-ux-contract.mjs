@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
-const [setup, styles, factory, providers] = await Promise.all([
-  read("apps/web/src/components/setup-page.tsx"), read("apps/web/src/index.css"), read("scripts/starter-factory.mjs"), read("catalog/providers.json").then(JSON.parse),
+const [setup, styles, factory, providers, project] = await Promise.all([
+  read("apps/web/src/components/setup-page.tsx"), read("apps/web/src/index.css"), read("scripts/starter-factory.mjs"), read("catalog/providers.json").then(JSON.parse), read("PROJECT.md"),
 ]);
 
 assert.match(setup, /SaaS Core/u);
@@ -22,6 +22,8 @@ assert.match(styles, /\.provider-option input \{ position: absolute; opacity: 0/
 assert.doesNotMatch(styles, /\.setup-(?:main|stack|panel)[^{]*\{[^}]*overflow-y:\s*(?:auto|scroll)/u);
 assert.match(factory, /applyAutomaticProviderDefaults/u);
 assert.match(factory, /blueprint\.providers\.push\.provider = nativeMobile \? "expo-push" : "none"/u);
+assert.match(project, /user who can list an organization-scoped Draft can request its generation/u);
+assert.match(project, /authorization failures are service-credential drift, never user `Unauthorized`/u);
 
 const push = providers.categories.find(({ id }) => id === "push");
 const sms = providers.categories.find(({ id }) => id === "sms");
