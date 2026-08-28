@@ -2,6 +2,21 @@
 
 An AI-first, Cloudflare-native product factory for Web SaaS, content websites, and mobile applications. The canonical repository exposes the full capability catalog; each generated project contains only the applications, Packs, Providers, pages, dependencies, bindings, and AI context selected for that product.
 
+## Why it is optimized for AI
+
+Most starters optimize the first hour: copy files, install dependencies, and start coding. All2CF Starter optimizes the months after that, when multiple AI conversations must understand what exists, where to change it, how to verify it, and what is safe to release.
+
+- **Task-scoped context:** `AGENT_MAP.md` and `ai:context` route AI to the few relevant files instead of loading the repository.
+- **Architecture before generation:** a validated Blueprint records product shape, targets, Providers, capabilities, pages, and constraints before code changes.
+- **Deterministic composition:** Packs declare owned files, dependencies, routes, SQL, bindings, and rollback behavior; materialization receipts detect drift.
+- **Memory outside chat:** Markdown, Module contracts, Change Specs, catalogs, and `/dp` preserve decisions and verification evidence across conversations.
+- **Executable truth:** contracts, type checks, builds, workerd smoke tests, budgets, and release read-back distinguish implemented behavior from plans.
+- **Safe release language:** ordinary deployment targets Development; Production remains an explicit command with separate identity and rollback evidence.
+- **Foundation learning:** reusable bugs found in any product must be generalized, tested, documented, and upstreamed into Starter.
+- **Independent output:** generated products run without All2CF; managed cloud connection is optional.
+
+See [AI-FIRST.md](AI-FIRST.md) for the development model, comparison, and limits.
+
 ## Requirements
 
 - Node.js 24+
@@ -66,4 +81,3 @@ See [LICENSING.md](LICENSING.md) for examples and [COMMERCIAL-LICENSE.md](COMMER
 ## Contributing and evolution
 
 Reusable foundation fixes discovered in any product must be upstreamed into canonical Starter with regression tests, documentation, and an update path. Product-specific business logic remains in the product.
-
