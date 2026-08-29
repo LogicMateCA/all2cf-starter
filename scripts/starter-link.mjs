@@ -101,7 +101,7 @@ async function serviceChannel() {
     const suffix = resolution.checkoutUrl ? ` Subscribe at ${resolution.checkoutUrl}` : "";
     throw new Error(`${resolution.reason || "Starter Updates subscription is required."}${suffix}`);
   }
-  return validateChannel({ schemaVersion: "all2cf-starter-channel/v1", channel: resolution.channel, engine: resolution.engine, publishedAt: resolution.publishedAt || null }, serviceUrl);
+  return validateChannel({ schemaVersion: "all2cf-starter-channel/v1", channel: resolution.channel, engine: resolution.engine, publishedAt: resolution.publishedAt || null, entitlement: resolution.entitlement || null, releaseNotes: resolution.release?.notes || [], releaseUrl: resolution.release?.url || null }, serviceUrl);
 }
 
 async function statusRemote() {
@@ -125,6 +125,10 @@ async function statusRemote() {
       channelUrl: receipt.channelUrl,
     },
     packs,
+    entitlement: channel.entitlement || null,
+    releaseNotes: channel.releaseNotes || [],
+    releaseUrl: channel.releaseUrl || null,
+    publishedAt: channel.publishedAt || null,
   };
 }
 

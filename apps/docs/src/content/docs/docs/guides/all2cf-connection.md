@@ -7,9 +7,9 @@ All2CF connection is optional and project-scoped. The open-source product can bu
 
 Open local `/maintenance`; `/all2cf` and `/update` remain compatibility aliases. The project may continue independently or connect later.
 
-For Codex, copy the MCP connection prompt shown on `/maintenance`. The globally installed `all2cf-project` plugin connects to the hosted All2CF MCP with OAuth. Codex identifies the project from `.starter/source.json`, asks All2CF to verify ownership and paid entitlement, receives a project-scoped connection receipt, and connects it with `npm run all2cf:connect -- <receipt-path>`. Codex must never print or commit the Token.
+Choose **Connect All2CF MCP**. The local development service creates PKCE and state, then opens All2CF OAuth. All2CF verifies the user, organization, project ownership and paid entitlement, creates or binds the cloud project, and returns one short-lived authorization code. The local service exchanges it for the project-scoped connection Receipt, stores it in the ignored authorization file and reloads `/maintenance`. The user does not copy an AI Prompt or Token.
 
-For another AI, IDE or manual workflow, import the same cloud-issued connection JSON on `/maintenance`. The receipt contains an independent revocable project Token; plaintext is stored only in ignored `.starter/update-auth.local.json`, while cloud storage retains only the secure authorization record and metadata.
+**Advanced recovery** may import the same cloud-issued connection JSON when automatic OAuth is unavailable. The receipt contains an independent revocable project Token; plaintext is stored only in ignored `.starter/update-auth.local.json`, while cloud storage retains only the secure authorization record and metadata.
 
 A connected card may expose:
 

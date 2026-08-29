@@ -5,7 +5,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath, URL } from "node:url";
 import { mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import { execFile } from "node:child_process";
-import { createHash, createPrivateKey, randomUUID, sign as cryptoSign } from "node:crypto";
+import { createHash, createPrivateKey, randomBytes, randomUUID, sign as cryptoSign } from "node:crypto";
 import path from "node:path";
 import { promisify } from "node:util";
 import type { IncomingMessage, ServerResponse } from "node:http";
@@ -677,7 +677,32 @@ async function runStarterUpdateAction(action: "status" | "diff" | "update", acce
     maxBuffer: 8 * 1024 * 1024,
     timeout: 120_000,
   });
-  return { entitlement: { authorized: true }, output: `${result.stdout || ""}${result.stderr || ""}`, receipt: await starterUpdateReceipt() };
+  const output = `${result.stdout || ""}${result.stderr || ""}`;
+  const status = action === "status" ? JSON.parse(result.stdout || "{}") as { source?: { availableVersion?: string; channel?: string }; entitlement?: { level?: string; features?: string[] }; releaseNotes?: string[]; releaseUrl?: string | null; publishedAt?: string | null } : null;
+  return { entitlement: { authorized: true, plan: status?.entitlement?.level, features: status?.entitlement?.features }, output, receipt: await starterUpdateReceipt(), ...(status?.source ? { available: { engineVersion: status.source.availableVersion, channel: status.source.channel, releaseNotes: status.releaseNotes || [], releaseUrl: status.releaseUrl, publishedAt: status.publishedAt } } : {}) };
+}
+
+const all2cfConnectionPendingPath = path.join(repositoryRoot, ".starter/all2cf-connection-oauth.local.json");
+const all2cfInstallationPath = path.join(repositoryRoot, ".starter/installation.local.json");
+const all2cfOrigin = () => String(process.env.STARTER_ALL2CF_ORIGIN || "https://app.all2cf.com").replace(/\/$/u, "");
+const base64url = (bytes = 32) => randomBytes(bytes).toString("base64url");
+async function localInstallationId() {
+  const existing = await readFile(all2cfInstallationPath, "utf8").then(JSON.parse, () => null) as { installationId?: string } | null;
+  if (existing?.installationId) return existing.installationId;
+  const installationId = `starter-installation-${randomUUID()}`;
+  await writeFile(all2cfInstallationPath, json({ schemaVersion: "starter-installation/v1", installationId }), { mode: 0o600 });
+  return installationId;
+}
+async function starterConnectionIdentity() {
+  const [receipt, materialization, draft, config] = await Promise.all([
+    starterUpdateReceipt(),
+    readFile(path.join(repositoryRoot, ".starter/materialization.json"), "utf8").then(JSON.parse),
+    readFile(path.join(repositoryRoot, ".starter/factory-draft.local.json"), "utf8").then(JSON.parse, () => null),
+    readFile(path.join(repositoryRoot, "starter.config.json"), "utf8").then(JSON.parse),
+  ]);
+  if (!receipt.engineVersion || !receipt.artifactSha256 || !/^[a-f0-9]{40}$/u.test(String(receipt.sourceCommit || "")) || !/^[a-f0-9]{64}$/u.test(String(receipt.artifactSha256))) throw new Error("This project needs a stable Starter Engine receipt before connecting All2CF.");
+  const packs = Object.entries(materialization.packs || {}).map(([id, value]) => ({ id, version: String((value as { version?: unknown }).version || "0.0.0") }));
+  return { projectId: String((receipt.project as { slug?: string } | undefined)?.slug || config.project.slug), installationId: await localInstallationId(), engineVersion: String(receipt.engineVersion), sourceCommit: String(receipt.sourceCommit), artifactSha256: String(receipt.artifactSha256), dataLayer: draft?.blueprint?.providers?.database?.access === "drizzle" ? "drizzle" : "sql-first", installedPacks: packs };
 }
 
 function localSetupApi(): Plugin {
@@ -692,7 +717,7 @@ function localSetupApi(): Plugin {
           next: () => void,
         ) => {
           const url = new URL(request.url || "/", "http://starter.local");
-          if (!new Set(["/__starter/setup", "/__starter/provider-test", "/__starter/visual-discovery", "/__starter/factory", "/__starter/update/receipt", "/__starter/update/check", "/__starter/update/status", "/__starter/update/diff", "/__starter/update/update", "/__starter/all2cf/status", "/__starter/all2cf/connect", "/__starter/all2cf/disconnect", "/__starter/all2cf/doctor"]).has(url.pathname))
+          if (!new Set(["/__starter/setup", "/__starter/provider-test", "/__starter/visual-discovery", "/__starter/factory", "/__starter/update/receipt", "/__starter/update/check", "/__starter/update/status", "/__starter/update/diff", "/__starter/update/update", "/__starter/all2cf/status", "/__starter/all2cf/authorize", "/__starter/all2cf/complete", "/__starter/all2cf/connect", "/__starter/all2cf/disconnect", "/__starter/all2cf/doctor"]).has(url.pathname))
             return next();
           response.setHeader("Content-Type", "application/json; charset=utf-8");
           response.setHeader("Cache-Control", "no-store");
@@ -781,6 +806,35 @@ function localSetupApi(): Plugin {
                 return;
               }
               if (request.method !== "POST") { response.statusCode = 405; response.end(json({ ok: false, error: "Method not allowed." })); return; }
+              if (action === "authorize") {
+                const payload = await readRequestJson(request);
+                const redirectUri = new URL(String(payload.returnTo || ""));
+                if (!isLoopbackOrigin(redirectUri.origin) || redirectUri.pathname !== "/maintenance" || redirectUri.search || redirectUri.hash) throw new Error("All2CF return URL must be the local /maintenance page.");
+                const identity = await starterConnectionIdentity();
+                const state = base64url();
+                const codeVerifier = base64url();
+                const codeChallenge = createHash("sha256").update(codeVerifier).digest("base64url");
+                const coreResponse = await providerFetch(`${all2cfOrigin()}/api/starter-connections/authorization-requests`, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ project_id: identity.projectId, installation_id: identity.installationId, engine_version: identity.engineVersion, source_commit: identity.sourceCommit, artifact_sha256: identity.artifactSha256, data_layer: identity.dataLayer, installed_packs: identity.installedPacks, redirect_uri: redirectUri.toString(), state, code_challenge: codeChallenge, code_challenge_method: "S256" }) });
+                const core = await coreResponse.json() as { authorization_url?: string; expires_at?: string; error?: string };
+                if (!coreResponse.ok || !core.authorization_url) throw new Error(core.error || `All2CF authorization returned HTTP ${coreResponse.status}`);
+                await writeFile(all2cfConnectionPendingPath, json({ schemaVersion: "starter-connection-oauth-pending/v1", ...identity, state, codeVerifier, redirectUri: redirectUri.toString(), all2cfOrigin: all2cfOrigin(), expiresAt: core.expires_at }), { mode: 0o600 });
+                response.end(json({ ok: true, authorizationUrl: core.authorization_url, expiresAt: core.expires_at }));
+                return;
+              }
+              if (action === "complete") {
+                const payload = await readRequestJson(request);
+                const pending = await readFile(all2cfConnectionPendingPath, "utf8").then(JSON.parse, () => null) as Record<string, string> | null;
+                if (!pending || pending.schemaVersion !== "starter-connection-oauth-pending/v1" || pending.state !== payload.state || (pending.expiresAt && Date.parse(pending.expiresAt) <= Date.now())) throw new Error("All2CF authorization state is invalid or expired.");
+                const exchangeResponse = await providerFetch(`${pending.all2cfOrigin}/api/starter-connections/token`, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ grant_type: "authorization_code", code: payload.code, redirect_uri: pending.redirectUri, code_verifier: pending.codeVerifier, project_id: pending.projectId, installation_id: pending.installationId }) });
+                const receipt = await exchangeResponse.json() as Record<string, unknown> & { error?: string };
+                if (!exchangeResponse.ok || receipt.schemaVersion !== "all2cf-project-connection/v1") throw new Error(receipt.error || "All2CF authorization code exchange failed.");
+                const temporary = path.join(repositoryRoot, ".starter/all2cf-connection.import.local.json");
+                await writeFile(temporary, json(receipt), { mode: 0o600 });
+                try { await execFileAsync(process.execPath, ["scripts/all2cf-project.mjs", "connect", temporary], { cwd: repositoryRoot, maxBuffer: 1024 * 1024 }); } finally { await unlink(temporary).catch(() => undefined); }
+                await unlink(all2cfConnectionPendingPath).catch(() => undefined);
+                response.end(json({ ok: true, connected: true }));
+                return;
+              }
               if (action === "disconnect") {
                 const result = await execFileAsync(process.execPath, ["scripts/all2cf-project.mjs", "disconnect"], { cwd: repositoryRoot, maxBuffer: 1024 * 1024 });
                 response.end(result.stdout);

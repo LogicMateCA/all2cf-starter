@@ -82,13 +82,9 @@ All2CF connection is optional and must not become a runtime dependency.
 
 For “connect All2CF”, “check my plan”, “check Starter updates”, “preview an update” or “use paid All2CF tools”, open the local `/maintenance` page first. `/all2cf` and `/update` are compatibility aliases.
 
-Prefer the globally installed `all2cf-project` plugin and its hosted All2CF MCP. Authenticate through MCP OAuth, identify the local project from `.starter/source.json`, verify ownership and paid entitlement, obtain a project-scoped connection receipt, then connect it with:
+Prefer the `Connect All2CF MCP` button on `/maintenance`. It starts OAuth automatically, verifies project ownership and paid entitlement in All2CF, creates or binds the cloud project, exchanges the one-use authorization code through the local development service, stores the project-scoped Receipt, and returns to `/maintenance`. Codex may operate this flow for the user, but must not expose its Token or ask the user to copy an AI Prompt.
 
-```bash
-npm run all2cf:connect -- /path/to/all2cf-project-connection.json
-```
-
-Never print, commit or place the project Token in product configuration. It belongs only in ignored `.starter/update-auth.local.json`. If MCP is unavailable, `/maintenance` may import the same cloud-issued connection receipt manually. Follow status → entitlement/check → diff → explicitly authorized update. Use official Cloudflare MCP, not All2CF MCP, for Cloudflare resources and mutations.
+Never print, commit or place the project Token in product configuration. It belongs only in ignored `.starter/update-auth.local.json`. Advanced recovery may import the same cloud-issued connection receipt manually when automatic OAuth is unavailable. Follow local version/cloud version → release notes → entitlement/check → diff → explicitly authorized update. Use official Cloudflare MCP, not All2CF MCP, for Cloudflare resources and mutations.
 
 ## Completion
 

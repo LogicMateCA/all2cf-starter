@@ -7,7 +7,7 @@ description: Check, preview, add or apply authorized Starter Engine and Pack upd
 
 Require `.starter/source.json`. Open the local `/maintenance` page first and report whether the project is independent or connected. `/all2cf` and `/update` are compatibility aliases.
 
-When disconnected, inspect the available All2CF MCP tools instead of guessing tool names. Use hosted All2CF MCP OAuth to identify the project, verify ownership and paid entitlement, and request a project-scoped connection receipt. Save that receipt to a private temporary path, run `npm run all2cf:connect -- <receipt-path>`, remove the temporary file, reload `/maintenance`, and verify `npm run all2cf:status`. Never print the project Token. If MCP is unavailable, direct the user to import the same All2CF-issued receipt in `/maintenance`; do not fabricate authorization or fall back to GitHub.
+When disconnected, use the `Connect All2CF MCP` action on local `/maintenance`. It creates PKCE/state locally, opens All2CF OAuth, verifies project ownership and paid entitlement, exchanges the one-use code through the local development service, stores the ignored project Receipt, and returns to `/maintenance`. If authentication needs user interaction, ask the user to finish sign-in in that browser; never ask them to copy a Prompt or Token. Verify `npm run all2cf:status` after the callback. Manual Receipt import is Advanced recovery only; do not fabricate authorization or fall back to GitHub.
 
 All native Cloudflare inventory and mutations remain owned by official Cloudflare MCP. All2CF MCP is limited to project identity, entitlement, receipts and authorized Starter updates.
 

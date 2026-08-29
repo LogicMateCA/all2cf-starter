@@ -2,6 +2,8 @@ node_modules/
 .factory-output/
 .starter/factory-draft.local.json
 .starter/update-auth.local.json
+.starter/installation.local.json
+.starter/all2cf-connection-oauth.local.json
 dist/
 .wrangler/
 .dev.vars
