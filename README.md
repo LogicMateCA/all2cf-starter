@@ -1,6 +1,8 @@
 # All2CF Starter
 
-An AI-first, Cloudflare-native product factory for Web SaaS, content websites, and mobile applications. The canonical repository exposes the full capability catalog; each generated project contains only the applications, Packs, Providers, pages, dependencies, bindings, and AI context selected for that product.
+**A Cloudflare-platform specialist Starter, built first for Codex.**
+
+Create Web SaaS, content websites, Mobile Apps and combined products around Cloudflare Workers, Hyperdrive, R2, Queues, Workflows, Durable Objects, Vectorize and Workers AI. The repository exposes the full capability catalog; `/setup` materializes only the applications, Packs, Providers, pages, dependencies and Bindings selected for the product.
 
 ## Why it is optimized for AI
 
@@ -16,6 +18,33 @@ Most starters optimize the first hour: copy files, install dependencies, and sta
 - **Independent output:** generated products run without All2CF; managed cloud connection is optional.
 
 See [AI-FIRST.md](AI-FIRST.md) for the development model, comparison, and limits.
+
+## Use it with Codex from one URL
+
+Give Codex this request:
+
+```text
+Use https://github.com/LogicMateCA/all2cf-starter to create my Cloudflare project.
+Read CODEX.md and AGENTS.md first. Clone the repository, run npm ci and npm run setup,
+then help me select only the modules and Providers the product needs.
+Do not deploy Production unless I explicitly say Production.
+```
+
+After cloning, Codex automatically receives repository-level `AGENTS.md`. `CODEX.md` defines the first-run workflow, `AGENT_MAP.md` routes later tasks, and `/dp` provides readable architecture and ownership. The project does not depend on the conversation that created it.
+
+## Why Cloudflare + Codex
+
+- Cloudflare-native Worker, database connection, storage, AI, search, realtime and background-work contracts.
+- Separate Development and Production Worker identities, domains, databases, Bindings, secrets and rollback evidence.
+- Codex-readable ownership, task routing, Change Specs, verification commands and release language.
+- One source supports Web SaaS, content/website, Mobile App or combined product shapes.
+- Better Auth foundation with selectable product modules and Provider adapters.
+- Native PostgreSQL/Hyperdrive with SQL-first or Drizzle product data.
+- Independent shadcn Web and Expo/Tamagui Mobile clients.
+- Receipt-owned Packs that install and safely remove files, dependencies, SQL, routes and Bindings.
+- Optional All2CF connection for project-scoped MCP and managed updates without runtime lock-in.
+
+It is not a generic no-code builder. Product business behavior remains product-owned, and `/setup` produces a reviewed local Blueprint before materialization or release.
 
 ## Requirements
 
@@ -83,6 +112,7 @@ The product runs independently. Connecting it to All2CF is optional and enables 
 - [Architecture](ARCHITECTURE.md)
 - [Performance](PERFORMANCE.md)
 - [AI-first development](AI-FIRST.md)
+- [Codex handoff](CODEX.md)
 - [Pages, Packs and Providers](CAPABILITIES.md)
 - [Licensing](LICENSING.md)
 
