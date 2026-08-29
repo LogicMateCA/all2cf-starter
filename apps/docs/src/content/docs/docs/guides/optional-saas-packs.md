@@ -11,21 +11,21 @@ After saving the Blueprint, ask AI to review `npm run starter:materialize`. Appl
 
 ## Organizations
 
-`saas.team-organizations` adds the official Better Auth Organization plugin, teams, verified-email invitations, `/app/team`, and `/app/invitation`. Tenant roles do not grant platform Admin access. Invitation mail uses the configured authentication email provider, with CFsend as the default.
+The Starter Teams and Organizations module adds teams, verified-email invitations, `/app/team`, and `/app/invitation`. Its identity adapter uses the official Better Auth Organization plugin. Tenant roles do not grant platform Admin access. Invitation mail uses the configured authentication email provider, with CFsend as the default.
 
 ## Stripe Billing
 
-`saas.billing-stripe` adds Better Auth Stripe, Stripe SDK, `/app/billing`, Checkout subscriptions, Customer Portal, signed webhooks, the subscription projection, and replay receipts. Development requires Stripe Test credentials; Production requires separate Live credentials. The default billing owner is the authenticated user. Organization billing is a separate product decision.
+The Starter Stripe Billing module adds `/app/billing`, Checkout subscriptions, Customer Portal, signed webhooks, the subscription projection, and replay receipts. Its identity/billing adapter uses the aligned Stripe SDK and Better Auth integration. Development requires Stripe Test credentials; Production requires separate Live credentials. The default billing owner is the authenticated user. Organization billing is a separate product decision.
 
 Local smoke evidence is not a substitute for a real Stripe Test lifecycle. Before Development verification, complete Checkout, the required subscription webhooks, Portal, cancellation/restore, and entitlement reconciliation against Stripe Test.
 
 ## API keys
 
-`saas.api-keys` adds the official Better Auth API Key plugin, `/app/api-keys`, and its reviewed SQL-first table. The default keys belong to the current user, are stored only as hashes, cannot become browser sessions, and begin with one `product:read` permission. Replace that placeholder permission vocabulary and prove both allowed and denied product routes before Development release. Usage metering and outgoing webhooks are separate capabilities and are not implied by this pack.
+The Starter API Keys module adds `/app/api-keys` and its reviewed SQL-first table. Its credential adapter uses the official Better Auth API Key plugin. The default keys belong to the current user, are stored only as hashes, cannot become browser sessions, and begin with one `product:read` permission. Replace that placeholder permission vocabulary and prove both allowed and denied product routes before Development release. Usage metering and outgoing webhooks are separate capabilities and are not implied by this pack.
 
 ## TOTP two-factor authentication
 
-`saas.account-security-2fa` adds Better Auth's aligned Two-Factor plugin, `/app/security/two-factor`, and the Worker-first `/two-factor` challenge. Enrollment remains pending until a valid TOTP, backup codes are shown only on generation, and five failed challenges lock the account for 15 minutes. Passkeys are not bundled because they require the separate `@better-auth/passkey` package and real WebAuthn browser/device evidence.
+The Starter Account Security module adds TOTP 2FA, `/app/security/two-factor`, and the Worker-first `/two-factor` challenge. Its authentication adapter uses the aligned Better Auth Two-Factor plugin. Enrollment remains pending until a valid TOTP, backup codes are shown only on generation, and five failed challenges lock the account for 15 minutes. Passkeys are not bundled because they require a separate adapter and real WebAuthn browser/device evidence.
 
 ## API SaaS
 

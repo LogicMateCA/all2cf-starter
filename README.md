@@ -38,7 +38,7 @@ After cloning, Codex automatically receives repository-level `AGENTS.md`. `CODEX
 - Separate Development and Production Worker identities, domains, databases, Bindings, secrets and rollback evidence.
 - Codex-readable ownership, task routing, Change Specs, verification commands and release language.
 - One source supports Web SaaS, content/website, Mobile App or combined product shapes.
-- Better Auth foundation with selectable product modules and Provider adapters.
+- Authentication powered by Better Auth, with product capabilities owned and presented as All2CF Starter Modules.
 - Native PostgreSQL/Hyperdrive with SQL-first or Drizzle product data.
 - Independent shadcn Web and Expo/Tamagui Mobile clients.
 - Receipt-owned Packs that install and safely remove files, dependencies, SQL, routes and Bindings.
@@ -71,7 +71,7 @@ You can also download the exact verified Full Source Artifact from [All2CF](http
 
 ## What is included
 
-Permanent product foundations include Better Auth, account settings, notifications, Product Shell, `/admin`, support and bug intake, public Docs, audit and operations health.
+Permanent product foundations include authentication and sessions, account settings, notifications, Product Shell, `/admin`, support and bug intake, public Docs, audit and operations health.
 
 The page catalog includes Home, Features, Pricing, About, Contact, Changelog, Privacy, Terms, Sign in, Settings, Notifications, Docs, 404, Support and Admin. Optional growth pages add Blog, Case studies, Integrations and Careers.
 

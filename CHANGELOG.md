@@ -26,6 +26,7 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 ### Changed
 
 - Positioned Starter specifically for the Cloudflare platform and Codex instead of generic full-stack or generic AI use.
+- Presented 2FA, Organizations, API Keys, Billing and other product behavior as All2CF Starter Modules; Better Auth is named only as the authentication/session runtime or technical adapter.
 - Removed the duplicate Capabilities Setup step; Provider `None`/implementation and SQL-first/Drizzle own optional capability selection.
 - Renamed the SaaS-specific Setup step to product-neutral Modules for Web SaaS, content/website and Mobile App products.
 - Reduced Product intent to the single Product identity brief; removed the duplicate brief, audience, core-object, tenancy, charging and automatic module-proposal fields.
