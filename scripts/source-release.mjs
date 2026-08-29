@@ -138,33 +138,58 @@ async function channelStatus() {
   return channels.sort((left, right) => left.channel.localeCompare(right.channel));
 }
 
-async function portableBlueprint(dataLayer) {
+const permanentPackIds = new Set(["design.owned-neutral", "design.stylekit-adapted", "page.core-product-site", "saas.product-shell", "saas.identity-core", "saas.notifications-core", "saas.product-operations-lite"]);
+
+async function portableBlueprint(dataLayer, { minimal = false } = {}) {
   const blueprint = JSON.parse(await readFile(path.join(root, "starter.blueprint.json"), "utf8"));
-  blueprint.project = { ...blueprint.project, name: `Engine ${dataLayer} proof`, slug: `engine-${dataLayer.replaceAll("-", "")}-proof` };
+  const profile = minimal ? "minimal" : dataLayer;
+  blueprint.project = { ...blueprint.project, name: `Engine ${profile} proof`, slug: `engine-${profile.replaceAll("-", "")}-proof` };
   blueprint.providers.database.access = dataLayer;
+  if (minimal) {
+    blueprint.preset = "custom";
+    for (const selections of Object.values(blueprint.selections)) for (const selection of selections) {
+      const selected = permanentPackIds.has(selection.id);
+      selection.lifecycle = { selected, materialized: false, localVerified: false, developmentVerified: false, productionReleased: false };
+    }
+    blueprint.pageSet.selected = blueprint.pageSet.selected.filter((id) => !id.startsWith("growth."));
+    blueprint.providers.billing = "none";
+    blueprint.providers.storage.provider = "none";
+    blueprint.providers.antiAbuse.provider = "none";
+    blueprint.providers.ai.provider = "none";
+    blueprint.providers.search.provider = "none";
+    blueprint.providers.push.provider = "none";
+    blueprint.providers.sms.provider = "none";
+    blueprint.providers.media.images.provider = "none";
+    blueprint.providers.media.stream.provider = "none";
+    blueprint.providers.background.cron.enabled = false;
+    blueprint.providers.background.workflow.enabled = false;
+    blueprint.providers.background.workflow.scheduleEnabled = false;
+    blueprint.providers.background.realtime.enabled = false;
+  }
   const selection = blueprint.selections.capabilities.find(({ id }) => id === "capability.data-layer-drizzle");
   if (!selection) throw new Error("Blueprint is missing capability.data-layer-drizzle");
   selection.lifecycle = { selected: dataLayer === "drizzle", materialized: false, localVerified: false, developmentVerified: false, productionReleased: false };
   return blueprint;
 }
 
-async function verifyPortableProject(source, dataLayer, version) {
-  const slug = `engine-${dataLayer.replaceAll("-", "")}-${source.commit.slice(0, 8)}`;
+async function verifyPortableProject(source, dataLayer, version, { minimal = false } = {}) {
+  const profile = minimal ? "minimal" : dataLayer;
+  const slug = `engine-${profile.replaceAll("-", "")}-${source.commit.slice(0, 8)}`;
   const target = path.join(root, ".factory-output", slug);
   const archive = path.join(root, ".factory-output", `${slug}.tar.gz`);
-  const inputPath = path.join(root, ".all2cf", `source-release-${dataLayer}.local.json`);
+  const inputPath = path.join(root, ".all2cf", `source-release-${profile}.local.json`);
   await mkdir(path.dirname(inputPath), { recursive: true });
   await rm(target, { recursive: true, force: true });
   await rm(archive, { force: true });
   const config = JSON.parse(await readFile(path.join(root, "starter.config.json"), "utf8"));
-  await writeFile(inputPath, json({ blueprint: await portableBlueprint(dataLayer), config }), { mode: 0o600 });
+  await writeFile(inputPath, json({ blueprint: await portableBlueprint(dataLayer, { minimal }), config }), { mode: 0o600 });
   const startedAt = performance.now();
   try {
     const factoryOutput = run(process.execPath, [
       "scripts/starter-factory.mjs",
       "create",
       `--slug=${slug}`,
-      `--name=Engine ${dataLayer} proof`,
+      `--name=Engine ${profile} proof`,
       `--input=${path.relative(root, inputPath)}`,
     ], {
       env: {
@@ -186,14 +211,22 @@ async function verifyPortableProject(source, dataLayer, version) {
       throw new Error("Drizzle proof did not materialize capability.data-layer-drizzle");
     if (dataLayer === "sql-first" && receipt.packs?.["capability.data-layer-drizzle"])
       throw new Error("SQL proof unexpectedly materialized capability.data-layer-drizzle");
+    const materializedPackIds = Object.keys(receipt.packs || {});
+    const packCount = materializedPackIds.length;
+    const optionalPackIds = materializedPackIds.filter((id) => !permanentPackIds.has(id));
+    if (minimal && optionalPackIds.length)
+      throw new Error(`Minimal proof loaded optional Packs: ${optionalPackIds.join(", ")}`);
     return {
       ok: true,
       dataLayer,
+      profile,
       sourceCommit: source.commit,
       generatedCommit: git(["rev-parse", "HEAD"], target),
       blueprintHash: factory.blueprintHash,
       archiveSha256: factory.archiveSha256,
-      packCount: Object.keys(receipt.packs || {}).length,
+      packCount,
+      optionalPackCount: optionalPackIds.length,
+      ...(minimal ? { permanentPackIds: materializedPackIds } : {}),
       elapsedMs: Math.round(performance.now() - startedAt),
     };
   } finally {
@@ -211,6 +244,7 @@ async function verify(versionValue) {
   const projects = [];
   for (const dataLayer of ["sql-first", "drizzle"])
     projects.push(await verifyPortableProject(source, dataLayer, version));
+  projects.push(await verifyPortableProject(source, "sql-first", version, { minimal: true }));
   const report = {
     schemaVersion: "starter-source-verification/v1",
     ok: true,
@@ -404,7 +438,10 @@ async function check(versionValue) {
   if (manifest.version !== version || manifest.sourceCommit !== source.commit) failures.push("Engine manifest does not match the current source/version");
   if (!/^[a-f0-9]{64}$/u.test(manifest.artifactSha256 || "") || !(await exists(artifact)) || await sha256File(artifact) !== manifest.artifactSha256) failures.push("Engine artifact hash is invalid");
   if (JSON.stringify(manifest.packVersions) !== JSON.stringify(await packVersions())) failures.push("Engine Pack versions are stale");
-  if (verification.ok !== true || verification.version !== version || verification.sourceCommit !== source.commit || verification.projects?.length !== 2) failures.push("Source verification evidence is stale");
+  const verificationProfiles = verification.projects?.map(({ profile }) => profile).sort() || [];
+  const minimalVerification = verification.projects?.find(({ profile }) => profile === "minimal");
+  if (verification.ok !== true || verification.version !== version || verification.sourceCommit !== source.commit || JSON.stringify(verificationProfiles) !== JSON.stringify(["drizzle", "minimal", "sql-first"]) || minimalVerification?.optionalPackCount !== 0)
+    failures.push("Source verification evidence is stale or missing the zero-optional-Pack proof");
   if (report.reproducible !== true || report.reproducibleBuilds !== 2) failures.push("Reproducible build evidence is missing");
   if (registration.sourceCommit !== source.commit || registration.engineManifest?.artifactSha256 !== manifest.artifactSha256) failures.push("Registration bundle does not match the Engine manifest");
   if (channel.schemaVersion !== "all2cf-starter-channel/v1" || channel.engine?.version !== version || channel.engine?.sourceCommit !== source.commit || channel.engine?.artifactSha256 !== manifest.artifactSha256) failures.push("Engine Channel descriptor does not match the candidate");
