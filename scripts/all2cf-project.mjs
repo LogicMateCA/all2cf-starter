@@ -9,10 +9,11 @@ const readJson = (file) => readFile(file, "utf8").then(JSON.parse);
 const output = (value) => process.stdout.write(`${JSON.stringify(value, null, 2)}\n`);
 
 async function status() {
-  const receipt = await readJson(receiptPath);
+  const receipt = await readJson(receiptPath).catch(() => null);
+  const config = await readJson(path.join(root, "starter.config.json")).catch(() => null);
   const authorization = await readJson(authPath).catch(() => null);
   const connected = Boolean(authorization?.accessToken && (!authorization.expiresAt || Date.parse(authorization.expiresAt) > Date.now()));
-  output({ ok: true, mode: connected ? "all2cf-connected" : "independent", connected, project: receipt.project, engineVersion: receipt.engineVersion || null, sourceCommit: receipt.sourceCommit, expiresAt: connected ? authorization.expiresAt || null : null, runtimeDependency: false });
+  output({ ok: true, mode: connected ? "all2cf-connected" : "independent", connected, workspace: receipt ? "generated-project" : "canonical-source", project: receipt?.project || config?.project || null, projectId: connected ? authorization.projectId : null, installationId: connected ? authorization.installationId : null, engineVersion: receipt?.engineVersion || null, sourceCommit: receipt?.sourceCommit || null, expiresAt: connected ? authorization.expiresAt || null : null, mcp: { endpoint: "https://app.all2cf.com/api/platform/mcp", authentication: "oauth", projectAuthorization: "project-token" }, runtimeDependency: false });
 }
 
 async function connect() {
@@ -52,9 +53,9 @@ async function disconnect() {
 }
 
 async function doctor() {
-  const receipt = await readJson(receiptPath);
+  const receipt = await readJson(receiptPath).catch(() => null);
   const authorization = await readJson(authPath).catch(() => null);
-  output({ ok: true, receipt: Boolean(receipt.sourceCommit), optionalConnection: true, connected: Boolean(authorization?.accessToken), independentCommands: ["npm ci", "npm run typecheck", "npm run build", "npm run dev:worker"], all2cfRuntimeDependency: false });
+  output({ ok: true, receipt: Boolean(receipt?.sourceCommit), workspace: receipt ? "generated-project" : "canonical-source", optionalConnection: true, connected: Boolean(authorization?.accessToken), independentCommands: ["npm ci", "npm run typecheck", "npm run build", "npm run dev:worker"], all2cfRuntimeDependency: false });
 }
 
 if (command === "status") await status();

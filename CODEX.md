@@ -78,6 +78,18 @@ Stripe Development uses Test keys, Test webhook secret and Test Price IDs. Produ
 
 All2CF connection is optional and must not become a runtime dependency.
 
+## All2CF maintenance and paid MCP
+
+For “connect All2CF”, “check my plan”, “check Starter updates”, “preview an update” or “use paid All2CF tools”, open the local `/maintenance` page first. `/all2cf` and `/update` are compatibility aliases.
+
+Prefer the globally installed `all2cf-project` plugin and its hosted All2CF MCP. Authenticate through MCP OAuth, identify the local project from `.starter/source.json`, verify ownership and paid entitlement, obtain a project-scoped connection receipt, then connect it with:
+
+```bash
+npm run all2cf:connect -- /path/to/all2cf-project-connection.json
+```
+
+Never print, commit or place the project Token in product configuration. It belongs only in ignored `.starter/update-auth.local.json`. If MCP is unavailable, `/maintenance` may import the same cloud-issued connection receipt manually. Follow status → entitlement/check → diff → explicitly authorized update. Use official Cloudflare MCP, not All2CF MCP, for Cloudflare resources and mutations.
+
 ## Completion
 
 Use the smallest relevant checks for ordinary work. A whole-project candidate normally includes:

@@ -8,7 +8,14 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 ### Added
 
-- Nothing yet.
+- Unified local `/maintenance` workspace for optional All2CF MCP connection, project Token receipt import, paid entitlement, installed receipt, update preview and authorized application.
+- Setup completion choices for independent continuation or All2CF paid MCP and update connection.
+- Codex-first MCP connection prompt and AI routing rules that identify the exact local page and preserve Token secrecy.
+
+### Changed
+
+- `/all2cf` and `/update` are compatibility aliases for `/maintenance`.
+- All2CF Project plugin 0.1.3 routes paid Starter updates through hosted MCP OAuth plus a project-scoped connection receipt while native Cloudflare operations remain with official Cloudflare MCP.
 
 ## [2.1.1] - 2026-08-28
 
