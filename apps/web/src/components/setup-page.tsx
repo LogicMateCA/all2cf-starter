@@ -800,26 +800,6 @@ export function SetupPage() {
   const billingProvider = payload?.blueprint.providers.billing === "better-auth-polar" ? "polar" : payload?.blueprint.providers.billing === "better-auth-autumn" ? "autumn" : "stripe";
   const billingSelected = selectedPacks.some(({ id }) => id.startsWith("saas.billing-"));
   const nativeMobileSelected = payload?.blueprint.project.platforms.some((platform) => platform === "ios" || platform === "android") || false;
-  const intentProposal = useMemo(() => {
-    if (!payload) return [];
-    const proposals: Array<{ id: string; reason: string }> = [];
-    if (
-      payload.blueprint.productIntent.tenantModel === "organization" ||
-      payload.blueprint.productIntent.tenantModel === "hybrid"
-    )
-      proposals.push({
-        id: "saas.team-organizations",
-        reason:
-          "Organization tenancy needs members, invitations, roles, and an active workspace.",
-      });
-    if (payload.blueprint.productIntent.chargingModel !== "free")
-      proposals.push({
-        id: "saas.billing-stripe",
-        reason: `${payload.blueprint.productIntent.chargingModel} charging needs Billing & subscriptions. Choose Stripe, Polar or Autumn in Providers.`,
-      });
-    return proposals;
-  }, [payload]);
-
   if (loadError)
     return (
       <main className="setup-unavailable">
@@ -1686,14 +1666,10 @@ export function SetupPage() {
                 </div>
               </section>
               <section className="setup-panel">
-                <h2>Product intent</h2>
-                <p>
-                  AI uses this contract to propose product modules. It is not
-                  marketing copy and should name the real users, owned objects,
-                  tenancy, and charging model.
-                </p>
+                <h2>Product brief</h2>
+                <p>Give Codex one concrete description of the product. Modules and Providers remain explicit choices in later steps.</p>
                 <label className="setup-field">
-                  <span>What does this SaaS do?</span>
+                  <span>What are you building?</span>
                   <textarea
                     value={payload.blueprint.productIntent.summary}
                     onChange={(event) =>
@@ -1709,7 +1685,7 @@ export function SetupPage() {
                 </label>
                 <div className="setup-fields">
                   <Field
-                    label="Who uses it?"
+                    label="Primary users (optional)"
                     value={listValue(payload.blueprint.productIntent.audiences)}
                     onChange={(value) =>
                       updateBlueprint((blueprint) => ({
@@ -1722,69 +1698,6 @@ export function SetupPage() {
                     }
                     helper="Comma-separated user groups."
                   />
-                  <Field
-                    label="Core product objects"
-                    value={listValue(
-                      payload.blueprint.productIntent.coreObjects,
-                    )}
-                    onChange={(value) =>
-                      updateBlueprint((blueprint) => ({
-                        ...blueprint,
-                        productIntent: {
-                          ...blueprint.productIntent,
-                          coreObjects: parseList(value),
-                        },
-                      }))
-                    }
-                    helper="Comma-separated nouns owned by the product."
-                  />
-                  <label className="setup-field">
-                    <span>Tenant model</span>
-                    <select
-                      value={payload.blueprint.productIntent.tenantModel}
-                      onChange={(event) =>
-                        updateBlueprint((blueprint) => ({
-                          ...blueprint,
-                          productIntent: {
-                            ...blueprint.productIntent,
-                            tenantModel: event.target
-                              .value as Blueprint["productIntent"]["tenantModel"],
-                          },
-                        }))
-                      }
-                    >
-                      <option value="personal">Personal</option>
-                      <option value="organization">Organization</option>
-                      <option value="hybrid">Personal + organization</option>
-                    </select>
-                  </label>
-                  <label className="setup-field">
-                    <span>Charging model</span>
-                    <select
-                      value={payload.blueprint.productIntent.chargingModel}
-                      onChange={(event) =>
-                        updateBlueprint((blueprint) => ({
-                          ...blueprint,
-                          productIntent: {
-                            ...blueprint.productIntent,
-                            chargingModel: event.target
-                              .value as Blueprint["productIntent"]["chargingModel"],
-                          },
-                        }))
-                      }
-                    >
-                      <option value="free">Free</option>
-                      <option value="one-time">One-time</option>
-                      <option value="subscription-user">
-                        Subscription per user
-                      </option>
-                      <option value="subscription-organization">
-                        Subscription per organization
-                      </option>
-                      <option value="usage">Usage based</option>
-                      <option value="hybrid">Hybrid</option>
-                    </select>
-                  </label>
                 </div>
               </section>
               <section className="setup-panel">
@@ -1992,60 +1905,7 @@ export function SetupPage() {
                   {["Better Auth", "Account settings", "Notifications", "Admin", "Support & bugs", "Docs", "Audit", "Operations health"].map((name) => <article className="pack-choice selected core-choice" key={name}><span className="pack-choice-main"><span><strong>{name}</strong><small>Core</small></span><p>Included in the SaaS foundation and registered in the project Agent Map.</p></span><span className="pack-check"><Check size={15} /></span></article>)}
                 </div>
               </section>
-              <section className="setup-panel">
-                <div className="panel-title">
-                  <div>
-                    <h2>Intent-derived module proposal</h2>
-                    <p>
-                      This is derived from the Product step. It shows
-                      consequences before materialization and never selects a
-                      planned pack.
-                    </p>
-                  </div>
-                  {intentProposal.length ? (
-                    <Button
-                      variant="outline"
-                      onClick={() =>
-                        intentProposal.forEach(({ id }) => {
-                          if (id.startsWith("saas.billing-")) {
-                            setBillingCapability(true);
-                            return;
-                          }
-                          const pack = payload.catalog.packs.find(
-                            (candidate) => candidate.id === id,
-                          );
-                          if (pack) setPackSelected(pack, true);
-                        })
-                      }
-                    >
-                      Apply proposal
-                    </Button>
-                  ) : null}
-                </div>
-                {intentProposal.length ? (
-                  <div className="review-contracts">
-                    {intentProposal.map(({ id, reason }) => (
-                      <article key={id}>
-                        <div>
-                          <strong>{id.startsWith("saas.billing-") ? "Billing & subscriptions" : id}</strong>
-                          <small>
-                            {payload.catalog.packs.find(
-                              (pack) => pack.id === id,
-                            )?.status || "missing"}
-                          </small>
-                        </div>
-                        <p>{reason}</p>
-                      </article>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="setup-empty">
-                    Personal, free products need no additional SaaS pack by
-                    default. Product-specific modules are still selected below.
-                  </p>
-                )}
-                <p className="setup-field-help">Source coverage: {payload.saasSources.sources.length} pinned structural references and {payload.saasCapabilities.capabilities.length} named product modules. Planned modules remain visible in /dp, not selectable here.</p>
-              </section>
+              <p className="setup-field-help">Source coverage: {payload.saasSources.sources.length} pinned structural references and {payload.saasCapabilities.capabilities.length} named product modules. Planned modules remain visible in /dp, not selectable here.</p>
               <section className="setup-panel preset-selector">
                 <label>
                   <span>Starting preset</span>
@@ -2513,19 +2373,6 @@ export function SetupPage() {
                     <dt>Audience</dt>
                     <dd>
                       {payload.blueprint.productIntent.audiences.join(", ")}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Core objects</dt>
-                    <dd>
-                      {payload.blueprint.productIntent.coreObjects.join(", ")}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Tenancy / charging</dt>
-                    <dd>
-                      {payload.blueprint.productIntent.tenantModel} /{" "}
-                      {payload.blueprint.productIntent.chargingModel}
                     </dd>
                   </div>
                   <div>

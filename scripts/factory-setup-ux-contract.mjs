@@ -20,6 +20,9 @@ assert.doesNotMatch(setup, /id: "capabilities", label: "Capabilities"/u);
 assert.doesNotMatch(setup, /currentStep\.id === "capabilities"/u);
 assert.match(setup, /id: "saas", label: "Modules"/u);
 assert.doesNotMatch(setup, /<h2>SaaS Core<\/h2>/u);
+assert.match(setup, /<h2>Product brief<\/h2>/u);
+for (const removed of ["Core product objects", "Tenant model", "Charging model", "Intent-derived module proposal"])
+  assert.doesNotMatch(setup, new RegExp(removed, "u"));
 assert.doesNotMatch(setup, /All2CF database connector/u);
 assert.doesNotMatch(setup, /npx @all2cf\/database-connect/u);
 for (const field of ["STARTER_PRODUCTION_STRIPE_SECRET_KEY", "STARTER_PRODUCTION_STRIPE_PUBLISHABLE_KEY", "STARTER_PRODUCTION_STRIPE_WEBHOOK_SECRET", "STARTER_PRODUCTION_STRIPE_PRICE_PRO"])
