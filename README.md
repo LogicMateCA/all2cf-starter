@@ -48,7 +48,7 @@ The page catalog includes Home, Features, Pricing, About, Contact, Changelog, Pr
 
 Selectable Provider families include:
 
-- Native PostgreSQL/Hyperdrive or the optional All2CF database connector; SQL-first or Drizzle product data;
+- Native PostgreSQL/Hyperdrive with SQL-first or Drizzle product data;
 - Google, GitHub, Apple, Microsoft, Discord, Facebook and LinkedIn sign-in;
 - CFsend, Resend or Cloudflare Email Service;
 - Stripe, Polar or Autumn billing;

@@ -64,7 +64,7 @@ Status vocabulary:
 
 | Family | Selectable now | Planned and disabled |
 |---|---|---|
-| Database | Native PostgreSQL + Hyperdrive; CFPG / All2CF Database connector | — |
+| Database | Native PostgreSQL + Hyperdrive | CFPG / All2CF Database connector (legacy receipts remain readable) |
 | Data access | SQL-first; Drizzle | — |
 | Social sign-in | None; Google; GitHub; Apple; Microsoft; Discord; Facebook; LinkedIn | Generic OAuth/OIDC |
 | Authentication email | CFsend; Resend; Cloudflare Email Service | — |
