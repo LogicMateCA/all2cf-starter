@@ -1463,6 +1463,14 @@ export function SetupPage() {
     const blueprint: Blueprint = {
       ...payload.blueprint,
       status: finish ? "ready" : "draft",
+      productIntent: {
+        ...payload.blueprint.productIntent,
+        summary: payload.blueprint.project.brief,
+        audiences: ["product user"],
+        coreObjects: ["product data"],
+        tenantModel: payload.blueprint.selections.saas.some(({ id, lifecycle }) => id === "saas.team-organizations" && lifecycle.selected) ? "organization" : "personal",
+        chargingModel: payload.blueprint.selections.saas.some(({ id, lifecycle }) => id.startsWith("saas.billing-") && lifecycle.selected) ? "subscription-user" : "free",
+      },
       setup: {
         ...payload.blueprint.setup,
         status: finish ? "ready" : "in-progress",
@@ -1631,6 +1639,10 @@ export function SetupPage() {
                           ...blueprint.project,
                           brief: event.target.value,
                         },
+                        productIntent: {
+                          ...blueprint.productIntent,
+                          summary: event.target.value,
+                        },
                       }))
                     }
                   />
@@ -1663,41 +1675,6 @@ export function SetupPage() {
                       </label>
                     ),
                   )}
-                </div>
-              </section>
-              <section className="setup-panel">
-                <h2>Product brief</h2>
-                <p>Give Codex one concrete description of the product. Modules and Providers remain explicit choices in later steps.</p>
-                <label className="setup-field">
-                  <span>What are you building?</span>
-                  <textarea
-                    value={payload.blueprint.productIntent.summary}
-                    onChange={(event) =>
-                      updateBlueprint((blueprint) => ({
-                        ...blueprint,
-                        productIntent: {
-                          ...blueprint.productIntent,
-                          summary: event.target.value,
-                        },
-                      }))
-                    }
-                  />
-                </label>
-                <div className="setup-fields">
-                  <Field
-                    label="Primary users (optional)"
-                    value={listValue(payload.blueprint.productIntent.audiences)}
-                    onChange={(value) =>
-                      updateBlueprint((blueprint) => ({
-                        ...blueprint,
-                        productIntent: {
-                          ...blueprint.productIntent,
-                          audiences: parseList(value),
-                        },
-                      }))
-                    }
-                    helper="Comma-separated user groups."
-                  />
                 </div>
               </section>
               <section className="setup-panel">

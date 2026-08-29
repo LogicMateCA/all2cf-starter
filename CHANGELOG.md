@@ -28,7 +28,7 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 - Positioned Starter specifically for the Cloudflare platform and Codex instead of generic full-stack or generic AI use.
 - Removed the duplicate Capabilities Setup step; Provider `None`/implementation and SQL-first/Drizzle own optional capability selection.
 - Renamed the SaaS-specific Setup step to product-neutral Modules for Web SaaS, content/website and Mobile App products.
-- Reduced Product intent to one concrete brief plus optional primary users; removed duplicated core-object, tenancy, charging and automatic module-proposal fields.
+- Reduced Product intent to the single Product identity brief; removed the duplicate brief, audience, core-object, tenancy, charging and automatic module-proposal fields.
 - Widened desktop Setup to a 1540px canvas and four-column cards.
 - Moved Maps and Object Storage exclusively into Providers.
 - Marked independent AI visual design Under development and non-selectable while retaining the fixed functional baseline.
