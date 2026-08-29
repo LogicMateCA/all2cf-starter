@@ -13,7 +13,7 @@
       "id": "database", "name": "Database", "kind": "provider", "required": true, "selection": "single", "defaultOptionIds": ["native-postgresql"], "capabilityIds": ["identity.core"],
       "options": [
         { "id": "native-postgresql", "name": "Native PostgreSQL + Hyperdrive", "status": "development-verified", "delivery": "baseline", "selectable": true, "credentials": ["DATABASE_URL", "STARTER_PRODUCTION_DATABASE_URL"], "bindings": ["HYPERDRIVE"], "dependencies": ["pg"], "verification": { "available": true, "mode": "live-binding" }, "setupLinks": ["https://developers.cloudflare.com/hyperdrive/"], "notes": "SQL-first default with isolated Development and Production databases." },
-        { "id": "cfpg", "name": "CFPG / All2CF Database", "status": "implemented", "delivery": "materializer", "selectable": true, "credentials": [], "bindings": ["ALL2CF_DATABASE"], "dependencies": ["@all2cf/database-connect"], "verification": { "available": true, "mode": "contract" }, "setupLinks": ["https://app.all2cf.com/"], "notes": "Requires distinct validated Development and Production connection commands before materialization." }
+        { "id": "cfpg", "name": "CFPG / All2CF Database", "status": "planned", "delivery": "planned", "selectable": false, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "contract" }, "setupLinks": ["https://app.all2cf.com/"], "notes": "Legacy connector receipts remain readable, but new Starter projects use native PostgreSQL and do not expose this transport in Setup." }
       ]
     },
     {

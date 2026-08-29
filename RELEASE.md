@@ -6,6 +6,18 @@ source: "starter"
 
 # Release
 
+## Versioning
+
+Public Starter and Engine releases use SemVer beginning at `2.1.1`:
+
+- patch (`2.1.2`) for compatible fixes and documentation corrections;
+- minor (`2.2.0`) for backward-compatible capabilities, Providers or Setup changes;
+- major (`3.0.0`) for breaking Blueprint, Pack, update or runtime contracts.
+
+Development candidates may use `-dev.N`; GitHub packaged releases and promoted public channels use stable versions.
+
+Every Engine/GitHub release must have one dated `CHANGELOG.md` entry before candidate construction. The entry records user-visible additions, changes, fixes, performance, security and migration notes. `changes/` retains the detailed engineering evidence; GitHub Release notes summarize the matching Changelog entry.
+
 Generating a project through `/factory` is not a Cloudflare or App release. The generated repository begins at an intentional local Git commit with no Development or Production claim. Its `.starter/source.json` records the exact source commit and whether an explicitly disposable generation used a dirty source; normal Factory creation rejects a dirty source.
 
 ## Environments

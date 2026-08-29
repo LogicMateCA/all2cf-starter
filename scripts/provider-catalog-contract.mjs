@@ -77,7 +77,6 @@ const option = (categoryId, optionId) =>
   catalog.categories.find(({ id }) => id === categoryId)?.options.find(({ id }) => id === optionId);
 for (const [categoryId, optionId] of [
   ["database", "native-postgresql"],
-  ["database", "cfpg"],
   ["social-auth", "google"],
   ["email", "cfsend"],
   ["billing", "stripe"],

@@ -1788,10 +1788,10 @@ dd {
   background: var(--success-surface);
 }
 .setup-layout {
-  width: min(1180px, calc(100% - 48px));
+  width: min(1540px, calc(100% - 32px));
   display: grid;
-  grid-template-columns: 190px minmax(0, 1fr);
-  gap: 48px;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 32px;
   margin: auto;
   padding: 46px 0 72px;
 }
@@ -3965,7 +3965,7 @@ dd {
     display: none;
   }
   .setup-layout {
-    width: min(100% - 30px, 1180px);
+    width: min(100% - 30px, 1540px);
     grid-template-columns: 1fr;
     gap: 24px;
     padding-top: 28px;

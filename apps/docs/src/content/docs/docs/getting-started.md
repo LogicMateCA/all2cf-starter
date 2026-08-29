@@ -3,10 +3,19 @@ title: Create a project
 description: The shortest safe path from Starter copy to a locally verified project.
 ---
 
+## Start with Codex from the GitHub URL
+
+```text
+Use https://github.com/LogicMateCA/all2cf-starter to create my Cloudflare project.
+Read CODEX.md and AGENTS.md first, then clone it and run local /setup.
+```
+
+Codex does not need the conversation that created Starter. Repository rules, Agent Map, module contracts, Change Specs and the public release receipt provide durable context.
+
 ## What happens first
 
 1. Copy or initialize the Starter with the bootstrap workflow.
-2. Run the local `/setup` workspace and enter the product identity, platforms, design profile, pages, SaaS modules, optional capabilities, providers, and two environment identities.
+2. Run local `/setup` and define product identity, platforms, Modules, Providers, pages, the fixed design baseline, and two Cloudflare environment identities.
 3. Review the generated `starter.blueprint.json`. This file records intent; it is not a deployment action.
 4. Let the controller read the project context and materialize only selected packs.
 5. Provision a new empty database from that final selection. Do not carry Starter-era legacy migration or backfill logic into initialization.

@@ -376,10 +376,14 @@ const providerSecretFields = {
     { name: "CLOUDFLARE_EMAIL_FROM", label: "Verified sender", secret: false },
   ],
   stripe: [
-    { name: "STRIPE_SECRET_KEY", label: "Test secret key", secret: true },
+    { name: "STRIPE_SECRET_KEY", label: "Development · Test secret or restricted key", secret: true },
     { name: "STRIPE_PUBLISHABLE_KEY", label: "Test publishable key", secret: false },
-    { name: "STRIPE_WEBHOOK_SECRET", label: "Webhook signing secret", secret: true },
-    { name: "STRIPE_PRICE_PRO", label: "Pro Price ID", secret: false },
+    { name: "STRIPE_WEBHOOK_SECRET", label: "Test webhook signing secret", secret: true },
+    { name: "STRIPE_PRICE_PRO", label: "Test Pro Price ID", secret: false },
+    { name: "STARTER_PRODUCTION_STRIPE_SECRET_KEY", label: "Production · Live secret or restricted key", secret: true },
+    { name: "STARTER_PRODUCTION_STRIPE_PUBLISHABLE_KEY", label: "Live publishable key", secret: false },
+    { name: "STARTER_PRODUCTION_STRIPE_WEBHOOK_SECRET", label: "Live webhook signing secret", secret: true },
+    { name: "STARTER_PRODUCTION_STRIPE_PRICE_PRO", label: "Live Pro Price ID", secret: false },
   ],
   polar: [{ name: "POLAR_ACCESS_TOKEN", label: "Access token", secret: true }, { name: "POLAR_WEBHOOK_SECRET", label: "Webhook secret", secret: true }, { name: "POLAR_PRODUCT_PRO", label: "Pro product ID", secret: false }],
   autumn: [{ name: "AUTUMN_SECRET_KEY", label: "Secret key", secret: true }],
@@ -451,8 +455,7 @@ const providerSecretFields = {
 
 const steps = [
   { id: "identity", label: "Product" },
-  { id: "saas", label: "SaaS" },
-  { id: "capabilities", label: "Capabilities" },
+  { id: "saas", label: "Modules" },
   { id: "providers", label: "Providers" },
   { id: "pages", label: "Pages" },
   { id: "design", label: "Design" },
@@ -703,7 +706,7 @@ export function SetupPage() {
   const [payload, setPayload] = useState<SetupPayload | null>(null);
   const [generation, setGeneration] = useState<{ status: "idle" | "generating" | "done" | "error"; message?: string; target?: string }>({ status: "idle" });
   const [stepIndex, setStepIndex] = useState(0);
-  const [providerTab, setProviderTab] = useState<"database" | "identity" | "communication" | "billing" | "maps" | "ai-media" | "runtime" | "release">("database");
+  const [providerTab, setProviderTab] = useState<"essentials" | "advanced">("essentials");
   const [loadError, setLoadError] = useState("");
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">(
     "idle",
@@ -797,26 +800,6 @@ export function SetupPage() {
   const billingProvider = payload?.blueprint.providers.billing === "better-auth-polar" ? "polar" : payload?.blueprint.providers.billing === "better-auth-autumn" ? "autumn" : "stripe";
   const billingSelected = selectedPacks.some(({ id }) => id.startsWith("saas.billing-"));
   const nativeMobileSelected = payload?.blueprint.project.platforms.some((platform) => platform === "ios" || platform === "android") || false;
-  const intentProposal = useMemo(() => {
-    if (!payload) return [];
-    const proposals: Array<{ id: string; reason: string }> = [];
-    if (
-      payload.blueprint.productIntent.tenantModel === "organization" ||
-      payload.blueprint.productIntent.tenantModel === "hybrid"
-    )
-      proposals.push({
-        id: "saas.team-organizations",
-        reason:
-          "Organization tenancy needs members, invitations, roles, and an active workspace.",
-      });
-    if (payload.blueprint.productIntent.chargingModel !== "free")
-      proposals.push({
-        id: "saas.billing-stripe",
-        reason: `${payload.blueprint.productIntent.chargingModel} charging needs Billing & subscriptions. Choose Stripe, Polar or Autumn in Providers.`,
-      });
-    return proposals;
-  }, [payload]);
-
   if (loadError)
     return (
       <main className="setup-unavailable">
@@ -1480,6 +1463,14 @@ export function SetupPage() {
     const blueprint: Blueprint = {
       ...payload.blueprint,
       status: finish ? "ready" : "draft",
+      productIntent: {
+        ...payload.blueprint.productIntent,
+        summary: payload.blueprint.project.brief,
+        audiences: ["product user"],
+        coreObjects: ["product data"],
+        tenantModel: payload.blueprint.selections.saas.some(({ id, lifecycle }) => id === "saas.team-organizations" && lifecycle.selected) ? "organization" : "personal",
+        chargingModel: payload.blueprint.selections.saas.some(({ id, lifecycle }) => id.startsWith("saas.billing-") && lifecycle.selected) ? "subscription-user" : "free",
+      },
       setup: {
         ...payload.blueprint.setup,
         status: finish ? "ready" : "in-progress",
@@ -1561,7 +1552,7 @@ export function SetupPage() {
   };
 
   return (
-    <div className="setup-shell">
+    <div className="setup-shell" lang="en" translate="no">
       <header className="setup-header">
         <a href="/">{payload.blueprint.project.name}</a>
         <span>{__STARTER_FACTORY_MODE__ ? "Starter Factory" : "Local project setup"}</span>
@@ -1648,6 +1639,10 @@ export function SetupPage() {
                           ...blueprint.project,
                           brief: event.target.value,
                         },
+                        productIntent: {
+                          ...blueprint.productIntent,
+                          summary: event.target.value,
+                        },
                       }))
                     }
                   />
@@ -1680,108 +1675,6 @@ export function SetupPage() {
                       </label>
                     ),
                   )}
-                </div>
-              </section>
-              <section className="setup-panel">
-                <h2>Product intent</h2>
-                <p>
-                  AI uses this contract to propose product modules. It is not
-                  marketing copy and should name the real users, owned objects,
-                  tenancy, and charging model.
-                </p>
-                <label className="setup-field">
-                  <span>What does this SaaS do?</span>
-                  <textarea
-                    value={payload.blueprint.productIntent.summary}
-                    onChange={(event) =>
-                      updateBlueprint((blueprint) => ({
-                        ...blueprint,
-                        productIntent: {
-                          ...blueprint.productIntent,
-                          summary: event.target.value,
-                        },
-                      }))
-                    }
-                  />
-                </label>
-                <div className="setup-fields">
-                  <Field
-                    label="Who uses it?"
-                    value={listValue(payload.blueprint.productIntent.audiences)}
-                    onChange={(value) =>
-                      updateBlueprint((blueprint) => ({
-                        ...blueprint,
-                        productIntent: {
-                          ...blueprint.productIntent,
-                          audiences: parseList(value),
-                        },
-                      }))
-                    }
-                    helper="Comma-separated user groups."
-                  />
-                  <Field
-                    label="Core product objects"
-                    value={listValue(
-                      payload.blueprint.productIntent.coreObjects,
-                    )}
-                    onChange={(value) =>
-                      updateBlueprint((blueprint) => ({
-                        ...blueprint,
-                        productIntent: {
-                          ...blueprint.productIntent,
-                          coreObjects: parseList(value),
-                        },
-                      }))
-                    }
-                    helper="Comma-separated nouns owned by the product."
-                  />
-                  <label className="setup-field">
-                    <span>Tenant model</span>
-                    <select
-                      value={payload.blueprint.productIntent.tenantModel}
-                      onChange={(event) =>
-                        updateBlueprint((blueprint) => ({
-                          ...blueprint,
-                          productIntent: {
-                            ...blueprint.productIntent,
-                            tenantModel: event.target
-                              .value as Blueprint["productIntent"]["tenantModel"],
-                          },
-                        }))
-                      }
-                    >
-                      <option value="personal">Personal</option>
-                      <option value="organization">Organization</option>
-                      <option value="hybrid">Personal + organization</option>
-                    </select>
-                  </label>
-                  <label className="setup-field">
-                    <span>Charging model</span>
-                    <select
-                      value={payload.blueprint.productIntent.chargingModel}
-                      onChange={(event) =>
-                        updateBlueprint((blueprint) => ({
-                          ...blueprint,
-                          productIntent: {
-                            ...blueprint.productIntent,
-                            chargingModel: event.target
-                              .value as Blueprint["productIntent"]["chargingModel"],
-                          },
-                        }))
-                      }
-                    >
-                      <option value="free">Free</option>
-                      <option value="one-time">One-time</option>
-                      <option value="subscription-user">
-                        Subscription per user
-                      </option>
-                      <option value="subscription-organization">
-                        Subscription per organization
-                      </option>
-                      <option value="usage">Usage based</option>
-                      <option value="hybrid">Hybrid</option>
-                    </select>
-                  </label>
                 </div>
               </section>
               <section className="setup-panel">
@@ -1886,7 +1779,7 @@ export function SetupPage() {
           {currentStep.id === "design" ? (
             <div className="setup-stack">
               <section className="setup-panel">
-                <h2>Starter baseline visual system</h2>
+                <div className="panel-title"><div><h2>Starter baseline visual system</h2><p>Functional visual fallback for Setup, authentication, product, Admin and Docs.</p></div><small>Available</small></div>
                 <p>
                   Starter keeps one restrained fallback so every generated product
                   remains usable before independent visual design is connected.
@@ -1913,32 +1806,23 @@ export function SetupPage() {
                   <div>
                     <h2>AI visual design</h2>
                     <p>
-                      Connect the independent visual-design plugin after project creation.
-                      Starter keeps its functional baseline when the plugin is not installed or its service is unavailable.
+                      The independent visual-design integration is still under development.
+                      Starter keeps its functional baseline until the plugin, receipt and local materialization workflow are production-ready.
                     </p>
                   </div>
-                  <small>{payload.blueprint.visualIntegration.enabled ? "recommended" : "disabled"}</small>
+                  <small>Under development</small>
                 </div>
-                <label className={payload.blueprint.visualIntegration.enabled ? "pack-choice selected" : "pack-choice"}>
-                  <input type="checkbox" checked={payload.blueprint.visualIntegration.enabled} onChange={(event) => setVisualIntegrationEnabled(event.target.checked)} />
+                <label className="pack-choice unavailable" aria-disabled="true">
+                  <input type="checkbox" checked={false} disabled />
                   <span className="pack-choice-main">
-                    <span><strong>Prepare this project for independent visual intelligence</strong><small>Optional</small></span>
-                    <p>Records the compatible plugin and Visual Receipt contract without bundling an external catalog or runtime.</p>
-                    <small>{payload.blueprint.visualIntegration.contractVersion} / {payload.blueprint.visualIntegration.status} / Starter baseline fallback</small>
+                    <span><strong>Independent visual intelligence</strong><small>Not selectable yet</small></span>
+                    <p>The future integration will record a compatible plugin and Visual Receipt without bundling an external catalog or runtime.</p>
+                    <small>{payload.blueprint.visualIntegration.contractVersion} / under development / Starter baseline remains active</small>
                   </span>
-                  <span className="pack-check"><Check size={15} /></span>
+                  <span className="status planned">planned</span>
                 </label>
-                {payload.blueprint.visualIntegration.enabled ? (
-                  <div className="provider-secret-actions">
-                    <Button type="button" size="sm" variant="outline" disabled={visualTest.status === "testing"} onClick={() => void runVisualDiscoveryTest()}>
-                      {visualTest.status === "testing" ? "Checking visual service" : "Check visual service"}
-                    </Button>
-                    <small>This checks only capability discovery. It does not send project source, install a plugin, apply a profile, or call MCP tools.</small>
-                  </div>
-                ) : null}
-                {visualTest.message ? <p className={visualTest.status === "success" ? "provider-test-result success" : "provider-test-result error"} role="status">{visualTest.message}</p> : null}
                 <p className="stylekit-materialization-note">
-                  Project creation never waits for the external service. A resolved visual profile becomes active only after a compatible receipt and local materialization checks pass.
+                  Project creation never waits for this integration. Continue with the fixed Starter baseline and customize product-owned design after Setup.
                 </p>
               </section>
             </div>
@@ -1993,70 +1877,12 @@ export function SetupPage() {
           {currentStep.id === "saas" ? (
             <div className="setup-stack">
               <section className="setup-panel">
-                <div className="panel-title"><div><h2>SaaS Core</h2><p>Permanent product infrastructure is visible here and does not need to be selected again.</p></div><small>Included</small></div>
+                <div className="panel-title"><div><h2>Core product foundation</h2><p>Permanent infrastructure for the selected product shape is visible here and does not need to be selected again.</p></div><small>Included</small></div>
                 <div className="pack-grid core-capability-grid">
                   {["Better Auth", "Account settings", "Notifications", "Admin", "Support & bugs", "Docs", "Audit", "Operations health"].map((name) => <article className="pack-choice selected core-choice" key={name}><span className="pack-choice-main"><span><strong>{name}</strong><small>Core</small></span><p>Included in the SaaS foundation and registered in the project Agent Map.</p></span><span className="pack-check"><Check size={15} /></span></article>)}
                 </div>
               </section>
-              <section className="setup-panel">
-                <div className="panel-title">
-                  <div>
-                    <h2>Intent-derived module proposal</h2>
-                    <p>
-                      This is derived from the Product step. It shows
-                      consequences before materialization and never selects a
-                      planned pack.
-                    </p>
-                  </div>
-                  {intentProposal.length ? (
-                    <Button
-                      variant="outline"
-                      onClick={() =>
-                        intentProposal.forEach(({ id }) => {
-                          if (id.startsWith("saas.billing-")) {
-                            setBillingCapability(true);
-                            return;
-                          }
-                          const pack = payload.catalog.packs.find(
-                            (candidate) => candidate.id === id,
-                          );
-                          if (pack) setPackSelected(pack, true);
-                        })
-                      }
-                    >
-                      Apply proposal
-                    </Button>
-                  ) : null}
-                </div>
-                {intentProposal.length ? (
-                  <div className="review-contracts">
-                    {intentProposal.map(({ id, reason }) => (
-                      <article key={id}>
-                        <div>
-                          <strong>{id.startsWith("saas.billing-") ? "Billing & subscriptions" : id}</strong>
-                          <small>
-                            {payload.catalog.packs.find(
-                              (pack) => pack.id === id,
-                            )?.status || "missing"}
-                          </small>
-                        </div>
-                        <p>{reason}</p>
-                      </article>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="setup-empty">
-                    Personal, free products need no additional SaaS pack by
-                    default. Product-specific modules are still selected below.
-                  </p>
-                )}
-                <p className="setup-field-help">
-                  Source coverage: {payload.saasSources.sources.length} pinned
-                  donors and {payload.saasCapabilities.capabilities.length}{" "}
-                  named SaaS capabilities. Planned capabilities remain visible
-                  in /dp, not selectable here.
-                </p>
-              </section>
+              <p className="setup-field-help">Source coverage: {payload.saasSources.sources.length} pinned structural references and {payload.saasCapabilities.capabilities.length} named product modules. Planned modules remain visible in /dp, not selectable here.</p>
               <section className="setup-panel preset-selector">
                 <label>
                   <span>Starting preset</span>
@@ -2084,6 +1910,7 @@ export function SetupPage() {
                   }
                 </p>
               </section>
+              <div className="panel-title"><div><h2>Optional product modules</h2><p>Add only behavior the selected Web, content or mobile product actually needs.</p></div></div>
               <div className="pack-grid">
                 <label className={billingSelected ? "pack-choice selected" : "pack-choice"}>
                   <input type="checkbox" checked={billingSelected} onChange={(event) => setBillingCapability(event.target.checked)} />
@@ -2102,66 +1929,35 @@ export function SetupPage() {
               </div>
             </div>
           ) : null}
-          {currentStep.id === "capabilities" ? (
-            <div className="pack-grid">
-              {packsFor("capability").filter((pack) => !new Set(["capability.expo-push", "capability.twilio-sms", "capability.object-storage", "capability.mapcn-web"]).has(pack.id)).map((pack) => (
-                <PackChoice
-                  key={pack.id}
-                  pack={pack}
-                  selection={selectionFor(pack)}
-                  type="checkbox"
-                  onChange={(selected) => setPackSelected(pack, selected)}
-                />
-              ))}
-            </div>
-          ) : null}
-
           {currentStep.id === "providers" ? (
             <div className="setup-stack provider-setup">
               <section className="setup-panel provider-summary">
                 <div><span>Authentication</span><strong>{payload.blueprint.providers.auth}</strong><small>Better Auth core and selected official plugins</small></div>
-                <div><span>Database</span><strong>Development {databaseTransport(payload.blueprint.providers.database, "development") === "cfpg" ? "All2CF connector" : "Native PostgreSQL"}</strong><small>Production {databaseTransport(payload.blueprint.providers.database, "production") === "cfpg" ? "All2CF connector" : "Native PostgreSQL"} / {payload.blueprint.providers.database.access}</small></div>
+                <div><span>Database</span><strong>Native PostgreSQL</strong><small>Isolated Hyperdrive / {payload.blueprint.providers.database.access}</small></div>
                 <div><span>Billing</span><strong>{payload.blueprint.providers.billing}</strong><small>Activated only when the Billing pack is materialized</small></div>
               </section>
               <nav className="provider-tabs" aria-label="Provider categories">
                 {([
-                  ["database", "Database"], ["identity", "Identity"], ["communication", "Communication"], ["billing", "Billing"], ["maps", "Maps"], ["ai-media", "AI & media"], ["runtime", "Runtime"], ["release", "Release"],
+                  ["essentials", "Essentials"], ["advanced", "Advanced"],
                 ] as const).map(([id, label]) => <button type="button" key={id} className={providerTab === id ? "active" : ""} onClick={() => setProviderTab(id)}>{label}</button>)}
               </nav>
 
-              <section className="setup-panel provider-section" hidden={providerTab !== "maps"}>
+              <section className="setup-panel provider-section" hidden={providerTab !== "advanced"}>
                 <header><h2>Maps and geocoding</h2><p>Selecting None generates no map code or dependency. A Provider becomes selectable only after its adapter, credentials, Setup links, verification and removal contract are implemented.</p></header>
                 <div className="provider-option-grid" role="radiogroup" aria-label="Maps Provider">
                   {mapsCategory.options.filter(({ id }) => id !== "maptiler").map((option) => { const selected = selectedMapProvider === option.id; return <button type="button" className={selected ? "provider-option selected" : "provider-option"} aria-pressed={selected} disabled={!option.selectable} onClick={() => setPackSelected(mapPack, option.id === "mapcn")} key={option.id}><span className="pack-check">{selected ? <Check size={15} /> : null}</span><span><strong>{option.id === "mapcn" ? "MapCN + MapLibre" : option.id === "google-places" ? "Google Maps" : option.name}</strong><small>{option.selectable ? option.notes : "Planned · adapter not yet available"}</small></span></button>; })}
                 </div>
               </section>
 
-              <section className="setup-panel provider-section" hidden={providerTab !== "database"}>
-                <header><h2>PostgreSQL</h2><p>Application code always uses the native pg contract. Choose SQL-first or Drizzle for product-domain code. Hyperdrive is native; the optional All2CF adapter only changes how the Worker connects.</p></header>
+              <section className="setup-panel provider-section" hidden={providerTab !== "essentials"}>
+                <header><h2>PostgreSQL</h2><p>Application code uses the native PostgreSQL contract through isolated Development and Production Hyperdrive bindings. Choose SQL-first or Drizzle only for product-domain code.</p></header>
                 <div className="storage-provider-options" role="group" aria-label="Product data layer">
                   {(["sql-first", "drizzle"] as const).map((access) => <button type="button" key={access} aria-pressed={payload.blueprint.providers.database.access === access} onClick={() => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, database: { ...blueprint.providers.database, access } }, selections: { ...blueprint.selections, capabilities: blueprint.selections.capabilities.map((selection) => selection.id === "capability.data-layer-drizzle" ? { ...selection, lifecycle: { ...selection.lifecycle, selected: access === "drizzle", ...(access === "drizzle" ? {} : { localVerified: false, developmentVerified: false, productionReleased: false }) } } : selection) } }))}><strong>{access === "sql-first" ? "SQL" : "Drizzle"}</strong><span>{access === "sql-first" ? "Smallest and AI-first." : "Typed product-domain schema over the same pg connection."}</span></button>)}
                 </div>
-                <div className="storage-environment-grid">
-                  {(["development", "production"] as const).map((environment) => (
-                    <div key={environment}>
-                      <h3>{environment === "development" ? "Development" : "Production"}</h3>
-                      <div className="provider-option-grid" role="radiogroup" aria-label={`${environment} database runtime`}>
-                        {[
-                          { id: "native-postgresql", name: "Native PostgreSQL", note: "PostgreSQL through this environment's isolated Hyperdrive binding." },
-                          { id: "cfpg", name: "All2CF database connector", note: "Optional @all2cf/database-connect adapter. The external database remains owned and managed by All2CF Database." },
-                        ].map(({ id, name, note }) => {
-                          const selected = databaseTransport(payload.blueprint.providers.database, environment) === id;
-                          return <div className={selected ? "provider-option selected" : "provider-option"} key={id}><label><input type="radio" name={`database-provider-${environment}`} checked={selected} onChange={() => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, database: { ...blueprint.providers.database, transports: { development: databaseTransport(blueprint.providers.database, "development"), production: databaseTransport(blueprint.providers.database, "production"), [environment]: id as DatabasePolicy["provider"] } } } }))} /><span><strong>{name}</strong><small>{note}</small></span></label></div>;
-                        })}
-                      </div>
-                      {databaseTransport(payload.blueprint.providers.database, environment) === "cfpg" ? <label className="setup-field"><span>All2CF connector command</span><Input type="text" autoComplete="off" value={cfpgCommands[environment]} placeholder="npx @all2cf/database-connect@0.2.0-rc.2 db_..." onChange={(event) => updateCfpgCommand(environment, event.target.value)} /><small>{payload.blueprint.providers.database.cfpg?.[environment]?.databaseId || (cfpgCommands[environment] ? "Save to validate this connector command." : "Configure later; this environment cannot be materialized until provided.")}</small></label> : null}
-                    </div>
-                  ))}
-                </div>
-                <p>Each environment is independent. Saving validates the supplied connector descriptor; it never creates, migrates, upgrades or manages the external database. If both environments use the connector, they require different database IDs.</p>
+                <div className="provider-default-card"><div><strong>Native PostgreSQL + Hyperdrive</strong><small>Development and Production use independent databases and Hyperdrive bindings. Setup does not offer an alternate database transport.</small></div></div>
               </section>
 
-              <section className="setup-panel provider-section" hidden={providerTab !== "database"}>
+              <section className="setup-panel provider-section" hidden={providerTab !== "essentials"}>
                 <header><h2>Object storage</h2><p>Keep file bytes outside PostgreSQL. None adds no runtime; R2 uses a native Worker Binding and local simulation; S3-compatible adds its SDK only when selected.</p></header>
                 <div className="provider-option-grid" role="radiogroup" aria-label="Object storage Provider">
                   {[
@@ -2191,7 +1987,7 @@ export function SetupPage() {
                 ) : null}
               </section>
 
-              <section className="setup-panel provider-section" hidden={providerTab !== "identity"}>
+              <section className="setup-panel provider-section" hidden={providerTab !== "advanced"}>
                 <header><h2>Anti-abuse</h2><p>Turnstile protects credential registration, sign-in and password reset through the official Better Auth Captcha plugin. The browser widget and server-side Siteverify are both mandatory.</p></header>
                 <div className="provider-option-grid" role="radiogroup" aria-label="Anti-abuse Provider">
                   {[
@@ -2225,7 +2021,7 @@ export function SetupPage() {
                 ) : null}
               </section>
 
-              <section className="setup-panel provider-section" hidden={providerTab !== "ai-media"}>
+              <section className="setup-panel provider-section" hidden={providerTab !== "advanced"}>
                 <header><h2>AI models and Gateway</h2><p>Workers AI keeps inference inside the Cloudflare runtime. AI Gateway is an optional per-environment overlay for logs, caching, routing and billing; no client API key is exposed.</p></header>
                 <div className="provider-option-grid" role="radiogroup" aria-label="AI Provider">
                   {[
@@ -2239,7 +2035,7 @@ export function SetupPage() {
                 {payload.blueprint.providers.ai.provider === "workers-ai" ? <div className="storage-provider-config"><div className="storage-environment-grid">{(["development", "production"] as const).map((environment) => { const value = payload.blueprint.providers.ai[environment]; const update = (patch: Partial<AiPolicy[typeof environment]>) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, ai: { ...blueprint.providers.ai, [environment]: { ...blueprint.providers.ai[environment], ...patch } } } })); return <div key={environment}><h3>{environment === "development" ? "Development AI" : "Production AI"}</h3><Field label="Workers AI model" value={value.model} onChange={(model) => update({ model })} /><Field label="AI Gateway ID (optional)" value={value.gatewayId} onChange={(gatewayId) => update({ gatewayId })} /><p>Leave Gateway empty for a direct Binding call. Use an existing Gateway ID or <code>default</code> to let Cloudflare create/use the account default on the first authenticated request.</p></div>; })}</div><div className="provider-resource-links">{providerSetupLinks["workers-ai"].map((link) => <a href={link.href} target="_blank" rel="noreferrer" key={link.href}>{link.label}<ExternalLink size={14} /></a>)}</div><div className="provider-email-test"><div><strong>Real Workers AI test</strong><p>Uses the saved Cloudflare account token to call the selected Development model. The prompt is fixed and output is bounded.</p></div><Button type="button" variant="outline" disabled={workersAiTest.status === "testing" || !payload.blueprint.providers.ai.development.model} onClick={() => void runWorkersAiTest()}>{workersAiTest.status === "testing" ? "Running Workers AI" : "Test Development model"}</Button>{workersAiTest.message ? <p className={workersAiTest.status === "success" ? "provider-test-result success" : "provider-test-result error"} role="status">{workersAiTest.message}</p> : null}</div><div className="provider-live-test"><Button asChild type="button" size="sm" variant="outline"><a href={`https://${payload.config.development.domain}/admin`} target="_blank" rel="noreferrer">Test deployed AI Binding<ExternalLink size={13} /></a></Button><small>The local REST test proves provider access; Development acceptance still requires the deployed Worker Binding and Admin test route.</small></div></div> : null}
               </section>
 
-              <section className="setup-panel provider-section" hidden={providerTab !== "ai-media"}>
+              <section className="setup-panel provider-section" hidden={providerTab !== "advanced"}>
                 <header><h2>Product search and vector index</h2><p>Use PostgreSQL first for ordinary product search. Select Vectorize only for embedding similarity or RAG; its dimensions and distance metric are immutable after index creation.</p></header>
                 <div className="provider-option-grid" role="radiogroup" aria-label="Search Provider">
                   {[
@@ -2263,7 +2059,7 @@ export function SetupPage() {
                 ) : null}
               </section>
 
-              <section className="setup-panel provider-section" hidden={providerTab !== "communication" || !nativeMobileSelected}>
+              <section className="setup-panel provider-section" hidden={providerTab !== "advanced" || !nativeMobileSelected}>
                 <header><h2>Native push notifications</h2><p>Expo Push is only for native iOS/Android builds. It adds notification permissions, Android channel setup, user-owned device tokens and server delivery; Expo Go is not a physical delivery acceptance target.</p></header>
                 <div className={payload.blueprint.providers.push.provider === "expo-push" ? "provider-default-card" : "provider-default-card muted"}><span><Check size={16} /></span><div><strong>Expo Push</strong><small>{payload.blueprint.providers.push.provider === "expo-push" ? "Mobile default · included automatically for iOS and Android." : "Removed from this generated project."}</small></div><Button type="button" size="sm" variant="outline" onClick={() => setPushProvider(payload.blueprint.providers.push.provider === "expo-push" ? "none" : "expo-push")}>{payload.blueprint.providers.push.provider === "expo-push" ? "Remove" : "Restore default"}</Button></div>
                 {payload.blueprint.providers.push.provider === "expo-push" ? (
@@ -2279,7 +2075,7 @@ export function SetupPage() {
                 ) : null}
               </section>
 
-              <section className="setup-panel provider-section" hidden={providerTab !== "communication"}>
+              <section className="setup-panel provider-section" hidden={providerTab !== "advanced"}>
                 <header><h2>SMS notifications</h2><p>SMS is an explicit server channel, not a default second factor and not implied by in-app notifications. Twilio credentials, sender numbers, compliance and delivery evidence remain environment-specific.</p></header>
                 <div className="provider-option-grid" role="radiogroup" aria-label="SMS Provider">
                   {[
@@ -2297,7 +2093,7 @@ export function SetupPage() {
                 ) : null}
               </section>
 
-              <section className="setup-panel provider-section" hidden={providerTab !== "ai-media"}>
+              <section className="setup-panel provider-section" hidden={providerTab !== "advanced"}>
                 <header><h2>Image optimization</h2><p>Cloudflare Images transforms raw image bytes inside the Worker. R2 or S3 remains the original-file authority; this Pack adds resize/transcode behavior only.</p></header>
                 <div className="provider-option-grid" role="radiogroup" aria-label="Image Provider">
                   {[
@@ -2308,31 +2104,31 @@ export function SetupPage() {
                 {payload.blueprint.providers.media.images.provider === "cloudflare-images" ? <div className="storage-provider-config"><div className="setup-fields"><label className="setup-field"><span>Maximum input</span><select value={payload.blueprint.providers.media.images.maxInputBytes} onChange={(event) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, media: { ...blueprint.providers.media, images: { ...blueprint.providers.media.images, maxInputBytes: Number(event.target.value) } } } }))}><option value={5_242_880}>5 MiB</option><option value={10_485_760}>10 MiB</option><option value={20_971_520}>20 MiB platform maximum</option></select></label><label className="setup-field"><span>Default output</span><select value={payload.blueprint.providers.media.images.defaultFormat} onChange={(event) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, media: { ...blueprint.providers.media, images: { ...blueprint.providers.media.images, defaultFormat: event.target.value as MediaPolicy["images"]["defaultFormat"] } } } }))}><option value="image/webp">WebP</option><option value="image/avif">AVIF</option><option value="image/jpeg">JPEG</option><option value="image/png">PNG</option></select></label></div><div className="provider-resource-links">{providerSetupLinks["cloudflare-images"].map((link) => <a href={link.href} target="_blank" rel="noreferrer" key={link.href}>{link.label}<ExternalLink size={14} /></a>)}</div><div className="provider-live-test"><Button asChild type="button" size="sm" variant="outline"><a href={`https://${payload.config.development.domain}/admin`} target="_blank" rel="noreferrer">Test Images Binding on Development<ExternalLink size={13} /></a></Button><small>The Pack exposes an Admin-only fixed 2×2 PNG → 1×1 WebP round trip. Local Workerd uses Cloudflare's low-fidelity binding; Development verifies the high-fidelity Binding.</small></div></div> : null}
               </section>
 
-              <section className="setup-panel provider-section" hidden={providerTab !== "ai-media"}>
+              <section className="setup-panel provider-section" hidden={providerTab !== "advanced"}>
                 <header><h2>Video streaming</h2><p>Cloudflare Stream creates one-time direct upload URLs so clients never receive the API token. This initial Pack supports public playback; private signed playback remains unavailable until signing-token generation is implemented.</p></header>
                 <div className="provider-option-grid" role="radiogroup" aria-label="Video Provider">{[{ id: "none", name: "None", note: "No video upload, encoding, webhook or playback runtime." }, { id: "cloudflare-stream", name: "Cloudflare Stream", note: "User-owned direct uploads, encoding state and public HLS/DASH playback." }].map(({ id, name, note }) => { const selected = payload.blueprint.providers.media.stream.provider === id; return <div className={selected ? "provider-option selected" : "provider-option"} key={id}><label><input type="radio" name="stream-provider" checked={selected} onChange={() => setStreamProvider(id as MediaPolicy["stream"]["provider"])} /><span><strong>{name}</strong><small>{note}</small></span></label></div>; })}</div>
                 {payload.blueprint.providers.media.stream.provider === "cloudflare-stream" ? <div className="storage-provider-config"><label className="setup-field"><span>Maximum video duration</span><select value={payload.blueprint.providers.media.stream.maxDurationSeconds} onChange={(event) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, media: { ...blueprint.providers.media, stream: { ...blueprint.providers.media.stream, maxDurationSeconds: Number(event.target.value) } } } }))}><option value={300}>5 minutes</option><option value={600}>10 minutes</option><option value={1800}>30 minutes</option><option value={3600}>1 hour</option></select></label><div className="storage-environment-grid">{(["development", "production"] as const).map((environment) => { const value = payload.blueprint.providers.media.stream[environment]; const update = (patch: Partial<typeof value>) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, media: { ...blueprint.providers.media, stream: { ...blueprint.providers.media.stream, [environment]: { ...blueprint.providers.media.stream[environment], ...patch } } } } })); return <div key={environment}><h3>{environment === "development" ? "Development Stream" : "Production Stream"}</h3><Field label="Account ID" value={value.accountId} onChange={(accountId) => update({ accountId })} /><Field label="Allowed origins" value={value.allowedOrigins.join(", ")} onChange={(origins) => update({ allowedOrigins: parseList(origins) })} /><Field label="API base URL" value={value.apiBaseUrl} onChange={(apiBaseUrl) => update({ apiBaseUrl })} /></div>; })}</div><ProviderCredentialEditor provider="cloudflare-stream" state={payload.providerCredentials["cloudflare-stream"]} editing={providerEditors["cloudflare-stream"]} values={providerSecrets} onEditing={(editing) => setProviderEditing("cloudflare-stream", editing)} onChange={updateProviderSecret} /><div className="provider-resource-links">{providerSetupLinks["cloudflare-stream"].map((link) => <a href={link.href} target="_blank" rel="noreferrer" key={link.href}>{link.label}<ExternalLink size={14} /></a>)}</div><div className="provider-email-test"><div><strong>Real Stream token test</strong><p>Creates a one-time one-second direct-upload draft and immediately deletes it without uploading media.</p></div><Button type="button" variant="outline" disabled={streamTest.status === "testing"} onClick={() => void runStreamTest()}>{streamTest.status === "testing" ? "Testing Stream" : "Test Development Stream"}</Button>{streamTest.message ? <p className={streamTest.status === "success" ? "provider-test-result success" : "provider-test-result error"} role="status">{streamTest.message}</p> : null}</div></div> : null}
               </section>
 
-              <section className="setup-panel provider-section" hidden={providerTab !== "runtime"}>
+              <section className="setup-panel provider-section" hidden={providerTab !== "advanced"}>
                 <header><h2>Scheduled background work</h2><p>Cron Triggers run in UTC and should start only bounded, idempotent product jobs. The Starter Pack records a heartbeat; copied products register their own work explicitly.</p></header>
                 <div className="provider-option-grid" role="radiogroup" aria-label="Cron Provider">{[{ id: "none", name: "None", note: "No scheduled handler or deployed Cron Trigger." }, { id: "cron", name: "Cloudflare Cron", note: "Environment-specific schedule with SQL run evidence." }].map(({ id, name, note }) => { const selected = payload.blueprint.providers.background.cron.enabled === (id === "cron"); return <div className={selected ? "provider-option selected" : "provider-option"} key={id}><label><input type="radio" name="cron-provider" checked={selected} onChange={() => setCronEnabled(id === "cron")} /><span><strong>{name}</strong><small>{note}</small></span></label></div>; })}</div>
                 {payload.blueprint.providers.background.cron.enabled ? <div className="storage-provider-config"><div className="storage-environment-grid">{(["development", "production"] as const).map((environment) => <div key={environment}><h3>{environment === "development" ? "Development schedule" : "Production schedule"}</h3><Field label="UTC Cron expression" value={payload.blueprint.providers.background.cron[environment].expression} onChange={(expression) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, background: { ...blueprint.providers.background, cron: { ...blueprint.providers.background.cron, [environment]: { expression } } } } }))} /><p>The expression is copied exactly to Wrangler and is available as <code>controller.cron</code>.</p></div>)}</div><div className="provider-resource-links"><a href="https://developers.cloudflare.com/workers/configuration/cron-triggers/" target="_blank" rel="noreferrer">Cron Trigger documentation<ExternalLink size={14} /></a></div><div className="provider-live-test"><Button asChild type="button" size="sm" variant="outline"><a href={`https://${payload.config.development.domain}/admin`} target="_blank" rel="noreferrer">View Development Cron evidence<ExternalLink size={13} /></a></Button><small>Local verification invokes Wrangler's scheduled test route and reads the heartbeat; Development release verifies the deployed trigger after propagation.</small></div></div> : null}
               </section>
 
-              <section className="setup-panel provider-section" hidden={providerTab !== "runtime"}>
+              <section className="setup-panel provider-section" hidden={providerTab !== "advanced"}>
                 <header><h2>Durable multi-step jobs</h2><p>Cloudflare Workflows persists step results and retries across Worker invocations. Starter installs only a fixed two-step test skeleton; copied products replace its payload and steps.</p></header>
                 <div className="provider-option-grid" role="radiogroup" aria-label="Workflow Provider">{[{ id: "none", name: "None", note: "No Workflow class, binding, instance API or remote resource." }, { id: "workflows", name: "Cloudflare Workflows", note: "Durable step execution with Admin instance create/status." }].map(({ id, name, note }) => { const selected = payload.blueprint.providers.background.workflow.enabled === (id === "workflows"); return <div className={selected ? "provider-option selected" : "provider-option"} key={id}><label><input type="radio" name="workflow-provider" checked={selected} onChange={() => setWorkflowsEnabled(id === "workflows")} /><span><strong>{name}</strong><small>{note}</small></span></label></div>; })}</div>
                 {payload.blueprint.providers.background.workflow.enabled ? <div className="storage-provider-config"><label className="platform-option"><input type="checkbox" checked={payload.blueprint.providers.background.workflow.scheduleEnabled} onChange={(event) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, background: { ...blueprint.providers.background, workflow: { ...blueprint.providers.background.workflow, scheduleEnabled: event.target.checked } } } }))} />Create Workflow instances on a schedule</label>{payload.blueprint.providers.background.workflow.scheduleEnabled ? <div className="storage-environment-grid">{(["development", "production"] as const).map((environment) => <div key={environment}><h3>{environment === "development" ? "Development Workflow schedule" : "Production Workflow schedule"}</h3><Field label="UTC Cron expression" value={payload.blueprint.providers.background.workflow[environment].expression} onChange={(expression) => updateBlueprint((blueprint) => ({ ...blueprint, providers: { ...blueprint.providers, background: { ...blueprint.providers.background, workflow: { ...blueprint.providers.background.workflow, [environment]: { expression } } } } }))} /></div>)}</div> : null}<div className="provider-resource-links"><a href="https://developers.cloudflare.com/workflows/" target="_blank" rel="noreferrer">Workflows documentation<ExternalLink size={14} /></a></div><div className="provider-live-test"><Button asChild type="button" size="sm" variant="outline"><a href={`https://${payload.config.development.domain}/admin`} target="_blank" rel="noreferrer">Test Workflow on Development<ExternalLink size={13} /></a></Button><small>The Admin test creates a fixed instance and reads status/output. A deselected release removes the binding/class first, then deletes the recorded remote Workflow resource.</small></div></div> : null}
               </section>
 
-              <section className="setup-panel provider-section" hidden={providerTab !== "runtime"}>
+              <section className="setup-panel provider-section" hidden={providerTab !== "advanced"}>
                 <header><h2>Realtime rooms</h2><p>Durable Objects keep one strongly consistent SQLite-backed state authority per room. Hibernatable WebSockets preserve client connections while idle without keeping the object billed as active.</p></header>
                 <div className="provider-option-grid" role="radiogroup" aria-label="Realtime Provider">{[{ id: "none", name: "None", note: "No Durable Object class, Binding, room route or WebSocket runtime." }, { id: "durable-objects", name: "Durable Objects / WebSockets", note: "Authenticated per-room messages, sequence state and hibernatable sockets." }].map(({ id, name, note }) => { const selected = payload.blueprint.providers.background.realtime.enabled === (id === "durable-objects"); return <div className={selected ? "provider-option selected" : "provider-option"} key={id}><label><input type="radio" name="realtime-provider" checked={selected} onChange={() => setRealtimeEnabled(id === "durable-objects")} /><span><strong>{name}</strong><small>{note}</small></span></label></div>; })}</div>
                 {payload.blueprint.providers.background.realtime.enabled ? <div className="storage-provider-config"><div className="provider-resource-links"><a href="https://developers.cloudflare.com/durable-objects/" target="_blank" rel="noreferrer">Durable Objects documentation<ExternalLink size={14} /></a><a href="https://developers.cloudflare.com/durable-objects/best-practices/websockets/" target="_blank" rel="noreferrer">WebSocket hibernation guide<ExternalLink size={14} /></a></div><div className="provider-live-test"><Button asChild type="button" size="sm" variant="outline"><a href={`https://${payload.config.development.domain}/admin`} target="_blank" rel="noreferrer">Test realtime room on Development<ExternalLink size={13} /></a></Button><small>The Admin test opens the real Durable Object socket, sends one bounded message, receives the broadcast and reads persisted sequence state. Deselecting removes access and the Binding but never deletes namespace data automatically.</small></div></div> : null}
               </section>
 
-              <section className="setup-panel provider-section" hidden={providerTab !== "release"}>
+              <section className="setup-panel provider-section" hidden={providerTab !== "advanced"}>
                 <header><h2>Release platforms</h2><p>These credentials belong to build and release tooling, not the deployed product runtime. Cloudflare is required for Web; EAS, Apple and Google are needed only for the corresponding mobile lanes; GitHub is optional automation.</p></header>
                 <div className="provider-test-stack">
                   {([
@@ -2349,7 +2145,7 @@ export function SetupPage() {
                 </div>
               </section>
 
-              <section className="setup-panel provider-section" hidden={providerTab !== "identity"}>
+              <section className="setup-panel provider-section" hidden={providerTab !== "essentials"}>
                 <header><h2>Social sign-in</h2><p>Select the providers this project will support. Credentials may be inherited, entered now, or configured later from this local Setup.</p></header>
                 <div className="provider-option-grid" role="group" aria-label="Social sign-in providers">
                   {[
@@ -2407,7 +2203,7 @@ export function SetupPage() {
                 ))}
               </section>
 
-              <section className="setup-panel provider-section" hidden={providerTab !== "communication"}>
+              <section className="setup-panel provider-section" hidden={providerTab !== "essentials"}>
                 <header><h2>Authentication email</h2><p>Email verification remains mandatory. Choosing “configure later” defers only credentials and will remain a visible release blocker.</p></header>
                 <label className="provider-select">
                   <span>Email provider</span>
@@ -2466,10 +2262,10 @@ export function SetupPage() {
                 )}
               </section>
 
-              <section className="setup-panel provider-section" hidden={providerTab !== "billing"}>
+              <section className="setup-panel provider-section" hidden={providerTab !== "essentials"}>
                 <header>
                   <h2>Billing Provider</h2>
-                  <p>{billingSelected ? "The selected Billing adapter is materialized. Complete its test credentials before Development billing verification." : "Billing is not selected and may be configured later."}</p>
+                  <p>{billingSelected ? "The selected Billing adapter is materialized. Stripe uses separate Test credentials for Development and Live credentials for Production; never reuse one environment's keys, webhook secret or Price ID in the other." : "Billing is not selected and may be configured later."}</p>
                 </header>
                 {billingSelected ? <><div className="provider-option-grid" role="radiogroup" aria-label="Billing Provider">{(["stripe", "polar", "autumn"] as const).map((provider) => <button type="button" className={billingProvider === provider ? "provider-option selected" : "provider-option"} aria-pressed={billingProvider === provider} onClick={() => setBillingProvider(provider)} key={provider}><span><strong>{provider === "stripe" ? "Stripe" : provider === "polar" ? "Polar" : "Autumn"}</strong><small>{provider === "stripe" ? "Direct Better Auth subscriptions, Checkout and Portal." : provider === "polar" ? "Checkout, Portal, usage and signed Webhooks." : "Plans, usage and billing orchestration."}</small></span></button>)}</div><ProviderCredentialEditor
                   provider={billingProvider}
@@ -2481,7 +2277,7 @@ export function SetupPage() {
                 /></> : <div className="provider-default-card muted"><div><strong>Billing not selected</strong><small>Enable Billing & subscriptions in SaaS to choose Stripe, Polar or Autumn.</small></div></div>}
               </section>
 
-              <details className="setup-panel provider-section provider-catalog-section" hidden={providerTab !== "release"}>
+              <details className="setup-panel provider-section provider-catalog-section" hidden={providerTab !== "advanced"}>
                 <summary>
                   <span><strong>Advanced Provider catalog</strong><small>Inspect all 17 categories and Planned choices</small></span>
                   <span>Optional reference</span>
@@ -2557,19 +2353,6 @@ export function SetupPage() {
                     </dd>
                   </div>
                   <div>
-                    <dt>Core objects</dt>
-                    <dd>
-                      {payload.blueprint.productIntent.coreObjects.join(", ")}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Tenancy / charging</dt>
-                    <dd>
-                      {payload.blueprint.productIntent.tenantModel} /{" "}
-                      {payload.blueprint.productIntent.chargingModel}
-                    </dd>
-                  </div>
-                  <div>
                     <dt>StyleKit</dt>
                     <dd>
                       {payload.blueprint.stylekit.slug} /{" "}
@@ -2597,7 +2380,7 @@ export function SetupPage() {
                     <dt>Database</dt>
                     <dd>
                       {payload.blueprint.providers.database.initialState}{" "}
-                      Development {databaseTransport(payload.blueprint.providers.database, "development")} / Production {databaseTransport(payload.blueprint.providers.database, "production")} from{" "}
+                      Native PostgreSQL / Hyperdrive from{" "}
                       {payload.blueprint.providers.database.schemaSource}
                     </dd>
                   </div>

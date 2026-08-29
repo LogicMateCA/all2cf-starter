@@ -22,7 +22,7 @@ Better Auth, account settings, Product Shell, notifications, `/admin`, support a
 
 ## Selectable Providers
 
-- Database: native PostgreSQL/Hyperdrive or optional All2CF connector; SQL-first or Drizzle.
+- Database: native PostgreSQL/Hyperdrive with SQL-first or Drizzle. Legacy CFPG receipts remain readable, but the connector is not selectable for new Starter projects.
 - Social: Google, GitHub, Apple, Microsoft, Discord, Facebook and LinkedIn.
 - Email: CFsend, Resend and Cloudflare Email Service.
 - Billing: Stripe, Polar and Autumn.
@@ -37,6 +37,6 @@ TOTP 2FA, Teams and Organizations, Billing, API Keys, Entitlements, Usage Meteri
 
 ## Planned and disabled
 
-Generic OAuth/OIDC, Sentry, product analytics Providers, Gemini, OpenAI, Anthropic, AI Search, Algolia, Typesense/Meilisearch, MapTiler, Mapbox, Google Maps/Places, Web Push, KV and PostgreSQL feature flags remain disabled until their adapters and verification are executable.
+CFPG/All2CF Database for new projects, Generic OAuth/OIDC, Sentry, product analytics Providers, Gemini, OpenAI, Anthropic, AI Search, Algolia, Typesense/Meilisearch, MapTiler, Mapbox, Google Maps/Places, Web Push, KV and PostgreSQL feature flags remain disabled until their adapters and verification are executable.
 
 See the repository-level [`CAPABILITIES.md`](https://github.com/LogicMateCA/all2cf-starter/blob/main/CAPABILITIES.md) for the full status table.
