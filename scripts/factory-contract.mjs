@@ -13,6 +13,7 @@ const exists = async (file) => stat(file).then(() => true, () => false);
 try {
   const created = JSON.parse(run("scripts/starter-factory.mjs", ["create", `--slug=${slug}`, "--name=Factory Contract", "--allow-dirty"]));
   const source = JSON.parse(await readFile(path.join(target, ".starter/source.json"), "utf8"));
+  const initialMaterialization = JSON.parse(await readFile(path.join(target, ".starter/materialization.json"), "utf8"));
   const blueprint = JSON.parse(await readFile(path.join(target, "starter.blueprint.json"), "utf8"));
   const shape = JSON.parse(await readFile(path.join(target, ".starter/product-shape.json"), "utf8"));
   const changePolicy = JSON.parse(await readFile(path.join(target, ".ai/change-policy.json"), "utf8"));
@@ -30,6 +31,8 @@ try {
   if (changePolicy.enforcedAfter !== "root") failures.push("generated change policy does not start from its independent Git root");
   if (source.sourceRoot !== root) failures.push("source root receipt mismatch");
   if (await exists(path.join(target, "packs"))) failures.push("Pack library leaked into generated project");
+  for (const foundationFile of ["apps/web/src/components/update-page.tsx", "apps/web/src/maintenance.css", "scripts/starter-link.mjs", "scripts/materialize-blueprint.mjs"])
+    if (!initialMaterialization.packs?.["foundation.core"]?.files?.[foundationFile]) failures.push(`Foundation update ownership is missing ${foundationFile}`);
   for (const reference of ["catalog/catalog.json", "catalog/providers.json", "pages/catalog.json", "integrations/visual.json", ".ai/plugins.json", "design/stylekit/source-catalog.json"])
     if (!(await exists(path.join(target, reference)))) failures.push(`Generated AI reference is missing ${reference}`);
   if (await exists(path.join(target, "design/providers.json"))) failures.push("Universal Visual Provider Catalog leaked into the generated Starter project");
@@ -118,16 +121,14 @@ try {
   const addedStatus = JSON.parse(run("scripts/starter-factory.mjs", ["status", `--project-root=${target}`], target));
   const addedDiff = JSON.parse(run("scripts/starter-factory.mjs", ["diff", `--project-root=${target}`], target));
   if (!addedStatus.packs.some(({ id }) => id === "saas.account-security-2fa")) failures.push("add did not install the requested Pack");
-  if (addedDiff.changes.length) failures.push("added project has materialization drift");
+  if (addedDiff.changes.length) failures.push(`added project has materialization drift: ${JSON.stringify(addedDiff.changes)}`);
   const ownedPath = path.join(target, "workers/app/features/object-storage-worker.ts");
   const ownedSource = await readFile(ownedPath, "utf8");
   await writeFile(ownedPath, `${ownedSource}\n// product drift proof\n`);
-  let conflictRefused = false;
-  const conflict = execFileSync;
-  try {
-    conflict(process.execPath, [path.join(root, "scripts/starter-factory.mjs"), "update", `--project-root=${target}`], { cwd: target, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
-  } catch { conflictRefused = true; }
-  if (!conflictRefused) failures.push("update overwrote a product-modified Pack file");
+  const localOnlyDiff = JSON.parse(run("scripts/starter-factory.mjs", ["diff", `--project-root=${target}`], target));
+  if (!localOnlyDiff.preserved.some(({ target: path }) => path === "workers/app/features/object-storage-worker.ts")) failures.push("diff did not classify the product-only Pack change as preserved");
+  run("scripts/starter-factory.mjs", ["update", `--project-root=${target}`], target);
+  if (await readFile(ownedPath, "utf8") !== `${ownedSource}\n// product drift proof\n`) failures.push("update overwrote a product-only Pack change");
   await writeFile(ownedPath, ownedSource);
   console.log(JSON.stringify({ ok: failures.length === 0, target, fileCount: created.fileCount, packs: status.packs.length, failures }, null, 2));
   if (failures.length) process.exitCode = 1;

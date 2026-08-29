@@ -86,6 +86,10 @@ Prefer the `Connect All2CF MCP` button on `/maintenance`. It starts OAuth automa
 
 Never print, commit or place the project Token in product configuration. It belongs only in ignored `.starter/update-auth.local.json`. Advanced recovery may import the same cloud-issued connection receipt manually when automatic OAuth is unavailable. Follow local version/cloud version → release notes → entitlement/check → diff → explicitly authorized update. Use official Cloudflare MCP, not All2CF MCP, for Cloudflare resources and mutations.
 
+Update diff uses Base/Local/Target ownership. Starter-only changes are safe, product-only files and dependency versions are preserved, and simultaneous changes block automatic application. Report Safe, Customer changes kept and Conflicts separately. Never resolve a conflict without showing the proposed merge and receiving approval.
+
+Every update writes an ignored `.starter/backups/pre-update-*.json.gz` recovery snapshot. The updater verifies the project before application and runs typecheck plus build afterward; a failed post-update verification restores the snapshot. `foundation.core` updates curated Starter infrastructure globally, while unselected Packs remain Catalog-only until selected.
+
 ## Completion
 
 Use the smallest relevant checks for ordinary work. A whole-project candidate normally includes:

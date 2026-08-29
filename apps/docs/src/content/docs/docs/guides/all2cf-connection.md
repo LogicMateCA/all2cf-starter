@@ -25,3 +25,7 @@ The cloud card does not configure Providers, credentials, pages, database schema
 Disconnecting revokes the project token and cloud registration. It does not delete source, GitHub repositories, Workers, mobile applications, databases or storage.
 
 The required update order is connection status, server-side entitlement, update check, local diff, then an explicitly requested apply action. GitHub is not the commercial update authority. Cloudflare resource inspection and mutation use official Cloudflare MCP rather than All2CF MCP.
+
+The diff is conservative. The installed materialization Receipt is Base, the current project is Local, and the authorized release is Target. Target-only changes are safe; Local-only files and dependency versions are retained; both-changed paths, unmanaged collisions and modified removals block application. `/maintenance` reports each category. Codex may propose a conflict merge, but cannot apply it without approval.
+
+Before applying, the updater creates an ignored compressed recovery snapshot and verifies the current project. After applying, it runs typecheck and build; failure restores the snapshot. The always-installed `foundation.core` carries curated Starter infrastructure updates. Unselected Packs remain Catalog entries and add no project files or runtime until selected.

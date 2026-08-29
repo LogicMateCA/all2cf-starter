@@ -11,6 +11,7 @@ import {
   Unplug,
 } from "lucide-react";
 import { Button } from "./ui/button";
+import "../maintenance.css";
 
 type Receipt = Record<string, unknown> & {
   engineVersion?: string;
@@ -70,6 +71,7 @@ export function UpdatePage() {
   const [available, setAvailable] = useState<AvailableUpdate | null>(null);
   const [entitlement, setEntitlement] = useState<ActionResult["entitlement"]>();
   const [diff, setDiff] = useState("");
+  const [diffSummary, setDiffSummary] = useState<{ safe: number; preserved: number; conflicts: number } | null>(null);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const connected = Boolean(connection?.connected);
@@ -226,6 +228,12 @@ export function UpdatePage() {
     try {
       const result = await callUpdate("diff", legacyToken);
       setDiff(result.output || "No managed-file changes reported.");
+      try {
+        const parsed = JSON.parse(result.output || "{}") as { summary?: { safe: number; preserved: number; conflicts: number } };
+        setDiffSummary(parsed.summary || null);
+      } catch {
+        setDiffSummary(null);
+      }
       setMessage("Update diff is ready for review.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : String(error));
@@ -402,7 +410,7 @@ export function UpdatePage() {
             Connect and check updates to load release notes.
           </p>
         )}
-        <div className="update-actions">
+      <div className="update-actions">
           <Button
             variant="outline"
             onClick={() => void checkUpdates()}
@@ -458,8 +466,9 @@ export function UpdatePage() {
               ? `Update to ${available.engineVersion}`
               : "Update"}
           </Button>
-        </div>
-        {diff && <pre className="update-output">{diff}</pre>}
+      </div>
+      {diffSummary ? <div className="maintenance-diff-summary"><span><small>Safe changes</small><strong>{diffSummary.safe}</strong></span><span><small>Customer changes kept</small><strong>{diffSummary.preserved}</strong></span><span className={diffSummary.conflicts ? "conflict" : "clear"}><small>Conflicts</small><strong>{diffSummary.conflicts}</strong></span></div> : null}
+      {diff && <pre className="update-output">{diff}</pre>}
         {message && (
           <p className="update-message" role="status">
             {message}

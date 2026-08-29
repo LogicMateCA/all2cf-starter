@@ -13,6 +13,8 @@ All native Cloudflare inventory and mutations remain owned by official Cloudflar
 
 Use `npm run starter:status` for checks and `npm run starter:diff` for previews. These operations must not modify files. Resolve server-side entitlement before presenting a paid capability as available.
 
+Read the diff summary as Safe, Customer changes kept and Conflicts. Base/Local/Target rules apply: preserve product-only file and dependency changes, apply Starter-only changes, and stop on simultaneous changes, unmanaged collisions or modified removals. Never bypass conflict refusal. Update writes an ignored recovery snapshot, verifies before application, and runs typecheck/build afterward; failed verification restores the snapshot.
+
 Only run `starter:add` or `starter:update` after the user requests the update. Preserve product-owned changes, fail on collisions, use the All2CF service and receipt recorded in `.starter/source.json`, and never fall back to a public GitHub repository as the commercial update authority. After applying, run the project verification gates and report the exact previous/new Engine receipt plus remaining conflicts.
 
 Source candidate builds, Artifact registration, R2 upload and Channel advancement belong to the canonical Starter repository and are excluded.

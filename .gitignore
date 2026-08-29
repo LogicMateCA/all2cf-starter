@@ -4,6 +4,7 @@ node_modules/
 .starter/update-auth.local.json
 .starter/installation.local.json
 .starter/all2cf-connection-oauth.local.json
+.starter/backups/
 dist/
 .wrangler/
 .dev.vars

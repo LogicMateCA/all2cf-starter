@@ -2,12 +2,14 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
-const [app, setup, page, projectScript, updateClient, vite, gitignore, codex, agents, skill, docs] = await Promise.all([
+const [app, setup, page, projectScript, updateClient, materializer, foundation, vite, gitignore, codex, agents, skill, docs] = await Promise.all([
   read("apps/web/src/App.tsx"),
   read("apps/web/src/components/setup-page.tsx"),
   read("apps/web/src/components/update-page.tsx"),
   read("scripts/all2cf-project.mjs"),
   read("scripts/starter-link.mjs"),
+  read("scripts/materialize-blueprint.mjs"),
+  read("foundation/managed-files.json"),
   read("apps/web/vite.config.ts"),
   read(".gitignore"),
   read("CODEX.md"),
@@ -35,6 +37,14 @@ assert.match(projectScript, /workspace: receipt \? "generated-project" : "canoni
 assert.match(updateClient, /resolution\.entitlement/u);
 assert.match(updateClient, /resolution\.release\?\.notes/u);
 assert.match(updateClient, /resolution\.release\?\.url/u);
+assert.match(updateClient, /starter-update-backup\/v1/u);
+assert.match(updateClient, /verifyProject\("pre-update"\)/u);
+assert.match(updateClient, /restoreUpdateBackup/u);
+assert.match(materializer, /keep-local-file/u);
+assert.match(materializer, /both product and Starter changes/u);
+assert.match(materializer, /localOverrides/u);
+assert.match(foundation, /foundation\.core/u);
+assert.match(foundation, /apps\/web\/src\/components\/update-page\.tsx/u);
 assert.match(vite, /code_challenge_method: "S256"/u);
 assert.match(vite, /starter-connections\/authorization-requests/u);
 assert.match(vite, /starter-connections\/token/u);

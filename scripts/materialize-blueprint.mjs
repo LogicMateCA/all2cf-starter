@@ -1010,6 +1010,13 @@ const desiredWorkerEvents = [];
 const desiredMobileConfigPlugins = new Set();
 const desiredCloudflareSecrets = new Map();
 const desiredCloudflareQueues = new Map();
+const foundation = JSON.parse(await readFile(path.join(sourceRoot, "foundation/managed-files.json"), "utf8"));
+if (foundation.schemaVersion !== "starter-foundation-files/v1" || foundation.id !== "foundation.core" || !Array.isArray(foundation.files))
+  throw new Error("Starter managed foundation file contract is invalid");
+for (const target of foundation.files) {
+  safeProjectPath(target, "foundation managed file");
+  desiredFiles.set(target, { packId: foundation.id, content: await readFile(path.join(sourceRoot, target), "utf8") });
+}
 
 if (["development", "production"].some((environment) => databaseProviderForEnvironment(blueprint.providers.database, environment) === "cfpg")) {
   for (const environment of ["development", "production"])
@@ -1266,6 +1273,7 @@ const desiredMarketingProject = renderMarketingProject(
 );
 const changes = [];
 const failures = [];
+const preserved = [];
 const previousFiles = new Map(
   Object.entries(state.packs || {}).flatMap(([packId, pack]) =>
     Object.entries(pack.files || {}).map(([target, hash]) => [
@@ -1281,16 +1289,24 @@ for (const [target, desired] of desiredFiles) {
   );
   if (current === desired.content) continue;
   const previous = previousFiles.get(target);
-  if (current !== null && (!previous || sha256(current) !== previous.hash))
-    failures.push(
-      `${target} exists outside the matching materialization receipt`,
-    );
-  else
+  if (current === null)
     changes.push({
-      kind: current === null ? "add-file" : "update-file",
+      kind: "add-file",
       target,
       packId: desired.packId,
     });
+  else if (!previous)
+    failures.push(`${target} collides with a product-owned file outside the materialization receipt`);
+  else {
+    const localHash = sha256(current);
+    const targetHash = sha256(desired.content);
+    if (localHash === previous.hash)
+      changes.push({ kind: "update-file", target, packId: desired.packId });
+    else if (targetHash === previous.hash)
+      preserved.push({ kind: "keep-local-file", target, packId: desired.packId, baseHash: previous.hash, localHash });
+    else
+      failures.push(`${target} has both product and Starter changes; automatic update is blocked`);
+  }
 }
 
 for (const [target, previous] of previousFiles) {
@@ -1325,16 +1341,20 @@ for (const [key, desired] of desiredDependencies) {
   const current = model?.[desired.section]?.[desired.name];
   if (current === desired.version) continue;
   const previous = state.dependencies?.[key];
-  if (current !== undefined && (!previous || current !== previous.version))
-    failures.push(
-      `${desired.packageFile} already owns ${desired.name}@${current}`,
-    );
-  else
+  if (current === undefined)
     changes.push({
-      kind: current === undefined ? "add-dependency" : "update-dependency",
+      kind: "add-dependency",
       target: `${desired.packageFile}:${desired.name}`,
       packId: desired.packId,
     });
+  else if (!previous)
+    failures.push(`${desired.packageFile} already product-owns ${desired.name}@${current}`);
+  else if (current === previous.version)
+    changes.push({ kind: "update-dependency", target: `${desired.packageFile}:${desired.name}`, packId: desired.packId });
+  else if (desired.version === previous.version)
+    preserved.push({ kind: "keep-local-dependency", target: `${desired.packageFile}:${desired.name}`, packId: desired.packId, baseVersion: previous.version, localVersion: current });
+  else
+    failures.push(`${desired.packageFile}:${desired.name} has both product and Starter version changes; automatic update is blocked`);
 }
 for (const [key, previous] of Object.entries(state.dependencies || {})) {
   if (desiredDependencies.has(key)) continue;
@@ -1578,11 +1598,15 @@ const desiredState = {
   generatedStyleAdapterDocsHash: sha256(desiredDocsStyleAdapterCSS),
   ...(materializeMobile ? { generatedDesignMobileHash: sha256(desiredMobileDesign) } : {}),
   generatedMarketingProjectHash: sha256(desiredMarketingProject),
+  localOverrides: {},
 };
 for (const { manifest } of selectedManifests)
   desiredState.packs[manifest.id] = { version: manifest.version, files: {} };
+desiredState.packs[foundation.id] = { version: foundation.version, files: {} };
 for (const [target, desired] of desiredFiles)
   desiredState.packs[desired.packId].files[target] = sha256(desired.content);
+for (const entry of preserved)
+  desiredState.localOverrides[entry.target] = entry;
 if (JSON.stringify(state) !== JSON.stringify(desiredState))
   changes.push({
     kind: "update-receipt",
@@ -1608,7 +1632,7 @@ for (const { manifest } of manifests) {
 }
 
 if (failures.length) {
-  console.error(json({ ok: false, failures, changes }));
+  console.error(json({ ok: false, summary: { safe: changes.length, preserved: preserved.length, conflicts: failures.length }, failures, preserved, changes }));
   process.exit(1);
 }
 if (check && changes.length) {
@@ -1620,7 +1644,9 @@ if (!apply) {
     json({
       ok: true,
       mode: check ? "check" : "plan",
-      selectedPacks: selectedManifests.map(({ manifest }) => manifest.id),
+      selectedPacks: [foundation.id, ...selectedManifests.map(({ manifest }) => manifest.id)],
+      summary: { safe: changes.length, preserved: preserved.length, conflicts: 0 },
+      preserved,
       changes,
     }),
   );
@@ -1631,7 +1657,9 @@ if (!changes.length) {
     json({
       ok: true,
       mode: "apply",
-      selectedPacks: selectedManifests.map(({ manifest }) => manifest.id),
+      selectedPacks: [foundation.id, ...selectedManifests.map(({ manifest }) => manifest.id)],
+      summary: { safe: 0, preserved: preserved.length, conflicts: 0 },
+      preserved,
       changes,
     }),
   );
@@ -1667,7 +1695,9 @@ async function restore() {
 }
 
 try {
+  const preservedTargets = new Set(preserved.map(({ target }) => target));
   for (const [target, desired] of desiredFiles) {
+    if (preservedTargets.has(target)) continue;
     const file = safeProjectPath(target, "materialized target");
     await mkdir(path.dirname(file), { recursive: true });
     await writeFile(file, desired.content);
@@ -1680,6 +1710,7 @@ try {
   }
 
   for (const [key, desired] of desiredDependencies) {
+    if (preservedTargets.has(`${desired.packageFile}:${desired.name}`)) continue;
     const model = packageModels.get(desired.packageFile);
     model[desired.section] ||= {};
     model[desired.section][desired.name] = desired.version;
@@ -1770,7 +1801,9 @@ try {
     json({
       ok: true,
       mode: "apply",
-      selectedPacks: selectedManifests.map(({ manifest }) => manifest.id),
+      selectedPacks: [foundation.id, ...selectedManifests.map(({ manifest }) => manifest.id)],
+      summary: { safe: changes.length, preserved: preserved.length, conflicts: 0 },
+      preserved,
       changes,
     }),
   );

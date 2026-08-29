@@ -547,6 +547,7 @@ async function createProject() {
     await pruneSourceLibrary(target);
     await writeProductHandoff(target, source);
     await applyProductShape(target);
+    await materialize(target, "--apply");
     refreshPortablePackageLock(target);
     if (existsSync(path.join(target, "cloudflare/wrangler.development.jsonc")))
       generateWorkerTypes(target);
@@ -572,10 +573,13 @@ async function lifecycleProjectRoot() {
 
 async function packVersions() {
   const files = (await readdir(path.join(sourceRoot, "packs"), { recursive: true })).filter((file) => String(file).endsWith("pack.json"));
-  return new Map(await Promise.all(files.map(async (file) => {
+  const versions = new Map(await Promise.all(files.map(async (file) => {
     const manifest = await readJson(path.join(sourceRoot, "packs"), String(file));
     return [manifest.id, manifest.version];
   })));
+  const foundation = await readJson(sourceRoot, "foundation/managed-files.json");
+  versions.set(foundation.id, foundation.version);
+  return versions;
 }
 
 async function statusProject() {
@@ -584,7 +588,9 @@ async function statusProject() {
   const sourceReceipt = await readJson(target, ".starter/source.json");
   const versions = await packVersions();
   const packs = Object.entries(receipt.packs || {}).map(([id, installed]) => ({ id, installed: installed.version, available: versions.get(id) || null, updateAvailable: Boolean(versions.get(id) && versions.get(id) !== installed.version) }));
-  console.log(json({ ok: true, command: "status", target, source: { installedCommit: sourceReceipt.sourceCommit, availableCommit: sourceVersion(), updateAvailable: sourceReceipt.sourceCommit !== sourceVersion(), sourceDirty: Boolean(sourceStatus()) }, packs }));
+  const installedIds = new Set(Object.keys(receipt.packs || {}));
+  const catalog = [...versions].filter(([id]) => !installedIds.has(id)).map(([id, available]) => ({ id, available, materialized: false }));
+  console.log(json({ ok: true, command: "status", target, source: { installedCommit: sourceReceipt.sourceCommit, availableCommit: sourceVersion(), updateAvailable: sourceReceipt.sourceCommit !== sourceVersion(), sourceDirty: Boolean(sourceStatus()) }, packs, catalog }));
 }
 
 async function selectPackClosure(blueprint, packId) {
