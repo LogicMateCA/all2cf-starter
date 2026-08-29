@@ -1,0 +1,30 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "capability.turnstile",
+  "version": "0.1.0",
+  "source": {
+    "name": "Better Auth Captcha and Cloudflare Turnstile",
+    "url": "https://better-auth.com/docs/plugins/captcha",
+    "revision": "1.7.1",
+    "license": "MIT",
+    "relationship": "tracked-upstream"
+  },
+  "files": [
+    {
+      "source": "templates/turnstile-auth-plugin.ts",
+      "target": "workers/app/features/turnstile-auth-plugin.ts"
+    }
+  ],
+  "dependencies": [],
+  "routes": [],
+  "authPlugins": {
+    "server": {
+      "module": "../features/turnstile-auth-plugin",
+      "export": "createTurnstileAuthPlugin"
+    }
+  },
+  "cloudflare": {
+    "requiredSecrets": ["TURNSTILE_SECRET_KEY"]
+  }
+}

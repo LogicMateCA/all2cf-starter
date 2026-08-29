@@ -1,0 +1,117 @@
+{
+  "$schema": "../schemas/saas-source-manifest.schema.json",
+  "schemaVersion": "starter-saas-source-manifest/v1",
+  "policy": "Donors provide reviewed structure, interaction and completeness evidence. Starter owns the Cloudflare runtime, SQL, routes, UI adapters and release lifecycle.",
+  "sources": [
+    {
+      "id": "open-saas",
+      "name": "Open SaaS",
+      "repository": "https://github.com/wasp-lang/open-saas.git",
+      "revision": "cbd30162b05d798b3a3f955ab5781940b67bec89",
+      "license": "MIT",
+      "licenseSha256": "0cb2467c329d270353b52ae04211305761553297369c85435a1a0b9ae5328fa8",
+      "relationship": "adapted-donor",
+      "role": "Product shell and conventional SaaS flow donor",
+      "accepted": [
+        {
+          "scope": "structure-and-interactions",
+          "sourcePaths": [
+            "template/app/src/user/AccountPage.tsx",
+            "template/app/src/admin/layout/DefaultLayout.tsx",
+            "template/app/src/admin/layout/Header.tsx",
+            "template/app/src/admin/layout/Sidebar.tsx",
+            "template/app/src/admin/dashboards/users/UsersDashboardPage.tsx",
+            "template/app/src/admin/dashboards/analytics/AnalyticsDashboardPage.tsx",
+            "template/app/src/admin/dashboards/messages/MessagesPage.tsx",
+            "template/app/src/admin/elements/settings/SettingsPage.tsx"
+          ],
+          "targetPaths": [
+            "apps/web/src/components/product-shell.tsx",
+            "apps/web/src/components/account-settings.tsx",
+            "apps/web/src/components/admin-page.tsx"
+          ]
+        }
+      ],
+      "rejected": [
+        "Wasp runtime",
+        "Prisma",
+        "server deployment model",
+        "donor styling"
+      ],
+      "updatePolicy": "manual-reviewed"
+    },
+    {
+      "id": "saasboard",
+      "name": "SaaSBoard",
+      "repository": "https://github.com/MekuHQ/saasboard.git",
+      "revision": "6cb1b4c84aec1adb8cfbc4df6e38b6717ca50382",
+      "license": "MIT",
+      "licenseSha256": "0d6cff801da882cb58a2bbb732a1ec0b40c41dd3d31c3e19879c9b5059ab44f7",
+      "relationship": "adapted-donor",
+      "role": "Authenticated shell interaction and information-architecture donor",
+      "accepted": [
+        {
+          "scope": "structure-and-interactions",
+          "sourcePaths": [
+            "src/components/Sidebar.jsx",
+            "src/components/Topbar.jsx",
+            "src/pages/Reports.jsx",
+            "src/pages/Billing.jsx",
+            "src/pages/Settings.jsx",
+            "src/pages/Support.jsx"
+          ],
+          "targetPaths": [
+            "apps/web/src/components/product-shell.tsx",
+            "apps/web/src/components/notification-bell.tsx",
+            "apps/web/src/components/support-page.tsx"
+          ]
+        }
+      ],
+      "rejected": [
+        "mock data",
+        "fixed styling",
+        "donor routing",
+        "donor state model"
+      ],
+      "updatePolicy": "manual-reviewed"
+    },
+    {
+      "id": "lastsaas",
+      "name": "LastSaaS",
+      "repository": "https://github.com/jonradoff/lastsaas.git",
+      "revision": "c692923ed98ee503f2de61180ff530a5b05f71a6",
+      "license": "MIT",
+      "licenseSha256": "44e4d8cecd64c3f868d7ad84af4133bf05b741ca21cb7fb3a113989af0b91edc",
+      "relationship": "reference-checklist",
+      "role": "SaaS completeness, administration and platform-operations checklist",
+      "accepted": [
+        {
+          "scope": "capability-checklist",
+          "sourcePaths": [
+            "frontend/src/components/AdminLayout.tsx",
+            "frontend/src/pages/admin/UsersPage.tsx",
+            "frontend/src/pages/admin/TenantsPage.tsx",
+            "frontend/src/pages/admin/PlansPage.tsx",
+            "frontend/src/pages/admin/HealthPage.tsx",
+            "backend/internal/models/api_key.go",
+            "backend/internal/models/usage_event.go",
+            "backend/internal/models/webhook.go",
+            "backend/internal/models/announcement.go"
+          ],
+          "targetPaths": [
+            "catalog/saas-capabilities.json",
+            "features/admin/MODULE.md"
+          ]
+        }
+      ],
+      "rejected": [
+        "Go backend",
+        "MongoDB",
+        "Fly.io runtime",
+        "donor tenancy model",
+        "donor frontend"
+      ],
+      "updatePolicy": "pinned-checklist-review"
+    }
+  ]
+}

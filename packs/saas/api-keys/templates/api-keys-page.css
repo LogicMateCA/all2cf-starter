@@ -1,0 +1,183 @@
+.api-keys-loading {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+}
+.api-keys-main {
+  width: min(100% - 40px, 1040px);
+  display: grid;
+  gap: 18px;
+  margin: 0 auto;
+  padding: 58px 0 90px;
+}
+.api-keys-intro,
+.api-key-created,
+.api-key-create,
+.api-key-list {
+  border: 1px solid var(--border);
+  border-radius: var(--design-radius-lg);
+  background: var(--surface);
+  box-shadow: var(--design-shadow-card);
+}
+.api-keys-intro {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 30px;
+  padding: 28px;
+}
+.api-keys-intro span {
+  color: var(--accent);
+  font-size:12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.api-keys-intro h1 {
+  margin: 8px 0 0;
+  font-size: 30px;
+}
+.api-keys-intro p {
+  max-width: 680px;
+  margin: 10px 0 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+.api-key-created {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px 20px;
+  padding: 22px;
+  border-color: var(--accent);
+}
+.api-key-created p,
+.api-key-created code {
+  margin: 5px 0 0;
+}
+.api-key-created p {
+  color: var(--muted);
+  font-size:12px;
+}
+.api-key-created code {
+  min-width: 0;
+  padding: 11px;
+  overflow-x: auto;
+  border-radius: var(--design-radius-sm);
+  background: var(--surface-soft);
+  font-size:12px;
+}
+.api-key-created > button:last-child {
+  justify-self: start;
+  border: 0;
+  color: var(--accent);
+  background: transparent;
+  font: inherit;
+  font-size:12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.api-key-create {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(150px, 0.5fr) auto;
+  gap: 14px;
+  align-items: end;
+  padding: 22px;
+}
+.api-key-create label {
+  display: grid;
+  gap: 7px;
+}
+.api-key-create label span {
+  font-size:12px;
+  font-weight: 750;
+}
+.api-key-create input,
+.api-key-create select {
+  min-height: 40px;
+  padding: 0 11px;
+  border: 1px solid var(--strong);
+  border-radius: var(--design-radius-sm);
+  color: var(--text);
+  background: var(--surface);
+  font: inherit;
+}
+.api-key-message {
+  margin: 0;
+  padding: 11px 13px;
+  border-radius: var(--design-radius-sm);
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 9%, transparent);
+  font-size:12px;
+}
+.api-key-list {
+  padding: 22px;
+}
+.api-key-list > div,
+.api-key-list article,
+.api-key-list dl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+.api-key-list h2 {
+  margin: 0;
+  font-size: 16px;
+}
+.api-key-list > div > span {
+  color: var(--subtle);
+  font-size:12px;
+}
+.api-key-list article {
+  padding: 18px 0;
+  border-top: 1px solid var(--border);
+}
+.api-key-list article > div strong,
+.api-key-list article > div code {
+  display: block;
+}
+.api-key-list article > div code {
+  margin-top: 6px;
+  color: var(--subtle);
+  font-size:12px;
+}
+.api-key-list dl {
+  margin: 0;
+}
+.api-key-list dl div {
+  min-width: 88px;
+}
+.api-key-list dt {
+  color: var(--subtle);
+  font-size:12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.api-key-list dd {
+  margin: 5px 0 0;
+  font-size:12px;
+}
+.api-key-empty {
+  margin: 26px 0;
+  color: var(--muted);
+  text-align: center;
+}
+@media (max-width: 760px) {
+  .api-keys-main {
+    width: min(100% - 28px, 1040px);
+    padding-top: 30px;
+  }
+  .api-key-create,
+  .api-key-created {
+    grid-template-columns: 1fr;
+  }
+  .api-key-list article,
+  .api-key-list dl {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .api-key-list dl {
+    gap: 10px;
+  }
+}

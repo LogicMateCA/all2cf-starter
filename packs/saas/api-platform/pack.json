@@ -1,0 +1,54 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "saas.api-platform",
+  "version": "0.1.0",
+  "source": {
+    "name": "Starter API platform",
+    "url": "https://app.example.com/docs/",
+    "revision": "0.1.0",
+    "license": "UNLICENSED",
+    "relationship": "starter-original"
+  },
+  "requiresPacks": [
+    "saas.api-keys",
+    "saas.entitlements",
+    "saas.usage",
+    "saas.outgoing-webhooks"
+  ],
+  "files": [
+    {
+      "source": "templates/api-platform-worker.ts",
+      "target": "workers/app/features/api-platform-worker.ts"
+    },
+    {
+      "source": "templates/developer-page.tsx",
+      "target": "apps/web/src/components/features/developer-page.tsx"
+    },
+    {
+      "source": "templates/developer-page.css",
+      "target": "apps/web/src/components/features/developer-page.css"
+    },
+    {
+      "source": "templates/0011_api_platform.sql",
+      "target": "db/migrations/1009_api_platform.sql"
+    },
+    {
+      "source": "templates/api-platform.md",
+      "target": "apps/docs/src/content/docs/docs/guides/api-platform.md"
+    }
+  ],
+  "dependencies": [],
+  "routes": [
+    {
+      "path": "/app/developer",
+      "module": "../components/features/developer-page",
+      "export": "DeveloperPage",
+      "workerFirst": false
+    }
+  ],
+  "workerFeature": {
+    "module": "../features/api-platform-worker",
+    "export": "apiPlatformFeature"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "all2cf-project",
+  "version": "0.1.2",
+  "description": "Functional AI operating workflows for projects generated from the All2CF Starter.",
+  "author": {
+    "name": "All2CF"
+  },
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "All2CF Project",
+    "shortDescription": "Build, update and release an All2CF-generated project.",
+    "longDescription": "Gives Codex bounded project context, authorized Starter updates, All2CF project receipts, Expo and Cloudflare release workflows, dependency policy and project diagnostics without carrying the canonical Factory, owning visual design, or duplicating native Cloudflare platform tools.",
+    "developerName": "All2CF",
+    "category": "Developer Tools",
+    "capabilities": ["Project context", "Legacy adoption", "Starter updates", "All2CF MCP", "Release workflows", "Project diagnostics"],
+    "defaultPrompt": [
+      "Understand this project and show me where to make my change.",
+      "Adopt this older project into the Starter AI context without replacing its business code.",
+      "Check whether this project has an authorized Starter update.",
+      "Run the project doctor and explain only actionable problems."
+    ]
+  }
+}

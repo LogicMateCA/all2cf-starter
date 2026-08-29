@@ -1,0 +1,7 @@
+interface:
+  display_name: "Expo Release"
+  short_description: "Safely verify and release the Expo mobile app"
+  default_prompt: "Use $expo-release to verify and release the mobile app to the correct environment."
+
+policy:
+  allow_implicit_invocation: true

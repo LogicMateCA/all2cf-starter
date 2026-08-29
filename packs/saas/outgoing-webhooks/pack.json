@@ -1,0 +1,68 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "saas.outgoing-webhooks",
+  "version": "0.1.0",
+  "source": {
+    "name": "Starter outgoing webhooks",
+    "url": "https://app.example.com/docs/",
+    "revision": "0.1.0",
+    "license": "UNLICENSED",
+    "relationship": "starter-original"
+  },
+  "files": [
+    {
+      "source": "templates/outgoing-webhooks-worker.ts",
+      "target": "workers/app/features/outgoing-webhooks-worker.ts"
+    },
+    {
+      "source": "templates/outgoing-webhooks-page.tsx",
+      "target": "apps/web/src/components/features/outgoing-webhooks-page.tsx"
+    },
+    {
+      "source": "templates/outgoing-webhooks-page.css",
+      "target": "apps/web/src/components/features/outgoing-webhooks-page.css"
+    },
+    {
+      "source": "templates/0010_outgoing_webhooks.sql",
+      "target": "db/migrations/1007_outgoing_webhooks.sql"
+    }
+  ],
+  "dependencies": [],
+  "routes": [
+    {
+      "path": "/app/webhooks",
+      "module": "../components/features/outgoing-webhooks-page",
+      "export": "OutgoingWebhooksPage",
+      "workerFirst": false
+    },
+    {
+      "path": "/admin/webhooks",
+      "module": "../components/features/outgoing-webhooks-page",
+      "export": "OutgoingWebhooksPage",
+      "workerFirst": false
+    }
+  ],
+  "workerFeature": {
+    "module": "../features/outgoing-webhooks-worker",
+    "export": "outgoingWebhooksFeature"
+  },
+  "workerEvents": {
+    "module": "../features/outgoing-webhooks-worker",
+    "export": "outgoingWebhooksEvents"
+  },
+  "cloudflare": {
+    "requiredSecrets": ["WEBHOOK_SIGNING_KEY"],
+    "queues": [
+      {
+        "binding": "OUTGOING_WEBHOOK_QUEUE",
+        "suffix": "outgoing-webhooks",
+        "maxBatchSize": 10,
+        "maxBatchTimeout": 2,
+        "maxRetries": 5,
+        "retryDelay": 10,
+        "maxConcurrency": 10
+      }
+    ]
+  }
+}

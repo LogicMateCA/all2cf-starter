@@ -1,0 +1,11 @@
+@import "./generated-design-profile.css";
+@import "./generated-stylekit-adapter.css";
+
+.hero h1 {
+  font-family: var(--design-font-display);
+  letter-spacing: -0.04em;
+}
+
+:where(:not(pre) > code, kbd) {
+  color: var(--design-foreground) !important;
+}

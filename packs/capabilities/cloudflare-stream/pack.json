@@ -1,0 +1,15 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "capability.cloudflare-stream",
+  "version": "0.1.0",
+  "source": { "name": "Cloudflare Stream", "url": "https://developers.cloudflare.com/stream/", "relationship": "platform-provider" },
+  "files": [
+    { "source": "templates/cloudflare-stream-worker.ts", "target": "workers/app/features/cloudflare-stream-worker.ts" },
+    { "source": "templates/1104_cloudflare_stream.sql", "target": "db/migrations/1104_cloudflare_stream.sql" }
+  ],
+  "dependencies": [],
+  "routes": [],
+  "workerFeature": { "module": "../features/cloudflare-stream-worker", "export": "cloudflareStreamFeature" },
+  "cloudflare": { "requiredSecrets": ["CLOUDFLARE_STREAM_TOKEN", "STREAM_WEBHOOK_SECRET"] }
+}

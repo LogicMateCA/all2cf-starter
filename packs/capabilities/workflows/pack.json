@@ -1,0 +1,11 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "capability.workflows",
+  "version": "0.1.0",
+  "source": { "name": "Cloudflare Workflows", "url": "https://developers.cloudflare.com/workflows/", "relationship": "platform-provider" },
+  "files": [{ "source": "templates/workflows-worker.ts", "target": "workers/app/features/workflows-worker.ts" }],
+  "dependencies": [],
+  "routes": [],
+  "workerFeature": { "module": "../features/workflows-worker", "export": "workflowsFeature" }
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "capability.object-storage",
+  "version": "0.1.0",
+  "source": {
+    "name": "Starter object storage",
+    "url": "https://developers.cloudflare.com/r2/",
+    "relationship": "starter-owned"
+  },
+  "files": [
+    { "source": "templates/object-storage-worker.ts", "target": "workers/app/features/object-storage-worker.ts" },
+    { "source": "templates/object-storage-page.tsx", "target": "apps/web/src/components/features/object-storage-page.tsx" },
+    { "source": "templates/object-storage-page.css", "target": "apps/web/src/components/features/object-storage-page.css" },
+    { "source": "templates/1101_object_storage.sql", "target": "db/migrations/1101_object_storage.sql" }
+  ],
+  "dependencies": [],
+  "routes": [
+    { "path": "/app/storage", "module": "../components/features/object-storage-page", "export": "ObjectStoragePage", "workerFirst": false }
+  ],
+  "workerFeature": {
+    "module": "../features/object-storage-worker",
+    "export": "objectStorageFeature"
+  }
+}

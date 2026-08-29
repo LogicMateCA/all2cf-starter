@@ -1,0 +1,45 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "saas.entitlements",
+  "version": "0.1.0",
+  "source": {
+    "name": "Starter entitlement resolver",
+    "url": "https://app.example.com/docs/",
+    "revision": "0.1.0",
+    "license": "UNLICENSED",
+    "relationship": "starter-original"
+  },
+  "requiresPacks": [],
+  "files": [
+    {
+      "source": "templates/entitlements-worker.ts",
+      "target": "workers/app/features/entitlements-worker.ts"
+    },
+    {
+      "source": "templates/entitlements-page.tsx",
+      "target": "apps/web/src/components/features/entitlements-page.tsx"
+    },
+    {
+      "source": "templates/entitlements-page.css",
+      "target": "apps/web/src/components/features/entitlements-page.css"
+    },
+    {
+      "source": "templates/0008_entitlements.sql",
+      "target": "db/migrations/1005_entitlements.sql"
+    }
+  ],
+  "dependencies": [],
+  "routes": [
+    {
+      "path": "/app/entitlements",
+      "module": "../components/features/entitlements-page",
+      "export": "EntitlementsPage",
+      "workerFirst": false
+    }
+  ],
+  "workerFeature": {
+    "module": "../features/entitlements-worker",
+    "export": "entitlementsFeature"
+  }
+}

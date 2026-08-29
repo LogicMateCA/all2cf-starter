@@ -1,0 +1,611 @@
+{
+  "$schema": "./schemas/starter-blueprint.schema.json",
+  "schemaVersion": "starter-blueprint/v1",
+  "status": "ready",
+  "preset": "custom",
+  "designProfile": {
+    "id": "stylekit-editorial",
+    "version": "2.2.0"
+  },
+  "stylekit": {
+    "slug": "editorial",
+    "sourceRevision": "29141b684d5abb967558eb8083fbae91dbbc51b8",
+    "snapshotVersion": "2.2.0",
+    "snapshotHash": "6c738963515a50730fd1b6313e5627bf8760a62f28dd8ccb4933278686cfd806"
+  },
+  "visualIntegration": {
+    "enabled": true,
+    "contractVersion": "1.0.1",
+    "plugin": {
+      "id": "visual-design",
+      "version": "0.1.0",
+      "installation": "external-recommended"
+    },
+    "environment": "development",
+    "status": "unavailable",
+    "profileReceipt": ".visual/receipt.json",
+    "fallbackProfile": {
+      "id": "stylekit-editorial",
+      "version": "2.2.0",
+      "sha256": "6c738963515a50730fd1b6313e5627bf8760a62f28dd8ccb4933278686cfd806"
+    },
+    "warnings": [
+      "Visual plugin and service are optional; Starter baseline remains active until a compatible receipt is verified."
+    ]
+  },
+  "pageSet": {
+    "selected": [
+      "marketing.home",
+      "marketing.features",
+      "marketing.pricing",
+      "company.about",
+      "company.contact",
+      "product.changelog",
+      "legal.privacy",
+      "legal.terms",
+      "auth.login",
+      "auth.account",
+      "product.notifications",
+      "docs.public",
+      "system.not-found",
+      "support.portal",
+      "admin.operations"
+    ]
+  },
+  "project": {
+    "name": "My Cloudflare Product",
+    "slug": "my-cloudflare-product",
+    "brief": "Configure this product locally through /setup.",
+    "productType": "web-saas",
+    "websiteType": "product",
+    "companionSite": "full",
+    "webAdmin": true,
+    "platforms": [
+      "desktop-web"
+    ],
+    "locales": [
+      "en",
+      "zh"
+    ],
+    "defaultLocale": "en"
+  },
+  "productIntent": {
+    "summary": "A reusable Cloudflare-first SaaS foundation that AI can specialize around a new product workflow.",
+    "audiences": [
+      "product owner",
+      "authenticated customer"
+    ],
+    "coreObjects": [
+      "workspace",
+      "project"
+    ],
+    "tenantModel": "hybrid",
+    "chargingModel": "hybrid"
+  },
+  "setup": {
+    "entry": "/factory",
+    "status": "ready",
+    "currentStep": "identity",
+    "completedSteps": [
+      "identity",
+      "saas",
+      "capabilities",
+      "providers",
+      "pages",
+      "design"
+    ],
+    "completedAt": null
+  },
+  "selections": {
+    "design": [
+      {
+        "id": "design.owned-neutral",
+        "lifecycle": {
+          "selected": true,
+          "materialized": true,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Compatibility profile is derived from the selected StyleKit snapshot."
+      },
+      {
+        "id": "design.stylekit-adapted",
+        "lifecycle": {
+          "selected": true,
+          "materialized": true,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "The selected Editorial snapshot compiles one owned cross-surface adapter and passes deterministic contracts. Neumorphism remains the historical full-surface browser acceptance reference; Editorial still needs its own visual acceptance."
+      }
+    ],
+    "pages": [
+      {
+        "id": "page.core-product-site",
+        "lifecycle": {
+          "selected": true,
+          "materialized": true,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Core product routes are owned PowerAI-informed templates; their reusable route and browser layer is verified, while copied-project content and functional acceptance remain project gates."
+      },
+      {
+        "id": "page.optional-growth",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Optional Astro routes are generated only when their individual Page Catalog entries are selected."
+      }
+    ],
+    "saas": [
+      {
+        "id": "saas.product-shell",
+        "lifecycle": {
+          "selected": true,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Permanent responsive product shell and module-navigation registry with current desktop/mobile browser interaction evidence."
+      },
+      {
+        "id": "saas.identity-core",
+        "lifecycle": {
+          "selected": true,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.notifications-core",
+        "lifecycle": {
+          "selected": true,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Permanent signed-in Product Shell Bell and user-isolated notification inbox. Event producers remain module-owned."
+      },
+      {
+        "id": "saas.product-operations-lite",
+        "lifecycle": {
+          "selected": true,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.account-security-2fa",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.team-organizations",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.billing-stripe",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.billing-polar",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.billing-autumn",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.entitlements",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.usage",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.api-keys",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.api-platform",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.outgoing-webhooks",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.onboarding",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      }
+    ],
+    "capabilities": [
+      {
+        "id": "capability.data-layer-drizzle",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Optional product-domain Drizzle layer. PostgreSQL, pg, Starter tables and Pack migrations remain SQL-first."
+      },
+      {
+        "id": "capability.mapcn-web",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Optional Web-only map pack is locally verified through plan/apply, Worker routing, browser WebGL, keyboard/accessibility, budgets, and complete removal. A real map provider remains a copied-project release gate. Mobile mapping uses a separate native-aware pack."
+      },
+      {
+        "id": "capability.object-storage",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Cloudflare R2 is selected. Local authenticated private/public lifecycle evidence and the Development release-bound exact-byte adapter round trip both pass; Production remains unreleased."
+      },
+      {
+        "id": "capability.turnstile",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Optional Better Auth Captcha integration for Cloudflare Turnstile."
+      },
+      {
+        "id": "capability.workers-ai",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Optional Cloudflare Workers AI Binding with an AI Gateway overlay."
+      },
+      {
+        "id": "capability.vectorize",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Optional environment-isolated Cloudflare Vectorize indexes."
+      },
+      {
+        "id": "capability.expo-push",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Optional Expo Push device registration and delivery for native iOS/Android."
+      },
+      {
+        "id": "capability.twilio-sms",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Optional server-only Twilio SMS delivery with provider evidence."
+      },
+      {
+        "id": "capability.cloudflare-images",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Optional Cloudflare Images Binding for server-side image optimization."
+      },
+      {
+        "id": "capability.cloudflare-stream",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Optional Cloudflare Stream direct video upload and signed webhook lifecycle."
+      },
+      {
+        "id": "capability.cron",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Optional environment-specific Cloudflare Cron Trigger with heartbeat evidence."
+      },
+      {
+        "id": "capability.workflows",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Optional Cloudflare durable multi-step Workflow skeleton and Admin lifecycle test."
+      },
+      {
+        "id": "capability.durable-objects",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        },
+        "note": "Optional SQLite-backed Durable Object room with hibernatable WebSockets and Admin round-trip test."
+      }
+    ]
+  },
+  "providers": {
+    "auth": "better-auth",
+    "socialAuth": [],
+    "database": {
+      "engine": "postgresql",
+      "provider": "native-postgresql",
+      "transports": {
+        "development": "native-postgresql",
+        "production": "native-postgresql"
+      },
+      "access": "sql-first",
+      "initialState": "empty",
+      "schemaSource": "selected-pack-baseline",
+      "existingDataPolicy": "out-of-scope",
+      "cfpg": {
+        "development": {
+          "connectCommand": "npx @all2cf/database-connect@0.2.0-rc.2 db_bf5ecb97acc443a1bfa17d09319082c3",
+          "databaseId": "db_bf5ecb97acc443a1bfa17d09319082c3",
+          "databaseWorker": "edgepg-34ebaa53803b7c9b",
+          "entrypoint": "All2CFDatabase",
+          "package": "@all2cf/database-connect",
+          "version": "0.2.0-rc.2",
+          "sha256": "17af534e7d628cc76554d876b61ecc341b962e983b4ad86a5dc9c55dcc532dce",
+          "alias": "@all2cf/database-connect/pg"
+        },
+        "production": null
+      }
+    },
+    "storage": {
+      "provider": "none",
+      "access": "private",
+      "uploadMode": "worker",
+      "maxUploadBytes": 10485760,
+      "development": {
+        "bucket": "starter-dev-objects",
+        "publicDomain": "",
+        "s3Endpoint": "",
+        "s3Region": "auto",
+        "s3ForcePathStyle": false
+      },
+      "production": {
+        "bucket": "starter-objects",
+        "publicDomain": "",
+        "s3Endpoint": "",
+        "s3Region": "auto",
+        "s3ForcePathStyle": false
+      }
+    },
+    "antiAbuse": {
+      "provider": "none",
+      "development": {
+        "siteKey": ""
+      },
+      "production": {
+        "siteKey": ""
+      }
+    },
+    "ai": {
+      "provider": "none",
+      "development": {
+        "model": "@cf/meta/llama-3.1-8b-instruct",
+        "gatewayId": ""
+      },
+      "production": {
+        "model": "@cf/meta/llama-3.1-8b-instruct",
+        "gatewayId": ""
+      }
+    },
+    "search": {
+      "provider": "none",
+      "development": {
+        "indexName": "starter-dev-vectorize",
+        "dimensions": 768,
+        "metric": "cosine"
+      },
+      "production": {
+        "indexName": "starter-vectorize",
+        "dimensions": 768,
+        "metric": "cosine"
+      }
+    },
+    "push": {
+      "provider": "none",
+      "accessTokenRequired": false,
+      "development": {
+        "projectId": ""
+      },
+      "production": {
+        "projectId": ""
+      }
+    },
+    "sms": {
+      "provider": "none",
+      "development": {
+        "apiBaseUrl": "https://api.twilio.com"
+      },
+      "production": {
+        "apiBaseUrl": "https://api.twilio.com"
+      }
+    },
+    "media": {
+      "images": {
+        "provider": "none",
+        "maxInputBytes": 10485760,
+        "defaultFormat": "image/webp"
+      },
+      "stream": {
+        "provider": "none",
+        "maxDurationSeconds": 600,
+        "development": {
+          "accountId": "00000000000000000000000000000000",
+          "allowedOrigins": [
+            "app-dev.example.com"
+          ],
+          "apiBaseUrl": "https://api.cloudflare.com/client/v4"
+        },
+        "production": {
+          "accountId": "00000000000000000000000000000000",
+          "allowedOrigins": [
+            "app.example.com"
+          ],
+          "apiBaseUrl": "https://api.cloudflare.com/client/v4"
+        }
+      }
+    },
+    "background": {
+      "cron": {
+        "enabled": false,
+        "development": {
+          "expression": "*/15 * * * *"
+        },
+        "production": {
+          "expression": "0 * * * *"
+        }
+      },
+      "workflow": {
+        "enabled": false,
+        "scheduleEnabled": false,
+        "development": {
+          "expression": "0 * * * *"
+        },
+        "production": {
+          "expression": "0 3 * * *"
+        }
+      },
+      "realtime": {
+        "enabled": false
+      }
+    },
+    "email": {
+      "default": "cfsend",
+      "alternatives": [
+        "resend",
+        "cloudflare-email-service"
+      ]
+    },
+    "billing": "none",
+    "release": "cloudflare-workers"
+  },
+  "environments": [
+    "development",
+    "production"
+  ]
+}

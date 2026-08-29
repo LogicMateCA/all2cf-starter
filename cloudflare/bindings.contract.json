@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Starter Cloudflare bindings contract",
+  "description": "Reserved binding names and isolation rules. Provision concrete resources separately; this contract intentionally contains no account, database, bucket, queue, or secret IDs.",
+  "environments": {
+    "development": {
+      "worker": "starter-dev",
+      "resourceIsolation": "Development resources only; never point at production resources."
+    },
+    "production": {
+      "worker": "starter",
+      "resourceIsolation": "Production resources only; never share mutable development resources."
+    }
+  },
+  "bindings": {
+    "HYPERDRIVE": {
+      "kind": "hyperdrive",
+      "status": "selected-native-postgresql",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "database.transports.<environment>=native-postgresql (legacy fallback: database.provider)"
+    },
+    "ALL2CF_DATABASE": {
+      "kind": "service_binding",
+      "status": "selected-cfpg",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "database.transports.<environment>=cfpg (legacy fallback: database.provider)",
+      "entrypoint": "All2CFDatabase",
+      "mutuallyExclusiveWith": "HYPERDRIVE"
+    },
+    "OBJECTS": {
+      "kind": "r2_bucket",
+      "status": "selected-object-storage",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "storage.provider=cloudflare-r2",
+      "resourceIsolation": "Use distinct Development and Production buckets."
+    },
+    "AI": {
+      "kind": "workers_ai",
+      "status": "optional-workers-ai-pack",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "ai.provider=workers-ai"
+    },
+    "VECTOR_INDEX": {
+      "kind": "vectorize",
+      "status": "optional-vectorize-pack",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "search.provider=vectorize",
+      "resourceIsolation": "Use distinct Development and Production indexes with immutable dimensions and metric."
+    },
+    "IMAGES": {
+      "kind": "images",
+      "status": "optional-cloudflare-images-pack",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "media.images.provider=cloudflare-images"
+    },
+    "STARTER_WORKFLOW": {
+      "kind": "workflow",
+      "status": "optional-workflows-pack",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "background.workflow.enabled=true",
+      "resourceIsolation": "Use different Worker-derived Workflow names per environment."
+    },
+    "STARTER_REALTIME": {
+      "kind": "durable_object_namespace",
+      "status": "optional-durable-objects-pack",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "background.realtime.enabled=true",
+      "className": "StarterRealtimeRoom",
+      "storage": "sqlite",
+      "resourceIsolation": "The Development and Production Workers own separate Durable Object namespaces. Deselecting never deletes namespace data automatically."
+    },
+    "STARTER_QUEUE": {
+      "kind": "queue",
+      "status": "future",
+      "requiredPerEnvironment": true
+    },
+    "STARTER_DLQ": {
+      "kind": "queue",
+      "status": "future",
+      "requiredPerEnvironment": true
+    },
+    "CFSEND": {
+      "kind": "service_binding",
+      "status": "future",
+      "requiredPerEnvironment": true
+    },
+    "GOOGLE_CLIENT_ID": {
+      "kind": "secret",
+      "status": "selectable-social-provider",
+      "requiredPerEnvironment": false
+    },
+    "GOOGLE_CLIENT_SECRET": {
+      "kind": "secret",
+      "status": "selectable-social-provider",
+      "requiredPerEnvironment": false
+    },
+    "GITHUB_CLIENT_ID": {
+      "kind": "secret",
+      "status": "selectable-social-provider",
+      "requiredPerEnvironment": false
+    },
+    "GITHUB_CLIENT_SECRET": {
+      "kind": "secret",
+      "status": "selectable-social-provider",
+      "requiredPerEnvironment": false
+    },
+    "APPLE_CLIENT_ID": {
+      "kind": "secret",
+      "status": "selectable-social-provider",
+      "requiredPerEnvironment": false
+    },
+    "APPLE_TEAM_ID": {
+      "kind": "secret",
+      "status": "selectable-social-provider",
+      "requiredPerEnvironment": false
+    },
+    "APPLE_KEY_ID": {
+      "kind": "secret",
+      "status": "selectable-social-provider",
+      "requiredPerEnvironment": false
+    },
+    "APPLE_PRIVATE_KEY_BASE64": {
+      "kind": "secret",
+      "status": "selectable-social-provider",
+      "requiredPerEnvironment": false
+    },
+    "APPLE_APP_BUNDLE_IDENTIFIER": {
+      "kind": "secret",
+      "status": "selectable-social-provider",
+      "requiredPerEnvironment": false
+    },
+    "STRIPE_SECRET_KEY": {
+      "kind": "secret",
+      "status": "optional-billing-pack",
+      "requiredPerEnvironment": false
+    },
+    "STRIPE_WEBHOOK_SECRET": {
+      "kind": "secret",
+      "status": "optional-billing-pack",
+      "requiredPerEnvironment": false
+    },
+    "STRIPE_PRICE_PRO": {
+      "kind": "secret",
+      "status": "optional-billing-pack",
+      "requiredPerEnvironment": false
+    },
+    "TURNSTILE_SECRET_KEY": {
+      "kind": "secret",
+      "status": "optional-anti-abuse-pack",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "antiAbuse.provider=turnstile"
+    },
+    "TWILIO_ACCOUNT_SID": {
+      "kind": "secret",
+      "status": "optional-twilio-sms-pack",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "sms.provider=twilio"
+    },
+    "TWILIO_API_KEY": {
+      "kind": "secret",
+      "status": "optional-twilio-sms-pack",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "sms.provider=twilio"
+    },
+    "TWILIO_API_SECRET": {
+      "kind": "secret",
+      "status": "optional-twilio-sms-pack",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "sms.provider=twilio"
+    },
+    "TWILIO_FROM": {
+      "kind": "secret",
+      "status": "optional-twilio-sms-pack",
+      "requiredPerEnvironment": false,
+      "requiredWhen": "sms.provider=twilio"
+    },
+    "AUTH": {
+      "kind": "service_binding",
+      "status": "future",
+      "requiredPerEnvironment": true
+    }
+  }
+}

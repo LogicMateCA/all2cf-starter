@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "starter-project-plugins/v1",
+  "plugins": [
+    {
+      "id": "all2cf-project",
+      "version": "0.1.2",
+      "ownership": "functional-project-operations",
+      "installation": "external-recommended",
+      "optional": true,
+      "detection": [".starter/source.json", ".ai/manifest.json", "AGENT_MAP.md"]
+    },
+    {
+      "id": "visual-design",
+      "version": "0.1.0",
+      "ownership": "independent-visual-intelligence",
+      "installation": "external-recommended",
+      "contract": "starter-integration@1.0.1",
+      "optional": true
+    }
+  ]
+}

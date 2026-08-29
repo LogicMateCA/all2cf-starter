@@ -1,0 +1,9 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import PageIntro from "../../components/PageIntro.astro";
+
+const cases = (await getCollection("case-studies", ({ data }) => !data.draft)).sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf());
+const visible = cases.slice(0, 6);
+---
+<Base title="Case studies"><PageIntro title="Outcomes with evidence." description="Each case must connect the original problem, intervention and result to a named evidence source." /><section class="content-section" aria-labelledby="cases-heading"><h2 id="cases-heading">Published outcomes</h2>{visible.length ? <div class="growth-grid">{visible.map((item) => <article class="growth-card"><div class="growth-meta"><span>{item.data.sample ? "Starter sample" : item.data.customer}</span><span>{item.data.industry}</span></div><h3><a href={`/case-studies/${item.id}`}>{item.data.title}</a></h3><p>{item.data.summary}</p><dl class="outcome-proof">{item.data.outcomes.slice(0, 2).map((outcome) => <div><dt>{outcome.label}</dt><dd>{outcome.value}</dd></div>)}</dl></article>)}</div> : <div class="empty-state"><h2>No case studies published.</h2><p>Add reviewed customer permission and source-backed outcomes before release.</p></div>}{cases.length > 6 && <a class="collection-next" href="/case-studies/page/2">More case studies</a>}</section></Base>

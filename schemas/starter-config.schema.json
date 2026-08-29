@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["project", "cloudflare", "email", "development", "production"],
+  "properties": {
+    "project": {
+      "type": "object",
+      "required": ["name", "slug"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "slug": { "type": "string", "pattern": "^[a-z][a-z0-9-]{1,62}$" }
+      }
+    },
+    "cloudflare": {
+      "type": "object",
+      "required": ["accountId", "zoneId", "zoneName"]
+    },
+    "email": {
+      "type": "object",
+      "required": ["provider", "resendApiUrl"],
+      "properties": {
+        "provider": { "type": "string", "enum": ["cfsend", "resend", "cloudflare-email"] },
+        "resendApiUrl": { "type": "string", "format": "uri", "pattern": "^https://" }
+      }
+    },
+    "development": { "$ref": "#/$defs/environment" },
+    "production": { "$ref": "#/$defs/environment" }
+  },
+  "$defs": {
+    "environment": {
+      "type": "object",
+      "required": ["worker", "domain", "wranglerConfig", "database"],
+      "properties": {
+        "worker": { "type": "string" },
+        "domain": { "type": "string" },
+        "wranglerConfig": { "type": "string" },
+        "database": { "type": "object", "required": ["database", "user", "host", "port", "hyperdriveName"] }
+      }
+    }
+  }
+}

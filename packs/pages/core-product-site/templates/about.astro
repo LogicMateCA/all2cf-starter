@@ -1,0 +1,7 @@
+---
+import Base from "../layouts/Base.astro";
+import PageIntro from "../components/PageIntro.astro";
+import CallToAction from "../components/CallToAction.astro";
+import { project } from "../generated/project";
+---
+<Base title="About"><PageIntro title={`Why ${project.name} exists.`} description={project.brief} /><section class="content-section"><h2>Build from explicit decisions.</h2><p>The project treats architecture, product behavior, design, and releases as one connected system. Each important decision remains readable after the original conversation ends.</p><dl class="fact-list"><div><dt>Principle</dt><dd>Remove unnecessary capability before optimizing what remains.</dd></div><div><dt>Evidence</dt><dd>Do not report implementation, verification, or release state without current proof.</dd></div><div><dt>Ownership</dt><dd>Adapt useful donor ideas into maintained project code instead of inheriting another product.</dd></div></dl></section><CallToAction title="See how the project is assembled." body="The documentation explains the working conventions, optional modules, and release lanes." href="/docs" label="Read the docs" /></Base>

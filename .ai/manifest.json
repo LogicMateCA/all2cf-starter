@@ -1,0 +1,70 @@
+{
+  "schema": "starter-ai-contract/v1",
+  "project": "starter",
+  "sourceOfTruth": {
+    "dp": "markdown-frontmatter",
+    "changes": "change-spec",
+    "selection": "starter.blueprint.json",
+    "catalog": "catalog/catalog.json",
+    "designProfiles": "design/catalog.json",
+    "pages": "pages/catalog.json",
+    "materialization": ".starter/materialization.json",
+    "packTemplates": "packs/",
+    "agentMap": ".ai/agent-map.json"
+  },
+  "controller": {
+    "model": "Sol",
+    "reasoning": {
+      "mode": "adaptive",
+      "default": "medium",
+      "allowed": [
+        "light",
+        "medium",
+        "high"
+      ]
+    },
+    "workerModel": "Luna",
+    "workerReasoning": "medium",
+    "childrenMay": [
+      "inspect",
+      "analyze",
+      "implement",
+      "test"
+    ],
+    "childrenMayNot": [
+      "commit",
+      "deploy"
+    ]
+  },
+  "release": {
+    "defaultEnvironment": "development",
+    "productionKeywords": [
+      "正式发布",
+      "production"
+    ],
+    "requiresExplicitIntent": true
+  },
+  "cloudflare": {
+    "officialMcpFirst": true,
+    "workerStudio": "capability-detected"
+  },
+  "data": {
+    "postgresql": "sql-first",
+    "provider": "native-postgresql-or-cfpg",
+    "orm": "not-default",
+    "initialState": "empty",
+    "schemaSource": "selected-pack-baseline",
+    "existingDataPolicy": "out-of-scope"
+  },
+  "skills": [
+    "product-design",
+    "taste",
+    "starter-bootstrap",
+    "starter-source-release",
+    "cloudflare-release",
+    "expo-release",
+    "runtime-upgrade",
+    "project-context",
+    "feature-lifecycle"
+  ]
+}

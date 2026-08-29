@@ -1,0 +1,69 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "starter-dev",
+  "main": "../workers/app/index.ts",
+  "compatibility_date": "2026-08-16",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "APP_ENV": "development",
+    "SERVICE_NAME": "starter",
+    "APP_NAME": "Cloudflare AI Starter",
+    "DATABASE_PROVIDER": "native-postgresql",
+    "AUTH_CANONICAL_ORIGIN": "https://app-dev.example.com",
+    "AUTH_REQUIRE_EMAIL_VERIFICATION": "true",
+    "AUTH_EMAIL_PROVIDER": "cfsend",
+    "RESEND_API_URL": "https://api.resend.com",
+    "MOBILE_DEEP_LINK_SCHEMES": "starter-dev://,starter-preview://,starter://",
+    "AUTH_SOCIAL_PROVIDERS": "google"
+  },
+  "secrets": {
+    "required": [
+      "BETTER_AUTH_SECRET",
+      "CFSEND_API_KEY",
+      "CFSEND_API_URL",
+      "CFSEND_FROM",
+      "GOOGLE_CLIENT_ID",
+      "GOOGLE_CLIENT_SECRET"
+    ]
+  },
+  "assets": {
+    "directory": "../dist/web",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/api/*",
+      "/login",
+      "/app",
+      "/app/*",
+      "/support",
+      "/support/*",
+      "/admin",
+      "/admin/*",
+      "/dp",
+      "/setup",
+      "/setup/*",
+      "/__starter/*"
+    ],
+    "not_found_handling": "404-page"
+  },
+  "workers_dev": true,
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "d665e59cdc9741c1898ba7c472c22abf"
+    }
+  ],
+  "routes": [
+    {
+      "pattern": "app-dev.example.com",
+      "custom_domain": true
+    }
+  ],
+  "triggers": {
+    "crons": []
+  }
+}

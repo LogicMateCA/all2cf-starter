@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://starter.local/schemas/provider-catalog.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "catalogVersion", "policy", "categories"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "starter-provider-catalog/v1" },
+    "catalogVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["noneForOptional", "selectableRequiresExecutable", "credentialsAreWriteOnly", "verificationIsExplicit"],
+      "properties": {
+        "noneForOptional": { "const": true },
+        "selectableRequiresExecutable": { "const": true },
+        "credentialsAreWriteOnly": { "const": true },
+        "verificationIsExplicit": { "const": true }
+      }
+    },
+    "categories": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/category" }
+    }
+  },
+  "$defs": {
+    "category": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "kind", "required", "selection", "defaultOptionIds", "capabilityIds", "options"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "name": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["provider", "infrastructure", "platform"] },
+        "required": { "type": "boolean" },
+        "selection": { "enum": ["single", "multiple"] },
+        "defaultOptionIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "capabilityIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "options": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/option" }
+        }
+      }
+    },
+    "option": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "status", "delivery", "selectable", "credentials", "bindings", "dependencies", "verification", "setupLinks", "notes"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "name": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["implemented", "local-verified", "development-verified", "production-released", "planned"] },
+        "delivery": { "enum": ["baseline", "materializer", "platform", "planned"] },
+        "selectable": { "type": "boolean" },
+        "credentials": { "type": "array", "items": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" }, "uniqueItems": true },
+        "bindings": { "type": "array", "items": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" }, "uniqueItems": true },
+        "dependencies": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "verification": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["available", "mode"],
+          "properties": {
+            "available": { "type": "boolean" },
+            "mode": { "enum": ["none", "contract", "oauth-flow", "delivery", "round-trip", "live-binding", "deployment"] }
+          }
+        },
+        "setupLinks": { "type": "array", "items": { "type": "string", "pattern": "^https://" }, "uniqueItems": true },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}

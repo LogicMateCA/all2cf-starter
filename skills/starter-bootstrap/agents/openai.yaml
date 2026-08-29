@@ -1,0 +1,4 @@
+interface:
+  display_name: "Starter Bootstrap"
+  short_description: "Initialize a copied Starter with verified infrastructure"
+  default_prompt: "Use $starter-bootstrap to initialize this copied Starter safely and verify its development environment."

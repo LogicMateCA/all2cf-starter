@@ -1,0 +1,23 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "capability.vectorize",
+  "version": "0.1.0",
+  "source": {
+    "name": "Cloudflare Vectorize",
+    "url": "https://developers.cloudflare.com/vectorize/",
+    "relationship": "platform-provider"
+  },
+  "files": [
+    {
+      "source": "templates/vectorize-worker.ts",
+      "target": "workers/app/features/vectorize-worker.ts"
+    }
+  ],
+  "dependencies": [],
+  "routes": [],
+  "workerFeature": {
+    "module": "../features/vectorize-worker",
+    "export": "vectorizeFeature"
+  }
+}

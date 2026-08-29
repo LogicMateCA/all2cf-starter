@@ -1,0 +1,181 @@
+{
+  "$schema": "../schemas/provider-catalog.schema.json",
+  "schemaVersion": "starter-provider-catalog/v1",
+  "catalogVersion": "1.0.0",
+  "policy": {
+    "noneForOptional": true,
+    "selectableRequiresExecutable": true,
+    "credentialsAreWriteOnly": true,
+    "verificationIsExplicit": true
+  },
+  "categories": [
+    {
+      "id": "database", "name": "Database", "kind": "provider", "required": true, "selection": "single", "defaultOptionIds": ["native-postgresql"], "capabilityIds": ["identity.core"],
+      "options": [
+        { "id": "native-postgresql", "name": "Native PostgreSQL + Hyperdrive", "status": "development-verified", "delivery": "baseline", "selectable": true, "credentials": ["DATABASE_URL", "STARTER_PRODUCTION_DATABASE_URL"], "bindings": ["HYPERDRIVE"], "dependencies": ["pg"], "verification": { "available": true, "mode": "live-binding" }, "setupLinks": ["https://developers.cloudflare.com/hyperdrive/"], "notes": "SQL-first default with isolated Development and Production databases." },
+        { "id": "cfpg", "name": "CFPG / All2CF Database", "status": "implemented", "delivery": "materializer", "selectable": true, "credentials": [], "bindings": ["ALL2CF_DATABASE"], "dependencies": ["@all2cf/database-connect"], "verification": { "available": true, "mode": "contract" }, "setupLinks": ["https://app.all2cf.com/"], "notes": "Requires distinct validated Development and Production connection commands before materialization." }
+      ]
+    },
+    {
+      "id": "authentication", "name": "Authentication", "kind": "provider", "required": true, "selection": "single", "defaultOptionIds": ["better-auth"], "capabilityIds": ["identity.core"],
+      "options": [
+        { "id": "better-auth", "name": "Better Auth", "status": "development-verified", "delivery": "baseline", "selectable": true, "credentials": ["BETTER_AUTH_SECRET"], "bindings": [], "dependencies": ["better-auth"], "verification": { "available": true, "mode": "contract" }, "setupLinks": ["https://better-auth.com/docs"], "notes": "Required identity/session authority for the SaaS foundation." }
+      ]
+    },
+    {
+      "id": "social-auth", "name": "Social sign-in", "kind": "provider", "required": false, "selection": "multiple", "defaultOptionIds": ["google"], "capabilityIds": ["identity.core"],
+      "options": [
+        { "id": "none", "name": "None", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "none" }, "setupLinks": [], "notes": "Email/password remains available." },
+        { "id": "google", "name": "Google", "status": "development-verified", "delivery": "baseline", "selectable": true, "credentials": ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"], "bindings": [], "dependencies": [], "verification": { "available": true, "mode": "oauth-flow" }, "setupLinks": ["https://console.cloud.google.com/auth/clients"], "notes": "Real validation requires the deployed authorization and callback flow." },
+        { "id": "github", "name": "GitHub", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": ["GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET"], "bindings": [], "dependencies": [], "verification": { "available": true, "mode": "oauth-flow" }, "setupLinks": ["https://github.com/settings/developers"], "notes": "Requests verified email access." },
+        { "id": "apple", "name": "Apple", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": ["APPLE_CLIENT_ID", "APPLE_TEAM_ID", "APPLE_KEY_ID", "APPLE_PRIVATE_KEY_BASE64", "APPLE_APP_BUNDLE_IDENTIFIER"], "bindings": [], "dependencies": ["jose"], "verification": { "available": true, "mode": "oauth-flow" }, "setupLinks": ["https://developer.apple.com/account/resources/identifiers/list/serviceId"], "notes": "Web and native audience configuration remain explicit." },
+        { "id": "microsoft", "name": "Microsoft", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": ["MICROSOFT_CLIENT_ID", "MICROSOFT_CLIENT_SECRET"], "bindings": [], "dependencies": [], "verification": { "available": true, "mode": "oauth-flow" }, "setupLinks": ["https://entra.microsoft.com/"], "notes": "Microsoft Entra ID and personal Microsoft accounts." },
+        { "id": "discord", "name": "Discord", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": ["DISCORD_CLIENT_ID", "DISCORD_CLIENT_SECRET"], "bindings": [], "dependencies": [], "verification": { "available": true, "mode": "oauth-flow" }, "setupLinks": ["https://discord.com/developers/applications"], "notes": "Community and consumer applications." },
+        { "id": "facebook", "name": "Facebook", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": ["FACEBOOK_CLIENT_ID", "FACEBOOK_CLIENT_SECRET"], "bindings": [], "dependencies": [], "verification": { "available": true, "mode": "oauth-flow" }, "setupLinks": ["https://developers.facebook.com/apps/"], "notes": "Meta OAuth application." },
+        { "id": "linkedin", "name": "LinkedIn", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": ["LINKEDIN_CLIENT_ID", "LINKEDIN_CLIENT_SECRET"], "bindings": [], "dependencies": [], "verification": { "available": true, "mode": "oauth-flow" }, "setupLinks": ["https://www.linkedin.com/developers/apps"], "notes": "Professional identity provider." },
+        { "id": "generic-oauth", "name": "Generic OAuth / OIDC", "status": "planned", "delivery": "planned", "selectable": false, "credentials": ["GENERIC_OAUTH_PROVIDER_ID", "GENERIC_OAUTH_DISCOVERY_URL", "GENERIC_OAUTH_CLIENT_ID", "GENERIC_OAUTH_CLIENT_SECRET"], "bindings": [], "dependencies": ["better-auth/plugins"], "verification": { "available": false, "mode": "oauth-flow" }, "setupLinks": ["https://better-auth.com/docs/plugins/generic-oauth"], "notes": "Reserved extension point; not selectable until its generated registry adapter passes OAuth flow verification." }
+      ]
+    },
+    {
+      "id": "email", "name": "Authentication email", "kind": "provider", "required": true, "selection": "single", "defaultOptionIds": ["cfsend"], "capabilityIds": ["identity.core"],
+      "options": [
+        { "id": "cfsend", "name": "CFsend", "status": "development-verified", "delivery": "baseline", "selectable": true, "credentials": ["CFSEND_API_URL", "CFSEND_API_KEY", "CFSEND_FROM"], "bindings": [], "dependencies": [], "verification": { "available": true, "mode": "delivery" }, "setupLinks": ["https://send.all2cf.com/dashboard"], "notes": "Default provider with real message-ID and retry evidence." },
+        { "id": "resend", "name": "Resend", "status": "local-verified", "delivery": "baseline", "selectable": true, "credentials": ["RESEND_API_KEY", "RESEND_FROM"], "bindings": [], "dependencies": [], "verification": { "available": true, "mode": "delivery" }, "setupLinks": ["https://resend.com/api-keys", "https://resend.com/domains"], "notes": "HTTP adapter using the same outbox and idempotency contract." },
+        { "id": "cloudflare-email", "name": "Cloudflare Email Service", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": ["CLOUDFLARE_EMAIL_FROM"], "bindings": ["EMAIL"], "dependencies": [], "verification": { "available": true, "mode": "live-binding" }, "setupLinks": ["https://dash.cloudflare.com/?to=/:account/email-service/sending"], "notes": "Requires the deployed Worker EMAIL binding." }
+      ]
+    },
+    {
+      "id": "billing", "name": "Billing", "kind": "provider", "required": false, "selection": "single", "defaultOptionIds": ["none"], "capabilityIds": ["billing.subscriptions"],
+      "options": [
+        { "id": "none", "name": "None", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "none" }, "setupLinks": [], "notes": "No paid plans or provider runtime." },
+        { "id": "stripe", "name": "Stripe", "status": "development-verified", "delivery": "materializer", "selectable": true, "credentials": ["STRIPE_SECRET_KEY", "STRIPE_PUBLISHABLE_KEY", "STRIPE_WEBHOOK_SECRET", "STRIPE_PRICE_PRO"], "bindings": [], "dependencies": ["stripe", "@better-auth/stripe"], "verification": { "available": true, "mode": "contract" }, "setupLinks": ["https://dashboard.stripe.com/test/apikeys"], "notes": "Direct Better Auth subscription lifecycle using Stripe." },
+        { "id": "polar", "name": "Polar", "status": "implemented", "delivery": "materializer", "selectable": true, "credentials": ["POLAR_ACCESS_TOKEN", "POLAR_WEBHOOK_SECRET", "POLAR_PRODUCT_PRO"], "bindings": [], "dependencies": ["@polar-sh/better-auth", "@polar-sh/sdk"], "verification": { "available": true, "mode": "contract" }, "setupLinks": ["https://polar.sh/"], "notes": "Checkout, Portal, Usage and signed Webhooks through the Better Auth Polar plugin." },
+        { "id": "autumn", "name": "Autumn", "status": "implemented", "delivery": "materializer", "selectable": true, "credentials": ["AUTUMN_SECRET_KEY"], "bindings": [], "dependencies": ["autumn-js"], "verification": { "available": true, "mode": "contract" }, "setupLinks": ["https://app.useautumn.com/"], "notes": "Plans, usage and entitlements through Autumn with Stripe-backed billing." }
+      ]
+    },
+    {
+      "id": "object-storage", "name": "Object storage", "kind": "provider", "required": false, "selection": "single", "defaultOptionIds": ["none"], "capabilityIds": ["storage.objects"],
+      "options": [
+        { "id": "none", "name": "None", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "none" }, "setupLinks": [], "notes": "No file-byte storage; metadata-only seams remain inactive." },
+        { "id": "cloudflare-r2", "name": "Cloudflare R2", "status": "development-verified", "delivery": "materializer", "selectable": true, "credentials": [], "bindings": ["OBJECTS"], "dependencies": [], "verification": { "available": true, "mode": "round-trip" }, "setupLinks": ["https://dash.cloudflare.com/?to=/:account/r2/overview"], "notes": "Local private/public lifecycle and Development release-bound exact-byte put/get/delete evidence pass against the isolated starter-dev-objects bucket; Production remains separate." },
+        { "id": "s3-compatible", "name": "S3-compatible", "status": "implemented", "delivery": "materializer", "selectable": true, "credentials": ["S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY"], "bindings": [], "dependencies": ["@aws-sdk/client-s3"], "verification": { "available": true, "mode": "round-trip" }, "setupLinks": ["https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html"], "notes": "Endpoint, region, bucket and path-style are project configuration. Materialization, types and Worker dry-runs pass; a selected project's real endpoint must pass the explicit round-trip before release." }
+      ]
+    },
+    {
+      "id": "anti-abuse", "name": "Anti-abuse", "kind": "provider", "required": false, "selection": "single", "defaultOptionIds": ["none"], "capabilityIds": ["security.turnstile"],
+      "options": [
+        { "id": "none", "name": "None", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "none" }, "setupLinks": [], "notes": "Public write endpoints remain unprotected by a challenge provider." },
+        { "id": "turnstile", "name": "Cloudflare Turnstile", "status": "local-verified", "delivery": "materializer", "selectable": true, "credentials": ["TURNSTILE_SITE_KEY", "TURNSTILE_SECRET_KEY"], "bindings": [], "dependencies": ["better-auth/captcha"], "verification": { "available": true, "mode": "round-trip" }, "setupLinks": ["https://dash.cloudflare.com/?to=/:account/turnstile"], "notes": "Better Auth Captcha enforces server-side Siteverify for credential sign-up, sign-in and password reset; Development and Production use separate widgets." }
+      ]
+    },
+    {
+      "id": "observability", "name": "Observability and errors", "kind": "provider", "required": true, "selection": "multiple", "defaultOptionIds": ["cloudflare-observability"], "capabilityIds": ["operations.health"],
+      "options": [
+        { "id": "cloudflare-observability", "name": "Cloudflare Observability", "status": "development-verified", "delivery": "platform", "selectable": true, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": true, "mode": "deployment" }, "setupLinks": ["https://dash.cloudflare.com/?to=/:account/workers-and-pages/observability"], "notes": "Structured Worker logs are the baseline." },
+        { "id": "sentry", "name": "Sentry", "status": "planned", "delivery": "planned", "selectable": false, "credentials": ["SENTRY_DSN", "SENTRY_AUTH_TOKEN"], "bindings": [], "dependencies": ["@sentry/cloudflare", "@sentry/react"], "verification": { "available": false, "mode": "delivery" }, "setupLinks": ["https://sentry.io/"], "notes": "Optional cross-Web, Worker and Expo error correlation." }
+      ]
+    },
+    {
+      "id": "analytics", "name": "Product analytics", "kind": "provider", "required": false, "selection": "single", "defaultOptionIds": ["none"], "capabilityIds": ["analytics.product"],
+      "options": [
+        { "id": "none", "name": "None", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "none" }, "setupLinks": [], "notes": "No user-behavior tracking." },
+        { "id": "pulse", "name": "Pulse", "status": "planned", "delivery": "planned", "selectable": false, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "contract" }, "setupLinks": [], "notes": "Preferred future external-product integration boundary. Pulse owns measurement and attribution; Starter will consume an explicit Pulse contract instead of duplicating its analytics runtime." },
+        { "id": "cloudflare-web-analytics", "name": "Cloudflare Web Analytics", "status": "planned", "delivery": "planned", "selectable": false, "credentials": ["CLOUDFLARE_WEB_ANALYTICS_TOKEN"], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "live-binding" }, "setupLinks": ["https://dash.cloudflare.com/?to=/:account/web-analytics"], "notes": "Privacy-oriented page analytics." },
+        { "id": "posthog", "name": "PostHog", "status": "planned", "delivery": "planned", "selectable": false, "credentials": ["POSTHOG_KEY"], "bindings": [], "dependencies": ["posthog-js"], "verification": { "available": false, "mode": "delivery" }, "setupLinks": ["https://posthog.com/"], "notes": "Events, funnels and feature analytics." },
+        { "id": "plausible", "name": "Plausible", "status": "planned", "delivery": "planned", "selectable": false, "credentials": ["PLAUSIBLE_DOMAIN"], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "delivery" }, "setupLinks": ["https://plausible.io/"], "notes": "Lightweight site analytics." }
+      ]
+    },
+    {
+      "id": "ai", "name": "AI models and gateway", "kind": "provider", "required": false, "selection": "multiple", "defaultOptionIds": ["none"], "capabilityIds": ["ai.models"],
+      "options": [
+        { "id": "none", "name": "None", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "none" }, "setupLinks": [], "notes": "No AI runtime or model cost." },
+        { "id": "workers-ai", "name": "Workers AI", "status": "local-verified", "delivery": "materializer", "selectable": true, "credentials": [], "bindings": ["AI"], "dependencies": [], "verification": { "available": true, "mode": "live-binding" }, "setupLinks": ["https://developers.cloudflare.com/workers-ai/"], "notes": "Cloudflare-native inference with an environment-specific model and optional AI Gateway. Local Setup has real direct and Gateway-routed inference evidence." },
+        { "id": "google-ai", "name": "Google Gemini", "status": "planned", "delivery": "planned", "selectable": false, "credentials": ["GOOGLE_AI_API_KEY"], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "contract" }, "setupLinks": ["https://aistudio.google.com/apikey"], "notes": "External multimodal model provider." },
+        { "id": "openai", "name": "OpenAI", "status": "planned", "delivery": "planned", "selectable": false, "credentials": ["OPENAI_API_KEY"], "bindings": [], "dependencies": ["openai"], "verification": { "available": false, "mode": "contract" }, "setupLinks": ["https://platform.openai.com/api-keys"], "notes": "External model provider." },
+        { "id": "anthropic", "name": "Anthropic", "status": "planned", "delivery": "planned", "selectable": false, "credentials": ["ANTHROPIC_API_KEY"], "bindings": [], "dependencies": ["@anthropic-ai/sdk"], "verification": { "available": false, "mode": "contract" }, "setupLinks": ["https://console.anthropic.com/settings/keys"], "notes": "External model provider." },
+        { "id": "ai-gateway", "name": "Cloudflare AI Gateway", "status": "local-verified", "delivery": "materializer", "selectable": false, "credentials": [], "bindings": ["AI"], "dependencies": [], "verification": { "available": true, "mode": "live-binding" }, "setupLinks": ["https://dash.cloudflare.com/?to=/:account/ai/ai-gateway"], "notes": "Optional Gateway ID is configured inside the selectable Workers AI Pack; a real request through the account default Gateway is locally verified." }
+      ]
+    },
+    {
+      "id": "search-vector", "name": "Search and vector", "kind": "provider", "required": false, "selection": "single", "defaultOptionIds": ["none"], "capabilityIds": ["search.product", "ai.rag"],
+      "options": [
+        { "id": "none", "name": "None", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "none" }, "setupLinks": [], "notes": "Registered-route search remains available; no product-data index." },
+        { "id": "postgresql", "name": "PostgreSQL search", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": true, "mode": "contract" }, "setupLinks": ["https://www.postgresql.org/docs/current/textsearch.html"], "notes": "Preferred first product-data search before external services." },
+        { "id": "vectorize", "name": "Cloudflare Vectorize", "status": "local-verified", "delivery": "materializer", "selectable": true, "credentials": [], "bindings": ["VECTOR_INDEX"], "dependencies": [], "verification": { "available": true, "mode": "round-trip" }, "setupLinks": ["https://developers.cloudflare.com/vectorize/"], "notes": "Environment-isolated indexes with immutable dimensions/metric. A disposable live 32-dimension index passed create/upsert/query/delete and was removed." },
+        { "id": "ai-search", "name": "Cloudflare AI Search", "status": "planned", "delivery": "planned", "selectable": false, "credentials": [], "bindings": ["AI_SEARCH"], "dependencies": [], "verification": { "available": false, "mode": "round-trip" }, "setupLinks": ["https://developers.cloudflare.com/ai-search/"], "notes": "Managed document ingestion and search." },
+        { "id": "algolia", "name": "Algolia", "status": "planned", "delivery": "planned", "selectable": false, "credentials": ["ALGOLIA_APP_ID", "ALGOLIA_ADMIN_API_KEY"], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "contract" }, "setupLinks": ["https://www.algolia.com/"], "notes": "External hosted search." },
+        { "id": "typesense-meilisearch", "name": "Typesense / Meilisearch", "status": "planned", "delivery": "planned", "selectable": false, "credentials": ["SEARCH_API_KEY"], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "contract" }, "setupLinks": ["https://typesense.org/", "https://www.meilisearch.com/"], "notes": "External self-hosted search option." }
+      ]
+    },
+    {
+      "id": "maps", "name": "Maps and geocoding", "kind": "provider", "required": false, "selection": "single", "defaultOptionIds": ["none"], "capabilityIds": ["capability.mapcn-web"],
+      "options": [
+        { "id": "none", "name": "None", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "none" }, "setupLinks": [], "notes": "No map runtime or tile cost." },
+        { "id": "mapcn", "name": "MapCN / MapLibre", "status": "local-verified", "delivery": "materializer", "selectable": true, "credentials": [], "bindings": [], "dependencies": ["maplibre-gl"], "verification": { "available": true, "mode": "contract" }, "setupLinks": ["https://maplibre.org/"], "notes": "Owned Web map components; a real style/tile source remains project configuration." },
+        { "id": "maptiler", "name": "MapTiler", "status": "planned", "delivery": "planned", "selectable": false, "credentials": ["MAPTILER_API_KEY"], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "contract" }, "setupLinks": ["https://cloud.maptiler.com/account/keys/"], "notes": "Tiles and styles." },
+        { "id": "mapbox", "name": "Mapbox", "status": "planned", "delivery": "planned", "selectable": false, "credentials": ["MAPBOX_ACCESS_TOKEN"], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "contract" }, "setupLinks": ["https://account.mapbox.com/access-tokens/"], "notes": "Tiles, styles and geocoding." },
+        { "id": "google-places", "name": "Google Maps / Places", "status": "planned", "delivery": "planned", "selectable": false, "credentials": ["GOOGLE_MAPS_API_KEY"], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "contract" }, "setupLinks": ["https://console.cloud.google.com/google/maps-apis/credentials"], "notes": "Places and address lookup." }
+      ]
+    },
+    {
+      "id": "notification-channels", "name": "Notification channels", "kind": "provider", "required": true, "selection": "multiple", "defaultOptionIds": ["in-app", "email"], "capabilityIds": ["notifications.inbox"],
+      "options": [
+        { "id": "in-app", "name": "In-app", "status": "local-verified", "delivery": "baseline", "selectable": true, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": true, "mode": "contract" }, "setupLinks": [], "notes": "User-isolated Product Shell inbox." },
+        { "id": "email", "name": "Email", "status": "development-verified", "delivery": "baseline", "selectable": true, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": true, "mode": "delivery" }, "setupLinks": [], "notes": "Uses the selected authentication/product email provider." },
+        { "id": "web-push", "name": "Web Push", "status": "planned", "delivery": "planned", "selectable": false, "credentials": ["WEB_PUSH_PUBLIC_KEY", "WEB_PUSH_PRIVATE_KEY"], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "delivery" }, "setupLinks": ["https://developer.mozilla.org/docs/Web/API/Push_API"], "notes": "Browser push subscriptions." }
+      ]
+    },
+    {
+      "id": "push", "name": "Native push", "kind": "provider", "required": false, "selection": "single", "defaultOptionIds": ["none"], "capabilityIds": ["notifications.push"],
+      "options": [
+        { "id": "none", "name": "None", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "none" }, "setupLinks": [], "notes": "No native push runtime when iOS and Android are absent or the generated project removes its mobile default." },
+        { "id": "expo-push", "name": "Expo Push", "status": "implemented", "delivery": "materializer", "selectable": true, "credentials": ["EXPO_PROJECT_ID", "EXPO_PUSH_ACCESS_TOKEN"], "bindings": [], "dependencies": ["expo-notifications"], "verification": { "available": true, "mode": "delivery" }, "setupLinks": ["https://docs.expo.dev/push-notifications/overview/"], "notes": "Automatically selected by Factory for native iOS/Android outputs; removable later in generated-project Setup." }
+      ]
+    },
+    {
+      "id": "sms", "name": "SMS", "kind": "provider", "required": false, "selection": "single", "defaultOptionIds": ["none"], "capabilityIds": ["notifications.sms"],
+      "options": [
+        { "id": "none", "name": "None", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "none" }, "setupLinks": [], "notes": "No SMS provider, secrets or delivery ledger." },
+        { "id": "twilio-sms", "name": "Twilio SMS", "status": "implemented", "delivery": "materializer", "selectable": true, "credentials": ["TWILIO_ACCOUNT_SID", "TWILIO_API_KEY", "TWILIO_API_SECRET", "TWILIO_FROM"], "bindings": [], "dependencies": [], "verification": { "available": true, "mode": "delivery" }, "setupLinks": ["https://console.twilio.com/"], "notes": "Server-only SMS with E.164 validation, SQL idempotency and provider SID evidence." }
+      ]
+    },
+    {
+      "id": "media", "name": "Media", "kind": "provider", "required": false, "selection": "multiple", "defaultOptionIds": ["none"], "capabilityIds": ["media.images", "media.video"],
+      "options": [
+        { "id": "none", "name": "None", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "none" }, "setupLinks": [], "notes": "Ordinary files can still use the selected object-storage provider." },
+        { "id": "cloudflare-images", "name": "Cloudflare Images", "status": "local-verified", "delivery": "materializer", "selectable": true, "credentials": [], "bindings": ["IMAGES"], "dependencies": [], "verification": { "available": true, "mode": "round-trip" }, "setupLinks": ["https://developers.cloudflare.com/images/optimization/binding/"], "notes": "Worker-native raw-byte optimization with a verified local 2×2 PNG to 1×1 WebP Binding round trip; R2 remains the original-file store." },
+        { "id": "cloudflare-stream", "name": "Cloudflare Stream", "status": "implemented", "delivery": "materializer", "selectable": true, "credentials": ["CLOUDFLARE_STREAM_TOKEN", "STREAM_WEBHOOK_SECRET"], "bindings": [], "dependencies": [], "verification": { "available": true, "mode": "round-trip" }, "setupLinks": ["https://developers.cloudflare.com/stream/uploading-videos/direct-creator-uploads/"], "notes": "User-owned direct uploads, public playback state and signed processing webhooks. Signed/private playback remains a later enhancement." }
+      ]
+    },
+    {
+      "id": "background-realtime", "name": "Background and realtime", "kind": "infrastructure", "required": false, "selection": "multiple", "defaultOptionIds": ["none"], "capabilityIds": ["webhooks.outgoing", "jobs.background", "realtime.state"],
+      "options": [
+        { "id": "none", "name": "None", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "none" }, "setupLinks": [], "notes": "No asynchronous or stateful infrastructure." },
+        { "id": "queues", "name": "Cloudflare Queues", "status": "development-verified", "delivery": "materializer", "selectable": true, "credentials": [], "bindings": ["OUTGOING_WEBHOOK_QUEUE"], "dependencies": [], "verification": { "available": true, "mode": "live-binding" }, "setupLinks": ["https://developers.cloudflare.com/queues/"], "notes": "Currently receipt-owned by selected Outgoing Webhooks." },
+        { "id": "workflows", "name": "Cloudflare Workflows", "status": "local-verified", "delivery": "materializer", "selectable": true, "credentials": [], "bindings": ["STARTER_WORKFLOW"], "dependencies": [], "verification": { "available": true, "mode": "live-binding" }, "setupLinks": ["https://developers.cloudflare.com/workflows/"], "notes": "Durable two-step skeleton with verified local Admin create/status/output and optional binding schedule." },
+        { "id": "cron", "name": "Cron Triggers", "status": "local-verified", "delivery": "materializer", "selectable": true, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": true, "mode": "live-binding" }, "setupLinks": ["https://developers.cloudflare.com/workers/configuration/cron-triggers/"], "notes": "Environment-specific UTC schedules with a verified local scheduled handler, exact scheduled time and SQL heartbeat evidence." },
+        { "id": "durable-objects", "name": "Durable Objects / WebSockets", "status": "local-verified", "delivery": "materializer", "selectable": true, "credentials": [], "bindings": ["STARTER_REALTIME"], "dependencies": [], "verification": { "available": true, "mode": "round-trip" }, "setupLinks": ["https://developers.cloudflare.com/durable-objects/", "https://developers.cloudflare.com/durable-objects/best-practices/websockets/"], "notes": "SQLite-backed per-room state with authenticated hibernatable WebSockets, bounded messages and an Admin round-trip test." }
+      ]
+    },
+    {
+      "id": "cache-feature-flags", "name": "Cache and feature flags", "kind": "infrastructure", "required": false, "selection": "multiple", "defaultOptionIds": ["none"], "capabilityIds": ["cache.application", "flags.product"],
+      "options": [
+        { "id": "none", "name": "None", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "none" }, "setupLinks": [], "notes": "Do not add infrastructure until a measured need exists." },
+        { "id": "cache-api", "name": "Cloudflare Cache API", "status": "implemented", "delivery": "baseline", "selectable": true, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": true, "mode": "contract" }, "setupLinks": ["https://developers.cloudflare.com/workers/runtime-apis/cache/"], "notes": "HTTP response caching, not authoritative storage." },
+        { "id": "kv", "name": "Cloudflare KV", "status": "planned", "delivery": "planned", "selectable": false, "credentials": [], "bindings": ["KV"], "dependencies": [], "verification": { "available": false, "mode": "round-trip" }, "setupLinks": ["https://developers.cloudflare.com/kv/"], "notes": "Read-heavy config/flags; never replaces PostgreSQL." },
+        { "id": "postgresql-flags", "name": "PostgreSQL feature flags", "status": "planned", "delivery": "planned", "selectable": false, "credentials": [], "bindings": [], "dependencies": [], "verification": { "available": false, "mode": "contract" }, "setupLinks": [], "notes": "Server-authoritative project flags without another provider." }
+      ]
+    },
+    {
+      "id": "release-platforms", "name": "Release platforms", "kind": "platform", "required": true, "selection": "multiple", "defaultOptionIds": ["cloudflare"], "capabilityIds": ["release.cloudflare", "release.mobile"],
+      "options": [
+        { "id": "cloudflare", "name": "Cloudflare Workers", "status": "development-verified", "delivery": "platform", "selectable": true, "credentials": ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"], "bindings": [], "dependencies": ["wrangler"], "verification": { "available": true, "mode": "deployment" }, "setupLinks": ["https://dash.cloudflare.com/profile/api-tokens"], "notes": "Default Development and explicit Production release lanes." },
+        { "id": "github", "name": "GitHub", "status": "implemented", "delivery": "platform", "selectable": true, "credentials": ["GITHUB_TOKEN"], "bindings": [], "dependencies": [], "verification": { "available": true, "mode": "contract" }, "setupLinks": ["https://github.com/settings/personal-access-tokens"], "notes": "Repository/CI credential with a read-only authenticated-user identity test; not a product runtime Provider." },
+        { "id": "expo-eas", "name": "Expo / EAS", "status": "local-verified", "delivery": "platform", "selectable": true, "credentials": ["EXPO_TOKEN", "EXPO_OWNER", "EXPO_PROJECT_ID"], "bindings": [], "dependencies": ["eas-cli"], "verification": { "available": true, "mode": "deployment" }, "setupLinks": ["https://expo.dev/accounts"], "notes": "Mobile development, preview, update and build lanes." },
+        { "id": "mobile-local-build", "name": "Local Android + Mac/Xcode", "status": "implemented", "delivery": "platform", "selectable": true, "credentials": ["MOBILE_ANDROID_BUILDER", "MOBILE_IOS_BUILDER", "ANDROID_HOME", "MOBILE_ANDROID_ARCHITECTURES", "ANDROID_RELEASE_KEYSTORE", "ANDROID_RELEASE_STORE_PASSWORD", "ANDROID_RELEASE_KEY_ALIAS", "ANDROID_RELEASE_KEY_PASSWORD", "MOBILE_MAC_HOST", "MOBILE_MAC_PROJECT_ROOT", "MOBILE_MAC_SSH_KEY_PATH", "IOS_EXPORT_OPTIONS_PLIST"], "bindings": [], "dependencies": ["expo", "gradle", "xcode"], "verification": { "available": true, "mode": "deployment" }, "setupLinks": ["https://docs.expo.dev/guides/local-app-overview/"], "notes": "Per-platform auto or explicit local/EAS routing; Android uses local Gradle and iOS uses local or connected Mac Xcode." },
+        { "id": "apple-app-store", "name": "Apple App Store Connect", "status": "implemented", "delivery": "platform", "selectable": true, "credentials": ["ASC_KEY_ID", "ASC_ISSUER_ID", "ASC_API_KEY_BASE64", "ASC_APP_ID"], "bindings": [], "dependencies": [], "verification": { "available": true, "mode": "deployment" }, "setupLinks": ["https://appstoreconnect.apple.com/access/integrations/api"], "notes": "Only required for iOS distribution." },
+        { "id": "google-play", "name": "Google Play", "status": "implemented", "delivery": "platform", "selectable": true, "credentials": ["GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64", "GOOGLE_PLAY_PACKAGE_NAME"], "bindings": [], "dependencies": [], "verification": { "available": true, "mode": "deployment" }, "setupLinks": ["https://play.google.com/console/"], "notes": "Only required for Android distribution." }
+      ]
+    }
+  ]
+}

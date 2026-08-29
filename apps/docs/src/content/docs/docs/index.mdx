@@ -1,0 +1,33 @@
+---
+title: Project documentation
+description: A configuration-driven foundation for AI-led Cloudflare products.
+template: splash
+hero:
+  tagline: Configure the product once, let AI understand the whole system, and release through verified Development and Production lanes.
+  actions:
+    - text: Create a project
+      link: /docs/getting-started/
+      icon: right-arrow
+      variant: primary
+    - text: Use the Starter
+      link: /docs/guides/using-starter/
+      icon: open-book
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid>
+  <Card title="One source of intent" icon="document">
+    `/setup` writes the reviewed Project Blueprint. It does not provision infrastructure or publish a release.
+  </Card>
+  <Card title="AI-readable by default" icon="setting">
+    `AGENTS.md`, the catalogs, module documents, and Change Specs tell an AI what exists, why it exists, and how to verify a change.
+  </Card>
+  <Card title="Cloudflare-first" icon="open-book">
+    Worker, Hyperdrive, PostgreSQL, CFsend, and environment identities are explicit and checked before release.
+  </Card>
+  <Card title="Separate release lanes" icon="add-document">
+    “发布” targets Development. Only “正式发布” or “production” authorizes Production.
+  </Card>
+</CardGrid>

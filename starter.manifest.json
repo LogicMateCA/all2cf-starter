@@ -1,0 +1,294 @@
+{
+  "$schema": "./schemas/starter-manifest.schema.json",
+  "starterVersion": "0.1.0",
+  "state": "locally_verified",
+  "runtime": {
+    "application": "cloudflare-workerd",
+    "tooling": "node-24",
+    "deployment": "wrangler"
+  },
+  "applications": [
+    "marketing",
+    "web",
+    "worker",
+    "mobile",
+    "docs"
+  ],
+  "modules": [
+    "assembler",
+    "marketing",
+    "auth",
+    "account-security",
+    "api-keys",
+    "api-platform",
+    "billing",
+    "entitlements",
+    "usage",
+    "webhooks",
+    "organizations",
+    "product-shell",
+    "notifications",
+    "onboarding",
+    "support",
+    "storage",
+    "ai",
+    "search",
+    "media",
+    "background",
+    "admin",
+    "operations",
+    "mobile",
+    "docs"
+  ],
+  "technology": [
+    {
+      "area": "Project configuration",
+      "choice": "Source-only /factory creates independent projects; generated products retain local-only /setup and a pinned source receipt",
+      "status": "local-verified"
+    },
+    {
+      "area": "Provider catalog",
+      "choice": "Schema-validated Provider/Capability registry with required None options, executable selection gates, credentials, Bindings, dependencies, setup links, verification modes, and Setup/DP projections",
+      "status": "local-verified"
+    },
+    {
+      "area": "Project materialization",
+      "choice": "Executable baseline/materializer/planned Catalog contract plus receipt-backed plan/apply/check with collision-safe removal",
+      "status": "local-verified"
+    },
+    {
+      "area": "Design engine",
+      "choice": "Pinned 146-entry StyleKit inventory with 28 distinct selectable global systems, 35 composable style variants, 18 independent layouts, 11 enhancements, one Admin density mode, and owned immutable adapters for Web, Marketing, Docs, and Mobile",
+      "status": "local-verified"
+    },
+    {
+      "area": "Page engine",
+      "choice": "Owned route-level Page Catalog with complete 20-file PowerAI inventory, five route families, growth details, pagination, content collections, and static Astro rendering",
+      "status": "local-verified"
+    },
+    {
+      "area": "Web",
+      "choice": "React 19.2.3 + Vite 8.2.2",
+      "status": "local-verified"
+    },
+    {
+      "area": "Worker",
+      "choice": "Hono 4.13.3 + Cloudflare workerd via Wrangler 4.124.0",
+      "status": "local-verified"
+    },
+    {
+      "area": "Database",
+      "choice": "New empty PostgreSQL-compatible databases + selectable native PostgreSQL or CFPG + selected SQL-first initialization baseline",
+      "status": "implemented"
+    },
+    {
+      "area": "Connection",
+      "choice": "Selectable Cloudflare Hyperdrive or @all2cf/database-connect 0.2.0-rc.2 with ALL2CF_DATABASE Service Binding",
+      "status": "implemented"
+    },
+    {
+      "area": "Authentication",
+      "choice": "Better Auth 1.7.1 aligned across core, official Admin plugin, Expo, selectable Google/GitHub/Apple OAuth, and issuer-scoped empty-database baseline",
+      "status": "local-verified"
+    },
+    {
+      "area": "Account security",
+      "choice": "Optional Better Auth Two-Factor 1.7.1 pack with verified TOTP enrollment, backup-code recovery, trusted devices, and lockout",
+      "status": "local-verified"
+    },
+    {
+      "area": "Anti-abuse",
+      "choice": "Optional Cloudflare Turnstile through Better Auth Captcha with separate environment widgets, client challenge tokens, mandatory server Siteverify and receipt-safe removal",
+      "status": "local-verified"
+    },
+    {
+      "area": "AI",
+      "choice": "Optional Cloudflare Workers AI Binding with per-environment model, optional AI Gateway, bounded server helper, real Setup inference test and no runtime when unselected",
+      "status": "local-verified"
+    },
+    {
+      "area": "Search and vector",
+      "choice": "None or PostgreSQL by default; optional environment-isolated Cloudflare Vectorize with immutable dimensions/metric, live round trip and receipt-safe Binding removal",
+      "status": "local-verified"
+    },
+    {
+      "area": "API keys",
+      "choice": "Optional @better-auth/api-key 1.7.1 pack with user-owned hashed keys, fixed read scope, rate limits, and no session impersonation",
+      "status": "local-verified"
+    },
+    {
+      "area": "API platform",
+      "choice": "Optional API SaaS preset composing Better Auth API keys, Stripe entitlements, idempotent quotas, Cloudflare Queue webhooks, Developer portal and Starlight reference",
+      "status": "local-verified"
+    },
+    {
+      "area": "SaaS product shell",
+      "choice": "Permanent responsive Sidebar/Topbar, registered-route search, workspace context seam, Bell/account actions, persisted notification-backed Dashboard activity, and product module slot",
+      "status": "local-verified"
+    },
+    {
+      "area": "Product operations",
+      "choice": "Stable modular Admin registry + Better Auth user search, roles, bans, sessions and impersonation + lightweight support threads, transactional announcements, notifications, overview, and filtered stable-cursor audit feed",
+      "status": "local-verified"
+    },
+    {
+      "area": "Notifications",
+      "choice": "User-isolated PostgreSQL inbox + shared Product Shell Bell + unread/read APIs",
+      "status": "local-verified"
+    },
+    {
+      "area": "Native push",
+      "choice": "Optional Expo Push device registry and delivery Pack with SDK 57-compatible expo-notifications, native config plugin, ticket evidence and no dependency when unselected",
+      "status": "implemented"
+    },
+    {
+      "area": "SMS",
+      "choice": "Optional Twilio Programmable Messaging Pack with API-key authentication, SQL idempotency, privacy-bounded evidence, real test action and no SDK dependency",
+      "status": "implemented"
+    },
+    {
+      "area": "Media",
+      "choice": "Optional Cloudflare Images transforms plus a separate Cloudflare Stream direct-upload/signed-webhook/public-playback Pack, both isolated from Object Storage",
+      "status": "local-verified"
+    },
+    {
+      "area": "Organizations",
+      "choice": "Optional Better Auth Organization 1.7.1 pack with Product Shell switching, member administration, teams, verified invitations, lifecycle notifications, and tenant-scoped roles",
+      "status": "local-verified"
+    },
+    {
+      "area": "Billing",
+      "choice": "Optional @better-auth/stripe 1.7.1 + Stripe SDK 22.5.0 Product Shell billing pack with Checkout, Portal, cancellation/restore controls and signed webhook replay evidence",
+      "status": "local-verified"
+    },
+    {
+      "area": "Entitlements",
+      "choice": "Optional server-authoritative Free/paid plan resolver over the verified Better Auth Stripe subscription projection",
+      "status": "local-verified"
+    },
+    {
+      "area": "Usage metering",
+      "choice": "Optional PostgreSQL event ledger and monthly buckets with transactional idempotency and quota enforcement",
+      "status": "local-verified"
+    },
+    {
+      "area": "Product onboarding",
+      "choice": "Optional ordered Worker-defined first-login flow with versioned PostgreSQL resume state and Product Shell redirect",
+      "status": "local-verified"
+    },
+    {
+      "area": "Outgoing webhooks",
+      "choice": "Optional Cloudflare Queue delivery with derived HMAC secrets, PostgreSQL evidence, bounded retries, and user/Admin readback",
+      "status": "local-verified"
+    },
+    {
+      "area": "Background scheduling",
+      "choice": "Optional Cloudflare Cron, durable two-step Workflows, and SQLite-backed Durable Object realtime rooms with authenticated hibernatable WebSockets and non-destructive deselection",
+      "status": "local-verified"
+    },
+    {
+      "area": "Email",
+      "choice": "CFsend default; Resend switch; optional Cloudflare Email Service; provider-backed auth outbox",
+      "status": "local-verified"
+    },
+    {
+      "area": "Object storage",
+      "choice": "Optional receipt-owned Cloudflare R2 or S3-compatible adapter with PostgreSQL metadata, private-by-default ownership, isolated environment resources, local plus release-bound exact-byte round trips, post-deploy resource identity reconciliation, and no dependency when unselected",
+      "status": "development-verified"
+    },
+    {
+      "area": "Operations health",
+      "choice": "Dependency-free public liveness plus Admin-only database, email, identity-provider, billing, and Queue evidence",
+      "status": "local-verified"
+    },
+    {
+      "area": "Web UI",
+      "choice": "Owned shadcn/ui source components + Tailwind",
+      "status": "implemented"
+    },
+    {
+      "area": "Web charts",
+      "choice": "shadcn Chart over Recharts 3.10.1; Bklit advanced and ECharts heavy analytics opt-in",
+      "status": "implemented"
+    },
+    {
+      "area": "Web maps",
+      "choice": "Optional owned MapCN adaptation over MapLibre GL 6.4.1 with explicit map-provider configuration",
+      "status": "implemented"
+    },
+    {
+      "area": "Mobile",
+      "choice": "Expo 57.0.15 + React Native 0.86.2 + Tamagui 2.7.7 for Mobile Web/iOS/Android",
+      "status": "local-verified"
+    },
+    {
+      "area": "Cloudflare release",
+      "choice": "Dev + Production + verified Dev rollback",
+      "status": "verified"
+    },
+    {
+      "area": "Expo release",
+      "choice": "EAS Build, Update and store contract",
+      "status": "remote-unverified"
+    },
+    {
+      "area": "Runtime upgrades",
+      "choice": "Stable-compatible policy; current refresh requires Development publication before acceptance",
+      "status": "local-verified"
+    },
+    {
+      "area": "Starter bootstrap",
+      "choice": "Environment materialization + idempotent PostgreSQL/VPC/Hyperdrive/selected Queue provisioning",
+      "status": "verified"
+    },
+    {
+      "area": "Project context",
+      "choice": "Blueprint + Catalog + Change Specs + Markdown-source /dp synchronization",
+      "status": "development-verified"
+    },
+    {
+      "area": "Docs",
+      "choice": "Astro 7.2.4 + Starlight 0.41.7 static build merged under /docs on the existing Worker",
+      "status": "local-verified"
+    },
+    {
+      "area": "AI controller",
+      "choice": "GPT-5.6 Sol adaptive light/medium/high, default medium",
+      "status": "defined"
+    },
+    {
+      "area": "AI workers",
+      "choice": "GPT-5.6 Luna medium",
+      "status": "defined"
+    },
+    {
+      "area": "Cloudflare context",
+      "choice": "Official MCP + Worker Studio MCP",
+      "status": "defined"
+    }
+  ],
+  "environments": [
+    {
+      "id": "development",
+      "worker": "starter-dev",
+      "domain": "app-dev.example.com",
+      "releaseIntent": "发布"
+    },
+    {
+      "id": "production",
+      "worker": "starter",
+      "domain": "app.example.com",
+      "releaseIntent": "正式发布"
+    }
+  ],
+  "ai": {
+    "entrypoint": "AGENTS.md",
+    "projectContext": "PROJECT.md",
+    "contextCommand": "npm run ai:context -- --json",
+    "doctorCommand": "npm run ai:doctor"
+  },
+  "project": {
+    "name": "My Cloudflare Product",
+    "slug": "my-cloudflare-product"
+  }
+}

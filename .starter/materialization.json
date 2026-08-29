@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "starter-materialization/v1",
+  "packs": {
+    "design.owned-neutral": {
+      "version": "0.1.0",
+      "files": {}
+    },
+    "design.stylekit-adapted": {
+      "version": "0.1.0",
+      "files": {}
+    },
+    "page.core-product-site": {
+      "version": "0.1.0",
+      "files": {
+        "apps/marketing/src/pages/index.astro": "2ba2ebb8bdb6ecbdcdeee1487b4a747288ee4a2e18e7da596c825569f245bad3",
+        "apps/marketing/src/pages/features.astro": "0276ade3a0449f356c197690e30746f139553ab56bf3159f9ab699bd6213f13f",
+        "apps/marketing/src/pages/pricing.astro": "8145e9148da1b64b27f031512bbb53b2524cc73477e4a2f74a1f39a68d3ac2a9",
+        "apps/marketing/src/pages/about.astro": "9ea0650caadc969b26efc8ba270feb1a80d267ac339a5366f853c6e671d44959",
+        "apps/marketing/src/pages/contact.astro": "ee390fbd567789bbfbc7d3ea70d7635e2dc1fdccccb23bd82eb180763d0ce4e3",
+        "apps/marketing/src/pages/changelog.astro": "5acddb47892b6f3e1f91e5732d23f80e9a438a61c5d118abe9de9d114b20bd17",
+        "apps/marketing/src/pages/privacy.astro": "6b84d380fee973e19ac17df11ea0b2679f97705b2a9ce95e2a4ace1f10159e6e",
+        "apps/marketing/src/pages/terms.astro": "bb9d3052c415c03d7f2936e9d823c1b7fc8e208607a59ec5fde5a67d2877130e",
+        "apps/marketing/src/pages/404.astro": "a51150aee0b9c0e5a09550ca6c16d87b19151d7664dcf1208a01787ea0a78648"
+      }
+    }
+  },
+  "dependencies": {},
+  "generatedRoutesHash": "b1612aea88c167b888cb954f7e856f95d608c369634aad6380f23977ee21de7a",
+  "generatedWorkerFirstRoutes": [],
+  "generatedWorkerCapabilityRoutesHash": "28fba3e03c7b1388b7c7efe374c3b4fa7be6b1217d987d7c33dd32b7276f3e2c",
+  "generatedAuthServerHash": "51ae50d08c72a054be0b0a11e2b5f86b82147417757efce68e341cf241ab1c89",
+  "generatedAuthClientHash": "c3c373c7264baedfe7822e00cb4b2b622e997bb94532134d333171e1d00c5919",
+  "generatedWorkerFeaturesHash": "60db8de9b330354d9576ff1bdd69bfd8b33fe3bc8b8ffc8296f098e7fa2412cc",
+  "generatedWorkerEventsHash": "053421ce0358db27dda626bb0acfafd42e8cb3ceb8a0166a2524ed10b390d562",
+  "generatedWorkflowExportsHash": "5ef77fcb4dce679d3af8b545ae0b24ddcf257cab2b5fc8502fe1381f29e8fb4a",
+  "generatedDurableObjectExportsHash": "5ef77fcb4dce679d3af8b545ae0b24ddcf257cab2b5fc8502fe1381f29e8fb4a",
+  "generatedStorageAdapterHash": "bb39d17f9fbd88e61dca21c98720d95e69bee93e01f9e3baa6c59b4188fe84f2",
+  "generatedCloudflareConfigs": {
+    "cloudflare/wrangler.development.jsonc": {
+      "queues": [],
+      "requiredSecrets": [],
+      "database": {
+        "provider": "native-postgresql"
+      },
+      "antiAbuseVars": {},
+      "aiBinding": null,
+      "aiVars": {},
+      "vectorizeBinding": null,
+      "vectorizeVars": {},
+      "workflow": null,
+      "workflowVars": {},
+      "durableObject": null,
+      "durableObjectVars": {},
+      "pushVars": {},
+      "smsVars": {},
+      "imagesBinding": null,
+      "imagesVars": {},
+      "streamVars": {},
+      "r2Buckets": [],
+      "storageVars": {},
+      "crons": [],
+      "cronVars": {}
+    },
+    "cloudflare/wrangler.production.jsonc": {
+      "queues": [],
+      "requiredSecrets": [],
+      "database": {
+        "provider": "native-postgresql"
+      },
+      "antiAbuseVars": {},
+      "aiBinding": null,
+      "aiVars": {},
+      "vectorizeBinding": null,
+      "vectorizeVars": {},
+      "workflow": null,
+      "workflowVars": {},
+      "durableObject": null,
+      "durableObjectVars": {},
+      "pushVars": {},
+      "smsVars": {},
+      "imagesBinding": null,
+      "imagesVars": {},
+      "streamVars": {},
+      "r2Buckets": [],
+      "storageVars": {},
+      "crons": [],
+      "cronVars": {}
+    }
+  },
+  "generatedDesignWebHash": "59c08ee8aec948cd506b25b26cd3c5f70000a236003b80fd5d405b161991a3de",
+  "generatedDesignMarketingHash": "59c08ee8aec948cd506b25b26cd3c5f70000a236003b80fd5d405b161991a3de",
+  "generatedDesignDocsHash": "59c08ee8aec948cd506b25b26cd3c5f70000a236003b80fd5d405b161991a3de",
+  "generatedStyleAdapterWebHash": "dcded3c84ec8f641510d5e981a1b532037c60784e0b048c6315b7a26b03e5a9c",
+  "generatedStyleAdapterMarketingHash": "e961c2786c60ad928d281de4f46be9dc5c3c4464e0bcfe122769816986dd3a0c",
+  "generatedStyleAdapterDocsHash": "1ba0db06e657c210171b2537575d6915490ef863dc533e079f90a32d520ef5bb",
+  "generatedMarketingProjectHash": "46ac20233f9ab44f39d97d45ac087e1a8bb2d29ff8e6cc41b035152b78ca19c6"
+}

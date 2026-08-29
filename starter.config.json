@@ -1,0 +1,45 @@
+{
+  "$schema": "./schemas/starter-config.schema.json",
+  "project": {
+    "name": "My Cloudflare Product",
+    "slug": "my-cloudflare-product"
+  },
+  "cloudflare": {
+    "accountId": "",
+    "zoneId": "",
+    "zoneName": "example.com"
+  },
+  "email": {
+    "provider": "cfsend",
+    "resendApiUrl": "https://api.resend.com"
+  },
+  "development": {
+    "worker": "my-cloudflare-product-dev",
+    "domain": "app-dev.example.com",
+    "wranglerConfig": "cloudflare/wrangler.development.jsonc",
+    "database": {
+      "database": "my_cloudflare_product_dev",
+      "user": "my_cloudflare_product_dev",
+      "container": "my-cloudflare-product-postgres-dev",
+      "image": "postgres:18.4-bookworm",
+      "host": "127.0.0.1",
+      "port": 5432,
+      "tunnelId": "",
+      "vpcServiceName": "my-cloudflare-product-postgres-dev",
+      "hyperdriveName": "my-cloudflare-product-dev-db"
+    }
+  },
+  "production": {
+    "worker": "my-cloudflare-product",
+    "domain": "app.example.com",
+    "wranglerConfig": "cloudflare/wrangler.production.jsonc",
+    "database": {
+      "database": "my_cloudflare_product",
+      "user": "my_cloudflare_product",
+      "host": "postgres.example.internal",
+      "port": 5432,
+      "container": "my-cloudflare-product-postgres",
+      "hyperdriveName": "my-cloudflare-product-prod-db"
+    }
+  }
+}

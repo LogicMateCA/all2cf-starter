@@ -1,0 +1,18 @@
+{
+  "name": "@starter/marketing",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --host 0.0.0.0",
+    "build": "astro build",
+    "typecheck": "astro check"
+  },
+  "dependencies": {
+    "astro": "7.2.4"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "typescript": "6.0.3"
+  }
+}

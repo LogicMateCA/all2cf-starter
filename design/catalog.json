@@ -1,0 +1,88 @@
+{
+  "$schema": "../schemas/design-catalog.schema.json",
+  "schemaVersion": "starter-design-catalog/v1",
+  "catalogVersion": "0.2.0",
+  "sourcePolicy": "Profiles are Starter-owned, versioned design contracts. Donor material is manually reviewed and normalized; generated products never call donor APIs or inherit donor runtimes.",
+  "profiles": [
+    {
+      "id": "owned-neutral",
+      "version": "0.1.0",
+      "packId": "design.owned-neutral",
+      "name": "Owned Neutral",
+      "description": "Quiet product foundation with strong hierarchy, restrained surfaces, and broad SaaS compatibility.",
+      "status": "local-verified",
+      "targets": ["marketing", "desktop-web", "admin", "docs", "mobile"],
+      "source": [{ "name": "Starter", "relationship": "original" }],
+      "direction": { "tone": "calm, precise, trustworthy", "typography": "neutral sans with compact UI hierarchy", "shape": "moderate radius", "depth": "borders before shadows", "motion": "short functional transitions", "imagery": "product evidence before decoration" },
+      "dials": { "designVariance": 5, "motionIntensity": 3, "visualDensity": 4 },
+      "semanticColors": {
+        "light": { "background": "#f3f5f8", "surface": "#ffffff", "foreground": "#18212f", "muted": "#667085", "accent": "#2858d9", "onAccent": "#ffffff", "border": "#dfe3e9", "danger": "#b42318" },
+        "dark": { "background": "#09101b", "surface": "#101a29", "foreground": "#e7ebf2", "muted": "#9ba8ba", "accent": "#7da2ff", "onAccent": "#101828", "border": "#263448", "danger": "#ff8b82" }
+      },
+      "tokens": { "fontUi": "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", "fontDisplay": "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", "fontMono": "ui-monospace, SFMono-Regular, Menlo, monospace", "fontMobileUi": "system-ui", "fontMobileDisplay": "system-ui", "radius": { "sm": 7, "md": 9, "lg": 12 }, "motion": { "fastMs": 150, "standardMs": 200 } },
+      "rules": { "do": ["Use whitespace and typography for hierarchy", "Keep operational surfaces dense but readable", "Show real state and evidence"], "dont": ["Decorative gradients without meaning", "Nested cards for every group", "Motion that delays a task"] },
+      "adapters": { "marketing": "local-verified", "desktop-web": "implemented", "admin": "implemented", "docs": "implemented", "mobile": "implemented" },
+      "quality": { "contrast": "WCAG AA", "reducedMotion": true, "fontBudget": "two families maximum", "assetPolicy": "route-specific" }
+    },
+    {
+      "id": "precision-saas",
+      "version": "0.1.0",
+      "packId": "design.stylekit-adapted",
+      "name": "Precision SaaS",
+      "description": "Professional light-first system for SaaS marketing, billing, settings, and data-heavy product work.",
+      "status": "local-verified",
+      "targets": ["marketing", "desktop-web", "admin", "docs", "mobile"],
+      "source": [{ "name": "StyleKit", "url": "https://github.com/AnxForever/stylekit", "revision": "29141b684d5abb967558eb8083fbae91dbbc51b8", "license": "MIT", "styles": ["corporate-clean", "stripe-style"], "relationship": "adapted-donor" }],
+      "direction": { "tone": "confident, technical, conversion-aware", "typography": "clean sans with generous marketing scale", "shape": "8-12px radius", "depth": "borders with one restrained shadow layer", "motion": "120-180ms functional feedback", "imagery": "real product evidence and restrained technical diagrams" },
+      "dials": { "designVariance": 6, "motionIntensity": 4, "visualDensity": 4 },
+      "semanticColors": {
+        "light": { "background": "#f5f8fc", "surface": "#ffffff", "foreground": "#10243e", "muted": "#5c6c80", "accent": "#175cd3", "onAccent": "#ffffff", "border": "#d7e0ea", "danger": "#b42318" },
+        "dark": { "background": "#0b1320", "surface": "#121e2e", "foreground": "#eef4fb", "muted": "#9cabc0", "accent": "#78a9ff", "onAccent": "#0b1320", "border": "#283a50", "danger": "#ff8b82" }
+      },
+      "tokens": { "fontUi": "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", "fontDisplay": "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", "fontMono": "ui-monospace, SFMono-Regular, Menlo, monospace", "fontMobileUi": "system-ui", "fontMobileDisplay": "system-ui", "radius": { "sm": 6, "md": 8, "lg": 12 }, "motion": { "fastMs": 140, "standardMs": 180 } },
+      "rules": { "do": ["Use one conversion focus per section", "Pair claims with product evidence", "Keep controls compact and predictable"], "dont": ["Pink-red-yellow novelty palettes", "Oversized pill cards", "Heavy shadow stacks"] },
+      "adapters": { "marketing": "local-verified", "desktop-web": "implemented", "admin": "implemented", "docs": "implemented", "mobile": "implemented" },
+      "quality": { "contrast": "WCAG AA", "reducedMotion": true, "fontBudget": "two families maximum", "assetPolicy": "route-specific" }
+    },
+    {
+      "id": "editorial-signal",
+      "version": "0.1.0",
+      "packId": "design.stylekit-adapted",
+      "name": "Editorial Signal",
+      "description": "Content-led product direction with sharp geometry, strong type, asymmetric rhythm, and minimal ornament.",
+      "status": "local-verified",
+      "targets": ["marketing", "desktop-web", "admin", "docs", "mobile"],
+      "source": [{ "name": "StyleKit", "url": "https://github.com/AnxForever/stylekit", "revision": "29141b684d5abb967558eb8083fbae91dbbc51b8", "license": "MIT", "styles": ["editorial", "asymmetric-grid"], "relationship": "adapted-donor" }],
+      "direction": { "tone": "authoritative, cultural, direct", "typography": "display serif plus functional sans", "shape": "sharp corners", "depth": "flat with rules and contrast", "motion": "color and reveal only", "imagery": "large editorial crops and diagrams" },
+      "dials": { "designVariance": 8, "motionIntensity": 4, "visualDensity": 3 },
+      "semanticColors": {
+        "light": { "background": "#f4f5f2", "surface": "#fbfcf8", "foreground": "#171916", "muted": "#62675f", "accent": "#b52631", "onAccent": "#ffffff", "border": "#c8cdc4", "danger": "#a61b29" },
+        "dark": { "background": "#151713", "surface": "#1f221d", "foreground": "#f1f3ed", "muted": "#aeb5aa", "accent": "#ff7078", "onAccent": "#151713", "border": "#41483e", "danger": "#ff8b82" }
+      },
+      "tokens": { "fontUi": "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", "fontDisplay": "Georgia, 'Times New Roman', serif", "fontMono": "ui-monospace, SFMono-Regular, Menlo, monospace", "fontMobileUi": "system-ui", "fontMobileDisplay": "serif", "radius": { "sm": 0, "md": 0, "lg": 0 }, "motion": { "fastMs": 140, "standardMs": 200 } },
+      "rules": { "do": ["Let type and grid create character", "Use intentional asymmetry with stable reading order", "Keep application controls simpler than marketing pages"], "dont": ["Rounded cards", "Decorative shadows", "Generic centered section repetition"] },
+      "adapters": { "marketing": "local-verified", "desktop-web": "implemented", "admin": "implemented", "docs": "implemented", "mobile": "implemented" },
+      "quality": { "contrast": "WCAG AA", "reducedMotion": true, "fontBudget": "one variable serif plus one sans", "assetPolicy": "editorial crops with responsive sources" }
+    },
+    {
+      "id": "midnight-control",
+      "version": "0.1.0",
+      "packId": "design.stylekit-adapted",
+      "name": "Midnight Control",
+      "description": "Dark-first technical interface for developer tools, AI products, monitoring, and focused operational workflows.",
+      "status": "local-verified",
+      "targets": ["marketing", "desktop-web", "admin", "docs", "mobile"],
+      "source": [{ "name": "StyleKit", "url": "https://github.com/AnxForever/stylekit", "revision": "29141b684d5abb967558eb8083fbae91dbbc51b8", "license": "MIT", "styles": ["linear-style", "dashboard-layout"], "relationship": "adapted-donor" }],
+      "direction": { "tone": "focused, fast, technical", "typography": "compact sans with optional mono data", "shape": "restrained 6-8px radius", "depth": "translucent fills and low-contrast borders", "motion": "100-150ms state transitions", "imagery": "live product UI and technical diagrams" },
+      "dials": { "designVariance": 6, "motionIntensity": 4, "visualDensity": 7 },
+      "semanticColors": {
+        "light": { "background": "#f4f6f8", "surface": "#ffffff", "foreground": "#17181c", "muted": "#68707d", "accent": "#4c5bd4", "onAccent": "#ffffff", "border": "#dce0e7", "danger": "#bd303e" },
+        "dark": { "background": "#0a0a0b", "surface": "#111114", "foreground": "#f1f2f4", "muted": "#9a9eaa", "accent": "#8189ef", "onAccent": "#0a0a0b", "border": "#29292e", "danger": "#ed6670" }
+      },
+      "tokens": { "fontUi": "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", "fontDisplay": "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", "fontMono": "ui-monospace, SFMono-Regular, Menlo, monospace", "fontMobileUi": "system-ui", "fontMobileDisplay": "system-ui", "radius": { "sm": 5, "md": 7, "lg": 8 }, "motion": { "fastMs": 110, "standardMs": 150 } },
+      "rules": { "do": ["Use borders and density for hierarchy", "Reserve accent for state and primary action", "Keep data and shortcuts close to the task"], "dont": ["Large glow effects", "Colorful status noise", "Dark surfaces without a complete light mode"] },
+      "adapters": { "marketing": "local-verified", "desktop-web": "implemented", "admin": "implemented", "docs": "implemented", "mobile": "implemented" },
+      "quality": { "contrast": "WCAG AA", "reducedMotion": true, "fontBudget": "one sans plus optional mono subset", "assetPolicy": "lazy product evidence" }
+    }
+  ]
+}

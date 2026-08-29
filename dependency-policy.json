@@ -1,0 +1,99 @@
+{
+  "$schema": "./schemas/dependency-policy.schema.json",
+  "stableOnly": true,
+  "automaticMerge": false,
+  "automaticProductionRelease": false,
+  "externalPins": {
+    "eas-cli": "22.0.0",
+    "shadcn": "4.18.0"
+  },
+  "preReleasePins": {
+    "@all2cf/database-connect": {
+      "version": "0.2.0-rc.2",
+      "reason": "User-selected CFPG integration; this is the only published connector version and npm latest as of 2026-08-21.",
+      "updatePolicy": "Review the All2CF install descriptor, package SHA-256, alias, Service Binding contract, native-PG removal cycle, and both Worker dry-runs before changing the pin."
+    }
+  },
+  "tracks": [
+    {
+      "id": "cloudflare-web-worker",
+      "mode": "latest-stable",
+      "packages": [
+        "wrangler",
+        "@cloudflare/workers-types",
+        "hono",
+        "pg",
+        "drizzle-orm",
+        "drizzle-kit",
+        "vite",
+        "@vitejs/plugin-react",
+        "tailwindcss",
+        "@tailwindcss/vite",
+        "lucide-react",
+        "recharts",
+        "clsx",
+        "tailwind-merge",
+        "class-variance-authority",
+        "radix-ui",
+        "shadcn"
+      ]
+    },
+    {
+      "id": "astro-docs",
+      "mode": "latest-stable",
+      "packages": ["astro", "@astrojs/starlight", "sharp"]
+    },
+    {
+      "id": "browser-quality",
+      "mode": "latest-stable",
+      "packages": ["playwright", "axe-core", "lighthouse"]
+    },
+    {
+      "id": "expo-sdk",
+      "mode": "expo-compatible",
+      "packages": [
+        "expo",
+        "react-native",
+        "react",
+        "react-native-web",
+        "expo-router",
+        "expo-updates",
+        "expo-dev-client",
+        "expo-network",
+        "expo-web-browser",
+        "expo-secure-store",
+        "expo-notifications",
+        "@expo/fingerprint",
+        "@tamagui/core",
+        "@tamagui/stacks",
+        "@tamagui/text",
+        "@tamagui/button",
+        "@tamagui/input",
+        "@tamagui/label",
+        "@tamagui/shapes",
+        "@tamagui/spinner",
+        "@tamagui/shorthands",
+        "eas-cli"
+      ]
+    },
+    {
+      "id": "better-auth",
+      "mode": "aligned-latest-stable",
+      "packages": [
+        "better-auth",
+        "@better-auth/expo",
+        "auth",
+        "@better-auth/stripe",
+        "@better-auth/api-key"
+      ],
+      "companions": ["stripe", "jose"],
+      "requirements": [
+        "same Better Auth release line",
+        "review official migration notes",
+        "generate and review SQL",
+        "verify auth and Stripe flows",
+        "revalidate the Metro focused cookie-utils resolver"
+      ]
+    }
+  ]
+}

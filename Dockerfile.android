@@ -1,0 +1,11 @@
+FROM node:24.15.0-bookworm-slim
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openjdk-17-jdk-headless git openssh-client ca-certificates unzip \
+  && rm -rf /var/lib/apt/lists/*
+
+ENV ANDROID_HOME=/opt/android-sdk
+ENV ANDROID_SDK_ROOT=/opt/android-sdk
+ENV PATH=/opt/android-sdk/platform-tools:/opt/android-sdk/cmdline-tools/latest/bin:${PATH}
+
+WORKDIR /workspace

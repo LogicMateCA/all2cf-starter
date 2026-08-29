@@ -1,0 +1,66 @@
+services:
+  starter-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - starter-node-modules:/workspace/node_modules
+      - /opt/1panel/apps/_starter_profile:/opt/1panel/apps/_starter_profile:ro
+    ports:
+      - "15173:5173"
+      - "18787:8787"
+    restart: unless-stopped
+    command: ["npm", "run", "setup"]
+
+  starter-ops:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    profiles: ["ops"]
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - starter-node-modules:/workspace/node_modules
+      - /opt/1panel/apps/_starter_profile:/opt/1panel/apps/_starter_profile:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /root/.ssh/id_1panel_root_192_168_0_91:/path/to/production-ssh-key:ro
+      - /root/.ssh/known_hosts:/path/to/known_hosts:ro
+    command: ["sleep", "infinity"]
+
+  browser-acceptance:
+    image: mcr.microsoft.com/playwright:v1.62.1-noble
+    profiles: ["qa"]
+    network_mode: "service:starter-dev"
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - starter-node-modules:/workspace/node_modules
+    environment:
+      STARTER_BROWSER_BASE_URL: http://127.0.0.1:8787
+      STARTER_BROWSER_EXECUTABLE_PATH: /ms-playwright/chromium-1234/chrome-linux64/chrome
+    command: ["sleep", "infinity"]
+
+  starter-android-builder:
+    build:
+      context: .
+      dockerfile: Dockerfile.android
+    profiles: ["mobile"]
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - starter-node-modules:/workspace/node_modules
+      - starter-android-gradle-cache:/root/.gradle
+      - /opt/android-sdk:/opt/android-sdk
+      - /root/.ssh/miner-mac-worker:/path/to/mobile-mac-key:ro
+      - /root/.ssh/known_hosts:/root/.ssh/known_hosts:ro
+    environment:
+      ANDROID_HOME: /opt/android-sdk
+      ANDROID_SDK_ROOT: /opt/android-sdk
+      MOBILE_MAC_SSH_KEY_PATH: /path/to/mobile-mac-key
+    command: ["sleep", "infinity"]
+
+volumes:
+  starter-node-modules:
+  starter-android-gradle-cache:

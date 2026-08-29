@@ -1,0 +1,11 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "capability.cloudflare-images",
+  "version": "0.1.0",
+  "source": { "name": "Cloudflare Images binding", "url": "https://developers.cloudflare.com/images/optimization/binding/", "relationship": "platform-provider" },
+  "files": [{ "source": "templates/cloudflare-images-worker.ts", "target": "workers/app/features/cloudflare-images-worker.ts" }],
+  "dependencies": [],
+  "routes": [],
+  "workerFeature": { "module": "../features/cloudflare-images-worker", "export": "cloudflareImagesFeature" }
+}

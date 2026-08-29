@@ -1,0 +1,688 @@
+import { createHash, createHmac } from "node:crypto";
+import { execFileSync, spawnSync } from "node:child_process";
+import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { parse as parseJsonc } from "jsonc-parser";
+import { parseEnv } from "./lib/env-profile.mjs";
+import { renderSocialProviderSelection } from "./lib/social-providers.mjs";
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const config = JSON.parse(await readFile(path.join(root, "starter.config.json"), "utf8"));
+const blueprint = JSON.parse(await readFile(path.join(root, "starter.blueprint.json"), "utf8"));
+const selectedPacks = new Set(Object.values(blueprint.selections).flat().filter(({ lifecycle }) => lifecycle.selected && lifecycle.materialized).map(({ id }) => id));
+const selectedSocialProviders = new Set(blueprint.providers?.socialAuth || ["google"]);
+const socialSecretRequirements = {
+  google: ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"],
+  github: ["GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET"],
+  apple: ["APPLE_CLIENT_ID", "APPLE_TEAM_ID", "APPLE_KEY_ID", "APPLE_PRIVATE_KEY_BASE64", "APPLE_APP_BUNDLE_IDENTIFIER"],
+  microsoft: ["MICROSOFT_CLIENT_ID", "MICROSOFT_CLIENT_SECRET"],
+  discord: ["DISCORD_CLIENT_ID", "DISCORD_CLIENT_SECRET"],
+  facebook: ["FACEBOOK_CLIENT_ID", "FACEBOOK_CLIENT_SECRET"],
+  linkedin: ["LINKEDIN_CLIENT_ID", "LINKEDIN_CLIENT_SECRET"],
+};
+const socialSecretNames = new Set(Object.values(socialSecretRequirements).flat());
+const emailSecretNames = new Set(["CFSEND_API_URL", "CFSEND_API_KEY", "CFSEND_FROM", "RESEND_API_KEY", "RESEND_FROM"]);
+const stripeSelected = selectedPacks.has("saas.billing-stripe");
+const outgoingWebhooksSelected = selectedPacks.has("saas.outgoing-webhooks");
+const storageProvider = blueprint.providers?.storage?.provider || "none";
+const antiAbuseProvider = blueprint.providers?.antiAbuse?.provider || "none";
+const searchProvider = blueprint.providers?.search?.provider || "none";
+const pushProvider = blueprint.providers?.push?.provider || "none";
+const smsProvider = blueprint.providers?.sms?.provider || "none";
+const streamProvider = blueprint.providers?.media?.stream?.provider || "none";
+const env = parseEnv(await readFile(path.join(root, ".dev.vars"), "utf8"));
+const providers = JSON.parse(await readFile(path.join(root, "profiles/providers.json"), "utf8"));
+const profilePath = process.env.STARTER_DEV_PROFILE_PATH || providers.defaultPath;
+let profileEnv = new Map();
+try { profileEnv = parseEnv(await readFile(profilePath, "utf8")); } catch {}
+const statePath = path.join(root, ".all2cf/state.local.json");
+const preflightPath = path.join(root, ".all2cf/preflight.local.json");
+const state = await readState();
+
+function run(command, args, options = {}) {
+  return execFileSync(command, args, {
+    cwd: root,
+    encoding: "utf8",
+    stdio: options.inherit ? "inherit" : ["ignore", "pipe", "pipe"],
+    ...options,
+  });
+}
+
+function exists(command, args) {
+  try { run(command, args); return true; } catch { return false; }
+}
+
+function required(name) {
+  const value = process.env[name] || env.get(name) || profileEnv.get(name);
+  if (!value) throw new Error(`${name} is required`);
+  return value;
+}
+
+function syncWorkerSecrets(environment, wranglerConfig) {
+  const configuredEmailProvider = config.email?.provider || "cfsend";
+  const emailProvider = configuredEmailProvider === "cloudflare-email-service" ? "cloudflare-email" : configuredEmailProvider;
+  const secrets = {
+    BETTER_AUTH_SECRET: required(environment === "production" ? "STARTER_PRODUCTION_BETTER_AUTH_SECRET" : "BETTER_AUTH_SECRET"),
+    ...(selectedSocialProviders.has("google") ? {
+      GOOGLE_CLIENT_ID: required("GOOGLE_CLIENT_ID"),
+      GOOGLE_CLIENT_SECRET: required("GOOGLE_CLIENT_SECRET"),
+    } : {}),
+    ...(selectedSocialProviders.has("github") ? {
+      GITHUB_CLIENT_ID: required("GITHUB_CLIENT_ID"),
+      GITHUB_CLIENT_SECRET: required("GITHUB_CLIENT_SECRET"),
+    } : {}),
+    ...(selectedSocialProviders.has("apple") ? {
+      APPLE_CLIENT_ID: required("APPLE_CLIENT_ID"),
+      APPLE_TEAM_ID: required("APPLE_TEAM_ID"),
+      APPLE_KEY_ID: required("APPLE_KEY_ID"),
+      APPLE_PRIVATE_KEY_BASE64: required("APPLE_PRIVATE_KEY_BASE64"),
+      APPLE_APP_BUNDLE_IDENTIFIER: required("APPLE_APP_BUNDLE_IDENTIFIER"),
+    } : {}),
+    ...(emailProvider === "cfsend" ? {
+      CFSEND_API_URL: required("CFSEND_API_URL"),
+      CFSEND_API_KEY: required("CFSEND_API_KEY"),
+      CFSEND_FROM: required("CFSEND_FROM"),
+    } : emailProvider === "resend" ? {
+      RESEND_API_KEY: required("RESEND_API_KEY"),
+      RESEND_FROM: required("RESEND_FROM"),
+    } : {}),
+    ...(stripeSelected ? {
+      STRIPE_SECRET_KEY: required(environment === "production" ? "STARTER_PRODUCTION_STRIPE_SECRET_KEY" : "STRIPE_SECRET_KEY"),
+      STRIPE_WEBHOOK_SECRET: required(environment === "production" ? "STARTER_PRODUCTION_STRIPE_WEBHOOK_SECRET" : "STRIPE_WEBHOOK_SECRET"),
+      STRIPE_PRICE_PRO: required(environment === "production" ? "STARTER_PRODUCTION_STRIPE_PRICE_PRO" : "STRIPE_PRICE_PRO"),
+    } : {}),
+    ...(outgoingWebhooksSelected ? {
+      WEBHOOK_SIGNING_KEY: required(
+        environment === "production"
+          ? "STARTER_PRODUCTION_WEBHOOK_SIGNING_KEY"
+          : "WEBHOOK_SIGNING_KEY",
+      ),
+    } : {}),
+    ...(storageProvider === "s3-compatible" ? {
+      S3_ACCESS_KEY_ID: required(
+        environment === "production"
+          ? "STARTER_PRODUCTION_S3_ACCESS_KEY_ID"
+          : "S3_ACCESS_KEY_ID",
+      ),
+      S3_SECRET_ACCESS_KEY: required(
+        environment === "production"
+          ? "STARTER_PRODUCTION_S3_SECRET_ACCESS_KEY"
+          : "S3_SECRET_ACCESS_KEY",
+      ),
+    } : {}),
+    ...(antiAbuseProvider === "turnstile" ? {
+      TURNSTILE_SECRET_KEY: required(
+        environment === "production"
+          ? "STARTER_PRODUCTION_TURNSTILE_SECRET_KEY"
+          : "TURNSTILE_SECRET_KEY",
+      ),
+    } : {}),
+    ...(pushProvider === "expo-push" && blueprint.providers.push.accessTokenRequired ? {
+      EXPO_PUSH_ACCESS_TOKEN: required(
+        environment === "production"
+          ? "STARTER_PRODUCTION_EXPO_PUSH_ACCESS_TOKEN"
+          : "EXPO_PUSH_ACCESS_TOKEN",
+      ),
+    } : {}),
+    ...(smsProvider === "twilio" ? {
+      TWILIO_ACCOUNT_SID: required(environment === "production" ? "STARTER_PRODUCTION_TWILIO_ACCOUNT_SID" : "TWILIO_ACCOUNT_SID"),
+      TWILIO_API_KEY: required(environment === "production" ? "STARTER_PRODUCTION_TWILIO_API_KEY" : "TWILIO_API_KEY"),
+      TWILIO_API_SECRET: required(environment === "production" ? "STARTER_PRODUCTION_TWILIO_API_SECRET" : "TWILIO_API_SECRET"),
+      TWILIO_FROM: required(environment === "production" ? "STARTER_PRODUCTION_TWILIO_FROM" : "TWILIO_FROM"),
+    } : {}),
+    ...(streamProvider === "cloudflare-stream" ? {
+      CLOUDFLARE_STREAM_TOKEN: required(environment === "production" ? "STARTER_PRODUCTION_CLOUDFLARE_STREAM_TOKEN" : "CLOUDFLARE_STREAM_TOKEN"),
+      STREAM_WEBHOOK_SECRET: required(environment === "production" ? "STARTER_PRODUCTION_STREAM_WEBHOOK_SECRET" : "STREAM_WEBHOOK_SECRET"),
+    } : {}),
+  };
+  const result = spawnSync("npx", ["wrangler", "secret", "bulk", "--config", wranglerConfig], {
+    cwd: root,
+    input: JSON.stringify(secrets),
+    encoding: "utf8",
+    env: { ...process.env, CLOUDFLARE_API_TOKEN: required("CLOUDFLARE_API_TOKEN") },
+  });
+  if (result.status !== 0) throw new Error(`Worker secret sync failed: ${result.stderr || result.stdout}`);
+}
+
+async function readState() {
+  try { return JSON.parse(await readFile(statePath, "utf8")); }
+  catch { return { schemaVersion: "starter-provision-state/v1", resources: {}, releases: {} }; }
+}
+
+async function saveState() {
+  await mkdir(path.dirname(statePath), { recursive: true });
+  state.updatedAt = new Date().toISOString();
+  await writeFile(statePath, `${JSON.stringify(state, null, 2)}\n`);
+}
+
+async function requireProvisionPreflight() {
+  let receipt;
+  try { receipt = JSON.parse(await readFile(preflightPath, "utf8")); }
+  catch { throw new Error("Cloudflare provisioning requires a current official MCP or All2CF control-plane preflight receipt"); }
+  const configSource = await readFile(path.join(root, "starter.config.json"), "utf8");
+  const configHash = createHash("sha256").update(configSource).digest("hex");
+  const age = Date.now() - new Date(receipt.checkedAt).getTime();
+  const trustedEvidence = receipt.evidence === "official-cloudflare-mcp-snapshot" || (receipt.evidence === "all2cf-control-plane-snapshot" && receipt.authority?.service === "all2cf" && receipt.authority?.authorization === "saved-owner-connection" && process.env.STARTER_CONTROL_PLANE === "all2cf");
+  if (receipt.schemaVersion !== "starter-cloudflare-preflight/v1" || !trustedEvidence || !receipt.snapshotHash || receipt.configHash !== configHash || receipt.accountId !== config.cloudflare.accountId || receipt.projectSlug !== config.project.slug || receipt.collisions?.length || !Number.isFinite(age) || age < 0 || age > 30 * 60 * 1000) {
+    throw new Error("Cloudflare preflight receipt is stale, untrusted, or does not match the current project configuration");
+  }
+}
+
+async function cloudflare(method, apiPath, body) {
+  const response = await fetch(`https://api.cloudflare.com/client/v4${apiPath}`, {
+    method,
+    headers: {
+      Authorization: `Bearer ${required("CLOUDFLARE_API_TOKEN")}`,
+      ...(body ? { "Content-Type": "application/json" } : {}),
+    },
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+  const payload = await response.json();
+  if (!response.ok || !payload.success) {
+    const message = (payload.errors || []).map((error) => `${error.code}: ${error.message}`).join("; ") || `HTTP ${response.status}`;
+    throw new Error(`Cloudflare API ${method} ${apiPath} failed: ${message}`);
+  }
+  return payload.result;
+}
+
+function dockerContainerExists(name) {
+  return exists("docker", ["container", "inspect", name]);
+}
+
+function ensureVolume(name) {
+  if (!exists("docker", ["volume", "inspect", name])) run("docker", ["volume", "create", name]);
+}
+
+function ensureTlsVolume(volume, image) {
+  ensureVolume(volume);
+  run("docker", [
+    "run", "--rm", "-v", `${volume}:/tls`, image, "bash", "-lc",
+    `if [ ! -s /tls/server.key ]; then openssl req -x509 -newkey rsa:2048 -nodes -days 3650 -subj '/CN=${config.development.database.container}' -keyout /tls/server.key -out /tls/server.crt >/dev/null 2>&1; chown 999:999 /tls/server.key /tls/server.crt; chmod 600 /tls/server.key; chmod 644 /tls/server.crt; fi`,
+  ]);
+}
+
+function ensureDevelopmentDatabase() {
+  const database = config.development.database;
+  const password = required("POSTGRES_PASSWORD");
+  const dataVolume = `${config.project.slug}-postgres-dev-data`;
+  const tlsVolume = `${config.project.slug}-postgres-dev-tls`;
+  ensureVolume(dataVolume);
+  ensureTlsVolume(tlsVolume, database.image);
+
+  if (dockerContainerExists(database.container)) {
+    const inspection = JSON.parse(run("docker", ["container", "inspect", database.container]))[0];
+    const envValues = new Set(inspection.Config?.Env || []);
+    const port = inspection.NetworkSettings?.Ports?.["5432/tcp"]?.[0];
+    if (inspection.Config?.Image !== database.image || !envValues.has(`POSTGRES_DB=${database.database}`) || !envValues.has(`POSTGRES_USER=${database.user}`) || port?.HostIp !== database.host || Number(port?.HostPort) !== database.port) {
+      throw new Error(`Development database container ${database.container} exists with an unexpected identity`);
+    }
+  } else {
+    run("docker", [
+      "run", "-d",
+      "--name", database.container,
+      "--restart", "unless-stopped",
+      "-e", `POSTGRES_DB=${database.database}`,
+      "-e", `POSTGRES_USER=${database.user}`,
+      "-e", `POSTGRES_PASSWORD=${password}`,
+      "-p", `${database.host}:${database.port}:5432`,
+      "-v", `${dataVolume}:/var/lib/postgresql`,
+      "-v", `${tlsVolume}:/tls:ro`,
+      "--health-cmd", `pg_isready -U ${database.user} -d ${database.database}`,
+      "--health-interval", "5s",
+      "--health-timeout", "5s",
+      "--health-retries", "20",
+      database.image,
+      "postgres", "-c", "ssl=on", "-c", "ssl_cert_file=/tls/server.crt", "-c", "ssl_key_file=/tls/server.key",
+    ]);
+  }
+
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    const health = run("docker", ["inspect", database.container, "--format", "{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}"]).trim();
+    if (health === "healthy") break;
+    if (attempt === 39) throw new Error("Development PostgreSQL did not become healthy");
+    run("sleep", ["1"]);
+  }
+  const ssl = run("docker", ["exec", database.container, "psql", "-U", database.user, "-d", database.database, "-Atc", "show ssl"]).trim();
+  if (ssl !== "on") throw new Error("Development PostgreSQL TLS is not enabled");
+  state.resources.developmentDatabase = { database: database.database, user: database.user, host: database.host, port: database.port, container: database.container, tls: true };
+}
+
+function ensureProductionDatabase() {
+  const database = config.production.database;
+  const password = new URL(required("STARTER_PRODUCTION_DATABASE_URL")).password;
+  if (!/^[A-Za-z0-9_-]+$/u.test(password)) throw new Error("Production database password contains unsupported provisioning characters");
+  const allowExisting = state.resources.productionDatabase?.database === database.database && state.resources.productionDatabase?.user === database.user;
+  const script = `set -eu\nC=${database.container}\nU=${database.adminUser}\nROLE_EXISTS=$(docker exec -u postgres "$C" psql -U "$U" -tAc "select 1 from pg_roles where rolname='${database.user}'")\nDB_OWNER=$(docker exec -u postgres "$C" psql -U "$U" -tAc "select pg_get_userbyid(datdba) from pg_database where datname='${database.database}'")\nif [ "${allowExisting ? "1" : "0"}" != 1 ] && { [ "$ROLE_EXISTS" = 1 ] || [ -n "$DB_OWNER" ]; }; then echo "production database or role collision" >&2; exit 42; fi\nif [ -n "$DB_OWNER" ] && [ "$DB_OWNER" != "${database.user}" ]; then echo "production database has unexpected owner" >&2; exit 43; fi\nif [ "$ROLE_EXISTS" != 1 ]; then docker exec -u postgres "$C" psql -U "$U" -v ON_ERROR_STOP=1 -c "create role ${database.user} login"; fi\ndocker exec -u postgres "$C" psql -U "$U" -v ON_ERROR_STOP=1 -c "alter role ${database.user} password '${password}'"\nif [ -z "$DB_OWNER" ]; then docker exec -u postgres "$C" createdb -U "$U" -O ${database.user} ${database.database}; fi\ndocker exec -u postgres "$C" psql -U "$U" -d ${database.database} -v ON_ERROR_STOP=1 -c "grant all on schema public to ${database.user}"\n`;
+  const result = spawnSync("ssh", ["-i", database.sshKey, "-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=yes", "-o", `UserKnownHostsFile=${database.sshKnownHosts}`, database.sshHost, "bash", "-s"], { cwd: root, input: script, encoding: "utf8" });
+  if (result.status !== 0) throw new Error(`Production PostgreSQL provisioning failed: ${result.stderr || result.stdout}`);
+  state.resources.productionDatabase = { database: database.database, user: database.user, host: database.host, port: database.port, container: database.container };
+}
+
+async function ensureVpcService() {
+  const accountId = config.cloudflare.accountId;
+  const database = config.development.database;
+  const services = await cloudflare("GET", `/accounts/${accountId}/connectivity/directory/services`);
+  let service = services.find((item) => item.name === database.vpcServiceName);
+  const desired = {
+    name: database.vpcServiceName,
+    type: "tcp",
+    app_protocol: "postgresql",
+    tcp_port: database.port,
+    host: { ipv4: database.host, network: { tunnel_id: database.tunnelId } },
+    tls_settings: { cert_verification_mode: "disabled" },
+  };
+  if (!service) service = await cloudflare("POST", `/accounts/${accountId}/connectivity/directory/services`, desired);
+  else if (service.type !== "tcp" || service.app_protocol !== "postgresql" || service.tcp_port !== database.port || service.host?.ipv4 !== database.host || service.host?.network?.tunnel_id !== database.tunnelId || service.tls_settings?.cert_verification_mode !== "disabled") throw new Error(`VPC service ${database.vpcServiceName} exists with an unexpected identity`);
+  state.resources.developmentVpcService = { id: service.service_id, name: service.name, tunnelId: database.tunnelId };
+  return service.service_id;
+}
+
+async function ensureHyperdrive(environment, serviceId) {
+  const accountId = config.cloudflare.accountId;
+  const target = config[environment];
+  const database = target.database;
+  const url = new URL(environment === "development" ? required("DATABASE_URL") : required("STARTER_PRODUCTION_DATABASE_URL"));
+  const configurations = await cloudflare("GET", `/accounts/${accountId}/hyperdrive/configs`);
+  let hyperdrive = configurations.find((item) => item.name === database.hyperdriveName);
+  if (!hyperdrive) {
+    hyperdrive = await cloudflare("POST", `/accounts/${accountId}/hyperdrive/configs`, {
+      name: database.hyperdriveName,
+      origin: { scheme: "postgresql", database: database.database, user: database.user, password: url.password, service_id: serviceId },
+      caching: { disabled: true },
+      origin_connection_limit: environment === "development" ? 5 : 10,
+    });
+  }
+  const full = await cloudflare("GET", `/accounts/${accountId}/hyperdrive/configs/${hyperdrive.id}`);
+  if (full.origin?.database !== database.database || full.origin?.user !== database.user || full.origin?.service_id !== serviceId) throw new Error(`${environment} Hyperdrive exists with unexpected origin`);
+  state.resources[`${environment}Hyperdrive`] = { id: full.id, name: full.name, database: database.database, serviceId };
+  return full.id;
+}
+
+async function adoptExistingHyperdrive(environment, hyperdriveId) {
+  if (!/^[a-f0-9]{32}$/iu.test(hyperdriveId))
+    throw new Error("STARTER_EXISTING_HYPERDRIVE_ID must be a 32-character Cloudflare ID");
+  const database = config[environment].database;
+  const full = await cloudflare("GET", `/accounts/${config.cloudflare.accountId}/hyperdrive/configs/${hyperdriveId}`);
+  if (full.origin?.database !== database.database || full.origin?.user !== database.user)
+    throw new Error(`${environment} existing Hyperdrive has an unexpected database or user identity`);
+  state.resources[`${environment}Hyperdrive`] = {
+    id: full.id,
+    name: full.name,
+    database: database.database,
+    serviceId: full.origin?.service_id || null,
+    adopted: true,
+  };
+  return full.id;
+}
+
+async function writeWrangler(environment, hyperdriveId) {
+  const target = config[environment];
+  const configuredEmailProvider = config.email?.provider || "cfsend";
+  const emailProvider = configuredEmailProvider === "cloudflare-email-service" ? "cloudflare-email" : configuredEmailProvider;
+  const configPath = path.join(root, target.wranglerConfig);
+  const errors = [];
+  const value = parseJsonc(await readFile(configPath, "utf8"), errors, { allowTrailingComma: true });
+  if (errors.length) throw new Error(`${target.wranglerConfig} contains invalid JSONC`);
+  value.name = target.worker;
+  value.workers_dev = true;
+  value.vars = {
+    ...(value.vars || {}),
+    APP_ENV: environment,
+    SERVICE_NAME: config.project.slug,
+    APP_NAME: config.project.name,
+    AUTH_CANONICAL_ORIGIN: `https://${target.domain}`,
+    AUTH_REQUIRE_EMAIL_VERIFICATION: "true",
+    AUTH_EMAIL_PROVIDER: emailProvider,
+    AUTH_SOCIAL_PROVIDERS: renderSocialProviderSelection(selectedSocialProviders),
+    RESEND_API_URL: config.email?.resendApiUrl || "https://api.resend.com",
+    ...(emailProvider === "cloudflare-email" ? { CLOUDFLARE_EMAIL_FROM: required("CLOUDFLARE_EMAIL_FROM") } : {}),
+    MOBILE_DEEP_LINK_SCHEMES: [`${config.project.slug}-dev://`, `${config.project.slug}-preview://`, `${config.project.slug}://`].join(","),
+  };
+  value.secrets = {
+    ...(value.secrets || {}),
+    required: [
+      ...new Set([
+        ...(value.secrets?.required || []).filter((name) => !socialSecretNames.has(name) && !emailSecretNames.has(name)),
+        "BETTER_AUTH_SECRET",
+        ...[...selectedSocialProviders].flatMap((provider) => socialSecretRequirements[provider] || []),
+        ...(emailProvider === "cfsend"
+          ? ["CFSEND_API_URL", "CFSEND_API_KEY", "CFSEND_FROM"]
+          : emailProvider === "resend"
+            ? ["RESEND_API_KEY", "RESEND_FROM"]
+            : []),
+        ...(stripeSelected
+          ? ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "STRIPE_PRICE_PRO"]
+          : []),
+      ]),
+    ].sort(),
+  };
+  if (emailProvider === "cloudflare-email") value.send_email = [{ name: "EMAIL" }];
+  else delete value.send_email;
+  value.hyperdrive = [{ binding: "HYPERDRIVE", id: hyperdriveId }];
+  value.routes = [{ pattern: target.domain, custom_domain: true }];
+  await writeFile(configPath, `${JSON.stringify(value, null, 2)}\n`);
+}
+
+async function ensureConfiguredQueues(environment) {
+  const target = config[environment];
+  const configPath = path.join(root, target.wranglerConfig);
+  const errors = [];
+  const value = parseJsonc(await readFile(configPath, "utf8"), errors, {
+    allowTrailingComma: true,
+  });
+  if (errors.length)
+    throw new Error(`${target.wranglerConfig} contains invalid JSONC`);
+  const names = [
+    ...(value.queues?.producers || []).map(({ queue }) => queue),
+    ...(value.queues?.consumers || []).map(({ queue }) => queue),
+  ].filter(Boolean);
+  const resources = [];
+  for (const queueName of new Set(names)) {
+    const existing = await cloudflare(
+      "GET",
+      `/accounts/${config.cloudflare.accountId}/queues?name=${encodeURIComponent(queueName)}`,
+    );
+    let queue = (Array.isArray(existing) ? existing : []).find(
+      (entry) => entry.queue_name === queueName,
+    );
+    if (!queue)
+      queue = await cloudflare(
+        "POST",
+        `/accounts/${config.cloudflare.accountId}/queues`,
+        { queue_name: queueName },
+      );
+    if (queue.queue_name !== queueName)
+      throw new Error(`Cloudflare Queue ${queueName} returned an unexpected identity`);
+    resources.push({ id: queue.queue_id, name: queue.queue_name });
+  }
+  state.resources[`${environment}Queues`] = resources;
+}
+
+async function ensureConfiguredR2Buckets(environment) {
+  if (storageProvider !== "cloudflare-r2") {
+    state.resources[`${environment}R2Buckets`] = [];
+    return;
+  }
+  const targetStorage = blueprint.providers.storage?.[environment];
+  const bucketName = targetStorage?.bucket;
+  if (!bucketName)
+    throw new Error(`Blueprint is missing the ${environment} R2 bucket name`);
+  const listed = await cloudflare(
+    "GET",
+    `/accounts/${config.cloudflare.accountId}/r2/buckets?name_contains=${encodeURIComponent(bucketName)}`,
+  );
+  const buckets = Array.isArray(listed?.buckets) ? listed.buckets : [];
+  let bucket = buckets.find((entry) => entry.name === bucketName);
+  if (!bucket)
+    bucket = await cloudflare(
+      "POST",
+      `/accounts/${config.cloudflare.accountId}/r2/buckets`,
+      { name: bucketName },
+    );
+  if (bucket?.name !== bucketName)
+    throw new Error(`Cloudflare R2 bucket ${bucketName} returned an unexpected identity`);
+  state.resources[`${environment}R2Buckets`] = [{
+    name: bucket.name,
+    jurisdiction: bucket.jurisdiction || "default",
+    location: bucket.location || null,
+    storageClass: bucket.storage_class || "Standard",
+  }];
+}
+
+async function ensureConfiguredVectorize(environment) {
+  if (searchProvider !== "vectorize") {
+    state.resources[`${environment}VectorizeIndexes`] = [];
+    return;
+  }
+  const desired = blueprint.providers.search?.[environment];
+  if (!desired?.indexName)
+    throw new Error(`Blueprint is missing the ${environment} Vectorize index configuration`);
+  const indexes = await cloudflare(
+    "GET",
+    `/accounts/${config.cloudflare.accountId}/vectorize/v2/indexes`,
+  );
+  let index = (Array.isArray(indexes) ? indexes : []).find(
+    (entry) => entry.name === desired.indexName,
+  );
+  if (!index)
+    index = await cloudflare(
+      "POST",
+      `/accounts/${config.cloudflare.accountId}/vectorize/v2/indexes`,
+      {
+        name: desired.indexName,
+        description: `${config.project.slug} ${environment} vector index`,
+        config: { dimensions: desired.dimensions, metric: desired.metric },
+      },
+    );
+  if (
+    index?.name !== desired.indexName ||
+    Number(index?.config?.dimensions) !== desired.dimensions ||
+    index?.config?.metric !== desired.metric
+  )
+    throw new Error(`Cloudflare Vectorize index ${desired.indexName} has an unexpected immutable configuration`);
+  state.resources[`${environment}VectorizeIndexes`] = [{
+    name: index.name,
+    dimensions: Number(index.config.dimensions),
+    metric: index.config.metric,
+  }];
+}
+
+async function reconcileWorkflowResource(environment, targetConfig) {
+  const key = `${environment}Workflow`;
+  const declaration = (targetConfig.workflows || []).find(
+    (entry) => entry.binding === "STARTER_WORKFLOW",
+  );
+  if (declaration) {
+    state.resources[key] = {
+      name: declaration.name,
+      binding: declaration.binding,
+      className: declaration.class_name,
+      schedules: declaration.schedules || [],
+    };
+    return;
+  }
+  const previous = state.resources[key];
+  if (!previous?.name) return;
+  const workflows = await cloudflare("GET", `/accounts/${config.cloudflare.accountId}/workflows`);
+  if ((Array.isArray(workflows) ? workflows : []).some((entry) => entry.name === previous.name))
+    await cloudflare(
+      "DELETE",
+      `/accounts/${config.cloudflare.accountId}/workflows/${encodeURIComponent(previous.name)}`,
+    );
+  delete state.resources[key];
+}
+
+async function provision(environment = "all") {
+  if (!new Set(["all", "development", "production"]).has(environment))
+    throw new Error("provision environment must be development, production, or all");
+  await requireProvisionPreflight();
+  if (environment === "all" || environment === "development") {
+    const existingHyperdriveId = process.env.STARTER_EXISTING_HYPERDRIVE_ID || "";
+    let developmentHyperdriveId;
+    if (existingHyperdriveId) {
+      developmentHyperdriveId = await adoptExistingHyperdrive("development", existingHyperdriveId);
+    } else {
+      ensureDevelopmentDatabase();
+      await saveState();
+      const developmentServiceId = await ensureVpcService();
+      await saveState();
+      developmentHyperdriveId = await ensureHyperdrive("development", developmentServiceId);
+    }
+    await saveState();
+    await writeWrangler("development", developmentHyperdriveId);
+    await ensureConfiguredR2Buckets("development");
+    await saveState();
+    await ensureConfiguredVectorize("development");
+    await saveState();
+    await ensureConfiguredQueues("development");
+    await saveState();
+  }
+  if (environment === "all" || environment === "production") {
+    ensureProductionDatabase();
+    await saveState();
+    const productionHyperdriveId = await ensureHyperdrive("production", config.production.database.vpcServiceId);
+    await saveState();
+    await writeWrangler("production", productionHyperdriveId);
+    await ensureConfiguredR2Buckets("production");
+    await saveState();
+    await ensureConfiguredVectorize("production");
+    await saveState();
+    await ensureConfiguredQueues("production");
+    await saveState();
+  }
+  console.log(JSON.stringify({ ok: true, environment, resources: state.resources }, null, 2));
+}
+
+async function walkFiles(directory) {
+  const files = [];
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const resolved = path.join(directory, entry.name);
+    if (entry.isDirectory()) files.push(...await walkFiles(resolved));
+    else if (entry.isFile()) files.push(resolved);
+  }
+  return files.sort();
+}
+
+async function artifactHash() {
+  const hash = createHash("sha256");
+  for (const file of [
+    ...await walkFiles(path.join(root, "dist/web")),
+    ...await walkFiles(path.join(root, "workers/app")),
+    ...await walkFiles(path.join(root, "db/migrations")),
+    path.join(root, "package-lock.json"),
+  ].sort()) {
+    hash.update(path.relative(root, file));
+    hash.update(await readFile(file));
+  }
+  return hash.digest("hex");
+}
+
+async function fileHash(file) {
+  return createHash("sha256").update(await readFile(file)).digest("hex");
+}
+
+async function verifyUrl(environment, baseUrl) {
+  const checks = ["/", "/dp", "/login", "/api/health", "/api/version", "/api/health/database", "/api/auth-methods", "/api/session", "/api/preferences"];
+  const results = [];
+  for (const pathname of checks) {
+    const expectedStatus = new Set(["/api/session", "/api/preferences"]).has(pathname) ? 401 : 200;
+    let response;
+    for (let attempt = 0; attempt < 30; attempt += 1) {
+      try { response = await fetch(`${baseUrl}${pathname}`, { headers: { Accept: pathname.startsWith("/api/") ? "application/json" : "text/html" } }); }
+      catch {}
+      if (response?.status === expectedStatus) break;
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+    if (response?.status !== expectedStatus) throw new Error(`${baseUrl}${pathname} verification failed with ${response?.status || "network error"}; expected ${expectedStatus}`);
+    const contentType = response.headers.get("content-type");
+    const result = { path: pathname, status: response.status, contentType };
+    if (pathname.startsWith("/api/")) {
+      const payload = await response.json();
+      if (new Set(["/api/session", "/api/preferences"]).has(pathname) && payload.error?.code !== "UNAUTHORIZED") throw new Error(`${baseUrl}${pathname} did not enforce authentication`);
+      if (pathname === "/api/version" && (payload.data?.environment !== environment || payload.data?.service !== config.project.slug)) {
+        throw new Error(`${baseUrl}${pathname} returned the wrong release identity`);
+      }
+      if (pathname === "/api/health/database") {
+        const expected = config[environment].database;
+        if (payload.data?.database !== expected.database || payload.data?.user_name !== expected.user) {
+          throw new Error(`${baseUrl}${pathname} returned the wrong database identity`);
+        }
+      }
+      result.identity = payload.data;
+    }
+    results.push(result);
+  }
+  if (storageProvider !== "none") {
+    const pathname = "/api/__verification/storage";
+    const proof = createHmac("sha256", required("BETTER_AUTH_SECRET")).update("starter-storage-binding-round-trip").digest("hex");
+    const expectedBucket = blueprint.providers.storage?.[environment]?.bucket;
+    let response;
+    let payload;
+    for (let attempt = 0; attempt < 30; attempt += 1) {
+      try {
+        response = await fetch(`${baseUrl}${pathname}`, { method: "POST", headers: { Accept: "application/json", "x-starter-release-proof": proof } });
+        payload = await response.json();
+      } catch {
+        response = undefined;
+        payload = undefined;
+      }
+      if (response?.ok && payload?.data?.provider === storageProvider && payload.data?.bucket === expectedBucket && payload.data?.cleaned === true && Number.isInteger(payload.data?.bytes) && payload.data.bytes > 0) break;
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+    if (!response?.ok || payload?.data?.provider !== storageProvider || payload.data?.bucket !== expectedBucket || payload.data?.cleaned !== true || !Number.isInteger(payload.data?.bytes) || payload.data.bytes < 1)
+      throw new Error(`${baseUrl}${pathname} storage round trip failed`);
+    results.push({ path: pathname, status: response.status, contentType: response.headers.get("content-type"), identity: payload.data });
+  }
+  return results;
+}
+
+async function latestDeployment(worker) {
+  const deployments = await cloudflare("GET", `/accounts/${config.cloudflare.accountId}/workers/scripts/${worker}/deployments`);
+  const items = Array.isArray(deployments) ? deployments : deployments?.deployments || [];
+  const latest = [...items].sort((left, right) => new Date(right.created_on).getTime() - new Date(left.created_on).getTime())[0];
+  return latest ? { id: latest.id, createdOn: latest.created_on, versions: latest.versions } : null;
+}
+
+async function release(environment) {
+  if (!new Set(["development", "production"]).has(environment)) throw new Error("release environment must be development or production");
+  const dirty = run("git", ["status", "--porcelain"]).trim();
+  if (dirty) throw new Error("Release requires a clean Git worktree");
+  run("npm", ["run", environment === "production" ? "db:migrate:production" : "db:migrate:dev"], { inherit: true });
+  run("npm", ["run", "verify"], { inherit: true });
+  if (environment === "development") run("npm", ["run", "auth:smoke:dev"], { inherit: true });
+  const dirtyAfterVerification = run("git", ["status", "--porcelain"]).trim();
+  if (dirtyAfterVerification) throw new Error("Release verification changed tracked files; review and commit generated output before deploying");
+  const hash = await artifactHash();
+  if (environment === "production" && state.releases.development?.artifactHash !== hash) throw new Error("Production requires the exact artifact already verified in Development");
+  const target = config[environment];
+  const commit = run("git", ["rev-parse", "HEAD"]).trim();
+  syncWorkerSecrets(environment, target.wranglerConfig);
+  run("npx", ["wrangler", "deploy", "--config", target.wranglerConfig, "--message", `${environment} ${commit.slice(0, 12)}`], { inherit: true, env: { ...process.env, CLOUDFLARE_API_TOKEN: required("CLOUDFLARE_API_TOKEN") } });
+  const deployedConfig = parseJsonc(await readFile(path.join(root, target.wranglerConfig), "utf8"));
+  if (storageProvider === "cloudflare-r2") await ensureConfiguredR2Buckets(environment);
+  if (searchProvider === "vectorize") await ensureConfiguredVectorize(environment);
+  if ((deployedConfig.queues?.producers || []).length || (deployedConfig.queues?.consumers || []).length) await ensureConfiguredQueues(environment);
+  await reconcileWorkflowResource(environment, deployedConfig);
+  await saveState();
+  const checks = await verifyUrl(environment, `https://${target.domain}`);
+  if (environment === "development") run("npm", ["run", "auth:smoke:dev:remote"], { inherit: true });
+  const deployment = await latestDeployment(target.worker);
+  const configPath = path.join(root, target.wranglerConfig);
+  const configHash = await fileHash(configPath);
+  const targetConfig = deployedConfig;
+  const releaseRecord = { commit, artifactHash: hash, configHash, compatibilityDate: targetConfig.compatibility_date, domain: target.domain, worker: target.worker, deployment, checks, verifiedAt: new Date().toISOString() };
+  state.releaseHistory ||= [];
+  state.releaseHistory.push({ environment, ...releaseRecord });
+  state.releases[environment] = releaseRecord;
+  await saveState();
+  console.log(JSON.stringify({ ok: true, environment, ...state.releases[environment] }, null, 2));
+}
+
+async function rollback(environment, versionId) {
+  if (!new Set(["development", "production"]).has(environment)) throw new Error("rollback environment must be development or production");
+  if (!versionId) throw new Error("rollback requires an exact Worker version ID");
+  const target = config[environment];
+  const knownGood = (state.releaseHistory || []).find((release) => release.environment === environment && release.deployment?.versions?.some((item) => item.version_id === versionId));
+  if (!knownGood) throw new Error(`rollback target ${versionId} is not present in recorded release history`);
+  const before = await latestDeployment(target.worker);
+  run("npx", ["wrangler", "rollback", versionId, "--config", target.wranglerConfig, "--name", target.worker, "--message", `${environment} rollback drill`, "--yes"], { inherit: true, env: { ...process.env, CLOUDFLARE_API_TOKEN: required("CLOUDFLARE_API_TOKEN") } });
+  const checks = await verifyUrl(environment, `https://${target.domain}`);
+  const after = await latestDeployment(target.worker);
+  const activeVersion = after?.versions?.find((item) => item.percentage === 100)?.version_id;
+  if (activeVersion !== versionId) throw new Error(`Rollback read-back expected ${versionId}, received ${activeVersion || "unknown"}`);
+  state.rollbacks ||= [];
+  state.rollbacks.push({ environment, worker: target.worker, requestedVersion: versionId, before, after, checks, verifiedAt: new Date().toISOString() });
+  state.releases[environment] = { ...knownGood, deployment: after, checks, verifiedAt: new Date().toISOString(), rolledBackFrom: before };
+  await saveState();
+  console.log(JSON.stringify({ ok: true, environment, requestedVersion: versionId, before, after, checks }, null, 2));
+}
+
+const [command = "help", argument] = process.argv.slice(2);
+if (command === "provision") await provision(argument || "all");
+else if (command === "release") await release(argument || "development");
+else if (command === "rollback") await rollback(argument || "development", process.argv[4]);
+else {
+  console.log("starterctl commands: provision [development|production|all] | release [development|production] | rollback [development|production] <version-id>");
+  process.exitCode = 1;
+}

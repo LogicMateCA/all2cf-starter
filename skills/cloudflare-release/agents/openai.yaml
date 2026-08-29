@@ -1,0 +1,4 @@
+interface:
+  display_name: "Cloudflare Release"
+  short_description: "Verify and release Starter Workers safely"
+  default_prompt: "Use $cloudflare-release to verify and release the Cloudflare app to the correct environment."

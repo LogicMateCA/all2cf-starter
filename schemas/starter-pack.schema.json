@@ -1,0 +1,185 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://starter.local/schemas/starter-pack.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "version",
+    "source",
+    "files",
+    "dependencies",
+    "routes"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "starter-pack/v1" },
+    "id": {
+      "type": "string",
+      "pattern": "^(design|page|saas|capability)\\.[a-z0-9-]+$"
+    },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "url", "revision", "license", "relationship"],
+      "properties": {
+        "name": { "type": "string" },
+        "url": { "type": "string" },
+        "revision": { "type": "string" },
+        "license": { "type": "string" },
+        "relationship": {
+          "enum": ["adapted-donor", "starter-original", "tracked-upstream"]
+        }
+      }
+    },
+    "files": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/file" }
+    },
+    "pageFiles": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[a-z0-9][a-z0-9.-]*$" },
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "items": { "$ref": "#/$defs/file" }
+      }
+    },
+    "sourceInventory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceRoot",
+        "routeFiles",
+        "contentCollections",
+        "routeFamilies"
+      ],
+      "properties": {
+        "sourceRoot": { "type": "string" },
+        "routeFiles": { "type": "array", "items": { "type": "string" } },
+        "contentCollections": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "routeFamilies": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["packageFile", "section", "name", "version"],
+        "properties": {
+          "packageFile": { "type": "string" },
+          "section": { "enum": ["dependencies", "devDependencies"] },
+          "name": { "type": "string" },
+          "version": { "type": "string" }
+        }
+      }
+    },
+    "routes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "module", "export", "workerFirst"],
+        "properties": {
+          "path": { "type": "string", "pattern": "^/" },
+          "module": { "type": "string" },
+          "export": {
+            "type": "string",
+            "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*$"
+          },
+          "workerFirst": { "type": "boolean" }
+        }
+      }
+    },
+    "authPlugins": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "server": { "$ref": "#/$defs/authPlugin" },
+        "client": { "$ref": "#/$defs/authPlugin" }
+      }
+    },
+    "workerFeature": {
+      "$ref": "#/$defs/authPlugin"
+    },
+    "workerEvents": {
+      "$ref": "#/$defs/authPlugin"
+    },
+    "mobileConfigPlugins": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "cloudflare": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requiredSecrets": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]*$"
+          }
+        },
+        "queues": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["binding", "suffix"],
+            "properties": {
+              "binding": {
+                "type": "string",
+                "pattern": "^[A-Z][A-Z0-9_]*$"
+              },
+              "suffix": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]*$"
+              },
+              "maxBatchSize": { "type": "integer", "minimum": 1, "maximum": 100 },
+              "maxBatchTimeout": { "type": "integer", "minimum": 0, "maximum": 60 },
+              "maxRetries": { "type": "integer", "minimum": 0, "maximum": 100 },
+              "retryDelay": { "type": "integer", "minimum": 0, "maximum": 43200 },
+              "maxConcurrency": { "type": "integer", "minimum": 1, "maximum": 250 }
+            }
+          }
+        }
+      }
+    },
+    "requiresPacks": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^(design|page|saas|capability)\\.[a-z0-9-]+$"
+      }
+    }
+  },
+  "$defs": {
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "target"],
+      "properties": {
+        "source": { "type": "string" },
+        "target": { "type": "string" }
+      }
+    },
+    "authPlugin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["module", "export"],
+      "properties": {
+        "module": { "type": "string" },
+        "export": { "type": "string", "pattern": "^[A-Za-z_$][A-Za-z0-9_$]*$" }
+      }
+    }
+  }
+}

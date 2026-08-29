@@ -1,0 +1,67 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "saas.api-keys",
+  "version": "0.1.0",
+  "source": {
+    "name": "Better Auth API Key",
+    "url": "https://better-auth.com/docs/plugins/api-key",
+    "revision": "1.7.1",
+    "license": "MIT",
+    "relationship": "tracked-upstream"
+  },
+  "files": [
+    {
+      "source": "templates/api-key-auth-plugin.ts",
+      "target": "workers/app/features/api-key-auth-plugin.ts"
+    },
+    {
+      "source": "templates/api-key-auth-client-plugin.ts",
+      "target": "apps/web/src/features/api-key-auth-client-plugin.ts"
+    },
+    {
+      "source": "templates/api-keys-page.tsx",
+      "target": "apps/web/src/components/features/api-keys-page.tsx"
+    },
+    {
+      "source": "templates/api-keys-page.css",
+      "target": "apps/web/src/components/features/api-keys-page.css"
+    },
+    {
+      "source": "templates/0007_api_keys.sql",
+      "target": "db/migrations/1003_api_keys.sql"
+    }
+  ],
+  "dependencies": [
+    {
+      "packageFile": "workers/app/package.json",
+      "section": "dependencies",
+      "name": "@better-auth/api-key",
+      "version": "1.7.1"
+    },
+    {
+      "packageFile": "apps/web/package.json",
+      "section": "dependencies",
+      "name": "@better-auth/api-key",
+      "version": "1.7.1"
+    }
+  ],
+  "routes": [
+    {
+      "path": "/app/api-keys",
+      "module": "../components/features/api-keys-page",
+      "export": "ApiKeysPage",
+      "workerFirst": false
+    }
+  ],
+  "authPlugins": {
+    "server": {
+      "module": "../features/api-key-auth-plugin",
+      "export": "createApiKeyAuthPlugin"
+    },
+    "client": {
+      "module": "../features/api-key-auth-client-plugin",
+      "export": "createApiKeyAuthClientPlugin"
+    }
+  }
+}

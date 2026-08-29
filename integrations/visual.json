@@ -1,0 +1,45 @@
+{
+  "$schema": "../schemas/visual-integration.schema.json",
+  "schemaVersion": "starter-visual-integration/v1",
+  "integrationVersion": "1.0.1",
+  "status": "implemented",
+  "source": {
+    "product": "visual",
+    "contractId": "starter-integration",
+    "contractVersion": "1.0.1",
+    "contractStatus": "stable",
+    "sourceCommit": "3184f802795387161a22a37a8f06a2788ccf8745",
+    "contractUrl": "https://visual.example.com/contracts/starter-integration/v1"
+  },
+  "plugin": {
+    "id": "visual-design",
+    "version": "0.1.0",
+    "installation": "external-recommended",
+    "bundled": false
+  },
+  "service": {
+    "developmentOrigin": "https://visualapp-dev.example.com",
+    "productionOrigin": "https://visual.example.com",
+    "mcpPath": "/mcp",
+    "discoveryPath": "/.well-known/visual-capabilities.json",
+    "capabilityDetection": "runtime-required",
+    "requiredDiscoveryFields": ["service", "serviceVersion", "protocolVersion", "contractVersions", "capabilities", "authorization", "freshness"]
+  },
+  "projectArchive": {
+    "root": ".visual/",
+    "profile": ".visual/profile.json",
+    "receipt": ".visual/receipt.json",
+    "references": ".visual/references/",
+    "audits": ".visual/audits/"
+  },
+  "fallback": {
+    "required": true,
+    "behavior": "starter-owned-baseline",
+    "blocksFactory": false
+  },
+  "ownership": {
+    "visual": ["Visual protocol, plugin, MCP, profiles, recommendations, provider and recipe catalogs"],
+    "starter": ["Factory request, response validation, baseline style, source materialization and local verification"],
+    "project": ["Source code, local .visual archive, accepted visual decisions and private references"]
+  }
+}

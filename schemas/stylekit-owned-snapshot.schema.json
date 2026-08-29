@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://starter.local/schemas/stylekit-owned-snapshot.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "snapshotVersion",
+    "immutable",
+    "style",
+    "provenance",
+    "targets",
+    "tokens",
+    "adapterTokens",
+    "recipes",
+    "aiRules",
+    "required",
+    "forbidden"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "starter-stylekit-owned-snapshot/v1" },
+    "snapshotVersion": { "type": "string" },
+    "immutable": { "const": true },
+    "style": {
+      "type": "object",
+      "required": [
+        "slug",
+        "name",
+        "nameEn",
+        "description",
+        "descriptionEn",
+        "cover",
+        "styleType",
+        "category",
+        "tags",
+        "colors",
+        "keywords",
+        "keywordsEn",
+        "compatibleWith",
+        "classification",
+        "globalEligibility",
+        "classificationReason",
+        "adapterFamily"
+      ],
+      "properties": {
+        "slug": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "name": { "type": "string" },
+        "nameEn": { "type": "string" },
+        "description": { "type": "string" },
+        "descriptionEn": { "type": "string" },
+        "cover": { "type": "string" },
+        "styleType": { "type": "string" },
+        "category": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "colors": { "type": "object" },
+        "keywords": { "type": "array", "items": { "type": "string" } },
+        "keywordsEn": { "type": "array", "items": { "type": "string" } },
+        "compatibleWith": { "type": "array", "items": { "type": "string" } },
+        "classification": { "const": "base-visual" },
+        "globalEligibility": { "const": "eligible" },
+        "classificationReason": { "type": "string" },
+        "adapterFamily": {
+          "enum": [
+            "flat",
+            "editorial",
+            "soft-depth",
+            "hard-shadow",
+            "glass",
+            "gradient",
+            "dark-neon",
+            "organic",
+            "ornamental",
+            "dense"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "name",
+        "repository",
+        "revision",
+        "license",
+        "sourceFiles",
+        "referenceFiles"
+      ],
+      "properties": {
+        "name": { "const": "StyleKit" },
+        "repository": { "type": "string" },
+        "revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "license": { "const": "MIT" },
+        "sourceFiles": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "type": "object",
+            "required": ["path", "sha256", "content"],
+            "properties": {
+              "path": { "type": "string" },
+              "sha256": { "$ref": "#/$defs/hash" },
+              "content": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "referenceFiles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "sha256"],
+            "properties": {
+              "path": { "type": "string" },
+              "sha256": { "$ref": "#/$defs/hash" },
+              "content": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "targets": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": {
+            "enum": [
+              "not-verified",
+              "implemented",
+              "local-verified",
+              "development-verified",
+              "production-released"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "tokens": { "type": "object" },
+    "adapterTokens": { "type": "object", "required": ["web", "mobile"] },
+    "recipes": { "type": "object" },
+    "aiRules": {
+      "type": "object",
+      "required": ["do", "dont"],
+      "properties": {
+        "do": { "type": "array", "items": { "type": "string" } },
+        "dont": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "required": { "type": "object" },
+    "forbidden": { "type": "object" }
+  },
+  "$defs": { "hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" } }
+}

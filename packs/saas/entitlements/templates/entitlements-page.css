@@ -1,0 +1,60 @@
+.entitlements-shell {
+  display: grid;
+  gap: 24px;
+  max-width: 840px;
+  margin: 0 auto;
+  padding: clamp(24px, 5vw, 64px);
+}
+.entitlements-shell header {
+  display: grid;
+  gap: 10px;
+}
+.entitlements-shell header > span {
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.entitlements-shell h1 {
+  margin: 0;
+  font-size: clamp(2.4rem, 6vw, 4.4rem);
+  letter-spacing: -0.055em;
+}
+.entitlements-shell p {
+  color: var(--muted-foreground);
+  line-height: 1.65;
+}
+.entitlements-shell section {
+  display: grid;
+  gap: 20px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--design-shadow-raised);
+}
+.entitlements-shell section > div {
+  display: grid;
+  gap: 4px;
+}
+.entitlements-shell section strong {
+  font-size: 1.35rem;
+}
+.entitlements-shell ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.entitlements-shell li {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 13px 0;
+  border-top: 1px solid var(--border);
+}
+.entitlements-shell li strong {
+  font-size: 0.9rem;
+}

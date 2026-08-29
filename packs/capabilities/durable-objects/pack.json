@@ -1,0 +1,11 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "capability.durable-objects",
+  "version": "0.1.0",
+  "source": { "name": "Cloudflare Durable Objects", "url": "https://developers.cloudflare.com/durable-objects/", "relationship": "platform-provider" },
+  "files": [{ "source": "templates/realtime-room-worker.ts", "target": "workers/app/features/realtime-room-worker.ts" }],
+  "dependencies": [],
+  "routes": [],
+  "workerFeature": { "module": "../features/realtime-room-worker", "export": "realtimeRoomFeature" }
+}

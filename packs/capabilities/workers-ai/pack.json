@@ -1,0 +1,23 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "capability.workers-ai",
+  "version": "0.1.0",
+  "source": {
+    "name": "Cloudflare Workers AI and AI Gateway",
+    "url": "https://developers.cloudflare.com/ai-gateway/usage/worker-binding-methods/",
+    "relationship": "platform-provider"
+  },
+  "files": [
+    {
+      "source": "templates/workers-ai-worker.ts",
+      "target": "workers/app/features/workers-ai-worker.ts"
+    }
+  ],
+  "dependencies": [],
+  "routes": [],
+  "workerFeature": {
+    "module": "../features/workers-ai-worker",
+    "export": "workersAiFeature"
+  }
+}

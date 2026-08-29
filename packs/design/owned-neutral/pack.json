@@ -1,0 +1,16 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "design.owned-neutral",
+  "version": "0.1.0",
+  "source": {
+    "name": "Starter Design Engine",
+    "url": "https://app.example.com/dp",
+    "revision": "0.1.0",
+    "license": "MIT",
+    "relationship": "starter-original"
+  },
+  "files": [],
+  "dependencies": [],
+  "routes": []
+}

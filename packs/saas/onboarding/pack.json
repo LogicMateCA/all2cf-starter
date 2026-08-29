@@ -1,0 +1,44 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "saas.onboarding",
+  "version": "0.1.0",
+  "source": {
+    "name": "Starter product onboarding",
+    "url": "https://app.example.com/docs/",
+    "revision": "0.1.0",
+    "license": "UNLICENSED",
+    "relationship": "starter-original"
+  },
+  "files": [
+    {
+      "source": "templates/onboarding-worker.ts",
+      "target": "workers/app/features/onboarding-worker.ts"
+    },
+    {
+      "source": "templates/onboarding-page.tsx",
+      "target": "apps/web/src/components/features/onboarding-page.tsx"
+    },
+    {
+      "source": "templates/onboarding-page.css",
+      "target": "apps/web/src/components/features/onboarding-page.css"
+    },
+    {
+      "source": "templates/0011_onboarding.sql",
+      "target": "db/migrations/1008_onboarding.sql"
+    }
+  ],
+  "dependencies": [],
+  "routes": [
+    {
+      "path": "/app/onboarding",
+      "module": "../components/features/onboarding-page",
+      "export": "OnboardingPage",
+      "workerFirst": false
+    }
+  ],
+  "workerFeature": {
+    "module": "../features/onboarding-worker",
+    "export": "onboardingFeature"
+  }
+}

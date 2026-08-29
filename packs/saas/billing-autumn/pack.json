@@ -1,0 +1,19 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "saas.billing-autumn",
+  "version": "0.1.0",
+  "source": { "name": "Better Auth Autumn", "url": "https://better-auth.com/docs/plugins/autumn", "revision": "1.2.53", "license": "MIT", "relationship": "tracked-upstream" },
+  "files": [
+    { "source": "templates/autumn-auth-plugin.ts", "target": "workers/app/features/autumn-auth-plugin.ts" },
+    { "source": "templates/billing-page.tsx", "target": "apps/web/src/components/features/billing-page.tsx" },
+    { "source": "templates/billing-page.css", "target": "apps/web/src/components/features/billing-page.css" }
+  ],
+  "dependencies": [
+    { "packageFile": "workers/app/package.json", "section": "dependencies", "name": "autumn-js", "version": "1.2.53" },
+    { "packageFile": "apps/web/package.json", "section": "dependencies", "name": "autumn-js", "version": "1.2.53" }
+  ],
+  "routes": [{ "path": "/app/billing", "module": "../components/features/billing-page", "export": "BillingPage", "workerFirst": false }],
+  "authPlugins": { "server": { "module": "../features/autumn-auth-plugin", "export": "createAutumnAuthPlugin" } },
+  "cloudflare": { "requiredSecrets": ["AUTUMN_SECRET_KEY"] }
+}

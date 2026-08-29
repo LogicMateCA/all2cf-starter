@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://starter.local/schemas/page-catalog.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "catalogVersion", "policy", "donorAudit", "sourceInventory", "pages"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "starter-page-catalog/v1" },
+    "catalogVersion": { "type": "string" },
+    "policy": { "type": "string" },
+    "donorAudit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "url", "revision", "license", "accepted", "rejected"],
+      "properties": {
+        "name": { "type": "string" },
+        "url": { "type": "string" },
+        "revision": { "type": "string" },
+        "license": { "type": "string" },
+        "accepted": { "type": "array", "items": { "type": "string" } },
+        "rejected": { "type": "array", "items": { "type": "string" } },
+        "decisions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["sourcePath", "disposition", "reason"],
+            "properties": {
+              "sourcePath": { "type": "string" },
+              "disposition": { "enum": ["accepted", "replaced", "rejected"] },
+              "reason": { "type": "string" },
+              "replacement": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "sourceInventory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceRoot", "routeFiles", "contentCollections", "routeFamilies", "donorDecisions"],
+      "properties": {
+        "sourceRoot": { "type": "string" },
+        "routeFiles": {
+          "type": "array",
+          "minItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "family", "kind", "status", "disposition"],
+            "properties": {
+              "path": { "type": "string" },
+              "family": { "type": "string" },
+              "kind": { "enum": ["static", "index", "detail", "pagination", "dynamic", "auth", "not-found"] },
+              "status": { "enum": ["adapted", "donor-only", "replaced", "rejected"] },
+              "disposition": { "enum": ["accepted", "replaced", "rejected"] }
+            }
+          }
+        },
+        "contentCollections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "sourcePath", "role", "status", "disposition"],
+            "properties": {
+              "name": { "type": "string" },
+              "sourcePath": { "type": "string" },
+              "role": { "type": "string" },
+              "status": { "enum": ["adapted", "donor-only", "planned", "rejected"] },
+              "disposition": { "enum": ["accepted", "replaced", "rejected"] }
+            }
+          }
+        },
+        "routeFamilies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "baseRoute", "packId", "index", "detail", "pagination", "contentCollection", "status"],
+            "properties": {
+              "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9.-]*$" },
+              "baseRoute": { "type": "string", "pattern": "^/" },
+              "packId": { "type": "string", "pattern": "^(page|saas)\\.[a-z0-9-]+$" },
+              "index": { "$ref": "#/$defs/familySurface" },
+              "detail": { "$ref": "#/$defs/familySurface" },
+              "pagination": { "$ref": "#/$defs/familySurface" },
+              "contentCollection": { "type": ["string", "null"] },
+              "status": { "enum": ["defined", "partial", "planned", "local-verified", "development-verified", "production-released"] }
+            }
+          }
+        },
+        "donorDecisions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["sourcePath", "disposition", "reason"],
+            "properties": {
+              "sourcePath": { "type": "string" },
+              "disposition": { "enum": ["accepted", "replaced", "rejected"] },
+              "reason": { "type": "string" },
+              "replacement": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "packId", "name", "route", "group", "renderer", "required", "defaultSelected", "status", "sourceStrategy", "sections", "acceptance"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9.-]*$" },
+          "packId": { "type": "string", "pattern": "^(page|saas)\\.[a-z0-9-]+$" },
+          "name": { "type": "string" },
+          "route": { "type": "string" },
+          "group": { "enum": ["marketing", "company", "product", "legal", "auth", "docs", "system", "growth"] },
+          "renderer": { "enum": ["astro-static", "react-app", "starlight"] },
+          "required": { "type": "boolean" },
+          "defaultSelected": { "type": "boolean" },
+          "status": { "enum": ["defined", "planned", "partial", "implemented", "local-verified", "development-verified", "production-released"] },
+          "sourceStrategy": { "enum": ["starter-original", "powerai-structure-adapted"] },
+          "sections": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+          "acceptance": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+        }
+      }
+    }
+  }
+  ,
+  "$defs": {
+    "familySurface": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["sourcePath", "route", "status", "disposition"],
+      "properties": {
+        "sourcePath": { "type": "string" },
+        "route": { "type": "string", "pattern": "^/" },
+        "status": { "enum": ["adapted", "donor-only", "planned", "replaced", "rejected"] },
+        "disposition": { "enum": ["accepted", "replaced", "rejected"] }
+      }
+    }
+  }
+}

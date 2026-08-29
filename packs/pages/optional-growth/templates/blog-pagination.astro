@@ -1,0 +1,17 @@
+---
+import type { GetStaticPaths, Page } from "astro";
+import { getCollection, type CollectionEntry } from "astro:content";
+import Base from "../../../layouts/Base.astro";
+import PageIntro from "../../../components/PageIntro.astro";
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const posts = (await getCollection("blog", ({ data }) => !data.draft)).sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf());
+  return paginate(posts, { pageSize: 6 }).filter(({ params }) => params.page !== "1");
+}) satisfies GetStaticPaths;
+
+const { page } = Astro.props as { page: Page<CollectionEntry<"blog">> };
+---
+<Base title={`Blog — page ${page.currentPage}`}>
+  <PageIntro title={`Articles — page ${page.currentPage}`} description="Older reviewed product guidance from the same content collection." />
+  <section class="content-section"><div class="growth-grid">{page.data.map((post) => <article class="growth-card"><div class="growth-meta"><span>{post.data.sample ? "Starter sample" : post.data.author}</span><time datetime={post.data.publishedAt.toISOString()}>{post.data.publishedAt.toLocaleDateString("en", { dateStyle: "medium" })}</time></div><h3><a href={`/blog/${post.id}`}>{post.data.title}</a></h3><p>{post.data.description}</p></article>)}</div><nav class="collection-pagination" aria-label="Blog pagination">{page.url.prev ? <a href={page.url.prev}>Newer</a> : <span />}{page.url.next ? <a href={page.url.next}>Older</a> : <span />}</nav></section>
+</Base>

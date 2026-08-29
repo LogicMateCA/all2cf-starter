@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://starter.local/schemas/stylekit-source-catalog.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "catalogVersion", "source", "count", "styles"],
+  "properties": {
+    "schemaVersion": { "const": "starter-stylekit-source-catalog/v1" },
+    "catalogVersion": { "type": "string" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "repository",
+        "revision",
+        "license",
+        "sourceRoot",
+        "metaRegistry"
+      ],
+      "properties": {
+        "name": { "const": "StyleKit" },
+        "repository": { "type": "string", "format": "uri" },
+        "revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "license": { "const": "MIT" },
+        "sourceRoot": { "type": "string" },
+        "metaRegistry": {
+          "type": "object",
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": { "type": "string" },
+            "sha256": { "$ref": "#/$defs/hash" }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "count": { "const": 146 },
+    "styles": {
+      "type": "array",
+      "minItems": 146,
+      "maxItems": 146,
+      "items": {
+        "type": "object",
+        "required": [
+          "slug",
+          "name",
+          "nameEn",
+          "description",
+          "descriptionEn",
+          "cover",
+          "styleType",
+          "category",
+          "tags",
+          "colors",
+          "keywords",
+          "classification",
+          "globalEligibility",
+          "classificationReason",
+          "files"
+        ],
+        "properties": {
+          "slug": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+          "name": { "type": "string", "minLength": 1 },
+          "nameEn": { "type": "string", "minLength": 1 },
+          "description": { "type": "string", "minLength": 1 },
+          "descriptionEn": { "type": "string", "minLength": 1 },
+          "cover": { "type": "string", "minLength": 1 },
+          "styleType": { "enum": ["visual", "layout"] },
+          "category": { "type": "string", "minLength": 1 },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "colors": {
+            "type": "object",
+            "required": ["primary", "secondary", "accent"],
+            "properties": {
+              "primary": { "type": "string" },
+              "secondary": { "type": "string" },
+              "accent": { "type": "array", "items": { "type": "string" } }
+            },
+            "additionalProperties": false
+          },
+          "keywords": { "type": "array", "items": { "type": "string" } },
+          "keywordsEn": { "type": "array", "items": { "type": "string" } },
+          "compatibleWith": { "type": "array", "items": { "type": "string" } },
+          "adapterFamily": {
+            "enum": [
+              "flat",
+              "editorial",
+              "soft-depth",
+              "hard-shadow",
+              "glass",
+              "gradient",
+              "dark-neon",
+              "organic",
+              "ornamental",
+              "dense"
+            ]
+          },
+          "classification": {
+            "enum": [
+              "base-visual",
+              "layout-pattern",
+              "density-pattern",
+              "style-variant",
+              "enhancement",
+              "content-domain",
+              "pending-review"
+            ]
+          },
+          "globalEligibility": {
+            "enum": ["eligible", "pending", "ineligible"]
+          },
+          "classificationReason": { "type": "string", "minLength": 1 },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["path", "sha256"],
+              "properties": {
+                "path": { "type": "string" },
+                "sha256": { "$ref": "#/$defs/hash" }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "$defs": { "hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" } }
+}

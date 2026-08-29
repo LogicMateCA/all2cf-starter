@@ -1,0 +1,5 @@
+{
+  "schemaVersion": "starter-change-policy/v1",
+  "enforcedAfter": "fa92b30ae39be60579496b9a02e00a70ff3b329f",
+  "changeSpecDirectory": "changes"
+}

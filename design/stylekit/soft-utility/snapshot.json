@@ -1,0 +1,333 @@
+{
+  "schemaVersion": "starter-stylekit-owned-snapshot/v1",
+  "snapshotVersion": "2.2.0",
+  "immutable": true,
+  "style": {
+    "slug": "soft-utility",
+    "name": "柔和工具风",
+    "nameEn": "Soft Utility",
+    "description": "面向高频使用的手机工具 App，使用浅色背景、清晰状态色和柔和层级，在效率与亲和力之间取得平衡。",
+    "descriptionEn": "A soft utility style for frequently used mobile tools, balancing efficiency and warmth with calm surfaces, clear state colors, and friendly hierarchy.",
+    "cover": "/styles/soft-utility.svg",
+    "styleType": "visual",
+    "category": "modern",
+    "tags": [
+      "responsive",
+      "high-contrast"
+    ],
+    "colors": {
+      "primary": "#2d5b63",
+      "secondary": "#f4f8f6",
+      "accent": [
+        "#a9d8cc",
+        "#f3c98b",
+        "#e6b7b0",
+        "#b8c9ed"
+      ]
+    },
+    "keywords": [
+      "工具应用",
+      "手机应用",
+      "效率",
+      "状态色",
+      "柔和层级",
+      "高频使用"
+    ],
+    "keywordsEn": [],
+    "compatibleWith": [],
+    "classification": "base-visual",
+    "globalEligibility": "eligible",
+    "classificationReason": "Approved as an owned whole-product visual system with pinned source inputs and generated Web, Marketing, Docs, and Mobile adapter contracts.",
+    "adapterFamily": "flat"
+  },
+  "provenance": {
+    "name": "StyleKit",
+    "repository": "https://github.com/AnxForever/stylekit",
+    "revision": "29141b684d5abb967558eb8083fbae91dbbc51b8",
+    "license": "MIT",
+    "sourceFiles": [
+      {
+        "path": "lib/styles/soft-utility.ts",
+        "sha256": "75d22c5ddfa99f0126b68d338f5bcb870b05dee2ca5f8d189c6f66285953532a",
+        "content": "import type { DesignStyle } from \"./types\";\n\nexport const softUtility: DesignStyle = {\n  \"slug\": \"soft-utility\",\n  \"name\": \"柔和工具风\",\n  \"nameEn\": \"Soft Utility\",\n  \"description\": \"面向高频使用的手机工具 App，使用浅色背景、清晰状态色和柔和层级，在效率与亲和力之间取得平衡。\",\n  \"descriptionEn\": \"A soft utility style for frequently used mobile tools, balancing efficiency and warmth with calm surfaces, clear state colors, and friendly hierarchy.\",\n  \"cover\": \"/styles/soft-utility.svg\",\n  \"styleType\": \"visual\",\n  \"tags\": [\n    \"responsive\",\n    \"high-contrast\"\n  ],\n  \"category\": \"modern\",\n  \"colors\": {\n    \"primary\": \"#2d5b63\",\n    \"secondary\": \"#f4f8f6\",\n    \"accent\": [\n      \"#a9d8cc\",\n      \"#f3c98b\",\n      \"#e6b7b0\",\n      \"#b8c9ed\"\n    ]\n  },\n  \"keywords\": [\n    \"工具应用\",\n    \"手机应用\",\n    \"效率\",\n    \"状态色\",\n    \"柔和层级\",\n    \"高频使用\"\n  ],\n  \"keywordsEn\": [\"utility app\", \"mobile app\", \"productivity\", \"status colors\", \"soft hierarchy\", \"frequent use\"],\n  \"philosophy\": `Soft Utility 面向每天都会打开的工具型 App。它保留柔和色彩和圆润触感，但让状态、输入、筛选和确认拥有比装饰更高的权重。\n\n核心原则：\n- 先让用户完成任务，再表达风格\n- 颜色承担状态，不用颜色替代文字\n- 控件有明确的默认、聚焦、完成和错误状态\n- 主要动作固定在拇指容易到达的位置\n- 信息密度适中，避免空洞的装饰`,\n  \"doList\": [\n    \"使用深青色作为主行动色，保证按钮和正文可读\",\n    \"用薄荷、杏色、蓝色区分状态和模块，而不是装饰性铺色\",\n    \"在移动端采用底部操作栏和清晰的返回路径\",\n    \"所有输入控件提供 focus、error、success 和 disabled 状态\",\n    \"使用 rounded-xl 到 rounded-2xl，保持密度而不过度可爱\",\n    \"为常用操作提供一键完成和可撤销反馈\"\n  ],\n  \"dontList\": [\n    \"不要用低对比度文字承载关键任务信息\",\n    \"不要为了柔和而移除边界、分隔和状态反馈\",\n    \"不要把工具型页面做成纯展示卡片墙\",\n    \"不要使用过度弹跳或影响效率的动画\",\n    \"不要让主操作在不同页面随意改变位置\"\n  ],\n  \"components\": {\n    \"button\": {\n      \"name\": \"Button\",\n      \"description\": \"Button component in this style.\",\n      \"code\": `<button className=\"px-5 py-3 rounded-2xl bg-[#2d5b63] text-white font-semibold shadow-md shadow-[#2d5b63]/20 hover:bg-[#234b52] active:scale-[0.98] transition-colors\">Complete task</button>`\n    },\n    \"card\": {\n      \"name\": \"Card\",\n      \"description\": \"Card component in this style.\",\n      \"code\": `<section className=\"rounded-2xl bg-[#f4f8f6] border border-[#2d5b63]/15 p-5\"><div className=\"flex items-center gap-3 mb-4\"><span className=\"h-10 w-10 rounded-xl bg-[#a9d8cc]\" /><div><h3 className=\"font-semibold text-[#203b40]\">Today’s focus</h3><p className=\"text-xs text-[#557077]\">3 tasks remaining</p></div></div><div className=\"h-2 rounded-full bg-[#d9e8e3] overflow-hidden\"><div className=\"h-full w-2/3 rounded-full bg-[#2d5b63]\" /></div></section>`\n    },\n    \"input\": {\n      \"name\": \"Input\",\n      \"description\": \"Input component in this style.\",\n      \"code\": `<input className=\"w-full rounded-2xl bg-white border border-[#2d5b63]/20 px-4 py-3 text-[#203b40] placeholder:text-[#557077]/60 focus:outline-none focus:ring-4 focus:ring-[#a9d8cc]/50\" placeholder=\"Add a task\" />`\n    }\n  },\n  \"globalCss\": `:root { --utility-surface: #f4f8f6; --utility-ink: #203b40; --utility-primary: #2d5b63; --utility-mint: #a9d8cc; --utility-apricot: #f3c98b; }\\n.utility-status { min-height: 0.5rem; border-radius: 9999px; }\\n.utility-bottom-bar { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }\\n@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }`,\n  \"aiRules\": `STYLE: Soft Utility\\n\\nMUST USE:\\n- Deep teal primary actions with pale surfaces and distinct state colors\\n- Rounded-xl to rounded-2xl controls that preserve information density\\n- Mobile-first bottom action bars and thumb-reachable primary actions\\n- Explicit default, focus, success, error, disabled, and loading states\\n- Status colors paired with text or icons; never communicate meaning by color alone\\n- Fast, restrained motion that supports task completion\\n\\nMUST AVOID:\\n- Low-contrast text for task-critical information\\n- Turning a tool screen into a decorative card gallery\\n- Removing boundaries or state feedback in the name of softness\\n- Bouncy animations that slow down repeated actions\\n\\nINTERACTION:\\n- Use 160-240ms transitions and scale-[0.98] on press\\n- Keep primary controls in a consistent location across screens\\n- Provide undo or confirmation for destructive actions\\n\\nCOLOR ROLES:\\n- Surface: #f4f8f6\\n- Text: #203b40\\n- Primary: #2d5b63\\n- Success/support: #a9d8cc\\n- Notice: #f3c98b\\n- Secondary states: #e6b7b0 and #b8c9ed`,\n  \"aiRulesEn\": `STYLE: Soft Utility\\n\\nMUST USE:\\n- Deep teal primary actions with pale surfaces and distinct state colors\\n- Rounded-xl to rounded-2xl controls that preserve information density\\n- Mobile-first bottom action bars and thumb-reachable primary actions\\n- Explicit default, focus, success, error, disabled, and loading states\\n- Status colors paired with text or icons; never communicate meaning by color alone\\n- Fast, restrained motion that supports task completion\\n\\nMUST AVOID:\\n- Low-contrast text for task-critical information\\n- Turning a tool screen into a decorative card gallery\\n- Removing boundaries or state feedback in the name of softness\\n- Bouncy animations that slow down repeated actions\\n\\nINTERACTION:\\n- Use 160-240ms transitions and scale-[0.98] on press\\n- Keep primary controls in a consistent location across screens\\n- Provide undo or confirmation for destructive actions\\n\\nCOLOR ROLES:\\n- Surface: #f4f8f6\\n- Text: #203b40\\n- Primary: #2d5b63\\n- Success/support: #a9d8cc\\n- Notice: #f3c98b\\n- Secondary states: #e6b7b0 and #b8c9ed`\n};\n"
+      },
+      {
+        "path": "lib/styles/soft-utility-tokens.ts",
+        "sha256": "b040cfdcbfdb642e122800bee2b1cbc4db8c1ad9bc9f64db606aef4ede2754ec",
+        "content": "// Soft Utility Style Tokens - Scaffold\nimport type { StyleTokens } from \"./tokens\";\n\nexport const softUtilityTokens: StyleTokens = {\n  \"border\": {\n    \"width\": \"border\",\n    \"color\": \"border-[#2d5b63]\",\n    \"radius\": \"rounded-lg\",\n    \"style\": \"border-solid\"\n  },\n  \"shadow\": {\n    \"sm\": \"shadow-sm\",\n    \"md\": \"shadow-md\",\n    \"lg\": \"shadow-lg\",\n    \"none\": \"shadow-none\",\n    \"hover\": \"hover:shadow-md\",\n    \"focus\": \"focus:shadow-md\"\n  },\n  \"interaction\": {\n    \"transition\": \"transition-all duration-200\",\n    \"hoverOpacity\": \"hover:opacity-90\",\n    \"active\": \"active:scale-[0.98]\"\n  },\n  \"typography\": {\n    \"heading\": \"font-semibold tracking-tight\",\n    \"body\": \"font-sans\",\n    \"sizes\": {\n      \"hero\": \"text-4xl md:text-6xl\",\n      \"h1\": \"text-3xl md:text-5xl\",\n      \"h2\": \"text-2xl md:text-3xl\",\n      \"h3\": \"text-xl md:text-2xl\",\n      \"body\": \"text-sm md:text-base\",\n      \"small\": \"text-xs md:text-sm\"\n    }\n  },\n  \"spacing\": {\n    \"section\": \"py-10 md:py-20\",\n    \"container\": \"px-4 md:px-8\",\n    \"card\": \"p-5 md:p-6\",\n    \"gap\": {\n      \"sm\": \"gap-2 md:gap-4\",\n      \"md\": \"gap-4 md:gap-6\",\n      \"lg\": \"gap-6 md:gap-8\"\n    }\n  },\n  \"colors\": {\n    \"background\": {\n      \"primary\": \"bg-[#f4f8f6]\",\n      \"secondary\": \"bg-[#2d5b63]\",\n      \"accent\": [\n        \"bg-[#a9d8cc]\",\n        \"bg-[#f3c98b]\",\n        \"bg-[#e6b7b0]\",\n        \"bg-[#b8c9ed]\"\n      ]\n    },\n    \"text\": {\n      \"primary\": \"text-[#2d5b63]\",\n      \"secondary\": \"text-[#a9d8cc]\",\n      \"muted\": \"text-zinc-500\"\n    },\n    \"button\": {\n      \"primary\": \"bg-[#2d5b63] text-white\",\n      \"secondary\": \"bg-[#f4f8f6] text-[#2d5b63]\",\n      \"danger\": \"bg-red-500 text-white\"\n    }\n  },\n  \"forbidden\": {\n    \"classes\": [],\n    \"patterns\": [],\n    \"reasons\": {}\n  },\n  \"required\": {\n    \"button\": [\n      \"rounded-lg\",\n      \"border\",\n      \"font-medium\",\n      \"inline-flex\",\n      \"items-center\"\n    ],\n    \"card\": [\n      \"rounded-lg\",\n      \"border\",\n      \"bg-white/80\"\n    ],\n    \"input\": [\n      \"rounded-lg\",\n      \"border\",\n      \"bg-background\",\n      \"focus:outline-none\"\n    ]\n  }\n};\n"
+      },
+      {
+        "path": "lib/recipes/soft-utility.ts",
+        "sha256": "99afdbff6d983b93e65f3deceb5d561bf7c01145c513671dfa9fd7d3b1ef6764",
+        "content": "// Soft Utility Component Recipes\nimport {\n  sizeParam,\n  fullWidthParam,\n  buttonSlots,\n  cardSlots,\n  inputSlots,\n  variant,\n  createStyleRecipes,\n} from \"./factory\";\n\nexport const softUtilityRecipes = createStyleRecipes(\"soft-utility\", \"Soft Utility\", {\n  button: {\n    id: \"button\",\n    name: \"Button\",\n    nameZh: \"按钮\",\n    description: \"Soft Utility style button\",\n    skeleton: {\n      element: \"button\",\n      baseClasses: [\n        \"font-medium\",\n        \"rounded-lg\",\n        \"border border-[#2d5b63]\",\n        \"transition-all duration-200\",\n      ],\n    },\n    parameters: [\n      sizeParam({ sm: \"px-3 py-1.5 text-sm\", md: \"px-5 py-2.5 text-base\", lg: \"px-7 py-3.5 text-lg\" }),\n      fullWidthParam,\n    ],\n    variants: {\n      primary: variant(\"primary\", \"Primary\", \"主要\", [\n        \"bg-[#2d5b63] text-white\",\n      ]),\n      secondary: variant(\"secondary\", \"Secondary\", \"次要\", [\n        \"bg-[#f4f8f6] text-[#2d5b63]\",\n      ]),\n      outline: variant(\"outline\", \"Outline\", \"轮廓\", [\n        \"bg-transparent text-[#2d5b63]\",\n      ]),\n    },\n    slots: buttonSlots(\"Click\"),\n    states: {\n      hover: [\"hover:opacity-90\"],\n      active: [\"active:scale-[0.97]\"],\n      disabled: [\"opacity-50 cursor-not-allowed\"],\n    },\n  },\n\n  card: {\n    id: \"card\",\n    name: \"Card\",\n    nameZh: \"卡片\",\n    description: \"Soft Utility style card\",\n    skeleton: {\n      element: \"div\",\n      baseClasses: [\n        \"bg-[#f4f8f6]\",\n        \"border border-[#2d5b63]/20\",\n        \"rounded-lg\",\n        \"overflow-hidden\",\n        \"transition-all duration-200\",\n      ],\n    },\n    parameters: [\n      {\n        id: \"padding\",\n        label: \"Padding\",\n        labelZh: \"内边距\",\n        type: \"select\",\n        options: [\n          { value: \"sm\", label: \"Small\", labelZh: \"小\", classes: \"p-3\" },\n          { value: \"md\", label: \"Medium\", labelZh: \"中\", classes: \"p-5\" },\n          { value: \"lg\", label: \"Large\", labelZh: \"大\", classes: \"p-8\" },\n        ],\n        default: \"md\",\n      },\n    ],\n    variants: {\n      default: variant(\"default\", \"Default\", \"默认\", [\n        \"shadow-md\",\n      ]),\n      outlined: variant(\"outlined\", \"Outlined\", \"描边\", [\n        \"border-[#2d5b63]/40\",\n      ]),\n    },\n    slots: cardSlots(\"Card Title\", \"Card content goes here.\"),\n    states: {\n      hover: [\"hover:shadow-lg\"],\n    },\n  },\n\n  input: {\n    id: \"input\",\n    name: \"Input\",\n    nameZh: \"输入框\",\n    description: \"Soft Utility style input\",\n    skeleton: {\n      element: \"input\",\n      baseClasses: [\n        \"w-full\",\n        \"bg-[#f4f8f6]\",\n        \"border border-[#2d5b63]/30\",\n        \"rounded-lg\",\n        \"text-[#2d5b63]\",\n        \"font-normal\",\n        \"placeholder:text-[#2d5b63]/40\",\n        \"focus:outline-none\",\n        \"transition-all duration-200\",\n      ],\n    },\n    parameters: [\n      sizeParam({ sm: \"px-3 py-2 text-sm\", md: \"px-4 py-2.5 text-base\", lg: \"px-5 py-3.5 text-lg\" }),\n    ],\n    variants: {\n      default: variant(\"default\", \"Default\", \"默认\", []),\n    },\n    slots: inputSlots(\"Type here...\"),\n    states: {\n      focus: [\"focus:border-[#2d5b63]\", \"focus:ring-1 focus:ring-[#2d5b63]/30\"],\n      disabled: [\"opacity-50 cursor-not-allowed\"],\n    },\n  },\n});\n"
+      }
+    ],
+    "referenceFiles": [
+      {
+        "path": "app/styles/soft-utility/showcase/_content.tsx",
+        "sha256": "a8f7bcdfeda55a1f8f4135cf87baa653826efc522ae833feb2dfc90acc1a36bb",
+        "content": "\"use client\";\n\nimport Link from \"next/link\";\nimport {\n  ShowcaseSection,\n  ColorPaletteGrid,\n  type ColorItem,\n} from \"@/components/showcase\";\n\nconst colors: ColorItem[] = [\n  { name: \"Primary\", hex: \"#2d5b63\", bg: \"bg-[#2d5b63]\" },\n  { name: \"Secondary\", hex: \"#f4f8f6\", bg: \"bg-[#f4f8f6]\" },\n  { name: \"Accent\", hex: \"#a9d8cc\", bg: \"bg-[#a9d8cc]\" },\n];\n\nexport default function ShowcaseContent() {\n  return (\n    <div className=\"min-h-screen\" style={{ backgroundColor: \"#f4f8f6\", color: \"#0f172a\" }}>\n      {/* Navigation */}\n      <nav className=\"px-6 py-4 border-b\" style={{ borderColor: \"#2d5b6320\" }}>\n        <div className=\"max-w-5xl mx-auto flex items-center justify-between\">\n          <Link href=\"/styles/soft-utility\" className=\"text-sm font-medium hover:opacity-70 transition-opacity\">\n            Back\n          </Link>\n          <span className=\"font-semibold\">Soft Utility</span>\n          <Link href=\"/styles\" className=\"text-sm font-medium hover:opacity-70 transition-opacity\">\n            All Styles\n          </Link>\n        </div>\n      </nav>\n\n      {/* Hero */}\n      <section className=\"py-20 px-6 text-center\">\n        <h1 className=\"text-5xl md:text-7xl font-bold mb-4\">Soft Utility</h1>\n        <p className=\"text-lg opacity-70 max-w-xl mx-auto\">\n          面向高频使用的手机工具 App，使用浅色背景、清晰状态色和柔和层级，在效率与亲和力之间取得平衡。\n        </p>\n      </section>\n\n      {/* Color Palette */}\n      <ShowcaseSection\n        title=\"Color Palette\"\n        className=\"py-16 px-6\"\n        titleClassName=\"text-2xl font-bold mb-8\"\n      >\n        <div className=\"max-w-4xl mx-auto\">\n          <ColorPaletteGrid colors={colors} />\n        </div>\n      </ShowcaseSection>\n\n      {/* Buttons */}\n      <ShowcaseSection\n        title=\"Buttons\"\n        className=\"py-16 px-6\"\n        titleClassName=\"text-2xl font-bold mb-8\"\n      >\n        <div className=\"max-w-4xl mx-auto flex flex-wrap gap-4\">\n          <button\n            className=\"px-6 py-3 rounded-lg font-medium transition-all\"\n            style={{ backgroundColor: \"#2d5b63\", color: \"#f8fafc\" }}\n          >\n            Primary\n          </button>\n          <button\n            className=\"px-6 py-3 rounded-lg font-medium border transition-all\"\n            style={{ borderColor: \"#2d5b63\", color: \"#0f172a\" }}\n          >\n            Outline\n          </button>\n        </div>\n      </ShowcaseSection>\n\n      {/* Card */}\n      <ShowcaseSection\n        title=\"Cards\"\n        className=\"py-16 px-6\"\n        titleClassName=\"text-2xl font-bold mb-8\"\n      >\n        <div className=\"max-w-4xl mx-auto grid md:grid-cols-2 gap-6\">\n          <div className=\"p-6 rounded-lg shadow-md\" style={{ backgroundColor: \"#f4f8f6\", border: \"1px solid #2d5b6320\" }}>\n            <h3 className=\"text-lg font-semibold mb-2\">Sample Card</h3>\n            <p className=\"text-sm opacity-60\">A basic card component in the Soft Utility style.</p>\n          </div>\n          <div className=\"p-6 rounded-lg shadow-md\" style={{ backgroundColor: \"#f4f8f6\", border: \"1px solid #2d5b6320\" }}>\n            <h3 className=\"text-lg font-semibold mb-2\">Another Card</h3>\n            <p className=\"text-sm opacity-60\">Demonstrating consistent styling across components.</p>\n          </div>\n        </div>\n      </ShowcaseSection>\n\n      {/* Input */}\n      <ShowcaseSection\n        title=\"Inputs\"\n        className=\"py-16 px-6\"\n        titleClassName=\"text-2xl font-bold mb-8\"\n      >\n        <div className=\"max-w-md mx-auto\">\n          <input\n            type=\"text\"\n            placeholder=\"Type something...\"\n            className=\"w-full px-4 py-3 rounded-lg font-normal focus:outline-none transition-all\"\n            style={{ backgroundColor: \"#f4f8f6\", border: \"1px solid #2d5b6340\", color: \"#0f172a\" }}\n          />\n        </div>\n      </ShowcaseSection>\n\n      {/* Footer */}\n      <footer className=\"py-10 px-6 border-t\" style={{ borderColor: \"#2d5b6320\" }}>\n        <div className=\"max-w-5xl mx-auto text-center\">\n          <p className=\"text-xs opacity-40\">\n            Soft Utility Showcase &middot; Part of{\" \"}\n            <Link href=\"/\" className=\"hover:opacity-70 transition-opacity\">StyleKit</Link>\n          </p>\n        </div>\n      </footer>\n    </div>\n  );\n}\n"
+      },
+      {
+        "path": "app/styles/soft-utility/showcase/page.tsx",
+        "sha256": "67fcd5e58570534086a1e02201ffef9eea0414aa350697b9d21508887669fdec",
+        "content": "import type { Metadata } from \"next\";\nimport ShowcaseContent from \"./_content\";\n\nexport const metadata: Metadata = {\n  title: \"Soft Utility Style Showcase | StyleKit\",\n  description: \"Explore the Soft Utility design style showcase\",\n};\n\nexport default function ShowcasePage() {\n  return <ShowcaseContent />;\n}\n"
+      },
+      {
+        "path": "public/styles/soft-utility.svg",
+        "sha256": "2105e6d60be47672113f403327941f7e425a07046d6442d4d39387a4fb6f7a12",
+        "content": "<svg width=\"1200\" height=\"630\" viewBox=\"0 0 1200 630\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n  <rect width=\"1200\" height=\"630\" fill=\"#f4f8f6\"/>\n  <rect x=\"96\" y=\"96\" width=\"1008\" height=\"438\" rx=\"36\" fill=\"#a9d8cc\" opacity=\"0.18\"/>\n  <rect x=\"124\" y=\"132\" width=\"952\" height=\"368\" rx=\"28\" fill=\"#f3c98b\" opacity=\"0.14\"/>\n  <rect x=\"156\" y=\"168\" width=\"888\" height=\"296\" rx=\"22\" fill=\"#f4f8f6\" stroke=\"#2d5b63\" stroke-width=\"6\"/>\n  <rect x=\"196\" y=\"210\" width=\"240\" height=\"18\" rx=\"9\" fill=\"#2d5b63\" opacity=\"0.9\"/>\n  <rect x=\"196\" y=\"248\" width=\"140\" height=\"14\" rx=\"7\" fill=\"#2d5b63\" opacity=\"0.6\"/>\n  <rect x=\"196\" y=\"422\" width=\"200\" height=\"16\" rx=\"8\" fill=\"#2d5b63\" opacity=\"0.35\"/>\n  <rect x=\"420\" y=\"406\" width=\"400\" height=\"44\" rx=\"22\" fill=\"#a9d8cc\" opacity=\"0.25\" stroke=\"#2d5b63\" stroke-width=\"4\"/>\n  <text x=\"600\" y=\"340\" font-family=\"system-ui, -apple-system, sans-serif\" font-size=\"72\" text-anchor=\"middle\" fill=\"#0f172a\" font-weight=\"700\">Soft Utility</text>\n  <text x=\"600\" y=\"392\" font-family=\"system-ui, -apple-system, sans-serif\" font-size=\"22\" text-anchor=\"middle\" fill=\"#0f172a\" opacity=\"0.75\" letter-spacing=\"6\">SOFT-UTILITY</text>\n</svg>\n"
+      }
+    ]
+  },
+  "targets": {
+    "marketing": {
+      "status": "implemented"
+    },
+    "auth": {
+      "status": "implemented"
+    },
+    "app": {
+      "status": "implemented"
+    },
+    "admin": {
+      "status": "implemented"
+    },
+    "docs": {
+      "status": "implemented"
+    },
+    "setup": {
+      "status": "implemented"
+    },
+    "dp": {
+      "status": "implemented"
+    },
+    "expo": {
+      "status": "implemented"
+    }
+  },
+  "tokens": {
+    "sourcePalette": {
+      "primary": "#2d5b63",
+      "secondary": "#f4f8f6",
+      "accent": [
+        "#a9d8cc",
+        "#f3c98b",
+        "#e6b7b0",
+        "#b8c9ed"
+      ]
+    },
+    "family": "flat",
+    "surface": {
+      "background": "#f4f8f6",
+      "backgroundSecondary": "#e2eae9",
+      "primary": "#f5f8f6",
+      "secondary": "#e2eae9"
+    },
+    "accent": [
+      "#536967",
+      "#a9d8cc",
+      "#f3c98b",
+      "#e6b7b0",
+      "#b8c9ed"
+    ],
+    "radius": {
+      "sm": 6,
+      "md": 9,
+      "lg": 12
+    },
+    "typography": "neutral",
+    "motion": {
+      "durationMs": 180,
+      "reducedMotion": true
+    },
+    "texture": "none"
+  },
+  "adapterTokens": {
+    "web": {
+      "semanticColors": {
+        "light": {
+          "background": "#f4f8f6",
+          "surface": "#f5f8f6",
+          "surfaceStrong": "#e2eae9",
+          "foreground": "#17191c",
+          "muted": "#5b5e61",
+          "accent": "#536967",
+          "onAccent": "#fafaf8",
+          "border": "#c6c9c9",
+          "danger": "#bb3346",
+          "highlight": "#f8f9f7",
+          "shadow": "#b3b7b7"
+        },
+        "dark": {
+          "background": "#2d5b63",
+          "surface": "#38646b",
+          "surfaceStrong": "#446c73",
+          "foreground": "#f4f5f7",
+          "muted": "#e3e9e8",
+          "accent": "#d8ece6",
+          "onAccent": "#0c0f14",
+          "border": "#567b81",
+          "danger": "#fbe2e3",
+          "highlight": "#53797f",
+          "shadow": "#192c32"
+        }
+      },
+      "elevation": {
+        "light": {
+          "raised": "none",
+          "raisedLarge": "none",
+          "recessed": "inset 0 0 0 1px #b3b7b7",
+          "pressed": "inset 0 0 0 2px #b3b7b7"
+        },
+        "dark": {
+          "raised": "none",
+          "raisedLarge": "none",
+          "recessed": "inset 0 0 0 1px #192c32",
+          "pressed": "inset 0 0 0 2px #192c32"
+        }
+      },
+      "typography": {
+        "ui": "\"Geist\", \"Segoe UI\", sans-serif",
+        "display": "\"Geist\", \"Segoe UI\", sans-serif",
+        "mono": "\"JetBrains Mono\", \"SFMono-Regular\", monospace"
+      },
+      "radius": {
+        "sm": 6,
+        "md": 9,
+        "lg": 12
+      },
+      "motion": {
+        "fastMs": 120,
+        "standardMs": 180,
+        "reducedMotion": true
+      },
+      "family": {
+        "id": "flat",
+        "borderWidth": 1,
+        "texture": "none",
+        "typography": "neutral"
+      }
+    },
+    "mobile": {
+      "status": "implemented",
+      "light": {
+        "background": "#f4f8f6",
+        "surface": "#f5f8f6",
+        "foreground": "#17191c",
+        "muted": "#5b5e61",
+        "accent": "#536967"
+      },
+      "dark": {
+        "background": "#2d5b63",
+        "surface": "#38646b",
+        "foreground": "#f4f5f7",
+        "muted": "#e3e9e8",
+        "accent": "#d8ece6"
+      },
+      "radius": {
+        "sm": 6,
+        "md": 9,
+        "lg": 12
+      },
+      "motion": {
+        "fastMs": 120,
+        "standardMs": 180
+      }
+    }
+  },
+  "recipes": {
+    "sourcePath": "lib/recipes/soft-utility.ts",
+    "sourceSha256": "99afdbff6d983b93e65f3deceb5d561bf7c01145c513671dfa9fd7d3b1ef6764",
+    "coreCoverage": [
+      "button",
+      "card",
+      "input"
+    ],
+    "components": {
+      "button": {
+        "semantic": "family-interactive",
+        "states": [
+          "hover",
+          "active",
+          "focus-visible",
+          "disabled"
+        ]
+      },
+      "card": {
+        "semantic": "family-surface",
+        "states": [
+          "default",
+          "hover"
+        ]
+      },
+      "input": {
+        "semantic": "family-input",
+        "states": [
+          "default",
+          "focus",
+          "error",
+          "disabled"
+        ]
+      },
+      "nav": {
+        "semantic": "family-navigation"
+      },
+      "hero": {
+        "semantic": "family-marketing"
+      }
+    }
+  },
+  "aiRules": {
+    "do": [
+      "Apply the selected StyleKit snapshot to every Web, Marketing, Docs, Auth, Admin, Setup, and DP surface.",
+      "Use the flat adapter family and the pinned soft-utility source palette and recipes.",
+      "Keep layout patterns and visual enhancements independent from the global visual-system choice.",
+      "Preserve visible keyboard focus, semantic state colors, reduced motion, and readable content density."
+    ],
+    "dont": [
+      "Do not combine multiple global StyleKit systems in one product.",
+      "Do not substitute page-local colors, radii, shadows, or typography for snapshot tokens.",
+      "Do not copy donor framework runtime code or brand trade dress into the generated product.",
+      "Do not communicate error, selected, disabled, or unread state through decoration alone."
+    ]
+  },
+  "required": {
+    "button": [
+      "source-backed recipe",
+      "hover",
+      "active",
+      "focus-visible",
+      "disabled"
+    ],
+    "card": [
+      "source-backed surface",
+      "global family treatment"
+    ],
+    "input": [
+      "source-backed recipe",
+      "focus",
+      "error",
+      "disabled"
+    ],
+    "page": [
+      "global style lock",
+      "target adapter",
+      "reduced motion"
+    ]
+  },
+  "forbidden": {
+    "classes": [
+      "page-local-theme",
+      "unregistered-color",
+      "unregistered-shadow",
+      "mixed-global-style"
+    ],
+    "properties": [
+      "page-local palette",
+      "page-local radius scale",
+      "page-local typography system",
+      "brand-derived runtime dependency"
+    ]
+  }
+}
