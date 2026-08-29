@@ -40,6 +40,25 @@ The repository contains the complete Pack catalog as build-time source. It does 
 
 You can also download the exact verified Full Source Artifact from [All2CF](https://app.all2cf.com/deploy/projects) without creating an account or cloud project.
 
+## What is included
+
+Permanent product foundations include Better Auth, account settings, notifications, Product Shell, `/admin`, support and bug intake, public Docs, audit and operations health.
+
+The page catalog includes Home, Features, Pricing, About, Contact, Changelog, Privacy, Terms, Sign in, Settings, Notifications, Docs, 404, Support and Admin. Optional growth pages add Blog, Case studies, Integrations and Careers.
+
+Selectable Provider families include:
+
+- Native PostgreSQL/Hyperdrive or the optional All2CF database connector; SQL-first or Drizzle product data;
+- Google, GitHub, Apple, Microsoft, Discord, Facebook and LinkedIn sign-in;
+- CFsend, Resend or Cloudflare Email Service;
+- Stripe, Polar or Autumn billing;
+- Cloudflare R2 or S3-compatible object storage;
+- Turnstile, Workers AI, PostgreSQL search, Vectorize, MapCN + MapLibre, Expo Push and Twilio SMS;
+- Cloudflare Images, Stream, Queues, Workflows, Cron and Durable Objects/WebSockets;
+- Cloudflare Workers, GitHub, Expo/EAS, local Android, connected Mac/Xcode, App Store Connect and Google Play release paths.
+
+Planned Providers remain visible but disabled until their adapters and verification are executable. See [CAPABILITIES.md](CAPABILITIES.md) for the complete status table.
+
 ## Work with AI
 
 ```bash
@@ -64,6 +83,7 @@ The product runs independently. Connecting it to All2CF is optional and enables 
 - [Architecture](ARCHITECTURE.md)
 - [Performance](PERFORMANCE.md)
 - [AI-first development](AI-FIRST.md)
+- [Pages, Packs and Providers](CAPABILITIES.md)
 - [Licensing](LICENSING.md)
 
 ## Development and release
