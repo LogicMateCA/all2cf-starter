@@ -7,7 +7,7 @@ The machine-readable sources are `pages/catalog.json`, `catalog/catalog.json`, a
 
 ## Permanent foundation
 
-Better Auth, account settings, Product Shell, notifications, `/admin`, support and bug intake, Starlight Docs, audit evidence and operations health are part of the permanent SaaS foundation.
+Authentication and sessions powered by Better Auth, account settings, Product Shell, notifications, `/admin`, support and bug intake, Starlight Docs, audit evidence and operations health are part of the permanent product foundation.
 
 ## Page catalog
 

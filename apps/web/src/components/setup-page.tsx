@@ -1879,7 +1879,7 @@ export function SetupPage() {
               <section className="setup-panel">
                 <div className="panel-title"><div><h2>Core product foundation</h2><p>Permanent infrastructure for the selected product shape is visible here and does not need to be selected again.</p></div><small>Included</small></div>
                 <div className="pack-grid core-capability-grid">
-                  {["Better Auth", "Account settings", "Notifications", "Admin", "Support & bugs", "Docs", "Audit", "Operations health"].map((name) => <article className="pack-choice selected core-choice" key={name}><span className="pack-choice-main"><span><strong>{name}</strong><small>Core</small></span><p>Included in the SaaS foundation and registered in the project Agent Map.</p></span><span className="pack-check"><Check size={15} /></span></article>)}
+                  {["Authentication", "Account settings", "Notifications", "Admin", "Support & bugs", "Docs", "Audit", "Operations health"].map((name) => <article className="pack-choice selected core-choice" key={name}><span className="pack-choice-main"><span><strong>{name}</strong><small>Core</small></span><p>Included in the product foundation and registered in the project Agent Map.</p></span><span className="pack-check"><Check size={15} /></span></article>)}
                 </div>
               </section>
               <p className="setup-field-help">Source coverage: {payload.saasSources.sources.length} pinned structural references and {payload.saasCapabilities.capabilities.length} named product modules. Planned modules remain visible in /dp, not selectable here.</p>
@@ -1932,7 +1932,7 @@ export function SetupPage() {
           {currentStep.id === "providers" ? (
             <div className="setup-stack provider-setup">
               <section className="setup-panel provider-summary">
-                <div><span>Authentication</span><strong>{payload.blueprint.providers.auth}</strong><small>Better Auth core and selected official plugins</small></div>
+                <div><span>Authentication</span><strong>Configured</strong><small>Identity, sessions and selected sign-in Providers</small></div>
                 <div><span>Database</span><strong>Native PostgreSQL</strong><small>Isolated Hyperdrive / {payload.blueprint.providers.database.access}</small></div>
                 <div><span>Billing</span><strong>{payload.blueprint.providers.billing}</strong><small>Activated only when the Billing pack is materialized</small></div>
               </section>
@@ -1988,10 +1988,10 @@ export function SetupPage() {
               </section>
 
               <section className="setup-panel provider-section" hidden={providerTab !== "advanced"}>
-                <header><h2>Anti-abuse</h2><p>Turnstile protects credential registration, sign-in and password reset through the official Better Auth Captcha plugin. The browser widget and server-side Siteverify are both mandatory.</p></header>
+                <header><h2>Anti-abuse</h2><p>Turnstile protects credential registration, sign-in and password reset. The browser widget and server-side Siteverify are both mandatory.</p></header>
                 <div className="provider-option-grid" role="radiogroup" aria-label="Anti-abuse Provider">
                   {[
-                    { id: "none", name: "None", note: "No challenge Provider. Better Auth rate limits still apply." },
+                    { id: "none", name: "None", note: "No challenge Provider. Authentication rate limits still apply." },
                     { id: "turnstile", name: "Cloudflare Turnstile", note: "Recommended for public credential flows; no puzzle for most legitimate users." },
                   ].map(({ id, name, note }) => {
                     const selected = payload.blueprint.providers.antiAbuse.provider === id;
@@ -2016,7 +2016,7 @@ export function SetupPage() {
                     <ProviderCredentialEditor provider="turnstile" state={payload.providerCredentials.turnstile} editing={providerEditors.turnstile} values={providerSecrets} onEditing={(editing) => setProviderEditing("turnstile", editing)} onChange={updateProviderSecret} />
                     <div className="provider-resource-links">{providerSetupLinks.turnstile.map((link) => <a href={link.href} target="_blank" rel="noreferrer" key={link.href}>{link.label}<ExternalLink size={14} /></a>)}</div>
                     {payload.blueprint.providers.antiAbuse.development.siteKey ? <div className="provider-email-test"><div><strong>Real Siteverify test</strong><p>Complete the Development widget, then validate its one-time token with the saved or newly entered Development secret.</p></div><TurnstileChallenge siteKey={payload.blueprint.providers.antiAbuse.development.siteKey} action="starter_setup_test" onToken={(token) => { setTurnstileToken(token); if (token) setTurnstileTest({ status: "idle" }); }} onError={(message) => setTurnstileTest({ status: "error", provider: "turnstile", message })} /><Button type="button" variant="outline" disabled={!turnstileToken || turnstileTest.status === "testing"} onClick={() => void runTurnstileTest()}>{turnstileTest.status === "testing" ? "Validating challenge" : "Validate Turnstile"}</Button>{turnstileTest.message ? <p className={turnstileTest.status === "success" ? "provider-test-result success" : "provider-test-result error"} role="status">{turnstileTest.message}</p> : null}</div> : <p className="provider-test-unavailable">Enter the Development site key to load the validation widget.</p>}
-                    <div className="provider-live-test"><Button asChild type="button" size="sm" variant="outline"><a href={`https://${payload.config.development.domain}/login`} target="_blank" rel="noreferrer">Test protected auth on Development<ExternalLink size={13} /></a></Button><small>After a Development release, this opens the real Better Auth sign-up, sign-in and password-reset enforcement path.</small></div>
+                    <div className="provider-live-test"><Button asChild type="button" size="sm" variant="outline"><a href={`https://${payload.config.development.domain}/login`} target="_blank" rel="noreferrer">Test protected auth on Development<ExternalLink size={13} /></a></Button><small>After a Development release, this opens the real sign-up, sign-in and password-reset enforcement path.</small></div>
                   </div>
                 ) : null}
               </section>
@@ -2267,7 +2267,7 @@ export function SetupPage() {
                   <h2>Billing Provider</h2>
                   <p>{billingSelected ? "The selected Billing adapter is materialized. Stripe uses separate Test credentials for Development and Live credentials for Production; never reuse one environment's keys, webhook secret or Price ID in the other." : "Billing is not selected and may be configured later."}</p>
                 </header>
-                {billingSelected ? <><div className="provider-option-grid" role="radiogroup" aria-label="Billing Provider">{(["stripe", "polar", "autumn"] as const).map((provider) => <button type="button" className={billingProvider === provider ? "provider-option selected" : "provider-option"} aria-pressed={billingProvider === provider} onClick={() => setBillingProvider(provider)} key={provider}><span><strong>{provider === "stripe" ? "Stripe" : provider === "polar" ? "Polar" : "Autumn"}</strong><small>{provider === "stripe" ? "Direct Better Auth subscriptions, Checkout and Portal." : provider === "polar" ? "Checkout, Portal, usage and signed Webhooks." : "Plans, usage and billing orchestration."}</small></span></button>)}</div><ProviderCredentialEditor
+                {billingSelected ? <><div className="provider-option-grid" role="radiogroup" aria-label="Billing Provider">{(["stripe", "polar", "autumn"] as const).map((provider) => <button type="button" className={billingProvider === provider ? "provider-option selected" : "provider-option"} aria-pressed={billingProvider === provider} onClick={() => setBillingProvider(provider)} key={provider}><span><strong>{provider === "stripe" ? "Stripe" : provider === "polar" ? "Polar" : "Autumn"}</strong><small>{provider === "stripe" ? "Subscriptions, Checkout and Customer Portal." : provider === "polar" ? "Checkout, Portal, usage and signed Webhooks." : "Plans, usage and billing orchestration."}</small></span></button>)}</div><ProviderCredentialEditor
                   provider={billingProvider}
                   state={payload.providerCredentials[billingProvider]}
                   editing={providerEditors[billingProvider]}

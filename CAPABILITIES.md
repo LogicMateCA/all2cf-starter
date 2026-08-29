@@ -11,7 +11,7 @@ Status vocabulary:
 
 ## Permanent SaaS foundation
 
-- Better Auth identity and account core
+- Authentication, sessions and account core (powered by Better Auth)
 - Product Shell and navigation
 - Notifications and account menu
 - Account settings, theme and locale

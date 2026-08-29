@@ -11,3 +11,5 @@ The public version line starts at `2.1.1` and follows Semantic Versioning.
 Engine candidates may use `-dev.N` while under validation. Stable GitHub source packages, tags and promoted download channels omit prerelease suffixes. One release identity includes the canonical source commit, Engine version, Artifact SHA-256, public source receipt and Git tag.
 
 Changing a version never authorizes Production deployment. Development and Production release authorization remain separate project operations.
+
+Until multi-channel release automation is introduced, the product website, Docs, GitHub tag/Release, packaged source and public All2CF download use the same stable version. No public surface may advertise an unreleased leading version.
