@@ -19,6 +19,7 @@ export default defineConfig({
       sidebar: [
         { label: "Start", items: [{ label: "Overview", slug: "docs" }, { label: "Create a project", slug: "docs/getting-started" }] },
         { label: "Build", items: [{ label: "Use the Starter", slug: "docs/guides/using-starter" }, { label: "Optional SaaS packs", slug: "docs/guides/optional-saas-packs" }] },
+        { label: "Reference", items: [{ label: "Pages, Packs and Providers", slug: "docs/reference/capabilities" }] },
         { label: "Operate", items: [{ label: "Release lanes", slug: "docs/operations/releases" }] }
       ]
     })
