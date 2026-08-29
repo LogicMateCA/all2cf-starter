@@ -16,6 +16,8 @@ Public Starter and Engine releases use SemVer beginning at `2.1.1`:
 
 Development candidates may use `-dev.N`; GitHub packaged releases and promoted public channels use stable versions.
 
+Every Engine/GitHub release must have one dated `CHANGELOG.md` entry before candidate construction. The entry records user-visible additions, changes, fixes, performance, security and migration notes. `changes/` retains the detailed engineering evidence; GitHub Release notes summarize the matching Changelog entry.
+
 Generating a project through `/factory` is not a Cloudflare or App release. The generated repository begins at an intentional local Git commit with no Development or Production claim. Its `.starter/source.json` records the exact source commit and whether an explicitly disposable generation used a dirty source; normal Factory creation rejects a dirty source.
 
 ## Environments

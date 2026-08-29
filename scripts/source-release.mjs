@@ -240,6 +240,7 @@ async function verify(versionValue) {
   const source = requireCleanSource();
   const version = parseVersion(versionValue);
   const startedAt = new Date().toISOString();
+  run(process.execPath, ["scripts/changelog-contract.mjs", `--version=${version}`]);
   run("npm", ["run", "verify"]);
   const projects = [];
   for (const dataLayer of ["sql-first", "drizzle"])

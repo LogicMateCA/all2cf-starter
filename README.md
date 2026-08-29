@@ -114,6 +114,7 @@ The product runs independently. Connecting it to All2CF is optional and enables 
 - [AI-first development](AI-FIRST.md)
 - [Codex handoff](CODEX.md)
 - [Pages, Packs and Providers](CAPABILITIES.md)
+- [Version history](CHANGELOG.md)
 - [Licensing](LICENSING.md)
 
 ## Development and release
