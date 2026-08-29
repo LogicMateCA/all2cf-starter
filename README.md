@@ -25,19 +25,22 @@ See [AI-FIRST.md](AI-FIRST.md) for the development model, comparison, and limits
 - Wrangler 4 and a Cloudflare account for deployment
 - Android tooling and/or a connected Mac with Xcode only when native targets are selected
 
-## Run the canonical factory
+## Quick start
 
 ```bash
+git clone https://github.com/LogicMateCA/all2cf-starter.git my-product
+cd my-product
 npm ci
-npm run verify
 npm run setup
 ```
 
-Open the local URL and use `/factory` to define the product type, targets, Providers, SaaS foundation, capabilities, pages, and design fallback. The factory creates a separate project archive and local handoff; it does not rewrite canonical Starter identity.
+Open the local URL shown by the command. `/setup` defines the product type, targets, Providers, SaaS foundation, capabilities, pages, design fallback, Development and Production environments. Setup may be reopened later.
 
-## Work inside a generated project
+The repository contains the complete Pack catalog as build-time source. It does not load every Pack at runtime: only selections materialized by `/setup` contribute files, dependencies, SQL, routes, Cloudflare Bindings, native modules, or client chunks. Every Engine release verifies a minimal product whose optional Pack count is zero.
 
-Generated projects use `/setup`, not `/factory`:
+You can also download the exact verified Full Source Artifact from [All2CF](https://app.all2cf.com/deploy/projects) without creating an account or cloud project.
+
+## Work with AI
 
 ```bash
 npm ci
@@ -50,7 +53,18 @@ npm run ai:context -- --task "describe the first product feature"
 - `AGENT_MAP.md` routes ordinary work without loading the complete repository context.
 - `npm run starter:status`, `starter:diff`, `starter:add`, and `starter:update` manage authorized Starter updates.
 
-The generated product runs independently. Connecting it to All2CF is optional and enables managed generation, update orchestration, release evidence, and cloud operations.
+The product runs independently. Connecting it to All2CF is optional and enables project-scoped MCP management, private update authorization and release evidence. Disconnecting never disables the local product.
+
+## Documentation
+
+- [Getting started](apps/docs/src/content/docs/docs/getting-started.md)
+- [Using `/setup`](apps/docs/src/content/docs/docs/guides/using-starter.md)
+- [Optional SaaS Packs](apps/docs/src/content/docs/docs/guides/optional-saas-packs.md)
+- [Release operations](apps/docs/src/content/docs/docs/operations/releases.md)
+- [Architecture](ARCHITECTURE.md)
+- [Performance](PERFORMANCE.md)
+- [AI-first development](AI-FIRST.md)
+- [Licensing](LICENSING.md)
 
 ## Development and release
 
