@@ -376,10 +376,14 @@ const providerSecretFields = {
     { name: "CLOUDFLARE_EMAIL_FROM", label: "Verified sender", secret: false },
   ],
   stripe: [
-    { name: "STRIPE_SECRET_KEY", label: "Test secret key", secret: true },
+    { name: "STRIPE_SECRET_KEY", label: "Development · Test secret or restricted key", secret: true },
     { name: "STRIPE_PUBLISHABLE_KEY", label: "Test publishable key", secret: false },
-    { name: "STRIPE_WEBHOOK_SECRET", label: "Webhook signing secret", secret: true },
-    { name: "STRIPE_PRICE_PRO", label: "Pro Price ID", secret: false },
+    { name: "STRIPE_WEBHOOK_SECRET", label: "Test webhook signing secret", secret: true },
+    { name: "STRIPE_PRICE_PRO", label: "Test Pro Price ID", secret: false },
+    { name: "STARTER_PRODUCTION_STRIPE_SECRET_KEY", label: "Production · Live secret or restricted key", secret: true },
+    { name: "STARTER_PRODUCTION_STRIPE_PUBLISHABLE_KEY", label: "Live publishable key", secret: false },
+    { name: "STARTER_PRODUCTION_STRIPE_WEBHOOK_SECRET", label: "Live webhook signing secret", secret: true },
+    { name: "STARTER_PRODUCTION_STRIPE_PRICE_PRO", label: "Live Pro Price ID", secret: false },
   ],
   polar: [{ name: "POLAR_ACCESS_TOKEN", label: "Access token", secret: true }, { name: "POLAR_WEBHOOK_SECRET", label: "Webhook secret", secret: true }, { name: "POLAR_PRODUCT_PRO", label: "Pro product ID", secret: false }],
   autumn: [{ name: "AUTUMN_SECRET_KEY", label: "Secret key", secret: true }],
@@ -451,7 +455,7 @@ const providerSecretFields = {
 
 const steps = [
   { id: "identity", label: "Product" },
-  { id: "saas", label: "SaaS" },
+  { id: "saas", label: "Modules" },
   { id: "providers", label: "Providers" },
   { id: "pages", label: "Pages" },
   { id: "design", label: "Design" },
@@ -1983,7 +1987,7 @@ export function SetupPage() {
           {currentStep.id === "saas" ? (
             <div className="setup-stack">
               <section className="setup-panel">
-                <div className="panel-title"><div><h2>SaaS Core</h2><p>Permanent product infrastructure is visible here and does not need to be selected again.</p></div><small>Included</small></div>
+                <div className="panel-title"><div><h2>Core product foundation</h2><p>Permanent infrastructure for the selected product shape is visible here and does not need to be selected again.</p></div><small>Included</small></div>
                 <div className="pack-grid core-capability-grid">
                   {["Better Auth", "Account settings", "Notifications", "Admin", "Support & bugs", "Docs", "Audit", "Operations health"].map((name) => <article className="pack-choice selected core-choice" key={name}><span className="pack-choice-main"><span><strong>{name}</strong><small>Core</small></span><p>Included in the SaaS foundation and registered in the project Agent Map.</p></span><span className="pack-check"><Check size={15} /></span></article>)}
                 </div>
@@ -2040,12 +2044,7 @@ export function SetupPage() {
                     default. Product-specific modules are still selected below.
                   </p>
                 )}
-                <p className="setup-field-help">
-                  Source coverage: {payload.saasSources.sources.length} pinned
-                  donors and {payload.saasCapabilities.capabilities.length}{" "}
-                  named SaaS capabilities. Planned capabilities remain visible
-                  in /dp, not selectable here.
-                </p>
+                <p className="setup-field-help">Source coverage: {payload.saasSources.sources.length} pinned structural references and {payload.saasCapabilities.capabilities.length} named product modules. Planned modules remain visible in /dp, not selectable here.</p>
               </section>
               <section className="setup-panel preset-selector">
                 <label>
@@ -2074,6 +2073,7 @@ export function SetupPage() {
                   }
                 </p>
               </section>
+              <div className="panel-title"><div><h2>Optional product modules</h2><p>Add only behavior the selected Web, content or mobile product actually needs.</p></div></div>
               <div className="pack-grid">
                 <label className={billingSelected ? "pack-choice selected" : "pack-choice"}>
                   <input type="checkbox" checked={billingSelected} onChange={(event) => setBillingCapability(event.target.checked)} />
@@ -2428,7 +2428,7 @@ export function SetupPage() {
               <section className="setup-panel provider-section" hidden={providerTab !== "essentials"}>
                 <header>
                   <h2>Billing Provider</h2>
-                  <p>{billingSelected ? "The selected Billing adapter is materialized. Complete its test credentials before Development billing verification." : "Billing is not selected and may be configured later."}</p>
+                  <p>{billingSelected ? "The selected Billing adapter is materialized. Stripe uses separate Test credentials for Development and Live credentials for Production; never reuse one environment's keys, webhook secret or Price ID in the other." : "Billing is not selected and may be configured later."}</p>
                 </header>
                 {billingSelected ? <><div className="provider-option-grid" role="radiogroup" aria-label="Billing Provider">{(["stripe", "polar", "autumn"] as const).map((provider) => <button type="button" className={billingProvider === provider ? "provider-option selected" : "provider-option"} aria-pressed={billingProvider === provider} onClick={() => setBillingProvider(provider)} key={provider}><span><strong>{provider === "stripe" ? "Stripe" : provider === "polar" ? "Polar" : "Autumn"}</strong><small>{provider === "stripe" ? "Direct Better Auth subscriptions, Checkout and Portal." : provider === "polar" ? "Checkout, Portal, usage and signed Webhooks." : "Plans, usage and billing orchestration."}</small></span></button>)}</div><ProviderCredentialEditor
                   provider={billingProvider}

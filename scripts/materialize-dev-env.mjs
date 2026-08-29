@@ -71,6 +71,13 @@ const webValues = new Map([
 ]);
 await writeFile(path.join(root, "apps/web/.env.local"), renderEnv([...webValues.keys()], webValues), { mode: 0o600 });
 
+const productionWebValues = new Map([
+  ["VITE_API_BASE_URL", `https://${config.production.domain}`],
+  ["VITE_STRIPE_PUBLISHABLE_KEY", values.get("STARTER_PRODUCTION_STRIPE_PUBLISHABLE_KEY") || ""],
+  ["VITE_GOOGLE_CLIENT_ID", values.get("GOOGLE_CLIENT_ID") || ""],
+]);
+await writeFile(path.join(root, "apps/web/.env.production.local"), renderEnv([...productionWebValues.keys()], productionWebValues), { mode: 0o600 });
+
 const mobileRoot = path.join(root, "apps/mobile");
 await mkdir(mobileRoot, { recursive: true });
 const mobileValues = new Map([
@@ -80,4 +87,11 @@ const mobileValues = new Map([
 ]);
 await writeFile(path.join(mobileRoot, ".env.local"), renderEnv([...mobileValues.keys()], mobileValues), { mode: 0o600 });
 
-console.log(JSON.stringify({ ok: true, profilePath, serverVariables: serverNames.length, webVariables: webValues.size, mobileVariables: mobileValues.size }, null, 2));
+const productionMobileValues = new Map([
+  ["EXPO_PUBLIC_API_URL", `https://${config.production.domain}`],
+  ["EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY", values.get("STARTER_PRODUCTION_STRIPE_PUBLISHABLE_KEY") || ""],
+  ["EXPO_PUBLIC_GOOGLE_CLIENT_ID", values.get("GOOGLE_CLIENT_ID") || ""],
+]);
+await writeFile(path.join(mobileRoot, ".env.production.local"), renderEnv([...productionMobileValues.keys()], productionMobileValues), { mode: 0o600 });
+
+console.log(JSON.stringify({ ok: true, profilePath, serverVariables: serverNames.length, webVariables: webValues.size, productionWebVariables: productionWebValues.size, mobileVariables: mobileValues.size, productionMobileVariables: productionMobileValues.size }, null, 2));

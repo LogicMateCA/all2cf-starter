@@ -19,6 +19,10 @@ export const providerSetupLinks = {
     { label: "Stripe test API keys", href: "https://dashboard.stripe.com/test/apikeys" },
     { label: "Stripe test webhooks", href: "https://dashboard.stripe.com/test/webhooks" },
     { label: "Stripe test products", href: "https://dashboard.stripe.com/test/products" },
+    { label: "Stripe live API keys", href: "https://dashboard.stripe.com/apikeys" },
+    { label: "Stripe live webhooks", href: "https://dashboard.stripe.com/webhooks" },
+    { label: "Stripe live products", href: "https://dashboard.stripe.com/products" },
+    { label: "Stripe go-live checklist", href: "https://docs.stripe.com/get-started/checklist/go-live" },
   ],
   "s3-compatible": [
     { label: "AWS S3 credentials", href: "https://console.aws.amazon.com/iam/home#/security_credentials" },

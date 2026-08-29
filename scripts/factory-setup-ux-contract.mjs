@@ -6,7 +6,7 @@ const [setup, styles, factory, providers, project] = await Promise.all([
   read("apps/web/src/components/setup-page.tsx"), read("apps/web/src/index.css"), read("scripts/starter-factory.mjs"), read("catalog/providers.json").then(JSON.parse), read("PROJECT.md"),
 ]);
 
-assert.match(setup, /SaaS Core/u);
+assert.match(setup, /Core product foundation/u);
 assert.match(setup, /"Admin"/u);
 assert.match(setup, /Billing & subscriptions/u);
 assert.doesNotMatch(setup, /packsFor\("capability"\)\.map/u);
@@ -18,8 +18,12 @@ assert.match(setup, /Under development/u);
 assert.match(setup, /\["essentials", "Essentials"\], \["advanced", "Advanced"\]/u);
 assert.doesNotMatch(setup, /id: "capabilities", label: "Capabilities"/u);
 assert.doesNotMatch(setup, /currentStep\.id === "capabilities"/u);
+assert.match(setup, /id: "saas", label: "Modules"/u);
+assert.doesNotMatch(setup, /<h2>SaaS Core<\/h2>/u);
 assert.doesNotMatch(setup, /All2CF database connector/u);
 assert.doesNotMatch(setup, /npx @all2cf\/database-connect/u);
+for (const field of ["STARTER_PRODUCTION_STRIPE_SECRET_KEY", "STARTER_PRODUCTION_STRIPE_PUBLISHABLE_KEY", "STARTER_PRODUCTION_STRIPE_WEBHOOK_SECRET", "STARTER_PRODUCTION_STRIPE_PRICE_PRO"])
+  assert.match(setup, new RegExp(field, "u"));
 assert.match(setup, /Mobile default · included automatically/u);
 assert.match(setup, /Billing not selected/u);
 assert.match(styles, /\.pack-grid[\s\S]{0,100}repeat\(4/u);
