@@ -27,6 +27,7 @@ Starter updates use the materialization Receipt as the Base side of a conservati
 - Refuse case-insensitive target collisions and symbolic-link traversal before reading or writing managed paths.
 - Serialize `add` and `update` with an ignored exclusive project lock so concurrent AI sessions cannot apply overlapping mutations.
 - Keep environment files, secrets, project business files, native mobile directories and unregistered package scripts outside automatic ownership.
+- Respect Product Shape during repeat materialization: Website projects omit Worker/DB/Docs/Mobile targets and may legitimately lack Wrangler environment files; Web SaaS and Mobile API projects still fail closed when required Wrangler configuration is missing.
 
 # Verification
 
@@ -35,6 +36,7 @@ Starter updates use the materialization Receipt as the Base side of a conservati
 - Factory contract proves customer additions to `AGENT_MAP.md` survive update and the three project AI Markdown files are absent from foundation ownership.
 - Factory contract refuses case-insensitive file collisions and symbolic-link materialization targets.
 - Engine Channel contract refuses a concurrent update lock.
+- Product Shape and Runner Website regressions verify that repeat materialization does not recreate removed Worker files or require absent Website Wrangler configs.
 - Maintenance contract, materialization, typecheck, Web build, Knowledge and Change Spec gates pass.
 - Source/Public release contracts classify always-installed `foundation.core` as permanent infrastructure while continuing to require `optionalPackCount: 0` for the minimal runtime.
 - Automatic text conflict merging is intentionally excluded. Codex may propose a merge, but the user must approve it before application.

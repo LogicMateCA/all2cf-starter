@@ -117,7 +117,7 @@
         "apps/web/src/maintenance.css": "fc6e108fc8651a345a2a59c5491d4be08545923d112d9a32f46d4abf6a7e333d",
         "apps/web/vite.config.ts": "01c43d850ae7650b27f13506e9a8186977d798a748537f001680684e36e9f874",
         "scripts/all2cf-project.mjs": "dabaae31585293e764846bf87fa40086be8510610940d021d6ba43c98784db61",
-        "scripts/materialize-blueprint.mjs": "11857e030005070238539b54d5914d928464d3ab2979b8b4653874fc9edd4597",
+        "scripts/materialize-blueprint.mjs": "06d71b4c96707bec6fc4958eb6e6849f7f942e10fb8420745a87f6bcc03dd409",
         "scripts/starter-link.mjs": "0c2b992fd19ba31aac5758154b0f5accceb0cf6225bdf4a62682a26f69a16f0b",
         "skills/starter-maintenance/SKILL.md": "cc006c17c94c02c9aec79e09b86a6ca7302fc872ed5ba6aee91b539880fe54a4"
       }

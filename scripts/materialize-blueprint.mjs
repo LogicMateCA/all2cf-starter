@@ -931,10 +931,18 @@ function renderMarketingProject(
 
 const blueprint = JSON.parse(await readFile(blueprintPath, "utf8"));
 const requestedPlatforms = new Set(blueprint.project?.platforms || []);
+const materializeWorker = blueprint.project?.productType !== "website";
 const materializeMobile = blueprint.project?.productType === "mobile-app" || (
   blueprint.project?.productType === "web-saas" &&
   ["mobile-web", "ios", "android"].some((platform) => requestedPlatforms.has(platform))
 );
+function outputEnabled(relativePath) {
+  const relative = String(relativePath).replaceAll("\\", "/");
+  if (!materializeWorker && ["workers/", "db/", "apps/docs/", "apps/mobile/"].some((prefix) => relative.startsWith(prefix))) return false;
+  if (!materializeMobile && relative.startsWith("apps/mobile/")) return false;
+  if (blueprint.project?.productType === "mobile-app" && ["apps/marketing/", "apps/docs/"].some((prefix) => relative.startsWith(prefix))) return false;
+  return true;
+}
 const state = await readState();
 const starterManifest = JSON.parse(
   await readFile(path.join(root, "starter.manifest.json"), "utf8"),
@@ -1034,7 +1042,7 @@ for (const target of foundation.files) {
   desiredFiles.set(target, { packId: foundation.id, content: await readFile(path.join(sourceRoot, target), "utf8") });
 }
 
-if (["development", "production"].some((environment) => databaseProviderForEnvironment(blueprint.providers.database, environment) === "cfpg")) {
+if (materializeWorker && ["development", "production"].some((environment) => databaseProviderForEnvironment(blueprint.providers.database, environment) === "cfpg")) {
   for (const environment of ["development", "production"])
     if (databaseProviderForEnvironment(blueprint.providers.database, environment) === "cfpg" && !blueprint.providers.database.cfpg?.[environment])
       throw new Error(
@@ -1051,7 +1059,7 @@ if (["development", "production"].some((environment) => databaseProviderForEnvir
     },
   );
 }
-if (blueprint.providers.storage.provider === "s3-compatible") {
+if (materializeWorker && blueprint.providers.storage.provider === "s3-compatible") {
   desiredDependencies.set(
     "workers/app/package.json|dependencies|@aws-sdk/client-s3",
     {
@@ -1092,6 +1100,7 @@ async function addDesiredFile(packRoot, manifest, entry) {
     root,
     safeProjectPath(entry.target, `${manifest.id} target`),
   );
+  if (!outputEnabled(target)) return;
   if (desiredFiles.has(target))
     throw new Error(`Materialization file collision at ${target}`);
   const source = safePackPath(packRoot, entry.source, `${manifest.id} source`);
@@ -1114,6 +1123,7 @@ for (const { packRoot, manifest } of selectedManifests) {
         await addDesiredFile(packRoot, manifest, entry);
   for (const dependency of manifest.dependencies) {
     safeProjectPath(dependency.packageFile, `${manifest.id} packageFile`);
+    if (!outputEnabled(dependency.packageFile)) continue;
     const key = [
       dependency.packageFile,
       dependency.section,
@@ -1129,7 +1139,7 @@ for (const { packRoot, manifest } of selectedManifests) {
       throw new Error(`Capability route collision at ${route.path}`);
     desiredRoutes.push({ ...route, packId: manifest.id });
   }
-  if (manifest.authPlugins?.server)
+  if (materializeWorker && manifest.authPlugins?.server)
     desiredServerAuthPlugins.push({
       ...manifest.authPlugins.server,
       packId: manifest.id,
@@ -1139,25 +1149,25 @@ for (const { packRoot, manifest } of selectedManifests) {
       ...manifest.authPlugins.client,
       packId: manifest.id,
     });
-  if (manifest.workerFeature)
+  if (materializeWorker && manifest.workerFeature)
     desiredWorkerFeatures.push({
       ...manifest.workerFeature,
       packId: manifest.id,
     });
-  if (manifest.workerEvents)
+  if (materializeWorker && manifest.workerEvents)
     desiredWorkerEvents.push({
       ...manifest.workerEvents,
       packId: manifest.id,
     });
   for (const plugin of manifest.mobileConfigPlugins || [])
     desiredMobileConfigPlugins.add(plugin);
-  for (const secret of manifest.cloudflare?.requiredSecrets || []) {
+  for (const secret of materializeWorker ? manifest.cloudflare?.requiredSecrets || [] : []) {
     const owner = desiredCloudflareSecrets.get(secret);
     if (owner && owner !== manifest.id)
       throw new Error(`Cloudflare secret ${secret} is owned by multiple packs`);
     desiredCloudflareSecrets.set(secret, manifest.id);
   }
-  for (const queue of manifest.cloudflare?.queues || []) {
+  for (const queue of materializeWorker ? manifest.cloudflare?.queues || [] : []) {
     if (desiredCloudflareQueues.has(queue.binding))
       throw new Error(`Cloudflare Queue binding collision at ${queue.binding}`);
     desiredCloudflareQueues.set(queue.binding, {
@@ -1423,7 +1433,11 @@ const previousWorkerFirstRoutes = new Set(
 const workerFirstRegistries = [];
 const desiredCloudflareConfigReceipts = {};
 for (const configPath of workerFirstConfigPaths) {
-  const current = await readFile(configPath, "utf8");
+  const current = await optionalRead(configPath);
+  if (current === null) {
+    if (materializeWorker) failures.push(`${path.relative(root, configPath)} is required for ${blueprint.project?.productType || "this product"}`);
+    continue;
+  }
   let currentRoutes;
   try {
     currentRoutes = readWorkerFirstRoutes(current);
@@ -1580,7 +1594,10 @@ const generatedRegistries = [
     baseline: null,
     packId: "page.core-product-site",
   },
-].filter((registry) => materializeMobile || !registry.path.startsWith(path.join(root, "apps/mobile/")));
+].filter((registry) =>
+  (materializeMobile || !registry.path.startsWith(path.join(root, "apps/mobile/"))) &&
+  (materializeWorker || !registry.path.startsWith(path.join(root, "workers/")))
+);
 for (const registry of generatedRegistries) {
   const current = await optionalRead(registry.path);
   if (current === registry.desired) continue;
