@@ -8,9 +8,15 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 ### Added
 
-- Unified local `/maintenance` workspace for optional All2CF MCP connection, project Token receipt import, paid entitlement, installed receipt, update preview and authorized application.
+- Nothing yet.
+
+## [2.1.2] - 2026-08-30
+
+### Added
+
+- Unified local `/maintenance` workspace for automatic All2CF MCP OAuth connection, paid entitlement, installed receipt, update preview and authorized application; manual Receipt import remains Advanced recovery.
 - Setup completion choices for independent continuation or All2CF paid MCP and update connection.
-- Codex-first MCP connection prompt and AI routing rules that identify the exact local page and preserve Token secrecy.
+- Codex-first automatic MCP connection and AI routing rules that identify the exact local page and preserve Token secrecy.
 - Conservative Base/Local/Target incremental updates that preserve customer-only file and dependency changes and block simultaneous edits.
 
 ### Changed
@@ -18,6 +24,23 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 - `/all2cf` and `/update` are compatibility aliases for `/maintenance`.
 - All2CF Project plugin 0.1.3 routes paid Starter updates through hosted MCP OAuth plus a project-scoped connection receipt while native Cloudflare operations remain with official Cloudflare MCP.
 - Maintenance diff reports safe changes, customer changes kept and conflicts before update application.
+
+### Fixed
+
+- Preserved customer-only Pack files, dependency versions and Agent Map content instead of treating every local difference as an overwrite candidate.
+- Removed user-facing MCP Prompt copying from the normal connection flow and made manual Receipt import Advanced recovery only.
+
+### Performance
+
+- Kept unselected Packs Catalog-only so global release metadata can advance without adding project files, dependencies or runtime chunks.
+
+### Security
+
+- Added PKCE/state automatic connection, project-scoped Tokens, concurrent update locking, case-collision and symbolic-link refusal, compressed recovery snapshots and failed-verification rollback.
+
+### Migration
+
+- Existing projects can connect from local `/maintenance`; run Check updates and View diff before applying 2.1.2. Product-only changes are retained and simultaneous changes require explicit review.
 
 ## [2.1.1] - 2026-08-28
 
@@ -127,7 +150,8 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Established Web/Mobile foundation, authentication email Providers, account menu, dual UI strategy, operational Skills and always-current `/dp`.
 
-[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.1.1...HEAD
+[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.1.2...HEAD
+[2.1.2]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.2
 [2.1.1]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.1
 [2.0.0-dev.39]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.0.0-dev.39
 [2.0.0-dev.38]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.0.0-dev.38

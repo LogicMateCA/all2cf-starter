@@ -40,4 +40,4 @@ Starter updates use the materialization Receipt as the Base side of a conservati
 
 # Release
 
-Canonical Starter source only. A new Engine/public release is required before customer projects receive this behavior. No remote update, database migration, Development deployment or Production deployment is authorized by this source change.
+The reviewed release target is Starter Engine `2.1.2`, dated `2026-08-30`. Candidate verification, reproducible Artifact identity, SQL/Drizzle generated-project evidence and All2CF Development integration must pass before the release is available to connected projects. This source commit does not authorize Stable, Production or destructive database work.
