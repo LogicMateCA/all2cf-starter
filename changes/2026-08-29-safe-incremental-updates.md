@@ -36,6 +36,7 @@ Starter updates use the materialization Receipt as the Base side of a conservati
 - Factory contract refuses case-insensitive file collisions and symbolic-link materialization targets.
 - Engine Channel contract refuses a concurrent update lock.
 - Maintenance contract, materialization, typecheck, Web build, Knowledge and Change Spec gates pass.
+- Source/Public release contracts classify always-installed `foundation.core` as permanent infrastructure while continuing to require `optionalPackCount: 0` for the minimal runtime.
 - Automatic text conflict merging is intentionally excluded. Codex may propose a merge, but the user must approve it before application.
 
 # Release

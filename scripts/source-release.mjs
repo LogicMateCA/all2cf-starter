@@ -138,7 +138,7 @@ async function channelStatus() {
   return channels.sort((left, right) => left.channel.localeCompare(right.channel));
 }
 
-const permanentPackIds = new Set(["design.owned-neutral", "design.stylekit-adapted", "page.core-product-site", "saas.product-shell", "saas.identity-core", "saas.notifications-core", "saas.product-operations-lite"]);
+const permanentPackIds = new Set(["foundation.core", "design.owned-neutral", "design.stylekit-adapted", "page.core-product-site", "saas.product-shell", "saas.identity-core", "saas.notifications-core", "saas.product-operations-lite"]);
 
 async function portableBlueprint(dataLayer, { minimal = false } = {}) {
   const blueprint = JSON.parse(await readFile(path.join(root, "starter.blueprint.json"), "utf8"));
