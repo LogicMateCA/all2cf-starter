@@ -24,6 +24,10 @@ The generated product is operationally complete without an All2CF connection or 
 
 The generated product always selects internal `foundation.core`, a curated list of Starter infrastructure such as Maintenance UI, local updater and materializer. Product business files are excluded. Before an Engine update, `starter-link` writes an ignored compressed recovery snapshot, verifies the current project, applies the candidate, then runs typecheck and build; failed verification restores the snapshot and leaves it available for manual recovery. Unselected Pack source remains absent and only its Catalog version advances.
 
+`AGENTS.md`, `AGENT_MAP.md` and `CODEX.md` are product-owned, not foundation-managed files. Their customer routes and rules are never replaced as whole documents. Starter AI behavior evolves through `.ai/features.json`, generated `.ai/agent-map.json`, the user-level plugin and reviewed Change Specs; a structured identity collision must be reviewed rather than overwritten.
+
+Generated registries use the same Base/Local/Target rule as Pack files. Wrangler configuration is merged by receipt-owned bindings, routes, queues, schedules, variables and required-secret declarations while preserving unowned entries. Environment values, secret files, project business code, native mobile directories and unregistered package scripts are never automatically owned. Case-insensitive collisions, symbolic-link traversal and concurrent mutation locks fail closed before application.
+
 The functional Codex plugin follows the same independence boundary. One user-level `all2cf-project` installation detects generated repositories from `.starter/source.json`, `.ai/manifest.json` and `AGENT_MAP.md`; Factory output does not contain plugin source. Local project rules and commands remain authoritative, so missing or disabled plugin state never blocks installation, build, release or maintenance.
 
 - `apps/marketing` is the static-first Astro public product site. Only Blueprint-selected Page Catalog routes are materialized; its default route output requires no client JavaScript.

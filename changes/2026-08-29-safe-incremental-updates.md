@@ -22,11 +22,19 @@ Starter updates use the materialization Receipt as the Base side of a conservati
 - Retain the existing touched-file backup/restore transaction around materialization failures.
 - Create an ignored compressed recovery snapshot before update, verify the current project before application, run TypeScript and build after application, and restore the snapshot if post-update verification fails.
 - Add always-installed `foundation.core` ownership for the curated Starter infrastructure that must evolve globally, while keeping product business files outside the list.
+- Explicitly release `AGENTS.md`, `AGENT_MAP.md` and `CODEX.md` from foundation ownership without deleting them. Customer feature routes and project rules remain product-owned; Starter AI additions arrive through structured feature registries, generated machine maps, plugin Skills and reviewed Change Specs.
+- Apply the same Base/Local/Target preservation rule to generated route, Auth, Worker feature/event, Workflow, Durable Object, storage adapter, Design and Marketing registries.
+- Refuse case-insensitive target collisions and symbolic-link traversal before reading or writing managed paths.
+- Serialize `add` and `update` with an ignored exclusive project lock so concurrent AI sessions cannot apply overlapping mutations.
+- Keep environment files, secrets, project business files, native mobile directories and unregistered package scripts outside automatic ownership.
 
 # Verification
 
 - Engine Channel contract proves local file preservation, local dependency-version preservation, simultaneous file conflict refusal, forced post-update verification rollback, compressed recovery snapshot, receipt advancement, diff, add, update and cleanup.
 - Factory contract proves generated projects carry `foundation.core` ownership for Maintenance UI, local updater and materializer without carrying the Pack source library.
+- Factory contract proves customer additions to `AGENT_MAP.md` survive update and the three project AI Markdown files are absent from foundation ownership.
+- Factory contract refuses case-insensitive file collisions and symbolic-link materialization targets.
+- Engine Channel contract refuses a concurrent update lock.
 - Maintenance contract, materialization, typecheck, Web build, Knowledge and Change Spec gates pass.
 - Automatic text conflict merging is intentionally excluded. Codex may propose a merge, but the user must approve it before application.
 

@@ -90,6 +90,10 @@ Update diff uses Base/Local/Target ownership. Starter-only changes are safe, pro
 
 Every update writes an ignored `.starter/backups/pre-update-*.json.gz` recovery snapshot. The updater verifies the project before application and runs typecheck plus build afterward; a failed post-update verification restores the snapshot. `foundation.core` updates curated Starter infrastructure globally, while unselected Packs remain Catalog-only until selected.
 
+`AGENTS.md`, `AGENT_MAP.md` and `CODEX.md` belong to the generated product. Never replace them as foundation files. Preserve customer feature routes and add Starter routing through the structured feature registry, machine Agent Map, plugin Skills and reviewed Change Specs.
+
+Treat route/Auth/Worker/Workflow/Design registries, Wrangler declarations, SQL files, package dependencies, deletions and renames as owned update surfaces. Refuse simultaneous edits, case-only collisions, symbolic-link targets and concurrent update locks. Environment files, secrets, product business code and native mobile changes remain product-owned unless a reviewed Receipt explicitly says otherwise.
+
 ## Completion
 
 Use the smallest relevant checks for ordinary work. A whole-project candidate normally includes:

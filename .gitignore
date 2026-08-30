@@ -5,6 +5,7 @@ node_modules/
 .starter/installation.local.json
 .starter/all2cf-connection-oauth.local.json
 .starter/backups/
+.starter/update.lock
 dist/
 .wrangler/
 .dev.vars

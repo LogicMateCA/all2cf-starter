@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { readFile, rm, stat, writeFile } from "node:fs/promises";
+import { readFile, rm, stat, symlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -33,6 +33,8 @@ try {
   if (await exists(path.join(target, "packs"))) failures.push("Pack library leaked into generated project");
   for (const foundationFile of ["apps/web/src/components/update-page.tsx", "apps/web/src/maintenance.css", "scripts/starter-link.mjs", "scripts/materialize-blueprint.mjs"])
     if (!initialMaterialization.packs?.["foundation.core"]?.files?.[foundationFile]) failures.push(`Foundation update ownership is missing ${foundationFile}`);
+  for (const productAiFile of ["AGENTS.md", "AGENT_MAP.md", "CODEX.md"])
+    if (initialMaterialization.packs?.["foundation.core"]?.files?.[productAiFile]) failures.push(`Product AI file must not be foundation-owned: ${productAiFile}`);
   for (const reference of ["catalog/catalog.json", "catalog/providers.json", "pages/catalog.json", "integrations/visual.json", ".ai/plugins.json", "design/stylekit/source-catalog.json"])
     if (!(await exists(path.join(target, reference)))) failures.push(`Generated AI reference is missing ${reference}`);
   if (await exists(path.join(target, "design/providers.json"))) failures.push("Universal Visual Provider Catalog leaked into the generated Starter project");
@@ -125,10 +127,33 @@ try {
   const ownedPath = path.join(target, "workers/app/features/object-storage-worker.ts");
   const ownedSource = await readFile(ownedPath, "utf8");
   await writeFile(ownedPath, `${ownedSource}\n// product drift proof\n`);
+  const agentMapPath = path.join(target, "AGENT_MAP.md");
+  const agentMapSource = await readFile(agentMapPath, "utf8");
+  const productAgentMap = `${agentMapSource}\n<!-- customer feature route proof -->\n`;
+  await writeFile(agentMapPath, productAgentMap);
   const localOnlyDiff = JSON.parse(run("scripts/starter-factory.mjs", ["diff", `--project-root=${target}`], target));
   if (!localOnlyDiff.preserved.some(({ target: path }) => path === "workers/app/features/object-storage-worker.ts")) failures.push("diff did not classify the product-only Pack change as preserved");
   run("scripts/starter-factory.mjs", ["update", `--project-root=${target}`], target);
   if (await readFile(ownedPath, "utf8") !== `${ownedSource}\n// product drift proof\n`) failures.push("update overwrote a product-only Pack change");
+  if (await readFile(agentMapPath, "utf8") !== productAgentMap) failures.push("update overwrote the product Agent Map");
+  await writeFile(ownedPath, ownedSource);
+  const caseCollisionPath = path.join(path.dirname(ownedPath), "Object-Storage-Worker.ts");
+  await rm(ownedPath);
+  await writeFile(caseCollisionPath, ownedSource);
+  let caseCollisionRefused = false;
+  try { run("scripts/starter-factory.mjs", ["diff", `--project-root=${target}`], target); } catch (error) { caseCollisionRefused = /collides by case/iu.test(String(error.stderr || error.message)); }
+  if (!caseCollisionRefused) failures.push("case-insensitive product path collision was not refused");
+  await rm(caseCollisionPath);
+  await writeFile(ownedPath, ownedSource);
+  const outsidePath = path.join(root, ".factory-output", `${slug}-outside.ts`);
+  await writeFile(outsidePath, ownedSource);
+  await rm(ownedPath);
+  await symlink(outsidePath, ownedPath);
+  let symlinkRefused = false;
+  try { run("scripts/starter-factory.mjs", ["diff", `--project-root=${target}`], target); } catch (error) { symlinkRefused = /symbolic link/iu.test(String(error.stderr || error.message)); }
+  if (!symlinkRefused) failures.push("symbolic-link materialization target was not refused");
+  await rm(ownedPath);
+  await rm(outsidePath);
   await writeFile(ownedPath, ownedSource);
   console.log(JSON.stringify({ ok: failures.length === 0, target, fileCount: created.fileCount, packs: status.packs.length, failures }, null, 2));
   if (failures.length) process.exitCode = 1;

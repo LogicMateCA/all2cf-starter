@@ -3,9 +3,6 @@
   "id": "foundation.core",
   "version": "1.0.0",
   "files": [
-    "AGENTS.md",
-    "AGENT_MAP.md",
-    "CODEX.md",
     "apps/web/src/App.tsx",
     "apps/web/src/components/update-page.tsx",
     "apps/web/src/maintenance.css",
@@ -14,5 +11,10 @@
     "scripts/materialize-blueprint.mjs",
     "scripts/starter-link.mjs",
     "skills/starter-maintenance/SKILL.md"
+  ],
+  "releaseOwnership": [
+    "AGENTS.md",
+    "AGENT_MAP.md",
+    "CODEX.md"
   ]
 }

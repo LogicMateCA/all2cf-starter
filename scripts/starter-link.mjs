@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { mkdir, mkdtemp, readFile, rm, unlink, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, open, readFile, rm, unlink, writeFile } from "node:fs/promises";
 import { gunzipSync, gzipSync } from "node:zlib";
 import os from "node:os";
 import path from "node:path";
@@ -11,6 +11,7 @@ const command = process.argv.slice(2).find((value) => !value.startsWith("--")) |
 const receiptPath = path.join(projectRoot, ".starter/source.json");
 const materializationPath = path.join(projectRoot, ".starter/materialization.json");
 const localAuthPath = path.join(projectRoot, ".starter/update-auth.local.json");
+const updateLockPath = path.join(projectRoot, ".starter/update.lock");
 const receipt = JSON.parse(await readFile(receiptPath, "utf8"));
 const json = (value) => `${JSON.stringify(value, null, 2)}\n`;
 const maxArtifactBytes = 96 * 1024 * 1024;
@@ -250,7 +251,7 @@ async function updateReceipt(channel) {
   await writeFile(receiptPath, json(next));
 }
 
-async function main() {
+async function executeMain() {
   if (receipt.sourceRoot) {
     if (existsSync(path.join(receipt.sourceRoot, "scripts/starter-factory.mjs"))) {
       const output = runFactory(receipt.sourceRoot, process.argv.slice(2));
@@ -292,6 +293,21 @@ async function main() {
   });
   if (result) process.stdout.write(`${result}\n`);
   if (command !== "diff") process.stderr.write(`Starter receipt advanced to ${channel.engine.version} after successful materialization.\n`);
+}
+
+async function main() {
+  if (!new Set(["add", "update"]).has(command)) return executeMain();
+  await mkdir(path.dirname(updateLockPath), { recursive: true });
+  let handle;
+  try {
+    handle = await open(updateLockPath, "wx", 0o600);
+    await handle.writeFile(json({ schemaVersion: "starter-update-lock/v1", pid: process.pid, command, startedAt: new Date().toISOString() }));
+  } catch (error) {
+    if (error?.code === "EEXIST") throw new Error("Another Starter update is already running. Wait for it to finish before retrying.");
+    throw error;
+  }
+  try { return await executeMain(); }
+  finally { await handle?.close(); await unlink(updateLockPath).catch(() => undefined); }
 }
 
 main().catch((error) => {

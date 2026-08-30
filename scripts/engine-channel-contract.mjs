@@ -101,6 +101,10 @@ try {
   const diff = JSON.parse(await runAsync("npm", ["run", "starter:diff", "--silent"], { cwd: projectRoot }));
   assert.equal(diff.ok, true);
   assert.equal(diff.changes.length, 0);
+  const updateLock = path.join(projectRoot, ".starter/update.lock");
+  await writeFile(updateLock, `${JSON.stringify({ schemaVersion: "starter-update-lock/v1", pid: 1, command: "update", startedAt: new Date().toISOString() })}\n`);
+  await assert.rejects(runAsync("npm", ["run", "starter:add", "--silent", "--", "saas.account-security-2fa"], { cwd: projectRoot }), /Another Starter update is already running/u);
+  await rm(updateLock, { force: true });
   await runAsync("npm", ["run", "starter:add", "--silent", "--", "saas.account-security-2fa"], { cwd: projectRoot });
   let receipt = JSON.parse(await readFile(path.join(projectRoot, ".starter/source.json"), "utf8"));
   assert.equal(receipt.engineVersion, "2.0.0-dev.10");
@@ -150,7 +154,7 @@ try {
     /both product and Starter changes|conflict|blocked/iu,
   );
   assert.equal(await readFile(ownedPath, "utf8"), localOverride);
-  console.log(JSON.stringify({ ok: true, project: projectSlug, installedVersion: "2.0.0-dev.9", availableVersion, artifactSha256, status: true, diff: true, add: true, update: true, localFileOverridePreserved: true, localDependencyOverridePreserved: true, simultaneousConflictBlocked: true, failedVerificationRestored: true, recoverySnapshot: true }, null, 2));
+  console.log(JSON.stringify({ ok: true, project: projectSlug, installedVersion: "2.0.0-dev.9", availableVersion, artifactSha256, status: true, diff: true, add: true, update: true, concurrentUpdateBlocked: true, localFileOverridePreserved: true, localDependencyOverridePreserved: true, simultaneousConflictBlocked: true, failedVerificationRestored: true, recoverySnapshot: true }, null, 2));
 } finally {
   if (server) await new Promise((resolve) => server.close(resolve));
   await rm(projectRoot, { recursive: true, force: true });

@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
-import { mkdir, readFile, readdir, unlink, writeFile } from "node:fs/promises";
+import { lstat, mkdir, readFile, readdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -136,6 +136,21 @@ function safeProjectPath(relativePath, label) {
   if (resolved !== root && !resolved.startsWith(`${root}${path.sep}`))
     throw new Error(`${label} escapes the project root`);
   return resolved;
+}
+
+async function assertNoSymlinkTraversal(file, label) {
+  let cursor = file;
+  while (cursor !== root && cursor.startsWith(`${root}${path.sep}`)) {
+    const info = await lstat(cursor).catch((error) => error?.code === "ENOENT" ? null : Promise.reject(error));
+    if (info?.isSymbolicLink()) throw new Error(`${label} traverses symbolic link ${path.relative(root, cursor)}`);
+    cursor = path.dirname(cursor);
+  }
+}
+
+async function caseInsensitiveCollision(file) {
+  const entries = await readdir(path.dirname(file)).catch((error) => error?.code === "ENOENT" ? [] : Promise.reject(error));
+  const expected = path.basename(file);
+  return entries.find((entry) => entry.toLowerCase() === expected.toLowerCase() && entry !== expected) || null;
 }
 
 function safePackPath(packRoot, relativePath, label) {
@@ -1013,6 +1028,7 @@ const desiredCloudflareQueues = new Map();
 const foundation = JSON.parse(await readFile(path.join(sourceRoot, "foundation/managed-files.json"), "utf8"));
 if (foundation.schemaVersion !== "starter-foundation-files/v1" || foundation.id !== "foundation.core" || !Array.isArray(foundation.files))
   throw new Error("Starter managed foundation file contract is invalid");
+const releasedFoundationOwnership = new Set(foundation.releaseOwnership || []);
 for (const target of foundation.files) {
   safeProjectPath(target, "foundation managed file");
   desiredFiles.set(target, { packId: foundation.id, content: await readFile(path.join(sourceRoot, target), "utf8") });
@@ -1284,12 +1300,15 @@ const previousFiles = new Map(
 );
 
 for (const [target, desired] of desiredFiles) {
-  const current = await optionalRead(
-    safeProjectPath(target, "materialized target"),
-  );
+  const targetPath = safeProjectPath(target, "materialized target");
+  await assertNoSymlinkTraversal(targetPath, target);
+  const current = await optionalRead(targetPath);
   if (current === desired.content) continue;
   const previous = previousFiles.get(target);
-  if (current === null)
+  const caseCollision = current === null ? await caseInsensitiveCollision(targetPath) : null;
+  if (caseCollision)
+    failures.push(`${target} collides by case with existing product path ${path.join(path.dirname(target), caseCollision)}`);
+  else if (current === null)
     changes.push({
       kind: "add-file",
       target,
@@ -1311,8 +1330,14 @@ for (const [target, desired] of desiredFiles) {
 
 for (const [target, previous] of previousFiles) {
   if (desiredFiles.has(target)) continue;
-  const current = await optionalRead(safeProjectPath(target, "owned target"));
+  const ownedPath = safeProjectPath(target, "owned target");
+  await assertNoSymlinkTraversal(ownedPath, target);
+  const current = await optionalRead(ownedPath);
   if (current === null) continue;
+  if (previous.packId === foundation.id && releasedFoundationOwnership.has(target)) {
+    changes.push({ kind: "release-file-ownership", target, packId: previous.packId });
+    continue;
+  }
   if (sha256(current) !== previous.hash)
     failures.push(
       `${target} changed after materialization and cannot be removed automatically`,
@@ -1376,17 +1401,19 @@ for (const [key, previous] of Object.entries(state.dependencies || {})) {
 const currentRouteSource = await optionalRead(routeRegistryPath);
 if (currentRouteSource !== desiredRouteSource) {
   const baseline = renderRoutes([]);
-  const safeCurrent = state.generatedRoutesHash
-    ? sha256(currentRouteSource || "") === state.generatedRoutesHash
-    : currentRouteSource === baseline;
-  if (!safeCurrent)
-    failures.push(
-      `${path.relative(root, routeRegistryPath)} changed outside the materializer`,
-    );
+  const target = path.relative(root, routeRegistryPath);
+  const localHash = sha256(currentRouteSource || "");
+  const targetHash = sha256(desiredRouteSource);
+  if (state.generatedRoutesHash && localHash !== state.generatedRoutesHash && targetHash === state.generatedRoutesHash)
+    preserved.push({ kind: "keep-local-generated", target, baseHash: state.generatedRoutesHash, localHash });
+  else if (state.generatedRoutesHash && localHash !== state.generatedRoutesHash && targetHash !== state.generatedRoutesHash)
+    failures.push(`${target} has both product and Starter route changes; automatic update is blocked`);
+  else if (!state.generatedRoutesHash && currentRouteSource !== baseline)
+    failures.push(`${target} exists outside the generated route receipt`);
   else
     changes.push({
       kind: "update-route-registry",
-      target: path.relative(root, routeRegistryPath),
+      target,
     });
 }
 
@@ -1557,17 +1584,20 @@ const generatedRegistries = [
 for (const registry of generatedRegistries) {
   const current = await optionalRead(registry.path);
   if (current === registry.desired) continue;
-  const safeCurrent = state[registry.stateKey]
-    ? sha256(current || "") === state[registry.stateKey]
-    : current === registry.baseline;
-  if (!safeCurrent)
-    failures.push(
-      `${path.relative(root, registry.path)} changed outside the materializer`,
-    );
+  const target = path.relative(root, registry.path);
+  const previousHash = state[registry.stateKey];
+  const localHash = sha256(current || "");
+  const targetHash = sha256(registry.desired);
+  if (previousHash && localHash !== previousHash && targetHash === previousHash)
+    preserved.push({ kind: "keep-local-generated", target, ...(registry.packId ? { packId: registry.packId } : {}), baseHash: previousHash, localHash });
+  else if (previousHash && localHash !== previousHash && targetHash !== previousHash)
+    failures.push(`${target} has both product and Starter generated changes; automatic update is blocked`);
+  else if (!previousHash && current !== registry.baseline)
+    failures.push(`${target} exists outside the generated artifact receipt`);
   else
     changes.push({
       kind: "update-generated-artifact",
-      target: path.relative(root, registry.path),
+      target,
       ...(registry.packId ? { packId: registry.packId } : {}),
     });
 }
@@ -1679,7 +1709,10 @@ for (const target of new Set([...desiredFiles.keys(), ...previousFiles.keys()]))
 for (const packageFile of packageModels.keys())
   touchedPaths.add(safeProjectPath(packageFile, "packageFile"));
 const backups = new Map();
-for (const file of touchedPaths) backups.set(file, await optionalRead(file));
+for (const file of touchedPaths) {
+  await assertNoSymlinkTraversal(file, path.relative(root, file));
+  backups.set(file, await optionalRead(file));
+}
 
 async function restore() {
   for (const [file, content] of backups) {
@@ -1703,7 +1736,8 @@ try {
     await writeFile(file, desired.content);
   }
   for (const target of previousFiles.keys()) {
-    if (!desiredFiles.has(target))
+    const released = previousFiles.get(target)?.packId === foundation.id && releasedFoundationOwnership.has(target);
+    if (!desiredFiles.has(target) && !released)
       await unlink(safeProjectPath(target, "owned target")).catch((error) => {
         if (error?.code !== "ENOENT") throw error;
       });
@@ -1731,10 +1765,11 @@ try {
         );
     await writeFile(safeProjectPath(packageFile, "packageFile"), json(model));
   }
-  await writeFile(routeRegistryPath, desiredRouteSource);
+  if (!preservedTargets.has(path.relative(root, routeRegistryPath))) await writeFile(routeRegistryPath, desiredRouteSource);
   for (const registry of workerFirstRegistries)
     await writeFile(registry.path, registry.desired);
   for (const registry of generatedRegistries) {
+    if (preservedTargets.has(path.relative(root, registry.path))) continue;
     await mkdir(path.dirname(registry.path), { recursive: true });
     await writeFile(registry.path, registry.desired);
   }
