@@ -239,6 +239,23 @@ export function UpdatePage() {
       setEntitlement(result.entitlement);
       setAvailable(result.available || null);
       if (result.receipt) setLocalReceipt(result.receipt);
+      const hasUpdate = Boolean(
+        result.available?.engineVersion &&
+          result.available.engineVersion !== (result.receipt?.engineVersion || localVersion),
+      );
+      if (hasUpdate && result.entitlement?.authorized) {
+        setActiveAction("reviewing");
+        const diffResult = await callUpdate("diff", legacyToken);
+        setDiff(diffResult.output || "No managed-file changes reported.");
+        try {
+          const parsed = JSON.parse(diffResult.output || "{}") as DiffPlan;
+          setDiffPlan(parsed.summary ? parsed : null);
+        } catch {
+          setDiffPlan(null);
+        }
+      } else {
+        setDiffPlan(null);
+      }
       setMessage(
         result.entitlement?.authorized
           ? "Cloud version and entitlement refreshed."
@@ -397,7 +414,7 @@ export function UpdatePage() {
           disabled={busy || !credentialAvailable}
         >
           <RefreshCw size={15} />
-          Check updates
+          Check & review
         </Button>
         <Button
           variant={!diffPlan && updateAvailable ? "default" : "outline"}
