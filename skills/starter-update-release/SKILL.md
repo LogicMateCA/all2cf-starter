@@ -7,6 +7,8 @@ description: Check canonical Starter updates or publish a verified Starter Engin
 
 Own the complete path from canonical Starter source to an authorized generated-project update. Use repository scripts and recorded identities; do not reconstruct this workflow from chat memory.
 
+Read [references/checkpoints.md](references/checkpoints.md) before building or publishing. Reuse completed checkpoints only when source commit, Engine version and Artifact SHA still match. Never rerun an expensive verified phase merely because a later external operation failed.
+
 ## Route by intent
 
 ### Check updates
@@ -27,10 +29,10 @@ Generic “发布” means Development. The controller must:
 
 1. Start from clean `/opt/1panel/apps/starter`; explicitly choose the next Engine SemVer and preserve the rollback commit.
 2. Use `runtime-upgrade` for dependency changes. Keep Better Auth packages aligned, Expo-owned versions compatible, and StyleKit snapshots owner-selected.
-3. Commit one focused Change Spec and docs, then run `source:release:candidate -- --version=<version>` in `starter-dev`.
+3. Commit one focused Change Spec and docs. Refresh `.starter/materialization.json` after changing a managed file, then run `source:release:candidate -- --version=<version>` in a clean isolated worktree with a dedicated dependency volume.
 4. Require SQL-first and Drizzle portable verification, two reproducible archives, strict manifest checks and exact SHA-256.
-5. Advance the local Development Channel with `source:publish:channel`; never replace an existing version with another hash.
-6. Register the exact candidate into the clean isolated All2CF worktree `/opt/1panel/apps/a2c-dev/all2cf-core-baseline-20260822`. Never target the dirty `/opt/1panel/apps/a2c` worktree.
+5. Record the candidate checkpoint before any remote mutation. Advance the local Development Channel with `source:publish:channel`; never replace an existing version with another hash.
+6. Register the exact candidate into the current clean isolated All2CF release worktree selected from the live Production parent. Never target the dirty `/opt/1panel/apps/a2c` worktree and never revive a historical baseline path from this document.
 7. In All2CF, update its Change Spec/adoption evidence, run TypeScript plus Starter v2/Runner/Agent Map/Change checks, and commit before remote mutation.
 8. For database-backed Development commands, load `/opt/1panel/apps/a2c-dev/config/all2cf-updates-dev.env`; never inherit `DATABASE_URL` from `a2c-console-dev`. Confirm it resolves to database/user `a2cdev / a2cdev`. Use publisher identity `starter-updates-development@all2cf.local`.
 9. Publish the exact Artifact with `starter-engine:publish:dev`; it must create/reuse private R2, upload, download again, verify SHA-256 and advance only the Development database Channel. The command must fail closed if the database identity is not `a2cdev / a2cdev`.
@@ -51,6 +53,10 @@ Official Cloudflare MCP inspection comes first. If Workers/R2 operations are una
 
 Only explicit “正式发布”, “Production”, or “提升到 Stable” authorizes this path. Promote the exact Artifact already verified in Development; never rebuild it. Production/Stable automation is not considered proven until its own database, Stripe, Channel promotion, download and rollback drill have completed. If those gates are absent, stop without changing Production.
 
+Stable publication must write the complete `packVersions` map from the Engine manifest and reject an empty or wrong-sized map. Public GitHub source, Docs and All2CF metadata must identify the same version before final readback. A generated project update advances the whole Engine/Catalog identity while materializing only selected functionality; Catalog-only Packs remain unloaded but are available at the new version.
+
+Functional updates freeze existing product Pages, Page CSS and generated visual output. Auth, Providers, MCP, Codex plugin/Skills, Agent Map foundation, migrations, Runtime and selected functional modules remain updateable. Do not convert a page-level change into a whole-project conflict.
+
 ## Invariants
 
 - GitHub is never the authoritative update source.
@@ -58,3 +64,4 @@ Only explicit “正式发布”, “Production”, or “提升到 Stable” au
 - Check mode never implies mutation. Development never implies Stable or Production.
 - Database migration, R2 upload, Channel advance and Worker deployment are distinct evidence gates.
 - Report: Starter commit/version/hash, All2CF commit, Worker/version ID/domain, Hyperdrive database/user, R2 key, Channel, live checks, cleanup, and every unopened Production gate.
+- On failure, classify it as source, dependency-volume, candidate, Core integration, database-owner migration, remote publication or live-proof failure; preserve the last matching checkpoint and resume there.
