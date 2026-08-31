@@ -5,6 +5,8 @@ description: Connect one local project identity for MCP and managed updates with
 
 All2CF connection is optional and project-scoped. The open-source product can build, run and release without it.
 
+After OAuth connection, the ignored project authorization receipt owns the All2CF update-service URL. A source receipt URL is used only as a pre-connection fallback, so a project can move from a Development control plane to Production without retaining the Development endpoint.
+
 Open local `/maintenance`; `/all2cf` and `/update` remain compatibility aliases. The project may continue independently or connect later.
 
 Choose **Connect All2CF MCP**. The local development service creates PKCE and state, then opens All2CF OAuth. All2CF verifies the user, organization, project ownership and paid entitlement, creates or binds the cloud project, and returns one short-lived authorization code. The local service exchanges it for the project-scoped connection Receipt, stores it in the ignored authorization file and reloads `/maintenance`. The user does not copy an AI Prompt or Token.

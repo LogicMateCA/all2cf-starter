@@ -93,7 +93,11 @@ try {
   assert.equal(created.ok, true);
   await runAsync("npm", ["ci", "--ignore-scripts", "--no-audit", "--no-fund"], { cwd: projectRoot });
   await assert.rejects(runAsync("npm", ["run", "starter:status", "--silent"], { cwd: projectRoot }), /connect.*All2CF/iu);
-  await writeFile(path.join(projectRoot, ".starter/update-auth.local.json"), `${JSON.stringify({ schemaVersion: "starter-update-auth/v1", accessToken: "contract-token", installationId: "installation-contract", projectId: "project-contract", expiresAt: new Date(Date.now() + 10 * 60_000).toISOString() }, null, 2)}\n`, { mode: 0o600 });
+  const generatedReceiptPath = path.join(projectRoot, ".starter/source.json");
+  const generatedReceipt = JSON.parse(await readFile(generatedReceiptPath, "utf8"));
+  generatedReceipt.updateServiceUrl = "http://127.0.0.1:9/api/starter-updates/";
+  await writeFile(generatedReceiptPath, `${JSON.stringify(generatedReceipt, null, 2)}\n`);
+  await writeFile(path.join(projectRoot, ".starter/update-auth.local.json"), `${JSON.stringify({ schemaVersion: "starter-update-auth/v1", accessToken: "contract-token", installationId: "installation-contract", projectId: "project-contract", expiresAt: new Date(Date.now() + 10 * 60_000).toISOString(), updateServiceUrl }, null, 2)}\n`, { mode: 0o600 });
   const status = JSON.parse(await runAsync("npm", ["run", "starter:status", "--silent"], { cwd: projectRoot }));
   assert.equal(status.source.installedVersion, "2.0.0-dev.9");
   assert.equal(status.source.availableVersion, "2.0.0-dev.10");
