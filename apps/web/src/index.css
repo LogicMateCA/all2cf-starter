@@ -4363,8 +4363,8 @@ dd {
   border-radius: 50%;
   background: var(--muted-foreground);
 }
-.integration-state.published { background: #47b88a; }
-.integration-state.draft { background: #d6a84a; }
+.integration-state.published { background: var(--success); }
+.integration-state.draft { background: var(--warning); }
 .integration-surfaces {
   display: flex;
   gap: .4rem;
