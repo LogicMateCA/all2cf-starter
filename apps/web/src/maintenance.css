@@ -40,6 +40,13 @@
 .maintenance-catalog-components summary { cursor: pointer; color: var(--muted); font-size: .78rem; }
 .maintenance-catalog-components ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 18px; margin: 14px 0 0; padding: 0; list-style: none; }
 .maintenance-catalog-components li { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--border); padding: 8px 0; font-size: .76rem; }
+.maintenance-runtime { margin-bottom: 18px; }
+.maintenance-runtime-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+.maintenance-runtime-grid article { min-width: 0; border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+.maintenance-runtime-grid span, .maintenance-runtime-grid strong, .maintenance-runtime-grid small { display: block; }
+.maintenance-runtime-grid span { color: var(--muted); font-size: .72rem; }
+.maintenance-runtime-grid strong { margin-top: 8px; font-size: 1.05rem; }
+.maintenance-runtime-grid small { margin-top: 5px; color: var(--muted); font: .68rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap: anywhere; }
 .maintenance-release { margin-bottom: 18px; }
 .maintenance-release > div:first-child { display: flex; align-items: flex-start; gap: 13px; }
 .maintenance-release > div:first-child > svg { width: 22px; flex: 0 0 auto; color: var(--accent); }
@@ -76,4 +83,5 @@
   .maintenance-component-row.heading { display: none; }
   .maintenance-component-row > strong { grid-column: 1 / -1; }
   .maintenance-catalog-components ul { grid-template-columns: 1fr; }
+  .maintenance-runtime-grid { grid-template-columns: 1fr 1fr; }
 }

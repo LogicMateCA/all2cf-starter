@@ -670,6 +670,27 @@ async function starterUpdateReceipt() {
   }
 }
 
+async function starterRuntimeVersions() {
+  const lock = JSON.parse(await readFile(path.join(repositoryRoot, "package-lock.json"), "utf8")) as { packages?: Record<string, { version?: string }> };
+  const entries = Object.entries(lock.packages || {});
+  const definitions = [
+    ["Better Auth", "better-auth"],
+    ["Better Auth · Expo", "@better-auth/expo"],
+    ["Better Auth · Stripe", "@better-auth/stripe"],
+    ["React", "react"],
+    ["Vite", "vite"],
+    ["Astro", "astro"],
+    ["Expo", "expo"],
+    ["Drizzle ORM", "drizzle-orm"],
+    ["Wrangler", "wrangler"],
+    ["TypeScript", "typescript"],
+  ] as const;
+  return definitions.flatMap(([name, packageName]) => {
+    const match = entries.find(([key, value]) => Boolean(value.version) && (key === `node_modules/${packageName}` || key.endsWith(`/node_modules/${packageName}`)));
+    return match?.[1].version ? [{ name, packageName, installed: match[1].version }] : [];
+  });
+}
+
 async function runStarterUpdateAction(action: "status" | "diff" | "update", accessToken: string) {
   const result = await execFileAsync(process.execPath, [path.join(repositoryRoot, "scripts/starter-link.mjs"), action], {
     cwd: repositoryRoot,
@@ -679,7 +700,7 @@ async function runStarterUpdateAction(action: "status" | "diff" | "update", acce
   });
   const output = `${result.stdout || ""}${result.stderr || ""}`;
   const status = action === "status" ? JSON.parse(result.stdout || "{}") as { source?: { availableVersion?: string; channel?: string }; packs?: Array<{ id: string; installed?: string; available?: string; updateAvailable?: boolean }>; catalog?: Array<{ id: string; available?: string; materialized?: boolean }>; entitlement?: { level?: string; features?: string[] }; releaseNotes?: string[]; releaseUrl?: string | null; publishedAt?: string | null } : null;
-  return { entitlement: { authorized: true, plan: status?.entitlement?.level, features: status?.entitlement?.features }, output, receipt: await starterUpdateReceipt(), ...(status?.source ? { available: { engineVersion: status.source.availableVersion, channel: status.source.channel, components: [...(status.packs || []), ...(status.catalog || [])], releaseNotes: status.releaseNotes || [], releaseUrl: status.releaseUrl, publishedAt: status.publishedAt } } : {}) };
+  return { entitlement: { authorized: true, plan: status?.entitlement?.level, features: status?.entitlement?.features }, output, receipt: await starterUpdateReceipt(), ...(status?.source ? { available: { engineVersion: status.source.availableVersion, channel: status.source.channel, components: [...(status.packs || []), ...(status.catalog || [])], runtime: await starterRuntimeVersions(), releaseNotes: status.releaseNotes || [], releaseUrl: status.releaseUrl, publishedAt: status.publishedAt } } : {}) };
 }
 
 const all2cfConnectionPendingPath = path.join(repositoryRoot, ".starter/all2cf-connection-oauth.local.json");
