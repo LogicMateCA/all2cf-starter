@@ -1577,7 +1577,7 @@ export function SetupPage() {
             Save draft
           </Button>
           <a href="/dp">View plan</a>
-          {!__STARTER_FACTORY_MODE__ ? <a href="/all2cf">All2CF connection</a> : null}
+          {!__STARTER_FACTORY_MODE__ ? <a href="/maintenance">Maintenance</a> : null}
         </div>
       </header>
       <div className="setup-layout">
@@ -2325,7 +2325,8 @@ export function SetupPage() {
                     <p>Your Blueprint and project configuration are persisted. Nothing has been materialized or deployed automatically.</p>
                   </div>
                   <div className="setup-completion-actions">
-                    <Button asChild><a href="/dp">View saved plan</a></Button>
+                    <Button asChild><a href="/dp">Continue independently</a></Button>
+                    <Button asChild variant="outline"><a href="/maintenance">Connect All2CF for paid MCP and updates</a></Button>
                     <Button type="button" variant="outline" onClick={() => setSaveState("idle")}>Continue editing</Button>
                   </div>
                 </section>

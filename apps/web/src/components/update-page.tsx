@@ -1,5 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  CheckCircle2,
+  Cloud,
+  Download,
+  ExternalLink,
+  FileText,
+  Link2,
+  RefreshCw,
+  ShieldCheck,
+  Unplug,
+} from "lucide-react";
 import { Button } from "./ui/button";
+import "../maintenance.css";
 
 type Receipt = Record<string, unknown> & {
   engineVersion?: string;
@@ -7,91 +19,237 @@ type Receipt = Record<string, unknown> & {
   artifactSha256?: string;
   channelUrl?: string;
   updateServiceUrl?: string;
-  updateMode?: string;
 };
-
+type AvailableUpdate = {
+  engineVersion?: string;
+  releaseNotes?: string[];
+  releaseUrl?: string | null;
+  publishedAt?: string | null;
+  channel?: string;
+};
 type ActionResult = {
   ok: boolean;
   output?: string;
   error?: string;
-  entitlement?: { authorized?: boolean; [key: string]: unknown };
+  entitlement?: { authorized?: boolean; plan?: string; features?: string[] };
   receipt?: Receipt;
+  available?: AvailableUpdate;
 };
-type ConnectionState = { ok: boolean; connected: boolean; mode: "independent" | "all2cf-connected"; expiresAt?: string | null; project?: { name?: string; slug?: string } };
+type ConnectionState = {
+  ok: boolean;
+  connected: boolean;
+  mode: "independent" | "all2cf-connected";
+  workspace?: "generated-project" | "canonical-source";
+  expiresAt?: string | null;
+  projectId?: string | null;
+  installationId?: string | null;
+  project?: { name?: string; slug?: string };
+};
 
-async function callUpdate(path: string, token: string, method = "POST") {
-  const response = await fetch(`/__starter/update/${path}`, {
-    method,
-    headers: { "Content-Type": "application/json" },
-    body: method === "POST" ? JSON.stringify({ accessToken: token }) : undefined,
-  });
-  const payload = (await response.json()) as ActionResult;
-  if (!response.ok || payload.ok === false) throw new Error(payload.error || `Update request failed (${response.status})`);
+async function jsonRequest<T>(url: string, init?: RequestInit) {
+  const response = await fetch(url, init);
+  const payload = (await response.json()) as T & { error?: string };
+  if (!response.ok)
+    throw new Error(payload.error || `Request failed (${response.status})`);
   return payload;
+}
+async function callUpdate(path: string, token: string) {
+  return jsonRequest<ActionResult>(`/__starter/update/${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ accessToken: token }),
+  });
 }
 
 export function UpdatePage() {
-  const [token, setToken] = useState(() => sessionStorage.getItem("starter.all2cf.updateToken") || "");
-  const [receipt, setReceipt] = useState<Receipt | null>(null);
-  const [entitlement, setEntitlement] = useState<ActionResult["entitlement"]>(undefined);
-  const [output, setOutput] = useState("");
+  const [legacyToken, setLegacyToken] = useState(
+    () => sessionStorage.getItem("starter.all2cf.updateToken") || "",
+  );
+  const [connectionText, setConnectionText] = useState("");
+  const [connection, setConnection] = useState<ConnectionState | null>(null);
+  const [localReceipt, setLocalReceipt] = useState<Receipt | null>(null);
+  const [available, setAvailable] = useState<AvailableUpdate | null>(null);
+  const [entitlement, setEntitlement] = useState<ActionResult["entitlement"]>();
+  const [diff, setDiff] = useState("");
+  const [diffSummary, setDiffSummary] = useState<{ safe: number; preserved: number; conflicts: number } | null>(null);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
-  const [connection, setConnection] = useState<ConnectionState | null>(null);
+  const connected = Boolean(connection?.connected);
+  const authorized = Boolean(entitlement?.authorized);
+  const credentialAvailable = connected || Boolean(legacyToken.trim());
+  const localVersion =
+    localReceipt?.engineVersion ||
+    (connection?.workspace === "canonical-source"
+      ? "Source workspace"
+      : "Unknown");
+  const cloudVersion =
+    available?.engineVersion ||
+    (connected ? "Check required" : "Connect to view");
+  const updateAvailable = Boolean(
+    available?.engineVersion &&
+      available.engineVersion !== localReceipt?.engineVersion,
+  );
+  const expiry = useMemo(
+    () =>
+      connection?.expiresAt
+        ? new Date(connection.expiresAt).toLocaleString()
+        : "Until revoked",
+    [connection?.expiresAt],
+  );
 
-  useEffect(() => {
-    fetch("/__starter/update/receipt")
-      .then(async (response) => {
-        const payload = (await response.json()) as ActionResult;
-        if (!response.ok || !payload.receipt) throw new Error(payload.error || "Could not read the Starter receipt.");
-        setReceipt(payload.receipt);
-      })
-      .catch((error) => setMessage(error instanceof Error ? error.message : String(error)));
-  }, []);
   async function refreshConnection() {
-    const response = await fetch("/__starter/all2cf/status");
-    const payload = await response.json() as ConnectionState & { error?: string };
-    if (!response.ok) throw new Error(payload.error || "Could not read All2CF connection state.");
-    setConnection(payload);
+    setConnection(
+      await jsonRequest<ConnectionState>("/__starter/all2cf/status"),
+    );
   }
-  useEffect(() => { void refreshConnection().catch((error) => setMessage(error instanceof Error ? error.message : String(error))); }, []);
+  useEffect(() => {
+    void refreshConnection().catch((error) =>
+      setMessage(error instanceof Error ? error.message : String(error)),
+    );
+    void jsonRequest<ActionResult>("/__starter/update/receipt")
+      .then((payload) => setLocalReceipt(payload.receipt || null))
+      .catch(() => setLocalReceipt(null));
+  }, []);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("all2cf_code");
+    const state = params.get("state");
+    if (!code || !state) return;
+    setBusy(true);
+    void jsonRequest<{ ok: boolean }>("/__starter/all2cf/complete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code, state }),
+    })
+      .then(async () => {
+        window.history.replaceState({}, "", "/maintenance");
+        await refreshConnection();
+        setMessage("All2CF connected automatically.");
+      })
+      .catch((error) =>
+        setMessage(error instanceof Error ? error.message : String(error)),
+      )
+      .finally(() => setBusy(false));
+  }, []);
 
-  async function importConnection(file?: File) {
-    if (!file) return;
-    setBusy(true); setMessage("");
-    try {
-      const connection = JSON.parse(await file.text());
-      const response = await fetch("/__starter/all2cf/connect", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ connection }) });
-      const payload = await response.json() as { ok?: boolean; error?: string };
-      if (!response.ok || !payload.ok) throw new Error(payload.error || "Could not connect All2CF.");
-      await refreshConnection();
-      setMessage("All2CF 已连接。项目运行仍然保持独立。");
-    } catch (error) { setMessage(error instanceof Error ? error.message : String(error)); }
-    finally { setBusy(false); }
-  }
-
-  async function disconnectAll2cf() {
-    setBusy(true); setMessage("");
-    try {
-      const response = await fetch("/__starter/all2cf/disconnect", { method: "POST" });
-      const payload = await response.json() as { ok?: boolean; remoteWarning?: string | null; error?: string };
-      if (!response.ok || !payload.ok) throw new Error(payload.error || "Could not disconnect All2CF.");
-      sessionStorage.removeItem("starter.all2cf.updateToken"); setToken(""); setEntitlement(undefined);
-      await refreshConnection();
-      setMessage(payload.remoteWarning || "已断开 All2CF。项目文件、配置、数据库和发布资源均未改变。");
-    } catch (error) { setMessage(error instanceof Error ? error.message : String(error)); }
-    finally { setBusy(false); }
-  }
-
-  async function run(action: "check" | "status" | "diff" | "update") {
+  async function connectMcp() {
     setBusy(true);
     setMessage("");
     try {
-      const result = await callUpdate(action, token);
-      if (result.receipt) setReceipt(result.receipt);
-      if (result.entitlement) setEntitlement(result.entitlement);
-      if (result.output) setOutput(result.output);
-      setMessage(action === "update" ? "更新已完成，请检查 Git diff 并运行项目验证。" : "检查完成。");
+      const payload = await jsonRequest<{ authorizationUrl: string }>(
+        "/__starter/all2cf/authorize",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            returnTo: `${window.location.origin}/maintenance`,
+          }),
+        },
+      );
+      window.location.assign(payload.authorizationUrl);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : String(error));
+      setBusy(false);
+    }
+  }
+  async function importReceipt(value: unknown) {
+    setBusy(true);
+    setMessage("");
+    try {
+      await jsonRequest<{ ok: boolean }>("/__starter/all2cf/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ connection: value }),
+      });
+      setConnectionText("");
+      await refreshConnection();
+      setMessage(
+        "All2CF connected. The project remains independently runnable.",
+      );
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function importFile(file?: File) {
+    if (file) await importReceipt(JSON.parse(await file.text()));
+  }
+  async function importPastedReceipt() {
+    try {
+      await importReceipt(JSON.parse(connectionText));
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Invalid connection receipt.");
+    }
+  }
+  async function disconnect() {
+    setBusy(true);
+    try {
+      const result = await jsonRequest<{
+        ok: boolean;
+        remoteWarning?: string | null;
+      }>("/__starter/all2cf/disconnect", { method: "POST" });
+      sessionStorage.removeItem("starter.all2cf.updateToken");
+      setLegacyToken("");
+      setEntitlement(undefined);
+      setAvailable(null);
+      await refreshConnection();
+      setMessage(
+        result.remoteWarning ||
+          "All2CF disconnected. Project files and deployment ownership are unchanged.",
+      );
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function checkUpdates() {
+    setBusy(true);
+    setMessage("");
+    try {
+      const result = await callUpdate("check", legacyToken);
+      setEntitlement(result.entitlement);
+      setAvailable(result.available || null);
+      if (result.receipt) setLocalReceipt(result.receipt);
+      setMessage(
+        result.entitlement?.authorized
+          ? "Cloud version and entitlement refreshed."
+          : "This account has no authorized update entitlement.",
+      );
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function previewDiff() {
+    setBusy(true);
+    try {
+      const result = await callUpdate("diff", legacyToken);
+      setDiff(result.output || "No managed-file changes reported.");
+      try {
+        const parsed = JSON.parse(result.output || "{}") as { summary?: { safe: number; preserved: number; conflicts: number } };
+        setDiffSummary(parsed.summary || null);
+      } catch {
+        setDiffSummary(null);
+      }
+      setMessage("Update diff is ready for review.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function applyUpdate() {
+    setBusy(true);
+    try {
+      const result = await callUpdate("update", legacyToken);
+      setDiff(result.output || "");
+      if (result.receipt) setLocalReceipt(result.receipt);
+      setMessage(
+        "Update applied. Review Git diff and run project verification.",
+      );
     } catch (error) {
       setMessage(error instanceof Error ? error.message : String(error));
     } finally {
@@ -99,61 +257,241 @@ export function UpdatePage() {
     }
   }
 
-  function connect() {
-    sessionStorage.setItem("starter.all2cf.updateToken", token.trim());
-    setMessage(token.trim() ? "All2CF 凭证已连接，仅保存在当前浏览器会话。" : "请输入 All2CF 更新凭证。");
-  }
-
   return (
-    <main className="update-shell">
+    <main className="update-shell maintenance-shell">
       <header className="update-header">
         <div>
-          <p className="eyebrow">OPTIONAL ALL2CF CONNECTION</p>
-          <h1>All2CF 项目连接</h1>
-          <p>默认独立运行。连接只增加付费更新、云端状态与托管发布，不影响项目能否安装、构建或自行发布。</p>
+          <p className="eyebrow">PROJECT MAINTENANCE</p>
+          <h1>Starter updates</h1>
+          <p>
+            Compare the installed project with the latest authorized All2CF
+            release, read what changed, preview file conflicts, and update
+            locally.
+          </p>
         </div>
-        <a className="button button-outline" href="/setup">返回 Setup</a>
+        <a className="button button-outline" href="/setup">
+          Back to Setup
+        </a>
       </header>
 
-      <section className="update-grid">
-        <article className="update-card">
-          <h2>{connection?.connected ? "已连接 All2CF" : "独立运行"}</h2>
-          <p>{connection?.connected ? `项目范围授权有效至 ${connection.expiresAt ? new Date(connection.expiresAt).toLocaleString() : "撤销为止"}。` : "没有 All2CF 运行时依赖，也不会发送项目状态。可随时导入云端卡片下载的连接文件。"}</p>
-          <label className="update-field"><span>All2CF connection file</span><input type="file" accept="application/json,.json" disabled={busy} onChange={(event) => void importConnection(event.target.files?.[0])} /></label>
-          <div className="update-actions"><Button variant="outline" onClick={() => void disconnectAll2cf()} disabled={busy || !connection?.connected}>断开连接</Button><a className="button button-outline" href="https://app.all2cf.com/deploy/projects" target="_blank" rel="noreferrer">打开云端卡片</a></div>
-          <details><summary>兼容旧更新 Token</summary><p>旧项目仍可粘贴短期更新凭证；新项目优先使用连接文件。</p>
-          <label className="update-field">
-            <span>Update token</span>
-            <input value={token} onChange={(event) => setToken(event.target.value)} type="password" autoComplete="off" placeholder="All2CF update token" />
-          </label>
-          <div className="update-actions">
-            <Button onClick={connect} disabled={busy}>连接</Button>
-            <Button variant="outline" onClick={() => void run("check")} disabled={busy || !token.trim()}>检查授权与版本</Button>
-          </div>
-          </details>
-          {entitlement && <p className={entitlement.authorized ? "update-ok" : "update-warning"}>{entitlement.authorized ? "已获得更新授权" : "当前凭证没有可用更新权益"}</p>}
-        </article>
+      <section className="maintenance-status">
+        <div className={connected ? "connected" : "independent"}>
+          {connected ? <CheckCircle2 /> : <ShieldCheck />}
+          <span>
+            <small>All2CF MCP</small>
+            <strong>{connected ? "Connected" : "Not connected"}</strong>
+          </span>
+        </div>
+        <div>
+          <Link2 />
+          <span>
+            <small>Project authorization</small>
+            <strong>{connected ? expiry : "None"}</strong>
+          </span>
+        </div>
+        <div>
+          <Cloud />
+          <span>
+            <small>Paid plan</small>
+            <strong>
+              {entitlement?.plan ||
+                (connected ? "Check required" : "Unavailable")}
+            </strong>
+          </span>
+        </div>
+        <div>
+          <ShieldCheck />
+          <span>
+            <small>Runtime dependency</small>
+            <strong>None</strong>
+          </span>
+        </div>
+      </section>
 
-        <article className="update-card">
-          <h2>当前收据</h2>
-          {receipt ? <dl className="update-receipt">
-            <div><dt>Engine</dt><dd>{receipt.engineVersion || "未记录"}</dd></div>
-            <div><dt>Source commit</dt><dd>{receipt.sourceCommit || "未记录"}</dd></div>
-            <div><dt>Artifact SHA-256</dt><dd>{receipt.artifactSha256 || "未记录"}</dd></div>
-            <div><dt>Update service</dt><dd>{receipt.updateServiceUrl || receipt.channelUrl || "未记录"}</dd></div>
-          </dl> : <p>尚未读取项目收据。</p>}
-          <Button variant="outline" onClick={() => void run("status")} disabled={busy || (!connection?.connected && !token.trim())}>读取状态</Button>
+      {!connected ? (
+        <section className="update-card maintenance-connect">
+          <div>
+            <Link2 />
+            <span>
+              <h2>Connect All2CF MCP</h2>
+              <p>
+                Sign in once. All2CF automatically verifies project ownership
+                and paid entitlement, creates the cloud card, stores the project
+                Token locally, and returns here.
+              </p>
+            </span>
+          </div>
+          <Button onClick={() => void connectMcp()} disabled={busy}>
+            <Link2 size={16} />
+            Connect All2CF MCP
+          </Button>
+          <details>
+            <summary>Advanced recovery</summary>
+            <p>
+              Only use a cloud-issued connection receipt when automatic OAuth is
+              unavailable.
+            </p>
+            <label className="update-field">
+              <span>Connection file</span>
+              <input
+                type="file"
+                accept="application/json,.json"
+                onChange={(event) => void importFile(event.target.files?.[0])}
+              />
+            </label>
+            <label className="update-field">
+              <span>Or paste connection JSON</span>
+              <textarea
+                rows={6}
+                value={connectionText}
+                onChange={(event) => setConnectionText(event.target.value)}
+              />
+            </label>
+            <Button
+              variant="outline"
+              onClick={() => void importPastedReceipt()}
+              disabled={!connectionText.trim()}
+            >
+              Import receipt
+            </Button>
+          </details>
+        </section>
+      ) : null}
+
+      <section className="maintenance-version-grid">
+        <article>
+          <small>Local version</small>
+          <strong>{localVersion}</strong>
+          <span>
+            {localReceipt?.sourceCommit
+              ? `Source ${localReceipt.sourceCommit.slice(0, 12)}`
+              : "No generated-project receipt"}
+          </span>
+        </article>
+        <article>
+          <small>Cloud version</small>
+          <strong>{cloudVersion}</strong>
+          <span>{available?.channel || "Authorized channel"}</span>
+        </article>
+        <article>
+          <small>Update status</small>
+          <strong>
+            {!connected
+              ? "Connection required"
+              : updateAvailable
+                ? "Update available"
+                : available
+                  ? "Up to date"
+                  : "Not checked"}
+          </strong>
+          <span>{available?.publishedAt || ""}</span>
         </article>
       </section>
 
-      <section className="update-card update-plan">
-        <div><h2>更新操作</h2><p>先预览，再应用。应用操作由本地开发服务调用维护客户端，并保留收据冲突保护。</p></div>
-        <div className="update-actions">
-          <Button variant="outline" onClick={() => void run("diff")} disabled={busy || (!connection?.connected && !token.trim())}>查看差异</Button>
-          <Button onClick={() => void run("update")} disabled={busy || (!connection?.connected && !token.trim())}>应用更新</Button>
+      <section className="update-card maintenance-release">
+        <div>
+          <FileText />
+          <span>
+            <h2>What changed</h2>
+            <p>
+              Release notes are returned by the authorized update service for
+              the exact local-to-cloud version path.
+            </p>
+          </span>
         </div>
-        {output && <pre className="update-output">{output}</pre>}
-        {message && <p className="update-message" role="status">{message}</p>}
+        {available?.releaseNotes?.length ? (
+          <ul>
+            {available.releaseNotes.map((note) => (
+              <li key={note}>{note}</li>
+            ))}
+          </ul>
+        ) : (
+          <p className="maintenance-empty">
+            Connect and check updates to load release notes.
+          </p>
+        )}
+      <div className="update-actions">
+          <Button
+            variant="outline"
+            onClick={() => void checkUpdates()}
+            disabled={busy || !credentialAvailable}
+          >
+            <RefreshCw size={15} />
+            Check updates
+          </Button>
+          {available?.releaseUrl ? <a className="button button-outline" href={available.releaseUrl} target="_blank" rel="noreferrer">Release details <ExternalLink size={15} /></a> : null}
+          <a
+            className="button button-outline"
+            href="https://app.all2cf.com/deploy/projects"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Open cloud project <ExternalLink size={15} />
+          </a>
+          {connected ? (
+            <Button
+              variant="outline"
+              onClick={() => void disconnect()}
+              disabled={busy}
+            >
+              <Unplug size={15} />
+              Disconnect
+            </Button>
+          ) : null}
+        </div>
+      </section>
+
+      <section className="update-card update-plan">
+        <div>
+          <h2>Preview and update</h2>
+          <p>
+            All2CF authorizes the Engine. The local updater owns conflict
+            checks, diff and file application. Project source is not uploaded.
+          </p>
+        </div>
+        <div className="update-actions">
+          <Button
+            variant="outline"
+            onClick={() => void previewDiff()}
+            disabled={busy || !authorized || !updateAvailable}
+          >
+            View diff
+          </Button>
+          <Button
+            onClick={() => void applyUpdate()}
+            disabled={busy || !authorized || !updateAvailable}
+          >
+            <Download size={15} />
+            {available?.engineVersion
+              ? `Update to ${available.engineVersion}`
+              : "Update"}
+          </Button>
+      </div>
+      {diffSummary ? <div className="maintenance-diff-summary"><span><small>Safe changes</small><strong>{diffSummary.safe}</strong></span><span><small>Customer changes kept</small><strong>{diffSummary.preserved}</strong></span><span className={diffSummary.conflicts ? "conflict" : "clear"}><small>Conflicts</small><strong>{diffSummary.conflicts}</strong></span></div> : null}
+      {diff && <pre className="update-output">{diff}</pre>}
+        {message && (
+          <p className="update-message" role="status">
+            {message}
+          </p>
+        )}
+        <details>
+          <summary>Legacy one-use token</summary>
+          <label className="update-field">
+            <span>Update token</span>
+            <input
+              value={legacyToken}
+              onChange={(event) => {
+                setLegacyToken(event.target.value);
+                sessionStorage.setItem(
+                  "starter.all2cf.updateToken",
+                  event.target.value,
+                );
+              }}
+              type="password"
+              autoComplete="off"
+            />
+          </label>
+        </details>
       </section>
     </main>
   );

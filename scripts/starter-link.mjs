@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, open, readFile, rm, unlink, writeFile } from "node:fs/promises";
+import { gunzipSync, gzipSync } from "node:zlib";
 import os from "node:os";
 import path from "node:path";
 
@@ -10,9 +11,56 @@ const command = process.argv.slice(2).find((value) => !value.startsWith("--")) |
 const receiptPath = path.join(projectRoot, ".starter/source.json");
 const materializationPath = path.join(projectRoot, ".starter/materialization.json");
 const localAuthPath = path.join(projectRoot, ".starter/update-auth.local.json");
+const updateLockPath = path.join(projectRoot, ".starter/update.lock");
 const receipt = JSON.parse(await readFile(receiptPath, "utf8"));
 const json = (value) => `${JSON.stringify(value, null, 2)}\n`;
 const maxArtifactBytes = 96 * 1024 * 1024;
+
+function safeRelativePath(value) {
+  const normalized = String(value || "").replaceAll("\\", "/");
+  if (!normalized || path.posix.isAbsolute(normalized) || normalized.split("/").includes("..")) return null;
+  return normalized;
+}
+
+async function createUpdateBackup(plan) {
+  const materialization = JSON.parse(await readFile(materializationPath, "utf8"));
+  const paths = new Set([".starter/source.json", ".starter/materialization.json", "starter.blueprint.json", "package-lock.json"]);
+  for (const pack of Object.values(materialization.packs || {})) for (const file of Object.keys(pack.files || {})) paths.add(file);
+  for (const dependency of Object.values(materialization.dependencies || {})) paths.add(dependency.packageFile);
+  for (const change of plan.changes || []) {
+    const target = String(change.target || "");
+    paths.add(target.match(/^(.+\.json):[^/]+$/u)?.[1] || target);
+  }
+  const files = {};
+  for (const relative of paths) {
+    const safe = safeRelativePath(relative);
+    if (!safe || safe.includes(":")) continue;
+    files[safe] = await readFile(path.join(projectRoot, safe)).then((bytes) => Buffer.from(bytes).toString("base64"), () => null);
+  }
+  const backupRoot = path.join(projectRoot, ".starter/backups");
+  await mkdir(backupRoot, { recursive: true });
+  const backupPath = path.join(backupRoot, `pre-update-${Date.now()}.json.gz`);
+  await writeFile(backupPath, gzipSync(Buffer.from(JSON.stringify({ schemaVersion: "starter-update-backup/v1", createdAt: new Date().toISOString(), files }))), { mode: 0o600 });
+  return backupPath;
+}
+
+async function restoreUpdateBackup(backupPath) {
+  const backup = JSON.parse(gunzipSync(await readFile(backupPath)).toString("utf8"));
+  if (backup.schemaVersion !== "starter-update-backup/v1") throw new Error("Starter update backup schema is invalid");
+  for (const [relative, encoded] of Object.entries(backup.files || {})) {
+    const file = path.join(projectRoot, relative);
+    if (encoded === null) await unlink(file).catch((error) => { if (error?.code !== "ENOENT") throw error; });
+    else { await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, Buffer.from(encoded, "base64")); }
+  }
+}
+
+function verifyProject(phase) {
+  for (const script of ["typecheck", "build"]) {
+    const result = spawnSync("npm", ["run", script], { cwd: projectRoot, encoding: "utf8" });
+    if (result.status !== 0) throw new Error(`${phase} ${script} failed\n${result.stderr || result.stdout}`);
+  }
+  if (phase === "post-update" && process.env.STARTER_UPDATE_TEST_FORCE_VERIFY_FAILURE === "true") throw new Error("Forced post-update verification failure");
+}
 
 function runFactory(sourceRoot, args, env = {}) {
   const result = spawnSync(process.execPath, [
@@ -101,7 +149,7 @@ async function serviceChannel() {
     const suffix = resolution.checkoutUrl ? ` Subscribe at ${resolution.checkoutUrl}` : "";
     throw new Error(`${resolution.reason || "Starter Updates subscription is required."}${suffix}`);
   }
-  return validateChannel({ schemaVersion: "all2cf-starter-channel/v1", channel: resolution.channel, engine: resolution.engine, publishedAt: resolution.publishedAt || null }, serviceUrl);
+  return validateChannel({ schemaVersion: "all2cf-starter-channel/v1", channel: resolution.channel, engine: resolution.engine, publishedAt: resolution.publishedAt || null, entitlement: resolution.entitlement || null, releaseNotes: resolution.release?.notes || [], releaseUrl: resolution.release?.url || null }, serviceUrl);
 }
 
 async function statusRemote() {
@@ -111,6 +159,7 @@ async function statusRemote() {
   const packs = Object.entries(channel.engine.packVersions || {})
     .filter(([id]) => installedVersions.has(id))
     .map(([id, available]) => ({ id, installed: installedVersions.get(id), available, updateAvailable: installedVersions.get(id) !== available }));
+  const catalog = Object.entries(channel.engine.packVersions || {}).filter(([id]) => !installedVersions.has(id)).map(([id, available]) => ({ id, available, materialized: false }));
   return {
     ok: true,
     command: "status",
@@ -125,6 +174,11 @@ async function statusRemote() {
       channelUrl: receipt.channelUrl,
     },
     packs,
+    catalog,
+    entitlement: channel.entitlement || null,
+    releaseNotes: channel.releaseNotes || [],
+    releaseUrl: channel.releaseUrl || null,
+    publishedAt: channel.publishedAt || null,
   };
 }
 
@@ -197,7 +251,7 @@ async function updateReceipt(channel) {
   await writeFile(receiptPath, json(next));
 }
 
-async function main() {
+async function executeMain() {
   if (receipt.sourceRoot) {
     if (existsSync(path.join(receipt.sourceRoot, "scripts/starter-factory.mjs"))) {
       const output = runFactory(receipt.sourceRoot, process.argv.slice(2));
@@ -216,19 +270,44 @@ async function main() {
   }
   if (!new Set(["diff", "add", "update"]).has(command)) throw new Error(`Unknown Starter maintenance command ${command}`);
   const { result, channel } = await withRemoteEngine(async (sourceRoot, descriptor) => {
-    const output = runFactory(sourceRoot, process.argv.slice(2), {
+    const factoryEnv = {
       STARTER_FACTORY_SOURCE_COMMIT: descriptor.engine.sourceCommit,
       STARTER_FACTORY_PORTABLE: "true",
       STARTER_FACTORY_SOURCE_URL: receipt.sourceUrl || descriptor.engine.artifactUrl,
       STARTER_FACTORY_CHANNEL_URL: receipt.channelUrl,
       STARTER_FACTORY_ENGINE_VERSION: descriptor.engine.version,
       STARTER_FACTORY_ARTIFACT_SHA256: descriptor.engine.artifactSha256,
-    });
-    if (command === "add" || command === "update") await updateReceipt(descriptor);
-    return output;
+    };
+    if (command === "update") verifyProject("pre-update");
+    const plan = command === "update" ? JSON.parse(runFactory(sourceRoot, ["diff"], factoryEnv)) : null;
+    const backupPath = plan ? await createUpdateBackup(plan) : null;
+    try {
+      const output = runFactory(sourceRoot, process.argv.slice(2), factoryEnv);
+      if (command === "add" || command === "update") await updateReceipt(descriptor);
+      if (command === "update") verifyProject("post-update");
+      return backupPath ? `${output}\nRecovery snapshot: ${path.relative(projectRoot, backupPath)}` : output;
+    } catch (error) {
+      if (backupPath) await restoreUpdateBackup(backupPath);
+      throw error;
+    }
   });
   if (result) process.stdout.write(`${result}\n`);
   if (command !== "diff") process.stderr.write(`Starter receipt advanced to ${channel.engine.version} after successful materialization.\n`);
+}
+
+async function main() {
+  if (!new Set(["add", "update"]).has(command)) return executeMain();
+  await mkdir(path.dirname(updateLockPath), { recursive: true });
+  let handle;
+  try {
+    handle = await open(updateLockPath, "wx", 0o600);
+    await handle.writeFile(json({ schemaVersion: "starter-update-lock/v1", pid: process.pid, command, startedAt: new Date().toISOString() }));
+  } catch (error) {
+    if (error?.code === "EEXIST") throw new Error("Another Starter update is already running. Wait for it to finish before retrying.");
+    throw error;
+  }
+  try { return await executeMain(); }
+  finally { await handle?.close(); await unlink(updateLockPath).catch(() => undefined); }
 }
 
 main().catch((error) => {

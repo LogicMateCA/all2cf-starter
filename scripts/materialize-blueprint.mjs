@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
-import { mkdir, readFile, readdir, unlink, writeFile } from "node:fs/promises";
+import { lstat, mkdir, readFile, readdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -136,6 +136,21 @@ function safeProjectPath(relativePath, label) {
   if (resolved !== root && !resolved.startsWith(`${root}${path.sep}`))
     throw new Error(`${label} escapes the project root`);
   return resolved;
+}
+
+async function assertNoSymlinkTraversal(file, label) {
+  let cursor = file;
+  while (cursor !== root && cursor.startsWith(`${root}${path.sep}`)) {
+    const info = await lstat(cursor).catch((error) => error?.code === "ENOENT" ? null : Promise.reject(error));
+    if (info?.isSymbolicLink()) throw new Error(`${label} traverses symbolic link ${path.relative(root, cursor)}`);
+    cursor = path.dirname(cursor);
+  }
+}
+
+async function caseInsensitiveCollision(file) {
+  const entries = await readdir(path.dirname(file)).catch((error) => error?.code === "ENOENT" ? [] : Promise.reject(error));
+  const expected = path.basename(file);
+  return entries.find((entry) => entry.toLowerCase() === expected.toLowerCase() && entry !== expected) || null;
 }
 
 function safePackPath(packRoot, relativePath, label) {
@@ -916,10 +931,18 @@ function renderMarketingProject(
 
 const blueprint = JSON.parse(await readFile(blueprintPath, "utf8"));
 const requestedPlatforms = new Set(blueprint.project?.platforms || []);
+const materializeWorker = blueprint.project?.productType !== "website";
 const materializeMobile = blueprint.project?.productType === "mobile-app" || (
   blueprint.project?.productType === "web-saas" &&
   ["mobile-web", "ios", "android"].some((platform) => requestedPlatforms.has(platform))
 );
+function outputEnabled(relativePath) {
+  const relative = String(relativePath).replaceAll("\\", "/");
+  if (!materializeWorker && ["workers/", "db/", "apps/docs/", "apps/mobile/"].some((prefix) => relative.startsWith(prefix))) return false;
+  if (!materializeMobile && relative.startsWith("apps/mobile/")) return false;
+  if (blueprint.project?.productType === "mobile-app" && ["apps/marketing/", "apps/docs/"].some((prefix) => relative.startsWith(prefix))) return false;
+  return true;
+}
 const state = await readState();
 const starterManifest = JSON.parse(
   await readFile(path.join(root, "starter.manifest.json"), "utf8"),
@@ -1010,8 +1033,16 @@ const desiredWorkerEvents = [];
 const desiredMobileConfigPlugins = new Set();
 const desiredCloudflareSecrets = new Map();
 const desiredCloudflareQueues = new Map();
+const foundation = JSON.parse(await readFile(path.join(sourceRoot, "foundation/managed-files.json"), "utf8"));
+if (foundation.schemaVersion !== "starter-foundation-files/v1" || foundation.id !== "foundation.core" || !Array.isArray(foundation.files))
+  throw new Error("Starter managed foundation file contract is invalid");
+const releasedFoundationOwnership = new Set(foundation.releaseOwnership || []);
+for (const target of foundation.files) {
+  safeProjectPath(target, "foundation managed file");
+  desiredFiles.set(target, { packId: foundation.id, content: await readFile(path.join(sourceRoot, target), "utf8") });
+}
 
-if (["development", "production"].some((environment) => databaseProviderForEnvironment(blueprint.providers.database, environment) === "cfpg")) {
+if (materializeWorker && ["development", "production"].some((environment) => databaseProviderForEnvironment(blueprint.providers.database, environment) === "cfpg")) {
   for (const environment of ["development", "production"])
     if (databaseProviderForEnvironment(blueprint.providers.database, environment) === "cfpg" && !blueprint.providers.database.cfpg?.[environment])
       throw new Error(
@@ -1028,7 +1059,7 @@ if (["development", "production"].some((environment) => databaseProviderForEnvir
     },
   );
 }
-if (blueprint.providers.storage.provider === "s3-compatible") {
+if (materializeWorker && blueprint.providers.storage.provider === "s3-compatible") {
   desiredDependencies.set(
     "workers/app/package.json|dependencies|@aws-sdk/client-s3",
     {
@@ -1069,6 +1100,7 @@ async function addDesiredFile(packRoot, manifest, entry) {
     root,
     safeProjectPath(entry.target, `${manifest.id} target`),
   );
+  if (!outputEnabled(target)) return;
   if (desiredFiles.has(target))
     throw new Error(`Materialization file collision at ${target}`);
   const source = safePackPath(packRoot, entry.source, `${manifest.id} source`);
@@ -1091,6 +1123,7 @@ for (const { packRoot, manifest } of selectedManifests) {
         await addDesiredFile(packRoot, manifest, entry);
   for (const dependency of manifest.dependencies) {
     safeProjectPath(dependency.packageFile, `${manifest.id} packageFile`);
+    if (!outputEnabled(dependency.packageFile)) continue;
     const key = [
       dependency.packageFile,
       dependency.section,
@@ -1106,7 +1139,7 @@ for (const { packRoot, manifest } of selectedManifests) {
       throw new Error(`Capability route collision at ${route.path}`);
     desiredRoutes.push({ ...route, packId: manifest.id });
   }
-  if (manifest.authPlugins?.server)
+  if (materializeWorker && manifest.authPlugins?.server)
     desiredServerAuthPlugins.push({
       ...manifest.authPlugins.server,
       packId: manifest.id,
@@ -1116,25 +1149,25 @@ for (const { packRoot, manifest } of selectedManifests) {
       ...manifest.authPlugins.client,
       packId: manifest.id,
     });
-  if (manifest.workerFeature)
+  if (materializeWorker && manifest.workerFeature)
     desiredWorkerFeatures.push({
       ...manifest.workerFeature,
       packId: manifest.id,
     });
-  if (manifest.workerEvents)
+  if (materializeWorker && manifest.workerEvents)
     desiredWorkerEvents.push({
       ...manifest.workerEvents,
       packId: manifest.id,
     });
   for (const plugin of manifest.mobileConfigPlugins || [])
     desiredMobileConfigPlugins.add(plugin);
-  for (const secret of manifest.cloudflare?.requiredSecrets || []) {
+  for (const secret of materializeWorker ? manifest.cloudflare?.requiredSecrets || [] : []) {
     const owner = desiredCloudflareSecrets.get(secret);
     if (owner && owner !== manifest.id)
       throw new Error(`Cloudflare secret ${secret} is owned by multiple packs`);
     desiredCloudflareSecrets.set(secret, manifest.id);
   }
-  for (const queue of manifest.cloudflare?.queues || []) {
+  for (const queue of materializeWorker ? manifest.cloudflare?.queues || [] : []) {
     if (desiredCloudflareQueues.has(queue.binding))
       throw new Error(`Cloudflare Queue binding collision at ${queue.binding}`);
     desiredCloudflareQueues.set(queue.binding, {
@@ -1266,6 +1299,7 @@ const desiredMarketingProject = renderMarketingProject(
 );
 const changes = [];
 const failures = [];
+const preserved = [];
 const previousFiles = new Map(
   Object.entries(state.packs || {}).flatMap(([packId, pack]) =>
     Object.entries(pack.files || {}).map(([target, hash]) => [
@@ -1276,27 +1310,44 @@ const previousFiles = new Map(
 );
 
 for (const [target, desired] of desiredFiles) {
-  const current = await optionalRead(
-    safeProjectPath(target, "materialized target"),
-  );
+  const targetPath = safeProjectPath(target, "materialized target");
+  await assertNoSymlinkTraversal(targetPath, target);
+  const current = await optionalRead(targetPath);
   if (current === desired.content) continue;
   const previous = previousFiles.get(target);
-  if (current !== null && (!previous || sha256(current) !== previous.hash))
-    failures.push(
-      `${target} exists outside the matching materialization receipt`,
-    );
-  else
+  const caseCollision = current === null ? await caseInsensitiveCollision(targetPath) : null;
+  if (caseCollision)
+    failures.push(`${target} collides by case with existing product path ${path.join(path.dirname(target), caseCollision)}`);
+  else if (current === null)
     changes.push({
-      kind: current === null ? "add-file" : "update-file",
+      kind: "add-file",
       target,
       packId: desired.packId,
     });
+  else if (!previous)
+    failures.push(`${target} collides with a product-owned file outside the materialization receipt`);
+  else {
+    const localHash = sha256(current);
+    const targetHash = sha256(desired.content);
+    if (localHash === previous.hash)
+      changes.push({ kind: "update-file", target, packId: desired.packId });
+    else if (targetHash === previous.hash)
+      preserved.push({ kind: "keep-local-file", target, packId: desired.packId, baseHash: previous.hash, localHash });
+    else
+      failures.push(`${target} has both product and Starter changes; automatic update is blocked`);
+  }
 }
 
 for (const [target, previous] of previousFiles) {
   if (desiredFiles.has(target)) continue;
-  const current = await optionalRead(safeProjectPath(target, "owned target"));
+  const ownedPath = safeProjectPath(target, "owned target");
+  await assertNoSymlinkTraversal(ownedPath, target);
+  const current = await optionalRead(ownedPath);
   if (current === null) continue;
+  if (previous.packId === foundation.id && releasedFoundationOwnership.has(target)) {
+    changes.push({ kind: "release-file-ownership", target, packId: previous.packId });
+    continue;
+  }
   if (sha256(current) !== previous.hash)
     failures.push(
       `${target} changed after materialization and cannot be removed automatically`,
@@ -1325,16 +1376,20 @@ for (const [key, desired] of desiredDependencies) {
   const current = model?.[desired.section]?.[desired.name];
   if (current === desired.version) continue;
   const previous = state.dependencies?.[key];
-  if (current !== undefined && (!previous || current !== previous.version))
-    failures.push(
-      `${desired.packageFile} already owns ${desired.name}@${current}`,
-    );
-  else
+  if (current === undefined)
     changes.push({
-      kind: current === undefined ? "add-dependency" : "update-dependency",
+      kind: "add-dependency",
       target: `${desired.packageFile}:${desired.name}`,
       packId: desired.packId,
     });
+  else if (!previous)
+    failures.push(`${desired.packageFile} already product-owns ${desired.name}@${current}`);
+  else if (current === previous.version)
+    changes.push({ kind: "update-dependency", target: `${desired.packageFile}:${desired.name}`, packId: desired.packId });
+  else if (desired.version === previous.version)
+    preserved.push({ kind: "keep-local-dependency", target: `${desired.packageFile}:${desired.name}`, packId: desired.packId, baseVersion: previous.version, localVersion: current });
+  else
+    failures.push(`${desired.packageFile}:${desired.name} has both product and Starter version changes; automatic update is blocked`);
 }
 for (const [key, previous] of Object.entries(state.dependencies || {})) {
   if (desiredDependencies.has(key)) continue;
@@ -1356,17 +1411,19 @@ for (const [key, previous] of Object.entries(state.dependencies || {})) {
 const currentRouteSource = await optionalRead(routeRegistryPath);
 if (currentRouteSource !== desiredRouteSource) {
   const baseline = renderRoutes([]);
-  const safeCurrent = state.generatedRoutesHash
-    ? sha256(currentRouteSource || "") === state.generatedRoutesHash
-    : currentRouteSource === baseline;
-  if (!safeCurrent)
-    failures.push(
-      `${path.relative(root, routeRegistryPath)} changed outside the materializer`,
-    );
+  const target = path.relative(root, routeRegistryPath);
+  const localHash = sha256(currentRouteSource || "");
+  const targetHash = sha256(desiredRouteSource);
+  if (state.generatedRoutesHash && localHash !== state.generatedRoutesHash && targetHash === state.generatedRoutesHash)
+    preserved.push({ kind: "keep-local-generated", target, baseHash: state.generatedRoutesHash, localHash });
+  else if (state.generatedRoutesHash && localHash !== state.generatedRoutesHash && targetHash !== state.generatedRoutesHash)
+    failures.push(`${target} has both product and Starter route changes; automatic update is blocked`);
+  else if (!state.generatedRoutesHash && currentRouteSource !== baseline)
+    failures.push(`${target} exists outside the generated route receipt`);
   else
     changes.push({
       kind: "update-route-registry",
-      target: path.relative(root, routeRegistryPath),
+      target,
     });
 }
 
@@ -1376,7 +1433,11 @@ const previousWorkerFirstRoutes = new Set(
 const workerFirstRegistries = [];
 const desiredCloudflareConfigReceipts = {};
 for (const configPath of workerFirstConfigPaths) {
-  const current = await readFile(configPath, "utf8");
+  const current = await optionalRead(configPath);
+  if (current === null) {
+    if (materializeWorker) failures.push(`${path.relative(root, configPath)} is required for ${blueprint.project?.productType || "this product"}`);
+    continue;
+  }
   let currentRoutes;
   try {
     currentRoutes = readWorkerFirstRoutes(current);
@@ -1533,21 +1594,27 @@ const generatedRegistries = [
     baseline: null,
     packId: "page.core-product-site",
   },
-].filter((registry) => materializeMobile || !registry.path.startsWith(path.join(root, "apps/mobile/")));
+].filter((registry) =>
+  (materializeMobile || !registry.path.startsWith(path.join(root, "apps/mobile/"))) &&
+  (materializeWorker || !registry.path.startsWith(path.join(root, "workers/")))
+);
 for (const registry of generatedRegistries) {
   const current = await optionalRead(registry.path);
   if (current === registry.desired) continue;
-  const safeCurrent = state[registry.stateKey]
-    ? sha256(current || "") === state[registry.stateKey]
-    : current === registry.baseline;
-  if (!safeCurrent)
-    failures.push(
-      `${path.relative(root, registry.path)} changed outside the materializer`,
-    );
+  const target = path.relative(root, registry.path);
+  const previousHash = state[registry.stateKey];
+  const localHash = sha256(current || "");
+  const targetHash = sha256(registry.desired);
+  if (previousHash && localHash !== previousHash && targetHash === previousHash)
+    preserved.push({ kind: "keep-local-generated", target, ...(registry.packId ? { packId: registry.packId } : {}), baseHash: previousHash, localHash });
+  else if (previousHash && localHash !== previousHash && targetHash !== previousHash)
+    failures.push(`${target} has both product and Starter generated changes; automatic update is blocked`);
+  else if (!previousHash && current !== registry.baseline)
+    failures.push(`${target} exists outside the generated artifact receipt`);
   else
     changes.push({
       kind: "update-generated-artifact",
-      target: path.relative(root, registry.path),
+      target,
       ...(registry.packId ? { packId: registry.packId } : {}),
     });
 }
@@ -1578,11 +1645,15 @@ const desiredState = {
   generatedStyleAdapterDocsHash: sha256(desiredDocsStyleAdapterCSS),
   ...(materializeMobile ? { generatedDesignMobileHash: sha256(desiredMobileDesign) } : {}),
   generatedMarketingProjectHash: sha256(desiredMarketingProject),
+  localOverrides: {},
 };
 for (const { manifest } of selectedManifests)
   desiredState.packs[manifest.id] = { version: manifest.version, files: {} };
+desiredState.packs[foundation.id] = { version: foundation.version, files: {} };
 for (const [target, desired] of desiredFiles)
   desiredState.packs[desired.packId].files[target] = sha256(desired.content);
+for (const entry of preserved)
+  desiredState.localOverrides[entry.target] = entry;
 if (JSON.stringify(state) !== JSON.stringify(desiredState))
   changes.push({
     kind: "update-receipt",
@@ -1608,7 +1679,7 @@ for (const { manifest } of manifests) {
 }
 
 if (failures.length) {
-  console.error(json({ ok: false, failures, changes }));
+  console.error(json({ ok: false, summary: { safe: changes.length, preserved: preserved.length, conflicts: failures.length }, failures, preserved, changes }));
   process.exit(1);
 }
 if (check && changes.length) {
@@ -1620,7 +1691,9 @@ if (!apply) {
     json({
       ok: true,
       mode: check ? "check" : "plan",
-      selectedPacks: selectedManifests.map(({ manifest }) => manifest.id),
+      selectedPacks: [foundation.id, ...selectedManifests.map(({ manifest }) => manifest.id)],
+      summary: { safe: changes.length, preserved: preserved.length, conflicts: 0 },
+      preserved,
       changes,
     }),
   );
@@ -1631,7 +1704,9 @@ if (!changes.length) {
     json({
       ok: true,
       mode: "apply",
-      selectedPacks: selectedManifests.map(({ manifest }) => manifest.id),
+      selectedPacks: [foundation.id, ...selectedManifests.map(({ manifest }) => manifest.id)],
+      summary: { safe: 0, preserved: preserved.length, conflicts: 0 },
+      preserved,
       changes,
     }),
   );
@@ -1651,7 +1726,10 @@ for (const target of new Set([...desiredFiles.keys(), ...previousFiles.keys()]))
 for (const packageFile of packageModels.keys())
   touchedPaths.add(safeProjectPath(packageFile, "packageFile"));
 const backups = new Map();
-for (const file of touchedPaths) backups.set(file, await optionalRead(file));
+for (const file of touchedPaths) {
+  await assertNoSymlinkTraversal(file, path.relative(root, file));
+  backups.set(file, await optionalRead(file));
+}
 
 async function restore() {
   for (const [file, content] of backups) {
@@ -1667,19 +1745,23 @@ async function restore() {
 }
 
 try {
+  const preservedTargets = new Set(preserved.map(({ target }) => target));
   for (const [target, desired] of desiredFiles) {
+    if (preservedTargets.has(target)) continue;
     const file = safeProjectPath(target, "materialized target");
     await mkdir(path.dirname(file), { recursive: true });
     await writeFile(file, desired.content);
   }
   for (const target of previousFiles.keys()) {
-    if (!desiredFiles.has(target))
+    const released = previousFiles.get(target)?.packId === foundation.id && releasedFoundationOwnership.has(target);
+    if (!desiredFiles.has(target) && !released)
       await unlink(safeProjectPath(target, "owned target")).catch((error) => {
         if (error?.code !== "ENOENT") throw error;
       });
   }
 
   for (const [key, desired] of desiredDependencies) {
+    if (preservedTargets.has(`${desired.packageFile}:${desired.name}`)) continue;
     const model = packageModels.get(desired.packageFile);
     model[desired.section] ||= {};
     model[desired.section][desired.name] = desired.version;
@@ -1700,10 +1782,11 @@ try {
         );
     await writeFile(safeProjectPath(packageFile, "packageFile"), json(model));
   }
-  await writeFile(routeRegistryPath, desiredRouteSource);
+  if (!preservedTargets.has(path.relative(root, routeRegistryPath))) await writeFile(routeRegistryPath, desiredRouteSource);
   for (const registry of workerFirstRegistries)
     await writeFile(registry.path, registry.desired);
   for (const registry of generatedRegistries) {
+    if (preservedTargets.has(path.relative(root, registry.path))) continue;
     await mkdir(path.dirname(registry.path), { recursive: true });
     await writeFile(registry.path, registry.desired);
   }
@@ -1770,7 +1853,9 @@ try {
     json({
       ok: true,
       mode: "apply",
-      selectedPacks: selectedManifests.map(({ manifest }) => manifest.id),
+      selectedPacks: [foundation.id, ...selectedManifests.map(({ manifest }) => manifest.id)],
+      summary: { safe: changes.length, preserved: preserved.length, conflicts: 0 },
+      preserved,
       changes,
     }),
   );

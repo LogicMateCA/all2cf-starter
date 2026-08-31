@@ -29,6 +29,8 @@ export function App() {
       "/factory": "Starter Factory",
       "/setup": "Project Setup",
       "/update": "Starter Updates",
+      "/maintenance": "Project Maintenance",
+      "/all2cf": "Project Maintenance",
       "/dp": "Development Plan",
     };
     const navigationTitle = productNavigation.find(({ href }) => href === path)?.label;
@@ -52,7 +54,7 @@ export function App() {
     return <RouteLoading />;
   }
   else if (path === "/setup" || path === "/factory") page = <SetupPage />;
-  else if (path === "/update" || path === "/all2cf") page = <UpdatePage />;
+  else if (path === "/maintenance" || path === "/update" || path === "/all2cf") page = <UpdatePage />;
   else if (path === "/dp") page = <DevelopmentPlanPage />;
   else {
     const capabilityRoute = capabilityRoutes.find((route) => route.path === path);

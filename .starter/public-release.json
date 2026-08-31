@@ -1,13 +1,14 @@
 {
   "schemaVersion": "all2cf-public-source/v1",
-  "version": "2.1.1",
-  "canonicalSourceCommit": "d037feed424b96692b1f509c840bffba8779c9bc",
-  "engineArtifactSha256": "1ab3c5563c6c876d4c5f52db4dd5dae4ba3f0d69d37d95d9baf4bd6dc2f1174b",
+  "version": "2.1.2",
+  "canonicalSourceCommit": "da8e24ea0e45c3bc4277cc87ebb4c46ebadf4768",
+  "engineArtifactSha256": "b278df27a1fda12aec371e6af022e77a440e9526095887c4513cd45111ed183e",
   "optionalPackCount": 0,
   "permanentPackIds": [
     "design.owned-neutral",
     "design.stylekit-adapted",
-    "page.core-product-site"
+    "page.core-product-site",
+    "foundation.core"
   ],
   "bootstrap": "npm ci && npm run setup",
   "github": "https://github.com/LogicMateCA/all2cf-starter"
