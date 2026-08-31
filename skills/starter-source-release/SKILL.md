@@ -18,9 +18,10 @@ This Skill owns the boundary from one clean canonical Starter commit to an immut
 
 1. Create and commit one focused Change Spec plus all affected canonical Markdown before verification.
 2. Choose the next reviewed Engine SemVer explicitly. Never infer or silently increment it.
-3. Run `npm run source:release:candidate -- --version=<version>` in `starter-dev`.
-4. The command must run canonical verification, generate and fully verify clean SQL and Drizzle portable projects, build the exact Git archive twice, require equal SHA-256 hashes, and check the strict Engine manifest and registration bundle.
-5. Inspect `.all2cf/engine-candidates/<version>/candidate-report.json`, `source-verification.json`, `factory-engine.json`, `registration.json`, and the capsule. This directory is local ignored evidence, not source.
+3. During normal development, run `npm run source:qualify` once on the final clean tree. The ignored qualification receipt is reusable only for the exact Git tree, lockfile SHA-256 and Node version.
+4. Run `npm run source:release:candidate -- --version=<version>` in `starter-dev`. Use `--force-qualification` when a clean full rerun is explicitly required.
+5. The command must reuse only an exact qualification, generate and fully verify clean SQL, Drizzle and minimal portable projects concurrently, build the exact Git archive twice, require equal SHA-256 hashes, and check the strict Engine manifest and registration bundle.
+6. Inspect `.all2cf/engine-candidates/<version>/candidate-report.json`, `source-verification.json`, `factory-engine.json`, `registration.json`, and the capsule. This directory is local ignored evidence, not source.
 
 ## Registration
 

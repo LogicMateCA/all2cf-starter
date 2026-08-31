@@ -16,10 +16,12 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Route-addressable Admin control center navigation and a lightweight Analytics & Scripts publisher for external Providers.
 - A same-origin cached Loader shared by Marketing, Web and Docs without a Starter-owned analytics event store.
+- Exact Git-tree/lockfile/Node qualification receipts for resumable releases.
 
 ### Changed
 
 - Executable Admin modules now use stable routes grouped by Workspace, People, Engage and Operate; unselected Pack capabilities move to the Overview catalog.
+- SQL-first, Drizzle and minimal portable-project release proofs now execute concurrently after exact source qualification.
 
 ### Fixed
 
@@ -28,6 +30,7 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 ### Performance
 
 - The site-integration Loader is cached for 60 seconds and loads no external script when no destination is published.
+- Warm candidate and promotion stages reuse exact qualification checkpoints instead of repeating cold source verification.
 
 ### Security
 

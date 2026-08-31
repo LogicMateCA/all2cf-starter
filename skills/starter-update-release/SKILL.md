@@ -29,7 +29,7 @@ Generic “发布” means Development. The controller must:
 
 1. Start from clean `/opt/1panel/apps/starter`; explicitly choose the next Engine SemVer and preserve the rollback commit.
 2. Use `runtime-upgrade` for dependency changes. Keep Better Auth packages aligned, Expo-owned versions compatible, and StyleKit snapshots owner-selected.
-3. Commit one focused Change Spec and docs. Refresh `.starter/materialization.json` after changing a managed file, then run `source:release:candidate -- --version=<version>` in a clean isolated worktree with a dedicated dependency volume.
+3. Commit one focused Change Spec and docs. Refresh `.starter/materialization.json` after changing a managed file, run `source:qualify` on the final clean tree during development, then run `source:release:candidate -- --version=<version>` in a clean isolated worktree with a dedicated dependency volume. Copy the exact matching ignored qualification receipt into that tree when the Git tree/lockfile/Node keys match; never rerun cold qualification merely because the commit history was normalized.
 4. Require SQL-first and Drizzle portable verification, two reproducible archives, strict manifest checks and exact SHA-256. Also upgrade an isolated copy of the previous Stable project using that project's own lockfile and dedicated dependency volume. The proof must retain every pre-existing marketing path and customer Page/CSS marker, block an intentional functional conflict, and finish with the new receipt.
 5. Record the candidate checkpoint before any remote mutation. Advance the local Development Channel with `source:publish:channel`; never replace an existing version with another hash.
 6. Register the exact candidate into the current clean isolated All2CF release worktree selected from the live Production parent. Never target the dirty `/opt/1panel/apps/a2c` worktree and never revive a historical baseline path from this document.
@@ -65,3 +65,4 @@ Functional updates freeze existing product Pages, Page CSS and generated visual 
 - Database migration, R2 upload, Channel advance and Worker deployment are distinct evidence gates.
 - Report: Starter commit/version/hash, All2CF commit, Worker/version ID/domain, Hyperdrive database/user, R2 key, Channel, live checks, cleanup, and every unopened Production gate.
 - On failure, classify it as source, dependency-volume, candidate, Core integration, database-owner migration, remote publication or live-proof failure; preserve the last matching checkpoint and resume there.
+- Treat three to five minutes as the warm promotion target, not a cold-install promise. Report qualification, candidate, Development, public and Production elapsed times separately.

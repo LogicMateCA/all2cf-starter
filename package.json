@@ -91,6 +91,8 @@
     "product-shape:builds": "node scripts/product-shape-builds.mjs",
     "engine:channel:contract": "node scripts/engine-channel-contract.mjs",
     "source:status": "node scripts/source-release.mjs status",
+    "source:qualify": "node scripts/source-release.mjs qualify",
+    "release:checkpoint:contract": "node scripts/release-checkpoint-contract.mjs",
     "source:verify": "node scripts/source-release.mjs verify",
     "source:release:candidate": "node scripts/source-release.mjs candidate",
     "source:publish:channel": "node scripts/source-release.mjs publish",

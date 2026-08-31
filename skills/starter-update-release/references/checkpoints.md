@@ -8,6 +8,7 @@ Discard it when any identity changes.
 - Clean isolated worktree and dedicated Node 24 dependency volume.
 - Managed-file receipt refreshed.
 - Change Spec, Changelog and docs committed together.
+- Qualification receipt matches Git tree, lockfile SHA-256 and Node version.
 
 ## Candidate checkpoint
 
