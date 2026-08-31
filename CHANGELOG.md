@@ -10,6 +10,32 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Nothing yet.
 
+## [2.1.9] - 2026-08-31
+
+### Added
+
+- Checkpoint-based canonical release Skill covering source, candidate, Development, public and Production stages.
+
+### Changed
+
+- Later publication failures resume from the last matching source/version/SHA checkpoint instead of rebuilding verified Engine work.
+
+### Fixed
+
+- Damaged dependency volumes and temporary fixture receipt drift now have explicit recovery paths.
+
+### Performance
+
+- Verified candidate, Development and public checkpoints can be reused when their exact identities still match.
+
+### Security
+
+- Checkpoint reuse requires exact source commit, Engine version and Artifact SHA; identity changes force rebuild.
+
+### Migration
+
+- No product migration. This release supersedes the unpublished 2.1.8 candidate and includes its functional-only update policy.
+
 ## [2.1.8] - 2026-08-31
 
 ### Added
@@ -310,7 +336,8 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Established Web/Mobile foundation, authentication email Providers, account menu, dual UI strategy, operational Skills and always-current `/dp`.
 
-[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.1.8...HEAD
+[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.1.9...HEAD
+[2.1.9]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.9
 [2.1.8]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.8
 [2.1.7]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.7
 [2.1.6]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.6
