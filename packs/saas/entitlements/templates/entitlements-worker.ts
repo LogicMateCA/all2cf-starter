@@ -26,6 +26,29 @@ export async function resolveUserEntitlements(
   database: EntitlementDatabase,
   userId: string,
 ) {
+  const identity = await database.query<{ role: string | null }>(
+    `select role from app_user where id = $1 limit 1`,
+    [userId],
+  );
+  if (!identity.rows[0]) throw new Error("The entitlement user does not exist");
+  if (isPlatformAdmin(identity.rows[0])) {
+    const administratorEntitlements = await database.query<{
+      feature_key: string;
+    }>(
+      `select distinct feature_key
+       from app_billing_plan_entitlement
+       order by feature_key`,
+    );
+    return {
+      plan: { id: "administrator", name: "Administrator" },
+      entitlements: administratorEntitlements.rows.map((item) => ({
+        key: item.feature_key,
+        enabled: true,
+        limit: null,
+        metadata: { source: "platform-administrator" },
+      })),
+    };
+  }
   const subscription = await database.query<{ plan: string }>(
     `select plan from app_subscription
      where reference_id = $1

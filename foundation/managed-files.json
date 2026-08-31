@@ -7,6 +7,7 @@
     "apps/web/src/components/update-page.tsx",
     "apps/web/src/maintenance.css",
     "apps/web/vite.config.ts",
+    "db/migrations/0010_platform_administrators.sql",
     "scripts/all2cf-project.mjs",
     "scripts/materialize-blueprint.mjs",
     "scripts/starter-link.mjs",
