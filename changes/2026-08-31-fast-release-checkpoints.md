@@ -8,7 +8,7 @@ docsImpact: [skills/starter-source-release/SKILL.md, skills/starter-update-relea
 
 # Outcome
 
-Canonical release work now has two explicit lanes.
+Canonical release work now has two explicit lanes. Qualification receipts use the existing ignored `.all2cf/*local.json` evidence boundary so recording proof never makes the source dirty.
 
 - Cold qualification runs the complete source verification once during normal development and writes an ignored receipt keyed by Git tree, lockfile SHA-256 and Node version.
 - Fast candidate/promotion reuses that receipt only when every key matches, then runs SQL-first, Drizzle and minimal portable-project proofs concurrently before creating the immutable Artifact.

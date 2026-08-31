@@ -13,7 +13,7 @@ const json = (value) => `${JSON.stringify(value, null, 2)}\n`;
 const candidateRoot = path.join(root, ".all2cf", "engine-candidates");
 const channelRoot = path.join(root, ".all2cf", "engine-channels");
 const verificationPath = path.join(root, ".all2cf", "source-release-verification.local.json");
-const qualificationRoot = path.join(root, ".all2cf", "release-checkpoints", "qualification");
+const qualificationRoot = path.join(root, ".all2cf");
 const versionPattern = /^(\d+)\.(\d+)\.(\d+)(?:-(dev|rc)\.(\d+))?$/u;
 
 function run(commandName, commandArgs, options = {}) {
@@ -88,7 +88,7 @@ async function qualificationIdentity(source = requireCleanSource()) {
 
 async function readQualification(source) {
   const identity = await qualificationIdentity(source);
-  const receipt = path.join(qualificationRoot, `${identity.sourceTree}.json`);
+  const receipt = path.join(qualificationRoot, `source-release-qualification-${identity.sourceTree}.local.json`);
   if (!(await exists(receipt))) return { identity, receipt, value: null };
   const value = JSON.parse(await readFile(receipt, "utf8"));
   const matches = value.ok === true && value.sourceTree === identity.sourceTree && value.lockfileSha256 === identity.lockfileSha256 && value.node === identity.node;
