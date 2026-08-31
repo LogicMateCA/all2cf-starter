@@ -30,4 +30,5 @@ maintenance subscription.
   rejects removal of the final Admin.
 - Full authentication smoke and generated-project contracts remain required
   before release.
-
+- Release 2.1.4 carries the migration and Entitlements Pack 0.2.0 through the
+  normal immutable Engine and public-source release path.

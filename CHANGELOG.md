@@ -10,6 +10,35 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Nothing yet.
 
+## [2.1.4] - 2026-08-30
+
+### Added
+
+- Serialized first-account platform Administrator assignment for every registration path.
+- `/admin` authority management backed by Better Auth's existing platform role model and database-level final-Administrator protection.
+
+### Changed
+
+- Existing databases with users but no platform Administrator promote the oldest account during migration.
+- The Entitlements Pack advances to 0.2.0.
+
+### Fixed
+
+- Platform Administrators no longer require a product subscription to use paid product capabilities.
+
+### Performance
+
+- Administrator access reuses the existing role column and entitlement resolver; it adds no client runtime or additional request fan-out.
+
+### Security
+
+- PostgreSQL advisory locking prevents concurrent first registrations from creating ambiguous initial authority.
+- The final platform Administrator cannot be demoted or deleted until another Administrator exists.
+
+### Migration
+
+- Apply `0010_platform_administrators.sql`. Existing role, subscription and organization records remain intact.
+
 ## [2.1.3] - 2026-08-30
 
 ### Added
@@ -176,7 +205,8 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Established Web/Mobile foundation, authentication email Providers, account menu, dual UI strategy, operational Skills and always-current `/dp`.
 
-[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.1.3...HEAD
+[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.1.4...HEAD
+[2.1.4]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.4
 [2.1.3]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.3
 [2.1.2]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.2
 [2.1.1]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.1
