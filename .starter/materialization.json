@@ -64,9 +64,9 @@
       }
     },
     "saas.entitlements": {
-      "version": "0.1.0",
+      "version": "0.2.0",
       "files": {
-        "workers/app/features/entitlements-worker.ts": "d99790c3e7614308b923bf222a7f965156065c1593400f7f759831c3e094c494",
+        "workers/app/features/entitlements-worker.ts": "7d0d8ed089163a8b2ff8ac58fce01a1d772654114e8e57c59fab0d763879032a",
         "apps/web/src/components/features/entitlements-page.tsx": "773748d982159f244cf09c1eedf5e74e54452d7add1db7645ba7ec6eef0a3879",
         "apps/web/src/components/features/entitlements-page.css": "d3bc08ebf949d9b171ddc205d808f547f0047fd5654bffaa1bbfb468a123f089",
         "db/migrations/1005_entitlements.sql": "a2e660b8a414c9f0ed586bd4d0f8b4a5e9ffa1ae922d1dc4d7f8b2cb9c434e98"
@@ -116,6 +116,7 @@
         "apps/web/src/components/update-page.tsx": "734f8ec591ed09643fb84bf26534e21d29cb6d5cd06de7ee6c12eb2cb20e081f",
         "apps/web/src/maintenance.css": "fc6e108fc8651a345a2a59c5491d4be08545923d112d9a32f46d4abf6a7e333d",
         "apps/web/vite.config.ts": "01c43d850ae7650b27f13506e9a8186977d798a748537f001680684e36e9f874",
+        "db/migrations/0010_platform_administrators.sql": "8de2d1f092bd772021cbf35f2439a618bc9eb3059c048563b8c09a9488da1f1d",
         "scripts/all2cf-project.mjs": "dabaae31585293e764846bf87fa40086be8510610940d021d6ba43c98784db61",
         "scripts/materialize-blueprint.mjs": "06d71b4c96707bec6fc4958eb6e6849f7f942e10fb8420745a87f6bcc03dd409",
         "scripts/starter-link.mjs": "f6a40aa75cc8a279dfa10543e435198c3f7be7791a44e6232348b2ece3c25cfd",

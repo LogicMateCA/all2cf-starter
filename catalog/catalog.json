@@ -715,7 +715,7 @@
       "id": "saas.entitlements",
       "kind": "saas",
       "name": "Plan entitlements",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "status": "local-verified",
       "delivery": "materializer",
       "targets": ["desktop-web", "worker", "admin", "docs"],

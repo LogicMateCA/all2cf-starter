@@ -246,8 +246,8 @@
         "lifecycle": {
           "selected": true,
           "materialized": true,
-          "localVerified": true,
-          "developmentVerified": true,
+          "localVerified": false,
+          "developmentVerified": false,
           "productionReleased": false
         }
       },

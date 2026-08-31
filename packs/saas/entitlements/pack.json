@@ -2,7 +2,7 @@
   "$schema": "../../../schemas/starter-pack.schema.json",
   "schemaVersion": "starter-pack/v1",
   "id": "saas.entitlements",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "source": {
     "name": "Starter entitlement resolver",
     "url": "https://starter.logicm8.com/docs/",
