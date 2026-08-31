@@ -21,6 +21,10 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Executable Admin modules now use stable routes grouped by Workspace, People, Engage and Operate; unselected Pack capabilities move to the Overview catalog.
 
+### Fixed
+
+- Admin modules no longer depend on in-memory tab state or expose optional/planned implementation placeholders in primary navigation.
+
 ### Performance
 
 - The site-integration Loader is cached for 60 seconds and loads no external script when no destination is published.
