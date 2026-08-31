@@ -155,6 +155,9 @@ try {
   await rm(ownedPath);
   await rm(outsidePath);
   await writeFile(ownedPath, ownedSource);
+  run("scripts/starter-factory.mjs", ["update", `--project-root=${target}`], target);
+  const reconciledDiff = JSON.parse(run("scripts/starter-factory.mjs", ["diff", `--project-root=${target}`], target));
+  if (reconciledDiff.changes.length || reconciledDiff.preserved.length) failures.push("factory safety probes left materialization receipt drift");
   console.log(JSON.stringify({ ok: failures.length === 0, target, fileCount: created.fileCount, packs: status.packs.length, failures }, null, 2));
   if (failures.length) process.exitCode = 1;
 } finally {

@@ -37,6 +37,8 @@ maintenance subscription.
   registration.
 - Functional updates now freeze existing product Page files and generated
   visual output while continuing to update the functional foundation.
+- Factory safety probes now reconcile their temporary local override receipt
+  before the final clean-diff assertion.
 - Foundation files now pass through the same product-output filter as Pack
   files, so a Website/content project does not receive the Admin database
   migration or any `db/` runtime.
