@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { MessageSquare, RefreshCw, ShieldCheck } from "lucide-react";
 import { ProductShell } from "@/components/product-shell";
 import { AdminHealth } from "@/components/admin-health";
+import { AdminAnalytics } from "@/components/admin-analytics";
 import { AdminUsers } from "@/components/admin-users";
 import { Button } from "@/components/ui/button";
-import { adminModules } from "@/lib/admin-modules";
+import { adminCapabilityCatalog, adminModules } from "@/lib/admin-modules";
 import { authClient } from "@/lib/auth-client";
 
 type Ticket = {
@@ -87,7 +88,7 @@ const emptyAuditFilters: AuditFilters = {
 
 export function AdminPage() {
   const { data: session, isPending } = authClient.useSession();
-  const [activeModule, setActiveModule] = useState("overview");
+  const activeModule = adminModules.find(({ path }) => path === window.location.pathname)?.id || "overview";
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [users, setUsers] = useState<UserRow[]>([]);
   const [overview, setOverview] = useState<Overview | null>(null);
@@ -354,9 +355,8 @@ export function AdminPage() {
             <span>Product operations</span>
             <h1>Admin</h1>
             <p>
-              Better Auth owns platform identity authority. Starter registers
-              every SaaS operations module and fills only the Cloudflare/product
-              gaps.
+              Manage platform access, customer communication, external analytics
+              and operational evidence from one controlled workspace.
             </p>
           </div>
           <Button variant="outline" onClick={() => void loadActiveModule()}>
@@ -365,31 +365,22 @@ export function AdminPage() {
         </section>
         {error ? <p className="operations-error">{error}</p> : null}
         <div className="admin-layout">
-          <nav
-            className="operations-card admin-module-nav"
-            aria-label="Admin modules"
-          >
-            {adminModules.map((module) => (
-              <button
-                type="button"
-                key={module.id}
-                aria-current={activeModule === module.id ? "page" : undefined}
-                onClick={() => setActiveModule(module.id)}
-              >
-                <span>
-                  <strong>{module.label}</strong>
-                  <small>{module.owner}</small>
-                </span>
-                <i className={`admin-module-status ${module.status}`}>
-                  {module.status}
-                </i>
-              </button>
+          <nav className="operations-card admin-module-nav" aria-label="Admin modules">
+            {["Workspace", "People", "Engage", "Operate"].map((group) => (
+              <div className="admin-nav-group" key={group}>
+                <span>{group}</span>
+                {adminModules.filter((module) => module.group === group).map((module) => (
+                  <a key={module.id} href={module.path} aria-current={activeModule === module.id ? "page" : undefined}>
+                    <strong>{module.label}</strong>
+                  </a>
+                ))}
+              </div>
             ))}
           </nav>
           <section className="admin-module-content">
             <header className="operations-card admin-module-header">
               <div>
-                <span>{currentModule.owner}</span>
+                <span>{currentModule.group}</span>
                 <h2>{currentModule.label}</h2>
                 <p>{currentModule.description}</p>
               </div>
@@ -752,27 +743,12 @@ export function AdminPage() {
 
             {activeModule === "health" ? <AdminHealth /> : null}
 
-            {![
-              "overview",
-              "users",
-              "support",
-              "notifications",
-              "audit",
-              "health",
-            ].includes(
-              activeModule,
-            ) ? (
-              <section className="operations-card admin-module-empty">
-                <strong>{currentModule.status}</strong>
-                <p>
-                  This registration is stable, but its executable capability is
-                  {currentModule.requiredPack
-                    ? ` owned by ${currentModule.requiredPack}.`
-                    : " not part of the current baseline yet."}
-                </p>
-                {currentModule.href ? (
-                  <a href={currentModule.href}>Open {currentModule.label}</a>
-                ) : null}
+            {activeModule === "analytics" ? <AdminAnalytics /> : null}
+
+            {activeModule === "overview" ? (
+              <section className="operations-card admin-capability-catalog">
+                <header><span>Extend when needed</span><h2>Capability catalog</h2><p>Optional product capabilities stay out of navigation until their Pack is selected.</p></header>
+                <div>{adminCapabilityCatalog.map((item) => <article key={item.pack}><strong>{item.label}</strong><p>{item.description}</p><code>{item.pack}</code></article>)}</div>
               </section>
             ) : null}
           </section>

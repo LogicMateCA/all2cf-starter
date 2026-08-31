@@ -15,6 +15,7 @@ export default defineConfig({
       description: "Build, understand, verify, and release a Starter-based product.",
       disable404Route: true,
       favicon: "/docs/favicon.svg",
+      head: [{ tag: "script", attrs: { type: "module", src: "/api/public/site-integrations.js?surface=docs" } }],
       customCss: ["./src/styles/custom.css"],
       sidebar: [
         { label: "Start", items: [{ label: "Overview", slug: "docs" }, { label: "Create a project", slug: "docs/getting-started" }] },

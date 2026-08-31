@@ -8,7 +8,8 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 ### Added
 
-- Nothing yet.
+- Route-addressable Admin control center navigation and a lightweight Analytics & Scripts publisher for external Providers.
+- A same-origin cached Loader shared by Marketing, Web and Docs without a Starter-owned analytics event store.
 
 ## [2.1.10] - 2026-08-31
 

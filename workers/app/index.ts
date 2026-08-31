@@ -1093,6 +1093,160 @@ app.patch("/api/admin/support/tickets/:id", (c) =>
   }),
 );
 
+type SiteIntegrationProvider = "cloudflare-web-analytics" | "google-analytics" | "google-tag-manager" | "plausible" | "custom-external";
+type SiteIntegrationInput = {
+  name?: string;
+  provider?: SiteIntegrationProvider;
+  status?: "draft" | "published" | "disabled";
+  environment?: "development" | "production";
+  surfaces?: string[];
+  config?: Record<string, unknown>;
+};
+const siteIntegrationProviders = new Set<SiteIntegrationProvider>(["cloudflare-web-analytics", "google-analytics", "google-tag-manager", "plausible", "custom-external"]);
+const siteIntegrationSurfaces = new Set(["marketing", "web", "docs"]);
+function normalizeSiteIntegration(input: SiteIntegrationInput) {
+  const name = String(input.name || "").trim();
+  const provider = String(input.provider || "") as SiteIntegrationProvider;
+  const status = input.status === "published" || input.status === "disabled" ? input.status : "draft";
+  const environment = input.environment === "production" ? "production" : "development";
+  const surfaces = [...new Set((input.surfaces || []).map(String).filter((surface) => siteIntegrationSurfaces.has(surface)))];
+  const config = input.config && typeof input.config === "object" ? input.config : {};
+  if (name.length < 2 || name.length > 80) throw new Error("Integration name must be between 2 and 80 characters");
+  if (!siteIntegrationProviders.has(provider)) throw new Error("Analytics provider is not supported");
+  if (!surfaces.length) throw new Error("Select at least one site surface");
+  const identifier = String(config.identifier || "").trim();
+  if (["cloudflare-web-analytics", "google-analytics", "google-tag-manager"].includes(provider) && !identifier)
+    throw new Error("This provider requires its public site identifier");
+  if (provider === "plausible" && !String(config.domain || "").trim()) throw new Error("Plausible requires a tracked domain");
+  if (provider === "custom-external") {
+    const source = new URL(String(config.source || ""));
+    if (source.protocol !== "https:") throw new Error("Custom script URL must use HTTPS");
+    config.source = source.toString();
+  }
+  const cspSources: { scriptSrc: string[]; connectSrc: string[]; imgSrc: string[] } = { scriptSrc: [], connectSrc: [], imgSrc: [] };
+  if (provider === "cloudflare-web-analytics") {
+    cspSources.scriptSrc.push("https://static.cloudflareinsights.com");
+    cspSources.connectSrc.push("https://cloudflareinsights.com", "'self'");
+  } else if (provider === "google-analytics" || provider === "google-tag-manager") {
+    cspSources.scriptSrc.push("https://www.googletagmanager.com");
+    cspSources.connectSrc.push("https://www.google-analytics.com", "https://region1.google-analytics.com");
+    cspSources.imgSrc.push("https://www.google-analytics.com");
+  } else if (provider === "plausible") {
+    const source = new URL(String(config.source || "https://plausible.io/js/script.js"));
+    cspSources.scriptSrc.push(source.origin);
+    cspSources.connectSrc.push(source.origin);
+    config.source = source.toString();
+  } else if (provider === "custom-external") {
+    const source = new URL(String(config.source));
+    cspSources.scriptSrc.push(source.origin);
+  }
+  return { name, provider, status, environment, surfaces, config, cspSources };
+}
+
+app.get("/api/public/site-integrations.js", async (c) => {
+  const surface = String(c.req.query("surface") || "web");
+  if (!siteIntegrationSurfaces.has(surface)) return c.text("/* Unknown site surface. */", 400, { "Content-Type": "application/javascript; charset=utf-8" });
+  const environment = c.env.APP_ENV === "production" ? "production" : "development";
+  const database = createDatabaseClient(c.env, `${c.env.SERVICE_NAME}-site-integrations`);
+  try {
+    await database.connect();
+    const result = await database.query<{ provider: SiteIntegrationProvider; config: Record<string, unknown> }>(
+      `select provider, config from app_site_integration
+       where status = 'published' and environment = $1 and $2 = any(surfaces)
+       order by created_at asc`,
+      [environment, surface],
+    );
+    const integrations = JSON.stringify(result.rows).replaceAll("<", "\\u003c");
+    const source = `(()=>{if(["/admin","/login","/setup","/factory","/maintenance","/update","/all2cf"].some(p=>location.pathname===p||location.pathname.startsWith(p+"/")))return;const items=${integrations};const add=(src,attrs={})=>{const s=document.createElement("script");s.src=src;s.async=true;for(const[k,v]of Object.entries(attrs))s.setAttribute(k,String(v));document.head.appendChild(s)};for(const item of items){const c=item.config||{};if(item.provider==="cloudflare-web-analytics")add("https://static.cloudflareinsights.com/beacon.min.js",{"type":"module","data-cf-beacon":JSON.stringify({token:c.identifier,spa:true})});else if(item.provider==="google-analytics"){self.dataLayer=self.dataLayer||[];self.gtag=self.gtag||function(){dataLayer.push(arguments)};gtag("js",new Date());gtag("config",c.identifier);add("https://www.googletagmanager.com/gtag/js?id="+encodeURIComponent(c.identifier))}else if(item.provider==="google-tag-manager"){self.dataLayer=self.dataLayer||[];dataLayer.push({"gtm.start":Date.now(),event:"gtm.js"});add("https://www.googletagmanager.com/gtm.js?id="+encodeURIComponent(c.identifier))}else if(item.provider==="plausible")add(c.source||"https://plausible.io/js/script.js",{"data-domain":c.domain});else if(item.provider==="custom-external")add(c.source,{"type":c.module?"module":"text/javascript"})}}})();`;
+    return c.text(source, 200, { "Content-Type": "application/javascript; charset=utf-8", "Cache-Control": "public, max-age=60, stale-while-revalidate=300", "X-Content-Type-Options": "nosniff" });
+  } catch (error) {
+    console.error("site_integrations_loader_failed", error);
+    return c.text("/* Site integrations are temporarily unavailable. */", 200, { "Content-Type": "application/javascript; charset=utf-8", "Cache-Control": "no-store" });
+  } finally {
+    await database.end().catch(() => undefined);
+  }
+});
+
+app.get("/api/admin/site-integrations", (c) =>
+  withRequestAuth(c.env, c.executionCtx, async (auth, database) => {
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    if (!session?.user) return c.json({ error: { code: "UNAUTHORIZED", message: "Authentication required." } }, 401);
+    if (!isPlatformAdmin(session.user)) return c.json({ error: { code: "FORBIDDEN", message: "Admin role required." } }, 403);
+    const result = await database.query(
+      `select id, name, provider, status, environment, surfaces, config, csp_sources, version, published_at, created_at, updated_at
+       from app_site_integration order by updated_at desc`,
+    );
+    return c.json({ data: result.rows }, 200, { "Cache-Control": "no-store" });
+  }),
+);
+
+app.post("/api/admin/site-integrations", (c) =>
+  withRequestAuth(c.env, c.executionCtx, async (auth, database) => {
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    if (!session?.user) return c.json({ error: { code: "UNAUTHORIZED", message: "Authentication required." } }, 401);
+    if (!isPlatformAdmin(session.user)) return c.json({ error: { code: "FORBIDDEN", message: "Admin role required." } }, 403);
+    try {
+      const normalized = normalizeSiteIntegration(await c.req.json<SiteIntegrationInput>());
+      const id = crypto.randomUUID();
+      const client = await database.connect();
+      try {
+        await client.query("begin");
+        const result = await client.query(
+          `insert into app_site_integration (id, name, provider, status, environment, surfaces, config, csp_sources, created_by_user_id, updated_by_user_id, published_at)
+           values ($1,$2,$3,$4,$5,$6,$7::jsonb,$8::jsonb,$9,$9,case when $4='published' then now() else null end)
+           returning id, name, provider, status, environment, surfaces, config, csp_sources, version, published_at, created_at, updated_at`,
+          [id, normalized.name, normalized.provider, normalized.status, normalized.environment, normalized.surfaces, JSON.stringify(normalized.config), JSON.stringify(normalized.cspSources), session.user.id],
+        );
+        await client.query(`insert into app_site_integration_revision (id, integration_id, version, snapshot, created_by_user_id) values ($1,$2,1,$3::jsonb,$4)`, [crypto.randomUUID(), id, JSON.stringify(result.rows[0]), session.user.id]);
+        await client.query(`insert into app_admin_audit_event (id, actor_user_id, action, target_type, target_id, metadata) values ($1,$2,'site.integration.created','site_integration',$3,jsonb_build_object('provider',$4::text,'status',$5::text))`, [crypto.randomUUID(), session.user.id, id, normalized.provider, normalized.status]);
+        await client.query("commit");
+        return c.json({ data: result.rows[0] }, 201, { "Cache-Control": "no-store" });
+      } catch (error) {
+        await client.query("rollback").catch(() => undefined);
+        throw error;
+      } finally {
+        client.release();
+      }
+    } catch (error) {
+      return c.json({ error: { code: "INVALID_INTEGRATION", message: error instanceof Error ? error.message : "Unable to save integration." } }, 400);
+    }
+  }),
+);
+
+app.patch("/api/admin/site-integrations/:id", (c) =>
+  withRequestAuth(c.env, c.executionCtx, async (auth, database) => {
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    if (!session?.user) return c.json({ error: { code: "UNAUTHORIZED", message: "Authentication required." } }, 401);
+    if (!isPlatformAdmin(session.user)) return c.json({ error: { code: "FORBIDDEN", message: "Admin role required." } }, 403);
+    const current = await database.query<SiteIntegrationInput>(`select name, provider, status, environment, surfaces, config from app_site_integration where id=$1`, [c.req.param("id")]);
+    if (!current.rows[0]) return c.json({ error: { code: "NOT_FOUND", message: "Integration not found." } }, 404);
+    try {
+      const normalized = normalizeSiteIntegration({ ...current.rows[0], ...(await c.req.json<SiteIntegrationInput>()) });
+      const client = await database.connect();
+      try {
+        await client.query("begin");
+        const result = await client.query(
+          `update app_site_integration set name=$2,provider=$3,status=$4,environment=$5,surfaces=$6,config=$7::jsonb,csp_sources=$8::jsonb,version=version+1,updated_by_user_id=$9,published_at=case when $4='published' then now() else published_at end,updated_at=now()
+           where id=$1 returning id,name,provider,status,environment,surfaces,config,csp_sources,version,published_at,created_at,updated_at`,
+          [c.req.param("id"), normalized.name, normalized.provider, normalized.status, normalized.environment, normalized.surfaces, JSON.stringify(normalized.config), JSON.stringify(normalized.cspSources), session.user.id],
+        );
+        const row = result.rows[0] as { version: number };
+        await client.query(`insert into app_site_integration_revision (id,integration_id,version,snapshot,created_by_user_id) values ($1,$2,$3,$4::jsonb,$5)`, [crypto.randomUUID(), c.req.param("id"), row.version, JSON.stringify(row), session.user.id]);
+        await client.query(`insert into app_admin_audit_event (id,actor_user_id,action,target_type,target_id,metadata) values ($1,$2,'site.integration.updated','site_integration',$3,jsonb_build_object('version',$4::int,'status',$5::text))`, [crypto.randomUUID(), session.user.id, c.req.param("id"), row.version, normalized.status]);
+        await client.query("commit");
+        return c.json({ data: row }, 200, { "Cache-Control": "no-store" });
+      } catch (error) {
+        await client.query("rollback").catch(() => undefined);
+        throw error;
+      } finally {
+        client.release();
+      }
+    } catch (error) {
+      return c.json({ error: { code: "INVALID_INTEGRATION", message: error instanceof Error ? error.message : "Unable to update integration." } }, 400);
+    }
+  }),
+);
+
 app.get("/api/admin/overview", (c) =>
   withRequestAuth(c.env, c.executionCtx, async (auth, database) => {
     const session = await auth.api.getSession({ headers: c.req.raw.headers });
