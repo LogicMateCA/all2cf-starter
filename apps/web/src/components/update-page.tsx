@@ -29,6 +29,7 @@ type AvailableUpdate = {
     updateAvailable?: boolean;
     materialized?: boolean;
   }>;
+  runtime?: Array<{ name: string; packageName: string; installed: string }>;
   releaseNotes?: string[];
   releaseUrl?: string | null;
   publishedAt?: string | null;
@@ -473,6 +474,18 @@ export function UpdatePage() {
               <ul>{available.components.filter((component) => !component.installed).map((component) => <li key={component.id}><span>{component.id}</span><strong>{component.available || "—"}</strong></li>)}</ul>
             </details>
           ) : null}
+        </section>
+      ) : null}
+
+      {available?.runtime?.length ? (
+        <section className="update-card maintenance-runtime">
+          <div className="maintenance-section-heading">
+            <div><h2>Runtime stack</h2><p>Versions are read from this project's package lock, not from a marketing catalog.</p></div>
+            <span>{available.runtime.length} installed</span>
+          </div>
+          <div className="maintenance-runtime-grid">
+            {available.runtime.map((item) => <article key={item.packageName}><span>{item.name}</span><strong>{item.installed}</strong><small>{item.packageName}</small></article>)}
+          </div>
         </section>
       ) : null}
 

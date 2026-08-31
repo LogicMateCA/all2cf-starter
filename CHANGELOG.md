@@ -10,6 +10,32 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Nothing yet.
 
+## [2.1.7] - 2026-08-31
+
+### Added
+
+- Installed Runtime stack versions on `/maintenance`, including Better Auth core and selected official adapters.
+
+### Changed
+
+- Pack versions and runtime dependency versions are displayed as separate ownership layers.
+
+### Fixed
+
+- Better Auth and framework versions are no longer hidden behind Starter Pack-only status.
+
+### Performance
+
+- Runtime versions are read from the local package lock during the existing status request; no additional request is added.
+
+### Security
+
+- The page reports only installed lockfile versions and never infers unavailable packages.
+
+### Migration
+
+- No database migration. Existing projects receive the Runtime stack panel through `foundation.core`.
+
 ## [2.1.6] - 2026-08-31
 
 ### Added
@@ -258,7 +284,8 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Established Web/Mobile foundation, authentication email Providers, account menu, dual UI strategy, operational Skills and always-current `/dp`.
 
-[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.1.6...HEAD
+[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.1.7...HEAD
+[2.1.7]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.7
 [2.1.6]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.6
 [2.1.5]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.5
 [2.1.4]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.4

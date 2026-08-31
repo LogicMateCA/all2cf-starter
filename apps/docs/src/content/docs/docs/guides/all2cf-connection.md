@@ -32,4 +32,6 @@ The diff is conservative. The installed materialization Receipt is Base, the cur
 
 The maintenance page also compares installed and cloud Pack versions. Installed Packs show Local, Cloud and update state; uninstalled Packs remain collapsed Catalog entries and do not add files or runtime code. Check, diff, update, All2CF project, release and disconnect actions stay in one toolbar above the version and change evidence.
 
+Runtime stack versions are separate from Pack versions. They come from the generated project's package lock and show Better Auth and selected official adapters plus installed framework and tooling dependencies; an uninstalled runtime is never shown as active.
+
 Before applying, the updater creates an ignored compressed recovery snapshot and verifies the current project. After applying, it runs typecheck and build; failure restores the snapshot. The always-installed `foundation.core` carries curated Starter infrastructure updates. Unselected Packs remain Catalog entries and add no project files or runtime until selected.
