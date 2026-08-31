@@ -35,6 +35,8 @@ maintenance subscription.
 - Public-source staging is ignored explicitly so generating a neutral GitHub
   bundle cannot make the canonical Engine source appear dirty during Core
   registration.
+- Functional updates now freeze existing product Page files and generated
+  visual output while continuing to update the functional foundation.
 - Foundation files now pass through the same product-output filter as Pack
   files, so a Website/content project does not receive the Admin database
   migration or any `db/` runtime.

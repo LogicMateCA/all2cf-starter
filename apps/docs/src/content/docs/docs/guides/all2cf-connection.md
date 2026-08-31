@@ -30,6 +30,10 @@ The required update order is connection status, server-side entitlement, update 
 
 The diff is conservative. The installed materialization Receipt is Base, the current project is Local, and the authorized release is Target. Target-only changes are safe; Local-only files and dependency versions are retained; both-changed paths, unmanaged collisions and modified removals block application. `/maintenance` reports each category. Codex may propose a conflict merge, but cannot apply it without approval.
 
+Starter maintenance is a functional-foundation update. Existing product Pages, Page CSS, generated design output and marketing Page artifacts are frozen by default, so a new Starter layout does not block or overwrite the product. Auth, Providers, MCP, Skills, Agent Map, migrations, runtime and selected functional modules continue through the safety checks. The Pack and Runtime catalogs still advance for features that are not installed; selecting one later uses the current Engine template.
+
+Starter maintenance is a functional-foundation update. Existing product Pages, Page CSS, generated design output and marketing Page artifacts are frozen by default, so a new Starter layout does not block or overwrite the product. Auth, Providers, MCP, Skills, Agent Map, migrations, runtime and selected functional modules continue through the safety checks. The Pack and Runtime catalogs still advance for features that are not installed; selecting one later uses the current Engine template.
+
 The maintenance page also compares installed and cloud Pack versions. Installed Packs show Local, Cloud and update state; uninstalled Packs remain collapsed Catalog entries and do not add files or runtime code. Check, diff, update, All2CF project, release and disconnect actions stay in one toolbar above the version and change evidence.
 
 Runtime stack versions are separate from Pack versions. They come from the generated project's package lock and show Better Auth and selected official adapters plus installed framework and tooling dependencies; an uninstalled runtime is never shown as active.
