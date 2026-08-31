@@ -10,6 +10,33 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Nothing yet.
 
+## [2.1.6] - 2026-08-31
+
+### Added
+
+- Installed component Local/Cloud version comparison and Catalog-only version disclosure on `/maintenance`.
+- Human-readable Will update, Will keep and Blocked conflicts groups backed by the real three-way update plan.
+
+### Changed
+
+- Check, diff, update, All2CF project, release details and disconnect now share one action toolbar above version evidence.
+
+### Fixed
+
+- Raw update JSON no longer obscures the files and components being changed.
+
+### Performance
+
+- Component versions reuse the existing update-status response and add no extra network request or runtime Pack.
+
+### Security
+
+- Update remains disabled before diff review and whenever the update plan reports a conflict.
+
+### Migration
+
+- No database migration. Existing connected projects receive the maintenance UI through `foundation.core`.
+
 ## [2.1.5] - 2026-08-30
 
 ### Added
@@ -231,7 +258,8 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Established Web/Mobile foundation, authentication email Providers, account menu, dual UI strategy, operational Skills and always-current `/dp`.
 
-[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.1.5...HEAD
+[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.1.6...HEAD
+[2.1.6]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.6
 [2.1.5]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.5
 [2.1.4]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.4
 [2.1.3]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.3

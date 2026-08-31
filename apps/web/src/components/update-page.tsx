@@ -22,6 +22,13 @@ type Receipt = Record<string, unknown> & {
 };
 type AvailableUpdate = {
   engineVersion?: string;
+  components?: Array<{
+    id: string;
+    installed?: string;
+    available?: string;
+    updateAvailable?: boolean;
+    materialized?: boolean;
+  }>;
   releaseNotes?: string[];
   releaseUrl?: string | null;
   publishedAt?: string | null;
@@ -34,6 +41,18 @@ type ActionResult = {
   entitlement?: { authorized?: boolean; plan?: string; features?: string[] };
   receipt?: Receipt;
   available?: AvailableUpdate;
+};
+type DiffItem = {
+  kind?: string;
+  target?: string;
+  packId?: string;
+  reason?: string;
+};
+type DiffPlan = {
+  summary: { safe: number; preserved: number; conflicts: number };
+  changes: DiffItem[];
+  preserved: DiffItem[];
+  failures?: string[];
 };
 type ConnectionState = {
   ok: boolean;
@@ -61,6 +80,11 @@ async function callUpdate(path: string, token: string) {
   });
 }
 
+function changeLabel(item: DiffItem) {
+  const kind = String(item.kind || "change").replaceAll("-", " ");
+  return `${kind}: ${item.target || item.packId || "managed Starter state"}`;
+}
+
 export function UpdatePage() {
   const [legacyToken, setLegacyToken] = useState(
     () => sessionStorage.getItem("starter.all2cf.updateToken") || "",
@@ -71,7 +95,7 @@ export function UpdatePage() {
   const [available, setAvailable] = useState<AvailableUpdate | null>(null);
   const [entitlement, setEntitlement] = useState<ActionResult["entitlement"]>();
   const [diff, setDiff] = useState("");
-  const [diffSummary, setDiffSummary] = useState<{ safe: number; preserved: number; conflicts: number } | null>(null);
+  const [diffPlan, setDiffPlan] = useState<DiffPlan | null>(null);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const connected = Boolean(connection?.connected);
@@ -229,10 +253,10 @@ export function UpdatePage() {
       const result = await callUpdate("diff", legacyToken);
       setDiff(result.output || "No managed-file changes reported.");
       try {
-        const parsed = JSON.parse(result.output || "{}") as { summary?: { safe: number; preserved: number; conflicts: number } };
-        setDiffSummary(parsed.summary || null);
+        const parsed = JSON.parse(result.output || "{}") as DiffPlan;
+        setDiffPlan(parsed.summary ? parsed : null);
       } catch {
-        setDiffSummary(null);
+        setDiffPlan(null);
       }
       setMessage("Update diff is ready for review.");
     } catch (error) {
@@ -358,6 +382,41 @@ export function UpdatePage() {
         </section>
       ) : null}
 
+      <section className="maintenance-toolbar" aria-label="Starter update actions">
+        <Button
+          variant="outline"
+          onClick={() => void checkUpdates()}
+          disabled={busy || !credentialAvailable}
+        >
+          <RefreshCw size={15} />
+          Check updates
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => void previewDiff()}
+          disabled={busy || !authorized || !updateAvailable}
+        >
+          View diff
+        </Button>
+        <Button
+          onClick={() => void applyUpdate()}
+          disabled={busy || !authorized || !updateAvailable || !diffPlan || Boolean(diffPlan.summary.conflicts)}
+        >
+          <Download size={15} />
+          {available?.engineVersion ? `Update to ${available.engineVersion}` : "Update"}
+        </Button>
+        <a className="button button-outline" href="https://app.all2cf.com/deploy/projects" target="_blank" rel="noreferrer">
+          Open All2CF project <ExternalLink size={15} />
+        </a>
+        {available?.releaseUrl ? <a className="button button-outline" href={available.releaseUrl} target="_blank" rel="noreferrer">Release details <ExternalLink size={15} /></a> : null}
+        {connected ? (
+          <Button variant="outline" onClick={() => void disconnect()} disabled={busy}>
+            <Unplug size={15} />
+            Disconnect
+          </Button>
+        ) : null}
+      </section>
+
       <section className="maintenance-version-grid">
         <article>
           <small>Local version</small>
@@ -388,87 +447,49 @@ export function UpdatePage() {
         </article>
       </section>
 
-      <section className="update-card maintenance-release">
-        <div>
-          <FileText />
-          <span>
-            <h2>What changed</h2>
-            <p>
-              Release notes are returned by the authorized update service for
-              the exact local-to-cloud version path.
-            </p>
-          </span>
-        </div>
-        {available?.releaseNotes?.length ? (
-          <ul>
-            {available.releaseNotes.map((note) => (
-              <li key={note}>{note}</li>
+      {available?.components?.length ? (
+        <section className="update-card maintenance-components">
+          <div className="maintenance-section-heading">
+            <div>
+              <h2>Component versions</h2>
+              <p>Only installed components are updated. Catalog-only components remain unloaded.</p>
+            </div>
+            <span>{available.components.filter((component) => component.installed).length} installed</span>
+          </div>
+          <div className="maintenance-component-list">
+            <div className="maintenance-component-row heading"><span>Component</span><span>Local</span><span>Cloud</span><span>Status</span></div>
+            {available.components.filter((component) => component.installed).map((component) => (
+              <div className="maintenance-component-row" key={component.id}>
+                <strong>{component.id}</strong>
+                <span>{component.installed}</span>
+                <span>{component.available || "—"}</span>
+                <span className={component.updateAvailable ? "needs-update" : "current"}>{component.updateAvailable ? "Update available" : "Current"}</span>
+              </div>
             ))}
-          </ul>
-        ) : (
-          <p className="maintenance-empty">
-            Connect and check updates to load release notes.
-          </p>
-        )}
-      <div className="update-actions">
-          <Button
-            variant="outline"
-            onClick={() => void checkUpdates()}
-            disabled={busy || !credentialAvailable}
-          >
-            <RefreshCw size={15} />
-            Check updates
-          </Button>
-          {available?.releaseUrl ? <a className="button button-outline" href={available.releaseUrl} target="_blank" rel="noreferrer">Release details <ExternalLink size={15} /></a> : null}
-          <a
-            className="button button-outline"
-            href="https://app.all2cf.com/deploy/projects"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Open cloud project <ExternalLink size={15} />
-          </a>
-          {connected ? (
-            <Button
-              variant="outline"
-              onClick={() => void disconnect()}
-              disabled={busy}
-            >
-              <Unplug size={15} />
-              Disconnect
-            </Button>
+          </div>
+          {available.components.some((component) => !component.installed) ? (
+            <details className="maintenance-catalog-components">
+              <summary>{available.components.filter((component) => !component.installed).length} optional components available in the Catalog</summary>
+              <ul>{available.components.filter((component) => !component.installed).map((component) => <li key={component.id}><span>{component.id}</span><strong>{component.available || "—"}</strong></li>)}</ul>
+            </details>
           ) : null}
-        </div>
-      </section>
+        </section>
+      ) : null}
 
       <section className="update-card update-plan">
         <div>
-          <h2>Preview and update</h2>
+          <h2>
+            {updateAvailable && available?.engineVersion
+              ? `Starter ${localVersion} → ${available.engineVersion}`
+              : "Preview and update"}
+          </h2>
           <p>
             All2CF authorizes the Engine. The local updater owns conflict
             checks, diff and file application. Project source is not uploaded.
           </p>
         </div>
-        <div className="update-actions">
-          <Button
-            variant="outline"
-            onClick={() => void previewDiff()}
-            disabled={busy || !authorized || !updateAvailable}
-          >
-            View diff
-          </Button>
-          <Button
-            onClick={() => void applyUpdate()}
-            disabled={busy || !authorized || !updateAvailable}
-          >
-            <Download size={15} />
-            {available?.engineVersion
-              ? `Update to ${available.engineVersion}`
-              : "Update"}
-          </Button>
-      </div>
-      {diffSummary ? <div className="maintenance-diff-summary"><span><small>Safe changes</small><strong>{diffSummary.safe}</strong></span><span><small>Customer changes kept</small><strong>{diffSummary.preserved}</strong></span><span className={diffSummary.conflicts ? "conflict" : "clear"}><small>Conflicts</small><strong>{diffSummary.conflicts}</strong></span></div> : null}
-      {diff && <pre className="update-output">{diff}</pre>}
+      {diffPlan ? <><div className="maintenance-diff-summary"><span><small>Safe changes</small><strong>{diffPlan.summary.safe}</strong></span><span><small>Customer changes kept</small><strong>{diffPlan.summary.preserved}</strong></span><span className={diffPlan.summary.conflicts ? "conflict" : "clear"}><small>Conflicts</small><strong>{diffPlan.summary.conflicts}</strong></span></div><div className="maintenance-change-groups"><section><h3>Will update</h3><p>Starter changed these managed targets; your project did not.</p>{diffPlan.changes.length ? <ul>{diffPlan.changes.map((item, index) => <li key={`${item.target}-${index}`}>{changeLabel(item)}</li>)}</ul> : <p className="maintenance-none">No managed targets need changes.</p>}</section><section><h3>Will keep</h3><p>Your project owns these changes, so Starter will not overwrite them.</p>{diffPlan.preserved.length ? <ul>{diffPlan.preserved.map((item, index) => <li key={`${item.target}-${index}`}>{changeLabel(item)}</li>)}</ul> : <p className="maintenance-none">No customer-only changes were detected.</p>}</section><section className={diffPlan.summary.conflicts ? "has-conflicts" : "no-conflicts"}><h3>Blocked conflicts</h3><p>Any item here disables automatic update until reviewed.</p>{diffPlan.failures?.length ? <ul>{diffPlan.failures.map((failure) => <li key={failure}>{failure}</li>)}</ul> : <p className="maintenance-none">No conflicts. Automatic update is allowed.</p>}</section></div></> : null}
+      {diff ? <details className="maintenance-diagnostics"><summary>Advanced diagnostics</summary><pre className="update-output">{diff}</pre></details> : null}
         {message && (
           <p className="update-message" role="status">
             {message}
@@ -493,6 +514,24 @@ export function UpdatePage() {
           </label>
         </details>
       </section>
+
+      {available?.releaseNotes?.length ? <section className="update-card maintenance-release">
+        <div>
+          <FileText />
+          <span>
+            <h2>What changed</h2>
+            <p>
+              Release notes are returned by the authorized update service for
+              the exact local-to-cloud version path.
+            </p>
+          </span>
+        </div>
+        <ul>
+          {available.releaseNotes.map((note) => (
+            <li key={note}>{note}</li>
+          ))}
+        </ul>
+      </section> : null}
     </main>
   );
 }
