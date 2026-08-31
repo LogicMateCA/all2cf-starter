@@ -31,6 +31,7 @@
 .maintenance-progress span { color: var(--muted); font-size: .72rem; }
 .maintenance-progress-track { position: relative; height: 5px; margin-top: 12px; overflow: hidden; border-radius: 999px; background: var(--canvas); }
 .maintenance-progress-track i { position: absolute; inset-block: 0; width: 38%; border-radius: inherit; background: var(--accent); animation: maintenance-progress 1.1s ease-in-out infinite; }
+.maintenance-policy-note { color: var(--accent) !important; font-size: .76rem; }
 @keyframes maintenance-progress { from { transform: translateX(-105%); } to { transform: translateX(275%); } }
 .maintenance-components { margin-bottom: 18px; }
 .maintenance-section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
