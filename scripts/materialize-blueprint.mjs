@@ -1039,6 +1039,7 @@ if (foundation.schemaVersion !== "starter-foundation-files/v1" || foundation.id 
 const releasedFoundationOwnership = new Set(foundation.releaseOwnership || []);
 for (const target of foundation.files) {
   safeProjectPath(target, "foundation managed file");
+  if (!outputEnabled(target)) continue;
   desiredFiles.set(target, { packId: foundation.id, content: await readFile(path.join(sourceRoot, target), "utf8") });
 }
 
