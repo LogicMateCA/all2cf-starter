@@ -99,6 +99,7 @@ export function UpdatePage() {
   const [diffPlan, setDiffPlan] = useState<DiffPlan | null>(null);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [activeAction, setActiveAction] = useState<"checking" | "reviewing" | "updating" | null>(null);
   const connected = Boolean(connection?.connected);
   const authorized = Boolean(entitlement?.authorized);
   const credentialAvailable = connected || Boolean(legacyToken.trim());
@@ -231,6 +232,7 @@ export function UpdatePage() {
   }
   async function checkUpdates() {
     setBusy(true);
+    setActiveAction("checking");
     setMessage("");
     try {
       const result = await callUpdate("check", legacyToken);
@@ -246,10 +248,12 @@ export function UpdatePage() {
       setMessage(error instanceof Error ? error.message : String(error));
     } finally {
       setBusy(false);
+      setActiveAction(null);
     }
   }
   async function previewDiff() {
     setBusy(true);
+    setActiveAction("reviewing");
     try {
       const result = await callUpdate("diff", legacyToken);
       setDiff(result.output || "No managed-file changes reported.");
@@ -264,10 +268,12 @@ export function UpdatePage() {
       setMessage(error instanceof Error ? error.message : String(error));
     } finally {
       setBusy(false);
+      setActiveAction(null);
     }
   }
   async function applyUpdate() {
     setBusy(true);
+    setActiveAction("updating");
     try {
       const result = await callUpdate("update", legacyToken);
       setDiff(result.output || "");
@@ -279,6 +285,7 @@ export function UpdatePage() {
       setMessage(error instanceof Error ? error.message : String(error));
     } finally {
       setBusy(false);
+      setActiveAction(null);
     }
   }
 
@@ -393,18 +400,21 @@ export function UpdatePage() {
           Check updates
         </Button>
         <Button
-          variant="outline"
+          variant={!diffPlan && updateAvailable ? "default" : "outline"}
           onClick={() => void previewDiff()}
           disabled={busy || !authorized || !updateAvailable}
+          title={!updateAvailable ? "Check for an available update first" : "Review the safe, preserved and conflicting changes"}
         >
-          View diff
+          1. Review diff
         </Button>
         <Button
+          variant={diffPlan && !diffPlan.summary.conflicts ? "default" : "outline"}
           onClick={() => void applyUpdate()}
           disabled={busy || !authorized || !updateAvailable || !diffPlan || Boolean(diffPlan.summary.conflicts)}
+          title={!diffPlan ? "Review the diff before updating" : diffPlan.summary.conflicts ? `Resolve ${diffPlan.summary.conflicts} conflicts before updating` : "Apply the reviewed update locally"}
         >
           <Download size={15} />
-          {available?.engineVersion ? `Update to ${available.engineVersion}` : "Update"}
+          {available?.engineVersion ? `2. Update to ${available.engineVersion}` : "2. Update"}
         </Button>
         <a className="button button-outline" href="https://app.all2cf.com/deploy/projects" target="_blank" rel="noreferrer">
           Open All2CF project <ExternalLink size={15} />
@@ -417,6 +427,7 @@ export function UpdatePage() {
           </Button>
         ) : null}
       </section>
+      {activeAction ? <section className="maintenance-progress" role="status" aria-live="polite"><div><strong>{activeAction === "checking" ? "Checking cloud version and component metadata" : activeAction === "reviewing" ? "Building the Base / Local / Target update plan" : "Creating a recovery snapshot, applying changes and verifying the project"}</strong><span>Please keep this page open.</span></div><div className="maintenance-progress-track"><i /></div></section> : null}
 
       <section className="maintenance-version-grid">
         <article>

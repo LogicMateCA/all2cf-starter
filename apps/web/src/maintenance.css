@@ -24,6 +24,14 @@
 .maintenance-version-grid span { margin-top: 7px; color: var(--muted); font-size: .76rem; }
 .maintenance-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 18px; padding: 14px; border: 1px solid var(--border); border-radius: var(--design-radius-lg); background: var(--surface); }
 .maintenance-toolbar > button, .maintenance-toolbar > a { width: auto; min-width: max-content; padding-inline: 14px; white-space: nowrap; }
+.maintenance-toolbar > button[data-variant="default"] { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent); }
+.maintenance-progress { margin: -8px 0 18px; border: 1px solid var(--border); border-radius: var(--design-radius-lg); background: var(--surface); padding: 14px; }
+.maintenance-progress > div:first-child { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.maintenance-progress strong { font-size: .82rem; }
+.maintenance-progress span { color: var(--muted); font-size: .72rem; }
+.maintenance-progress-track { position: relative; height: 5px; margin-top: 12px; overflow: hidden; border-radius: 999px; background: var(--canvas); }
+.maintenance-progress-track i { position: absolute; inset-block: 0; width: 38%; border-radius: inherit; background: var(--accent); animation: maintenance-progress 1.1s ease-in-out infinite; }
+@keyframes maintenance-progress { from { transform: translateX(-105%); } to { transform: translateX(275%); } }
 .maintenance-components { margin-bottom: 18px; }
 .maintenance-section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
 .maintenance-section-heading h2 { margin: 0; }
@@ -78,6 +86,7 @@
   .maintenance-status > div:first-child, .maintenance-version-grid article:first-child, .maintenance-diff-summary > span:first-child, .maintenance-change-groups > section:first-child { border-top: 0; }
   .maintenance-connect { flex-direction: column; }
   .maintenance-toolbar > button, .maintenance-toolbar > a { width: 100%; min-width: 0; flex: 1 1 100%; justify-content: center; }
+  .maintenance-progress > div:first-child { align-items: flex-start; flex-direction: column; gap: 4px; }
   .maintenance-section-heading { flex-direction: column; }
   .maintenance-component-row { grid-template-columns: 1fr 1fr; }
   .maintenance-component-row.heading { display: none; }

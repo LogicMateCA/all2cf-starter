@@ -692,12 +692,27 @@ async function starterRuntimeVersions() {
 }
 
 async function runStarterUpdateAction(action: "status" | "diff" | "update", accessToken: string) {
-  const result = await execFileAsync(process.execPath, [path.join(repositoryRoot, "scripts/starter-link.mjs"), action], {
-    cwd: repositoryRoot,
-    env: accessToken ? { ...process.env, ALL2CF_UPDATE_TOKEN: accessToken } : process.env,
-    maxBuffer: 8 * 1024 * 1024,
-    timeout: 120_000,
-  });
+  let result: { stdout?: string; stderr?: string };
+  try {
+    result = await execFileAsync(process.execPath, [path.join(repositoryRoot, "scripts/starter-link.mjs"), action], {
+      cwd: repositoryRoot,
+      env: accessToken ? { ...process.env, ALL2CF_UPDATE_TOKEN: accessToken } : process.env,
+      maxBuffer: 8 * 1024 * 1024,
+      timeout: 120_000,
+    });
+  } catch (cause) {
+    const error = cause as Error & { stdout?: string; stderr?: string };
+    const findPlan = (value: unknown, depth = 0): Record<string, unknown> | null => {
+      if (depth > 5) return null;
+      if (value && typeof value === "object" && "summary" in value && "changes" in value) return value as Record<string, unknown>;
+      if (value && typeof value === "object" && "error" in value) return findPlan((value as { error?: unknown }).error, depth + 1);
+      if (typeof value !== "string") return null;
+      try { return findPlan(JSON.parse(value), depth + 1); } catch { return null; }
+    };
+    const plan = [error.stdout, error.stderr, error.message].map((value) => findPlan(value)).find(Boolean);
+    if (action !== "diff" || !plan) throw cause;
+    result = { stdout: JSON.stringify(plan), stderr: "" };
+  }
   const output = `${result.stdout || ""}${result.stderr || ""}`;
   const status = action === "status" ? JSON.parse(result.stdout || "{}") as { source?: { availableVersion?: string; channel?: string }; packs?: Array<{ id: string; installed?: string; available?: string; updateAvailable?: boolean }>; catalog?: Array<{ id: string; available?: string; materialized?: boolean }>; entitlement?: { level?: string; features?: string[] }; releaseNotes?: string[]; releaseUrl?: string | null; publishedAt?: string | null } : null;
   return { entitlement: { authorized: true, plan: status?.entitlement?.level, features: status?.entitlement?.features }, output, receipt: await starterUpdateReceipt(), ...(status?.source ? { available: { engineVersion: status.source.availableVersion, channel: status.source.channel, components: [...(status.packs || []), ...(status.catalog || [])], runtime: await starterRuntimeVersions(), releaseNotes: status.releaseNotes || [], releaseUrl: status.releaseUrl, publishedAt: status.publishedAt } } : {}) };
