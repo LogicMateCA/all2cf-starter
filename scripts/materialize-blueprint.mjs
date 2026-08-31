@@ -936,6 +936,7 @@ const materializeMobile = blueprint.project?.productType === "mobile-app" || (
   blueprint.project?.productType === "web-saas" &&
   ["mobile-web", "ios", "android"].some((platform) => requestedPlatforms.has(platform))
 );
+const functionalUpdateOnly = process.env.STARTER_UPDATE_SCOPE === "functional";
 function outputEnabled(relativePath) {
   const relative = String(relativePath).replaceAll("\\", "/");
   if (!materializeWorker && ["workers/", "db/", "apps/docs/", "apps/mobile/"].some((prefix) => relative.startsWith(prefix))) return false;
@@ -1024,6 +1025,7 @@ const selectedManifests = manifests.filter(({ manifest }) =>
   selected.has(manifest.id),
 );
 const desiredFiles = new Map();
+const frozenPageTargets = new Set();
 const desiredDependencies = new Map();
 const desiredRoutes = [];
 const desiredServerAuthPlugins = [];
@@ -1112,6 +1114,12 @@ async function addDesiredFile(packRoot, manifest, entry) {
   });
 }
 
+function recordFrozenPageTarget(entry, manifest) {
+  if (!functionalUpdateOnly) return;
+  const target = path.relative(root, safeProjectPath(entry.target, `${manifest.id} page target`));
+  frozenPageTargets.add(target);
+}
+
 for (const { packRoot, manifest } of selectedManifests) {
   for (const requiredPack of manifest.requiresPacks || [])
     if (!selected.has(requiredPack))
@@ -1120,8 +1128,10 @@ for (const { packRoot, manifest } of selectedManifests) {
     await addDesiredFile(packRoot, manifest, entry);
   for (const [pageId, entries] of Object.entries(manifest.pageFiles || {}))
     if (selectedPages.has(pageId))
-      for (const entry of entries)
-        await addDesiredFile(packRoot, manifest, entry);
+      for (const entry of entries) {
+        recordFrozenPageTarget(entry, manifest);
+        if (!functionalUpdateOnly) await addDesiredFile(packRoot, manifest, entry);
+      }
   for (const dependency of manifest.dependencies) {
     safeProjectPath(dependency.packageFile, `${manifest.id} packageFile`);
     if (!outputEnabled(dependency.packageFile)) continue;
@@ -1340,6 +1350,7 @@ for (const [target, desired] of desiredFiles) {
 }
 
 for (const [target, previous] of previousFiles) {
+  if (frozenPageTargets.has(target)) continue;
   if (desiredFiles.has(target)) continue;
   const ownedPath = safeProjectPath(target, "owned target");
   await assertNoSymlinkTraversal(ownedPath, target);
@@ -1600,9 +1611,15 @@ const generatedRegistries = [
   (materializeWorker || !registry.path.startsWith(path.join(root, "workers/")))
 );
 for (const registry of generatedRegistries) {
+  const target = path.relative(root, registry.path);
+  const frozenGenerated = functionalUpdateOnly && (
+    registry.stateKey.startsWith("generatedDesign") ||
+    registry.stateKey.startsWith("generatedStyleAdapter") ||
+    registry.stateKey === "generatedMarketingProjectHash"
+  );
+  if (frozenGenerated) continue;
   const current = await optionalRead(registry.path);
   if (current === registry.desired) continue;
-  const target = path.relative(root, registry.path);
   const previousHash = state[registry.stateKey];
   const localHash = sha256(current || "");
   const targetHash = sha256(registry.desired);
@@ -1653,6 +1670,17 @@ for (const { manifest } of selectedManifests)
 desiredState.packs[foundation.id] = { version: foundation.version, files: {} };
 for (const [target, desired] of desiredFiles)
   desiredState.packs[desired.packId].files[target] = sha256(desired.content);
+if (functionalUpdateOnly) {
+  for (const target of frozenPageTargets) {
+    const previous = previousFiles.get(target);
+    if (previous && desiredState.packs[previous.packId])
+      desiredState.packs[previous.packId].files[target] = previous.hash;
+  }
+  for (const registry of generatedRegistries) {
+    if (!(registry.stateKey.startsWith("generatedDesign") || registry.stateKey.startsWith("generatedStyleAdapter") || registry.stateKey === "generatedMarketingProjectHash")) continue;
+    if (state[registry.stateKey]) desiredState[registry.stateKey] = state[registry.stateKey];
+  }
+}
 for (const entry of preserved)
   desiredState.localOverrides[entry.target] = entry;
 if (JSON.stringify(state) !== JSON.stringify(desiredState))

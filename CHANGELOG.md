@@ -10,6 +10,58 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Nothing yet.
 
+## [2.1.9] - 2026-08-31
+
+### Added
+
+- Checkpoint-based canonical release Skill covering source, candidate, Development, public and Production stages.
+
+### Changed
+
+- Later publication failures resume from the last matching source/version/SHA checkpoint instead of rebuilding verified Engine work.
+
+### Fixed
+
+- Damaged dependency volumes and temporary fixture receipt drift now have explicit recovery paths.
+
+### Performance
+
+- Verified candidate, Development and public checkpoints can be reused when their exact identities still match.
+
+### Security
+
+- Checkpoint reuse requires exact source commit, Engine version and Artifact SHA; identity changes force rebuild.
+
+### Migration
+
+- No product migration. This release supersedes the unpublished 2.1.8 candidate and includes its functional-only update policy.
+
+## [2.1.8] - 2026-08-31
+
+### Added
+
+- Functional-only Starter maintenance updates that preserve existing product Page files and generated visual output.
+
+### Changed
+
+- Auth, Providers, MCP, Skills, Agent Map, migrations, runtime and functional modules remain updateable while Page templates stay frozen.
+
+### Fixed
+
+- Customer Page and CSS changes no longer become removal candidates during a functional foundation update.
+
+### Performance
+
+- Frozen Page artifacts are skipped without additional network requests or runtime dependencies.
+
+### Security
+
+- Functional-layer conflicts remain fail-closed; page freezing does not weaken protection for runtime, migration or configuration files.
+
+### Migration
+
+- Existing projects require no migration. The next authorized update advances the functional receipt while retaining current Page artifacts.
+
 ## [2.1.7] - 2026-08-31
 
 ### Added
@@ -284,7 +336,9 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Established Web/Mobile foundation, authentication email Providers, account menu, dual UI strategy, operational Skills and always-current `/dp`.
 
-[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.1.7...HEAD
+[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.1.9...HEAD
+[2.1.9]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.9
+[2.1.8]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.8
 [2.1.7]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.7
 [2.1.6]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.6
 [2.1.5]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.5

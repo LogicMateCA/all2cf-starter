@@ -277,6 +277,7 @@ async function executeMain() {
       STARTER_FACTORY_CHANNEL_URL: receipt.channelUrl,
       STARTER_FACTORY_ENGINE_VERSION: descriptor.engine.version,
       STARTER_FACTORY_ARTIFACT_SHA256: descriptor.engine.artifactSha256,
+      ...(command === "update" || command === "diff" ? { STARTER_UPDATE_SCOPE: "functional" } : {}),
     };
     if (command === "update") verifyProject("pre-update");
     const plan = command === "update" ? JSON.parse(runFactory(sourceRoot, ["diff"], factoryEnv)) : null;

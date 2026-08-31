@@ -99,6 +99,7 @@ export function UpdatePage() {
   const [diffPlan, setDiffPlan] = useState<DiffPlan | null>(null);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [activeAction, setActiveAction] = useState<"checking" | "reviewing" | "updating" | null>(null);
   const connected = Boolean(connection?.connected);
   const authorized = Boolean(entitlement?.authorized);
   const credentialAvailable = connected || Boolean(legacyToken.trim());
@@ -231,12 +232,30 @@ export function UpdatePage() {
   }
   async function checkUpdates() {
     setBusy(true);
+    setActiveAction("checking");
     setMessage("");
     try {
       const result = await callUpdate("check", legacyToken);
       setEntitlement(result.entitlement);
       setAvailable(result.available || null);
       if (result.receipt) setLocalReceipt(result.receipt);
+      const hasUpdate = Boolean(
+        result.available?.engineVersion &&
+          result.available.engineVersion !== (result.receipt?.engineVersion || localVersion),
+      );
+      if (hasUpdate && result.entitlement?.authorized) {
+        setActiveAction("reviewing");
+        const diffResult = await callUpdate("diff", legacyToken);
+        setDiff(diffResult.output || "No managed-file changes reported.");
+        try {
+          const parsed = JSON.parse(diffResult.output || "{}") as DiffPlan;
+          setDiffPlan(parsed.summary ? parsed : null);
+        } catch {
+          setDiffPlan(null);
+        }
+      } else {
+        setDiffPlan(null);
+      }
       setMessage(
         result.entitlement?.authorized
           ? "Cloud version and entitlement refreshed."
@@ -246,10 +265,12 @@ export function UpdatePage() {
       setMessage(error instanceof Error ? error.message : String(error));
     } finally {
       setBusy(false);
+      setActiveAction(null);
     }
   }
   async function previewDiff() {
     setBusy(true);
+    setActiveAction("reviewing");
     try {
       const result = await callUpdate("diff", legacyToken);
       setDiff(result.output || "No managed-file changes reported.");
@@ -264,10 +285,12 @@ export function UpdatePage() {
       setMessage(error instanceof Error ? error.message : String(error));
     } finally {
       setBusy(false);
+      setActiveAction(null);
     }
   }
   async function applyUpdate() {
     setBusy(true);
+    setActiveAction("updating");
     try {
       const result = await callUpdate("update", legacyToken);
       setDiff(result.output || "");
@@ -279,6 +302,7 @@ export function UpdatePage() {
       setMessage(error instanceof Error ? error.message : String(error));
     } finally {
       setBusy(false);
+      setActiveAction(null);
     }
   }
 
@@ -390,21 +414,24 @@ export function UpdatePage() {
           disabled={busy || !credentialAvailable}
         >
           <RefreshCw size={15} />
-          Check updates
+          Check & review
         </Button>
         <Button
-          variant="outline"
+          variant={!diffPlan && updateAvailable ? "default" : "outline"}
           onClick={() => void previewDiff()}
           disabled={busy || !authorized || !updateAvailable}
+          title={!updateAvailable ? "Check for an available update first" : "Review the safe, preserved and conflicting changes"}
         >
-          View diff
+          1. Review diff
         </Button>
         <Button
+          variant={diffPlan && !diffPlan.summary.conflicts ? "default" : "outline"}
           onClick={() => void applyUpdate()}
           disabled={busy || !authorized || !updateAvailable || !diffPlan || Boolean(diffPlan.summary.conflicts)}
+          title={!diffPlan ? "Review the diff before updating" : diffPlan.summary.conflicts ? `Resolve ${diffPlan.summary.conflicts} conflicts before updating` : "Apply the reviewed update locally"}
         >
           <Download size={15} />
-          {available?.engineVersion ? `Update to ${available.engineVersion}` : "Update"}
+          {available?.engineVersion ? `2. Update to ${available.engineVersion}` : "2. Update"}
         </Button>
         <a className="button button-outline" href="https://app.all2cf.com/deploy/projects" target="_blank" rel="noreferrer">
           Open All2CF project <ExternalLink size={15} />
@@ -417,6 +444,7 @@ export function UpdatePage() {
           </Button>
         ) : null}
       </section>
+      {activeAction ? <section className="maintenance-progress" role="status" aria-live="polite"><div><strong>{activeAction === "checking" ? "Checking cloud version and component metadata" : activeAction === "reviewing" ? "Building the Base / Local / Target update plan" : "Creating a recovery snapshot, applying changes and verifying the project"}</strong><span>Please keep this page open.</span></div><div className="maintenance-progress-track"><i /></div></section> : null}
 
       <section className="maintenance-version-grid">
         <article>
@@ -500,6 +528,7 @@ export function UpdatePage() {
             All2CF authorizes the Engine. The local updater owns conflict
             checks, diff and file application. Project source is not uploaded.
           </p>
+          <p className="maintenance-policy-note">Functional foundation updates only. Existing product pages, page CSS and generated visual output stay unchanged.</p>
         </div>
       {diffPlan ? <><div className="maintenance-diff-summary"><span><small>Safe changes</small><strong>{diffPlan.summary.safe}</strong></span><span><small>Customer changes kept</small><strong>{diffPlan.summary.preserved}</strong></span><span className={diffPlan.summary.conflicts ? "conflict" : "clear"}><small>Conflicts</small><strong>{diffPlan.summary.conflicts}</strong></span></div><div className="maintenance-change-groups"><section><h3>Will update</h3><p>Starter changed these managed targets; your project did not.</p>{diffPlan.changes.length ? <ul>{diffPlan.changes.map((item, index) => <li key={`${item.target}-${index}`}>{changeLabel(item)}</li>)}</ul> : <p className="maintenance-none">No managed targets need changes.</p>}</section><section><h3>Will keep</h3><p>Your project owns these changes, so Starter will not overwrite them.</p>{diffPlan.preserved.length ? <ul>{diffPlan.preserved.map((item, index) => <li key={`${item.target}-${index}`}>{changeLabel(item)}</li>)}</ul> : <p className="maintenance-none">No customer-only changes were detected.</p>}</section><section className={diffPlan.summary.conflicts ? "has-conflicts" : "no-conflicts"}><h3>Blocked conflicts</h3><p>Any item here disables automatic update until reviewed.</p>{diffPlan.failures?.length ? <ul>{diffPlan.failures.map((failure) => <li key={failure}>{failure}</li>)}</ul> : <p className="maintenance-none">No conflicts. Automatic update is allowed.</p>}</section></div></> : null}
       {diff ? <details className="maintenance-diagnostics"><summary>Advanced diagnostics</summary><pre className="update-output">{diff}</pre></details> : null}

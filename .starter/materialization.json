@@ -27,13 +27,13 @@
       "version": "1.0.0",
       "files": {
         "apps/web/src/App.tsx": "66d9490a743564b8301fec67027287434c253814e3cf744c9c0e49442e6d0f35",
-        "apps/web/src/components/update-page.tsx": "0c97146e440c68192758eb1a10219dbc95080629161182770360c95c248a31d4",
-        "apps/web/src/maintenance.css": "4c94fc2d4221b0bc354d0f61ecfc8670b2a5446d4501f46bd4359e15fb50f7e2",
-        "apps/web/vite.config.ts": "d3336775861e60ba5b4adca8d4da55caa10c2a4768efc2453d6b10ea51ace8cb",
+        "apps/web/src/components/update-page.tsx": "85ade2bee891102088e262d704d1f43eba45907e0d47d9a3cb4b000b9cb1fdd7",
+        "apps/web/src/maintenance.css": "717fc86f6814d09f931cce00f1d820447b23017bee09b9d581b07f474018b819",
+        "apps/web/vite.config.ts": "b7e86c1ee0ef4d7a88f8b5c43900f74b1d948ecb81fc1156e7c5ca2a8bda0f5e",
         "db/migrations/0010_platform_administrators.sql": "8de2d1f092bd772021cbf35f2439a618bc9eb3059c048563b8c09a9488da1f1d",
         "scripts/all2cf-project.mjs": "dabaae31585293e764846bf87fa40086be8510610940d021d6ba43c98784db61",
-        "scripts/materialize-blueprint.mjs": "498b4dd22ab277fff2bae48f4e083b5266ed261e30c0377df06a77b98c155c31",
-        "scripts/starter-link.mjs": "f6a40aa75cc8a279dfa10543e435198c3f7be7791a44e6232348b2ece3c25cfd",
+        "scripts/materialize-blueprint.mjs": "e3a6f528383f2b344e73f7975eeccca8bb39af3cf76705ba4642b9cc511efc13",
+        "scripts/starter-link.mjs": "9b5ff7eccc44df2b7c917bcaeff00569b9a4c7255cb7b71caa78991a1c2b37ee",
         "skills/starter-maintenance/SKILL.md": "cc006c17c94c02c9aec79e09b86a6ca7302fc872ed5ba6aee91b539880fe54a4"
       }
     }
