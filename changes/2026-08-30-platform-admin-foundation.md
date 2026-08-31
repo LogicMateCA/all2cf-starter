@@ -32,3 +32,6 @@ maintenance subscription.
   before release.
 - Release 2.1.4 carries the migration and Entitlements Pack 0.2.0 through the
   normal immutable Engine and public-source release path.
+- Public-source staging is ignored explicitly so generating a neutral GitHub
+  bundle cannot make the canonical Engine source appear dirty during Core
+  registration.
