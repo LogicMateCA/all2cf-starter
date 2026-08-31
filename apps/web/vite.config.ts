@@ -678,8 +678,8 @@ async function runStarterUpdateAction(action: "status" | "diff" | "update", acce
     timeout: 120_000,
   });
   const output = `${result.stdout || ""}${result.stderr || ""}`;
-  const status = action === "status" ? JSON.parse(result.stdout || "{}") as { source?: { availableVersion?: string; channel?: string }; entitlement?: { level?: string; features?: string[] }; releaseNotes?: string[]; releaseUrl?: string | null; publishedAt?: string | null } : null;
-  return { entitlement: { authorized: true, plan: status?.entitlement?.level, features: status?.entitlement?.features }, output, receipt: await starterUpdateReceipt(), ...(status?.source ? { available: { engineVersion: status.source.availableVersion, channel: status.source.channel, releaseNotes: status.releaseNotes || [], releaseUrl: status.releaseUrl, publishedAt: status.publishedAt } } : {}) };
+  const status = action === "status" ? JSON.parse(result.stdout || "{}") as { source?: { availableVersion?: string; channel?: string }; packs?: Array<{ id: string; installed?: string; available?: string; updateAvailable?: boolean }>; catalog?: Array<{ id: string; available?: string; materialized?: boolean }>; entitlement?: { level?: string; features?: string[] }; releaseNotes?: string[]; releaseUrl?: string | null; publishedAt?: string | null } : null;
+  return { entitlement: { authorized: true, plan: status?.entitlement?.level, features: status?.entitlement?.features }, output, receipt: await starterUpdateReceipt(), ...(status?.source ? { available: { engineVersion: status.source.availableVersion, channel: status.source.channel, components: [...(status.packs || []), ...(status.catalog || [])], releaseNotes: status.releaseNotes || [], releaseUrl: status.releaseUrl, publishedAt: status.publishedAt } } : {}) };
 }
 
 const all2cfConnectionPendingPath = path.join(repositoryRoot, ".starter/all2cf-connection-oauth.local.json");
