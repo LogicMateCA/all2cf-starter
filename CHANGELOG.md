@@ -8,8 +8,31 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 ### Added
 
+- Nothing yet.
+
+## [2.1.11] - 2026-08-31
+
+### Added
+
 - Route-addressable Admin control center navigation and a lightweight Analytics & Scripts publisher for external Providers.
 - A same-origin cached Loader shared by Marketing, Web and Docs without a Starter-owned analytics event store.
+
+### Changed
+
+- Executable Admin modules now use stable routes grouped by Workspace, People, Engage and Operate; unselected Pack capabilities move to the Overview catalog.
+
+### Performance
+
+- The site-integration Loader is cached for 60 seconds and loads no external script when no destination is published.
+
+### Security
+
+- Admin, Auth, Setup, Factory and Maintenance routes are excluded from analytics loading; custom integrations accept only reviewed HTTPS script URLs and never inline code.
+- Destination creation and publication write immutable revisions and privileged audit events transactionally.
+
+### Migration
+
+- Empty product databases add `app_site_integration` and `app_site_integration_revision`; no visitor events, pageviews or analytics sessions are stored by Starter.
 
 ## [2.1.10] - 2026-08-31
 
@@ -366,7 +389,8 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Established Web/Mobile foundation, authentication email Providers, account menu, dual UI strategy, operational Skills and always-current `/dp`.
 
-[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.1.10...HEAD
+[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.1.11...HEAD
+[2.1.11]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.11
 [2.1.10]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.10
 [2.1.9]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.9
 [2.1.8]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.8
