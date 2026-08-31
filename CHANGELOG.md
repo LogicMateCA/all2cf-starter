@@ -10,6 +10,32 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Nothing yet.
 
+## [2.1.12] - 2026-08-31
+
+### Added
+
+- Candidate reports now expose separate verify, build, check and total elapsed times.
+
+### Changed
+
+- Qualification lookup timing is recorded independently from concurrent portable-project verification.
+
+### Fixed
+
+- Qualification elapsed time no longer includes SQL-first, Drizzle and minimal proof execution.
+
+### Performance
+
+- Warm candidate verification reuses the exact 2.1.11 qualification design and retains concurrent portable proofs.
+
+### Security
+
+- Qualification reuse remains fail-closed on Git tree, lockfile SHA-256 or Node-version differences.
+
+### Migration
+
+- No product migration; 2.1.12 supersedes the unpublished local 2.1.11 candidate and carries its Admin control center.
+
 ## [2.1.11] - 2026-08-31
 
 ### Added
@@ -396,7 +422,8 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Established Web/Mobile foundation, authentication email Providers, account menu, dual UI strategy, operational Skills and always-current `/dp`.
 
-[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.1.11...HEAD
+[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.1.12...HEAD
+[2.1.12]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.12
 [2.1.11]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.11
 [2.1.10]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.10
 [2.1.9]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.9

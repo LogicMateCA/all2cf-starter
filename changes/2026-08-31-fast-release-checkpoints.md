@@ -21,7 +21,7 @@ This moves expensive generic verification out of the publish click while preserv
 
 - Warm candidate plus Development/Production promotion targets three to five minutes when Cloudflare and GitHub APIs respond normally.
 - Cold qualification is intentionally outside that target and may take longer because it installs and verifies every selected runtime.
-- Every receipt records elapsed time so regressions are visible instead of hidden behind one total duration.
+- Every receipt records qualification lookup and portable-project elapsed time separately so regressions are visible instead of hidden behind one total duration.
 
 # Verification
 

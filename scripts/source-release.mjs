@@ -294,6 +294,7 @@ async function verify(versionValue) {
     await qualify();
     qualificationReused = false;
   }
+  const qualificationElapsedMs = Math.round(performance.now() - qualificationStarted);
   const projects = await Promise.all([
     verifyPortableProject(source, "sql-first", version),
     verifyPortableProject(source, "drizzle", version),
@@ -306,7 +307,7 @@ async function verify(versionValue) {
     sourceCommit: source.commit,
     sourceBranch: source.branch,
     sourceVerification: qualificationReused ? "exact qualification checkpoint" : "npm run verify",
-    qualification: { reused: qualificationReused, receipt: qualification.receipt, elapsedMs: Math.round(performance.now() - qualificationStarted) },
+    qualification: { reused: qualificationReused, receipt: qualification.receipt, elapsedMs: qualificationElapsedMs },
     projects,
     stylekit: { policy: "starter-owned-curated-snapshots", upstreamAutomaticSync: false },
     startedAt,
@@ -545,11 +546,16 @@ async function register(versionValue) {
 }
 
 async function candidate(versionValue) {
+  const started = performance.now();
   await verify(versionValue);
+  const verified = performance.now();
   await build(versionValue);
+  const built = performance.now();
   const checked = await check(versionValue);
+  const checkedAt = performance.now();
   if (!checked.ok) throw new Error(`Engine candidate check failed: ${checked.failures.join("; ")}`);
-  return { ok: true, command: "candidate", version: parseVersion(versionValue), verification: verificationPath, candidate: path.join(candidateRoot, parseVersion(versionValue)), check: checked, registration: await register(versionValue) };
+  const registration = await register(versionValue);
+  return { ok: true, command: "candidate", version: parseVersion(versionValue), verification: verificationPath, candidate: path.join(candidateRoot, parseVersion(versionValue)), timings: { verifyMs: Math.round(verified - started), buildMs: Math.round(built - verified), checkMs: Math.round(checkedAt - built), totalMs: Math.round(performance.now() - started) }, check: checked, registration };
 }
 
 async function main() {
