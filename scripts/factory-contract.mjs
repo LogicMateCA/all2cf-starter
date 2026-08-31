@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { readFile, rm, stat, symlink, writeFile } from "node:fs/promises";
+import { readFile, readdir, rm, stat, symlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -10,6 +10,22 @@ const run = (script, args, cwd = root) => execFileSync(process.execPath, [path.j
 const runWithEnv = (script, args, cwd, env) => execFileSync(process.execPath, [path.join(root, script), ...args], { cwd, encoding: "utf8", env: { ...process.env, ...env } });
 const runProjectScript = (projectRoot, script, args = [], env = {}) => execFileSync(process.execPath, [path.join(projectRoot, script), ...args], { cwd: projectRoot, encoding: "utf8", env: { ...process.env, ...env } });
 const exists = async (file) => stat(file).then(() => true, () => false);
+async function referencedProjectSkills(directory) {
+  const references = new Set();
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    if ([".git", "node_modules", "dist", ".wrangler"].includes(entry.name)) continue;
+    const absolute = path.join(directory, entry.name);
+    if (entry.isDirectory()) {
+      for (const reference of await referencedProjectSkills(absolute)) references.add(reference);
+      continue;
+    }
+    if (!/\.(?:md|mdx|json|jsonc|ya?ml|toml|ts|tsx|js|mjs|cjs|txt)$/u.test(entry.name)) continue;
+    const source = await readFile(absolute, "utf8");
+    for (const match of source.matchAll(/(?<![a-z0-9_./-])(?:\.\/)?skills\/[a-z0-9][a-z0-9-]*\/SKILL\.md/gu))
+      references.add(match[0].replace(/^\.\//u, ""));
+  }
+  return references;
+}
 
 try {
   const created = JSON.parse(run("scripts/starter-factory.mjs", ["create", `--slug=${slug}`, "--name=Factory Contract", "--allow-dirty"]));
@@ -45,6 +61,8 @@ try {
   if (await exists(path.join(target, "apps/web/public/stylekit-previews"))) failures.push("Style library preview assets leaked into the generated project");
   if (await exists(path.join(target, "plugins")))
     failures.push("Global Codex plugin source leaked into the generated project");
+  for (const skillPath of await referencedProjectSkills(target))
+    if (!(await exists(path.join(target, skillPath)))) failures.push(`Generated project references missing Skill ${skillPath}`);
   const generatedPlugins = JSON.parse(await readFile(path.join(target, ".ai/plugins.json"), "utf8"));
   const generatedProjectPlugin = generatedPlugins.plugins?.find(({ id }) => id === "all2cf-project");
   if (!generatedProjectPlugin || generatedProjectPlugin.installation !== "external-recommended" || generatedProjectPlugin.optional !== true || generatedProjectPlugin.path)

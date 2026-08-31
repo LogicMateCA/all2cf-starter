@@ -18,3 +18,4 @@ Older receipts also cannot always reconstruct current Page selection metadata, s
 - `npm run factory:contract` exercises an actual functional Pack change, a customer marker in the marketing home Page, and all previously owned marketing paths.
 - The contract fails if any marketing path is deleted or overwritten.
 - Case-collision, symbolic-link, customer-only Pack change and Agent Map preservation probes remain active.
+- The generated-project proof also scans every Skill path referenced by project files and rejects dangling references after product-shape pruning.

@@ -15,6 +15,7 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 ### Added
 
 - A real prior-Stable functional update regression that verifies every owned marketing path, customer Page marker and Page CSS asset survives an applied update.
+- Generated-project Skill reference closure checks that reject every `skills/*/SKILL.md` reference whose file was omitted by product shaping.
 
 ### Changed
 
@@ -24,6 +25,7 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Functional updates now skip frozen Page targets during both planning and file application; 2.1.9 planned the freeze correctly but still unlinked those files while applying.
 - Legacy receipts now freeze prior `page.*` ownership and all existing `apps/marketing/` paths even when older Page metadata cannot be reconstructed.
+- Web-only projects no longer retain a `PROJECT.md` requirement for the intentionally omitted Expo release Skill.
 
 ### Performance
 
