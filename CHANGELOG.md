@@ -10,6 +10,33 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Nothing yet.
 
+## [2.1.10] - 2026-08-31
+
+### Added
+
+- A real prior-Stable functional update regression that verifies every owned marketing path, customer Page marker and Page CSS asset survives an applied update.
+
+### Changed
+
+- Release acceptance now upgrades an isolated prior-version project with its own lockfile and dependency volume before Stable promotion.
+
+### Fixed
+
+- Functional updates now skip frozen Page targets during both planning and file application; 2.1.9 planned the freeze correctly but still unlinked those files while applying.
+- Legacy receipts now freeze prior `page.*` ownership and all existing `apps/marketing/` paths even when older Page metadata cannot be reconstructed.
+
+### Performance
+
+- Existing verified source, candidate and public checkpoints remain reusable only when their exact immutable identity matches; the corrected Engine receives a new version and Artifact.
+
+### Security
+
+- True functional conflicts remain fail-closed while product Pages are excluded from the mutation set.
+
+### Migration
+
+- 2.1.9 was withdrawn from Stable after the live prior-version upgrade gate detected deleted marketing Pages. Upgrade to 2.1.10 instead; the 2.1.9 tag and Artifact remain immutable.
+
 ## [2.1.9] - 2026-08-31
 
 ### Added
@@ -336,7 +363,8 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Established Web/Mobile foundation, authentication email Providers, account menu, dual UI strategy, operational Skills and always-current `/dp`.
 
-[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.1.9...HEAD
+[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.1.10...HEAD
+[2.1.10]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.10
 [2.1.9]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.9
 [2.1.8]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.8
 [2.1.7]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.7

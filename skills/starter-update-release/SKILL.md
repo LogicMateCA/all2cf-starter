@@ -30,7 +30,7 @@ Generic “发布” means Development. The controller must:
 1. Start from clean `/opt/1panel/apps/starter`; explicitly choose the next Engine SemVer and preserve the rollback commit.
 2. Use `runtime-upgrade` for dependency changes. Keep Better Auth packages aligned, Expo-owned versions compatible, and StyleKit snapshots owner-selected.
 3. Commit one focused Change Spec and docs. Refresh `.starter/materialization.json` after changing a managed file, then run `source:release:candidate -- --version=<version>` in a clean isolated worktree with a dedicated dependency volume.
-4. Require SQL-first and Drizzle portable verification, two reproducible archives, strict manifest checks and exact SHA-256.
+4. Require SQL-first and Drizzle portable verification, two reproducible archives, strict manifest checks and exact SHA-256. Also upgrade an isolated copy of the previous Stable project using that project's own lockfile and dedicated dependency volume. The proof must retain every pre-existing marketing path and customer Page/CSS marker, block an intentional functional conflict, and finish with the new receipt.
 5. Record the candidate checkpoint before any remote mutation. Advance the local Development Channel with `source:publish:channel`; never replace an existing version with another hash.
 6. Register the exact candidate into the current clean isolated All2CF release worktree selected from the live Production parent. Never target the dirty `/opt/1panel/apps/a2c` worktree and never revive a historical baseline path from this document.
 7. In All2CF, update its Change Spec/adoption evidence, run TypeScript plus Starter v2/Runner/Agent Map/Change checks, and commit before remote mutation.

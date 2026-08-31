@@ -7,7 +7,8 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const slug = `factory-contract-${process.pid}`;
 const target = path.join(root, ".factory-output", slug);
 const run = (script, args, cwd = root) => execFileSync(process.execPath, [path.join(root, script), ...args], { cwd, encoding: "utf8" });
-const runProjectScript = (projectRoot, script, args = []) => execFileSync(process.execPath, [path.join(projectRoot, script), ...args], { cwd: projectRoot, encoding: "utf8" });
+const runWithEnv = (script, args, cwd, env) => execFileSync(process.execPath, [path.join(root, script), ...args], { cwd, encoding: "utf8", env: { ...process.env, ...env } });
+const runProjectScript = (projectRoot, script, args = [], env = {}) => execFileSync(process.execPath, [path.join(projectRoot, script), ...args], { cwd: projectRoot, encoding: "utf8", env: { ...process.env, ...env } });
 const exists = async (file) => stat(file).then(() => true, () => false);
 
 try {
@@ -119,9 +120,29 @@ try {
     failures.push("portable Blueprint retained canonical resource identity");
   await rm(injectedTarget, { recursive: true, force: true });
   await rm(path.join(root, ".factory-output", `${injectedSlug}.tar.gz`), { force: true });
-  run("scripts/starter-factory.mjs", ["add", "saas.account-security-2fa", `--project-root=${target}`], target);
+  const marketingFiles = Object.values(initialMaterialization.packs || {})
+    .flatMap((pack) => Object.keys(pack.files || {}))
+    .filter((file) => file.startsWith("apps/marketing/"));
+  if (!marketingFiles.length) failures.push("functional update regression fixture has no owned marketing files");
+  const marketingSnapshots = new Map();
+  for (const file of marketingFiles) marketingSnapshots.set(file, await readFile(path.join(target, file), "utf8"));
+  const marketingIndex = "apps/marketing/src/pages/index.astro";
+  const marketingIndexSource = marketingSnapshots.get(marketingIndex);
+  if (!marketingIndexSource) failures.push("functional update regression fixture is missing the marketing index");
+  else {
+    const customerMarketingIndex = `${marketingIndexSource}\n<!-- customer page marker -->\n`;
+    await writeFile(path.join(target, marketingIndex), customerMarketingIndex);
+    runWithEnv("scripts/starter-factory.mjs", ["add", "saas.account-security-2fa", `--project-root=${target}`], target, { STARTER_UPDATE_SCOPE: "functional" });
+    for (const [file, content] of marketingSnapshots) {
+      const expected = file === marketingIndex ? customerMarketingIndex : content;
+      if (!(await exists(path.join(target, file)))) failures.push(`functional update deleted legacy product page ${file}`);
+      else if (await readFile(path.join(target, file), "utf8") !== expected) failures.push(`functional update overwrote legacy product page ${file}`);
+    }
+    await writeFile(path.join(target, marketingIndex), marketingIndexSource);
+    runWithEnv("scripts/starter-factory.mjs", ["update", `--project-root=${target}`], target, { STARTER_UPDATE_SCOPE: "functional" });
+  }
   const addedStatus = JSON.parse(run("scripts/starter-factory.mjs", ["status", `--project-root=${target}`], target));
-  const addedDiff = JSON.parse(run("scripts/starter-factory.mjs", ["diff", `--project-root=${target}`], target));
+  const addedDiff = JSON.parse(runWithEnv("scripts/starter-factory.mjs", ["diff", `--project-root=${target}`], target, { STARTER_UPDATE_SCOPE: "functional" }));
   if (!addedStatus.packs.some(({ id }) => id === "saas.account-security-2fa")) failures.push("add did not install the requested Pack");
   if (addedDiff.changes.length) failures.push(`added project has materialization drift: ${JSON.stringify(addedDiff.changes)}`);
   const ownedPath = path.join(target, "workers/app/features/object-storage-worker.ts");
