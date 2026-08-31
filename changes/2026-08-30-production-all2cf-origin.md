@@ -22,4 +22,5 @@ connected to Production.
 - Status succeeds only when the project authorization receipt takes precedence.
 - The local `/maintenance` authorization request records
   `https://app.all2cf.com` when no explicit Development override is supplied.
-
+- Release 2.1.3 refreshes the `foundation.core` materialization receipt so the
+  corrected routing is delivered through the normal safe update path.

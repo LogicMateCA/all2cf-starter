@@ -10,6 +10,32 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Nothing yet.
 
+## [2.1.3] - 2026-08-30
+
+### Added
+
+- Nothing new.
+
+### Changed
+
+- Connected update routing now treats the project authorization receipt as the active service authority.
+
+### Fixed
+
+- An OAuth-connected project now uses the authorized project receipt's All2CF update-service URL before the source receipt fallback. Projects generated or tested against Development therefore connect and update through Production after Production authorization.
+
+### Performance
+
+- No runtime modules, Packs or client chunks were added.
+
+### Security
+
+- The project continues to accept only HTTPS update-service URLs from the validated, ignored authorization receipt.
+
+### Migration
+
+- Existing projects do not need file migration. Reconnect from local `/maintenance`; the new project authorization receipt selects the correct service origin.
+
 ## [2.1.2] - 2026-08-30
 
 ### Added
@@ -150,7 +176,8 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Established Web/Mobile foundation, authentication email Providers, account menu, dual UI strategy, operational Skills and always-current `/dp`.
 
-[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.1.2...HEAD
+[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.1.3...HEAD
+[2.1.3]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.3
 [2.1.2]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.2
 [2.1.1]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.1
 [2.0.0-dev.39]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.0.0-dev.39
