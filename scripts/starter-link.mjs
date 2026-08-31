@@ -119,8 +119,8 @@ async function remoteChannel() {
 }
 
 async function serviceChannel() {
-  const serviceUrl = allowedChannelUrl(receipt.updateServiceUrl);
   const localAuth = await readFile(localAuthPath, "utf8").then(JSON.parse, () => null);
+  const serviceUrl = allowedChannelUrl(localAuth?.updateServiceUrl || receipt.updateServiceUrl);
   const accessToken = process.env.ALL2CF_UPDATE_TOKEN || localAuth?.accessToken || "";
   if (!accessToken) throw new Error("Connect this project to All2CF from /update before checking paid updates");
   if (localAuth?.expiresAt && Date.parse(localAuth.expiresAt) <= Date.now())
