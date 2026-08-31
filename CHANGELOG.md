@@ -10,6 +10,32 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Nothing yet.
 
+## [2.1.5] - 2026-08-30
+
+### Added
+
+- A product-shape regression check that explicitly rejects the platform Admin migration in Website/content output.
+
+### Changed
+
+- Foundation-managed files now obey the same output-shape filter as Pack-managed files.
+
+### Fixed
+
+- Website/content projects no longer retain `db/` after adding the platform Admin foundation.
+
+### Performance
+
+- Website output remains static-first without Worker or database runtime files.
+
+### Security
+
+- The first-Administrator migration remains mandatory for database-bearing Web SaaS and Mobile API products only.
+
+### Migration
+
+- 2.1.4 was not promoted to Stable. Use 2.1.5 for the platform Admin foundation.
+
 ## [2.1.4] - 2026-08-30
 
 ### Added
@@ -205,7 +231,8 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Established Web/Mobile foundation, authentication email Providers, account menu, dual UI strategy, operational Skills and always-current `/dp`.
 
-[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.1.4...HEAD
+[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.1.5...HEAD
+[2.1.5]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.5
 [2.1.4]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.4
 [2.1.3]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.3
 [2.1.2]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.2

@@ -8,7 +8,7 @@ const baseBlueprint = JSON.parse(await readFile(path.join(root, "starter.bluepri
 const baseConfig = JSON.parse(await readFile(path.join(root, "starter.config.json"), "utf8"));
 const cases = [
   { id: "web-saas", project: { productType: "web-saas", websiteType: "product", companionSite: "full", webAdmin: true, platforms: ["desktop-web"] }, present: ["apps/marketing", "apps/docs", "apps/web", "workers/app", "db", "cloudflare"], absent: [] },
-  { id: "website-blog", project: { productType: "website", websiteType: "blog", companionSite: "none", webAdmin: false, platforms: ["desktop-web"] }, present: ["apps/marketing", "apps/web", "cloudflare/bindings.contract.json", ".starter/product-shape.json"], absent: ["apps/docs", "apps/mobile", "workers", "db", "cloudflare/wrangler.development.jsonc", "cloudflare/wrangler.production.jsonc"] },
+  { id: "website-blog", project: { productType: "website", websiteType: "blog", companionSite: "none", webAdmin: false, platforms: ["desktop-web"] }, present: ["apps/marketing", "apps/web", "cloudflare/bindings.contract.json", ".starter/product-shape.json"], absent: ["apps/docs", "apps/mobile", "workers", "db", "db/migrations/0010_platform_administrators.sql", "cloudflare/wrangler.development.jsonc", "cloudflare/wrangler.production.jsonc"] },
   { id: "mobile-only", project: { productType: "mobile-app", websiteType: "landing", companionSite: "none", webAdmin: false, platforms: ["ios", "android"] }, present: ["apps/mobile", "apps/web", "workers/app", "db", "cloudflare", ".starter/product-shape.json"], absent: ["apps/marketing", "apps/docs"] },
 ];
 const failures = [];
