@@ -26,6 +26,11 @@ function isGenerated(relative) {
 function allowedLiteral(relative, line) {
   if (relative.endsWith("apps/web/src/components/ui/chart.tsx")) return true;
   if (
+    relative.endsWith("apps/web/src/components/features/organization-page.tsx") &&
+    line.includes("brandColor")
+  )
+    return true;
+  if (
     line.includes("--success:") ||
     line.includes("--warning:") ||
     line.includes("#4285f4")
