@@ -30,6 +30,10 @@
     {
       "source": "templates/0007_api_keys.sql",
       "target": "db/migrations/1003_api_keys.sql"
+    },
+    {
+      "source": "templates/0008_api_key_reference_ownership.sql",
+      "target": "db/migrations/1004_api_key_reference_ownership.sql"
     }
   ],
   "dependencies": [

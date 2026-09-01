@@ -5,7 +5,7 @@ create table "app_api_key" (
   "start" text,
   "prefix" text,
   "key" text not null,
-  "reference_id" text not null references "app_user" ("id") on delete cascade,
+  "reference_id" text not null,
   "refill_interval" bigint,
   "refill_amount" bigint,
   "last_refill_at" timestamptz,
