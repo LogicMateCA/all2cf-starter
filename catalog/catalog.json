@@ -2468,6 +2468,45 @@
       "documentation": [
         "features/auth/MODULE.md"
       ]
+    },
+    {
+      "id": "saas.auth-agent",
+      "kind": "saas",
+      "name": "Experimental Agent Auth",
+      "version": "0.1.0",
+      "status": "experimental",
+      "delivery": "materializer",
+      "targets": [
+        "worker",
+        "web",
+        "database"
+      ],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth Agent Auth",
+          "url": "https://better-auth.com/docs/plugins/agent-auth",
+          "relationship": "experimental-upstream"
+        }
+      ],
+      "updatePolicy": "reviewed-experimental",
+      "provides": [
+        "agent discovery, registration and scoped capability grants"
+      ],
+      "requires": [
+        "identity core"
+      ],
+      "conflicts": [],
+      "performance": [
+        "no agent routes or schema when deselected"
+      ],
+      "verification": [
+        "short JWT lifetime, JTI replay, explicit approval and grant expiry",
+        "deselection"
+      ],
+      "documentation": [
+        "features/auth/MODULE.md"
+      ]
     }
   ]
 }
