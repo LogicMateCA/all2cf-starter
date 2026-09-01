@@ -29,6 +29,8 @@ function httpsUrl(value: unknown, label: string) {
 export function parseSsoProviders(raw?: string): SsoProvider[] {
   if (!raw?.trim())
     throw new Error("SSO_PROVIDERS_JSON is required when SSO is selected.");
+  if (raw.length > 524_288)
+    throw new Error("SSO configuration exceeds 512 KiB.");
   const parsed: unknown = JSON.parse(raw);
   if (!Array.isArray(parsed) || parsed.length < 1 || parsed.length > 20)
     throw new Error("SSO requires 1-20 providers.");
@@ -59,14 +61,17 @@ export function parseSsoProviders(raw?: string): SsoProvider[] {
       throw new Error(
         `${providerId} must configure exactly one of oidcConfig or samlConfig.`,
       );
-    if (oidc)
+    if (oidc) {
+      const clientId = String(oidc.clientId || "").trim();
+      if (!clientId || clientId.length > 500)
+        throw new Error(`${providerId}.clientId is required.`);
       return {
         domain,
         providerId,
         oidcConfig: {
           issuer: httpsUrl(oidc.issuer, `${providerId}.issuer`),
           pkce: true,
-          clientId: String(oidc.clientId || ""),
+          clientId,
           clientSecret:
             typeof oidc.clientSecret === "string"
               ? oidc.clientSecret
@@ -84,6 +89,7 @@ export function parseSsoProviders(raw?: string): SsoProvider[] {
               : "client_secret_basic",
         },
       };
+    }
     const cert = saml!.cert;
     if (
       !(
@@ -98,14 +104,24 @@ export function parseSsoProviders(raw?: string): SsoProvider[] {
       throw new Error(
         `${providerId}.cert must contain PEM certificate material.`,
       );
+    const certificates = Array.isArray(cert) ? cert : [cert];
+    if (
+      certificates.length > 5 ||
+      certificates.some((value) => value.length > 131_072)
+    )
+      throw new Error(`${providerId}.cert exceeds the certificate size limit.`);
+    const issuer = String(saml!.issuer || "").trim();
+    const entityID = String(saml!.entityID || "").trim();
+    if (!issuer || issuer.length > 500 || !entityID || entityID.length > 500)
+      throw new Error(`${providerId} requires SAML issuer and IdP entity ID.`);
     return {
       domain,
       providerId,
       samlConfig: {
-        issuer: String(saml!.issuer || ""),
+        issuer,
         entryPoint: httpsUrl(saml!.entryPoint, `${providerId}.entryPoint`),
         cert,
-        idpMetadata: { entityID: String(saml!.entityID || ""), cert },
+        idpMetadata: { entityID, cert },
         wantAssertionsSigned: true,
         authnRequestsSigned: false,
       },

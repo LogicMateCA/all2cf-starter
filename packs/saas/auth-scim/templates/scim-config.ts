@@ -24,6 +24,8 @@ const scopes = new Set([
 export function parseScimConnections(raw?: string): ScimConnection[] {
   if (!raw?.trim())
     throw new Error("SCIM_CONNECTIONS_JSON is required when SCIM is selected.");
+  if (raw.length > 262_144)
+    throw new Error("SCIM configuration exceeds 256 KiB.");
   const parsed: unknown = JSON.parse(raw);
   if (!Array.isArray(parsed) || parsed.length < 1 || parsed.length > 20)
     throw new Error("SCIM requires 1-20 connections.");
@@ -61,7 +63,8 @@ export function parseScimConnections(raw?: string): ScimConnection[] {
       if (
         !idPattern.test(credentialId) ||
         credentialIds.has(credentialId) ||
-        token.length < 32
+        token.length < 32 ||
+        token.length > 4096
       )
         throw new Error(`${id} has an invalid credential.`);
       credentialIds.add(credentialId);

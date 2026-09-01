@@ -30,6 +30,8 @@ export function parseGenericOAuthProviders(
     throw new Error(
       "GENERIC_OAUTH_PROVIDERS_JSON is required when Generic OAuth is selected.",
     );
+  if (raw.length > 262_144)
+    throw new Error("Generic OAuth configuration exceeds 256 KiB.");
   const parsed: unknown = JSON.parse(raw);
   if (!Array.isArray(parsed) || parsed.length < 1 || parsed.length > 20)
     throw new Error("Generic OAuth requires 1-20 providers.");
@@ -76,7 +78,11 @@ export function parseGenericOAuthProviders(
         : source.scopes;
     if (
       !Array.isArray(scopes) ||
-      scopes.some((scope) => typeof scope !== "string" || !scope.trim())
+      scopes.length > 50 ||
+      scopes.some(
+        (scope) =>
+          typeof scope !== "string" || !scope.trim() || scope.length > 128,
+      )
     )
       throw new Error(`${providerId}.scopes must be non-empty strings.`);
     return {
