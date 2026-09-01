@@ -1,0 +1,20 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "saas.auth-anonymous",
+  "version": "0.1.0",
+  "source": { "name": "Better Auth Anonymous", "url": "https://better-auth.com/docs/plugins/anonymous", "revision": "1.7.2", "license": "MIT", "relationship": "tracked-upstream" },
+  "files": [
+    { "source": "templates/anonymous-auth-plugin.ts", "target": "workers/app/features/anonymous-auth-plugin.ts" },
+    { "source": "templates/anonymous-auth-client-plugin.ts", "target": "apps/web/src/features/anonymous-auth-client-plugin.ts" },
+    { "source": "templates/anonymous-page.tsx", "target": "apps/web/src/components/features/anonymous-page.tsx" },
+    { "source": "templates/anonymous-page.css", "target": "apps/web/src/components/features/anonymous-page.css" },
+    { "source": "templates/0001_anonymous.sql", "target": "db/migrations/1014_anonymous.sql" }
+  ],
+  "dependencies": [],
+  "routes": [{ "path": "/guest", "module": "../components/features/anonymous-page", "export": "AnonymousSignInPage", "workerFirst": false }],
+  "authPlugins": {
+    "server": { "module": "../features/anonymous-auth-plugin", "export": "createAnonymousAuthPlugin" },
+    "client": { "module": "../features/anonymous-auth-client-plugin", "export": "createAnonymousAuthClientPlugin" }
+  }
+}

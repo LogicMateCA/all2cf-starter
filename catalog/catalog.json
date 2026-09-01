@@ -2189,6 +2189,46 @@
       "documentation": [
         "features/auth/MODULE.md"
       ]
+    },
+    {
+      "id": "saas.auth-anonymous",
+      "kind": "saas",
+      "name": "Anonymous guest sessions",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": [
+        "worker",
+        "web",
+        "database"
+      ],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth Anonymous",
+          "url": "https://better-auth.com/docs/plugins/anonymous",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": [
+        "guest sessions",
+        "account linking"
+      ],
+      "requires": [
+        "identity core"
+      ],
+      "conflicts": [],
+      "performance": [
+        "no runtime when deselected"
+      ],
+      "verification": [
+        "guest sign-in, linking and deletion",
+        "deselection"
+      ],
+      "documentation": [
+        "features/auth/MODULE.md"
+      ]
     }
   ]
 }

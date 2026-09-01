@@ -390,6 +390,16 @@
           "developmentVerified": false,
           "productionReleased": false
         }
+      },
+      {
+        "id": "saas.auth-anonymous",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
       }
     ],
     "capabilities": [
