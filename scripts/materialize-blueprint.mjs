@@ -1083,6 +1083,40 @@ function renderServerAuthPlugins(entries, features) {
     "",
     `export const selectedAuthFeatures = ${JSON.stringify(features)} as const;`,
     "",
+  );
+  if (features.agentAuth)
+    lines.push(
+      "export function createSelectedAuthSecondaryStorage(input: SelectedAuthPluginInput) {",
+      "  const database = input.database;",
+      "  return {",
+      "    async get(key: string) {",
+      '      const result = await database.query<{ value: string }>("select value from app_auth_secondary_store where key = $1 and (expires_at is null or expires_at > current_timestamp)", [key]);',
+      '      if (!result.rows[0]) await database.query("delete from app_auth_secondary_store where key = $1 and expires_at <= current_timestamp", [key]);',
+      "      return result.rows[0]?.value ?? null;",
+      "    },",
+      "    async getAndDelete(key: string) {",
+      '      const result = await database.query<{ value: string; expires_at: Date | null }>("delete from app_auth_secondary_store where key = $1 returning value, expires_at", [key]);',
+      "      const row = result.rows[0];",
+      "      return row && (!row.expires_at || row.expires_at > new Date()) ? row.value : null;",
+      "    },",
+      "    async increment(key: string, ttl: number) {",
+      "      const result = await database.query<{ value: string }>(`insert into app_auth_secondary_store (key, value, expires_at, updated_at) values ($1, '1', current_timestamp + make_interval(secs => $2::int), current_timestamp) on conflict (key) do update set value = case when app_auth_secondary_store.expires_at <= current_timestamp then '1' else (app_auth_secondary_store.value::bigint + 1)::text end, expires_at = case when app_auth_secondary_store.expires_at <= current_timestamp then excluded.expires_at else app_auth_secondary_store.expires_at end, updated_at = current_timestamp returning value`, [key, ttl]);",
+      "      return Number(result.rows[0]?.value || 1);",
+      "    },",
+      "    async set(key: string, value: string, ttl?: number) {",
+      '      await database.query("insert into app_auth_secondary_store (key, value, expires_at, updated_at) values ($1, $2, case when $3::int is null then null else current_timestamp + make_interval(secs => $3::int) end, current_timestamp) on conflict (key) do update set value = excluded.value, expires_at = excluded.expires_at, updated_at = current_timestamp", [key, value, ttl ?? null]);',
+      "    },",
+      '    async delete(key: string) { await database.query("delete from app_auth_secondary_store where key = $1", [key]); },',
+      "  };",
+      "}",
+      "",
+    );
+  else
+    lines.push(
+      "export function createSelectedAuthSecondaryStorage(_input: SelectedAuthPluginInput) { return undefined; }",
+      "",
+    );
+  lines.push(
     "export function createSelectedAuthPlugins(input: SelectedAuthPluginInput) {",
     "  return [",
   );

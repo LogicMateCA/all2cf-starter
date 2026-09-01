@@ -33,6 +33,8 @@ export type SelectedAuthPluginInput = {
 
 export const selectedAuthFeatures = {"organizations":true,"stripeBilling":true,"apiKeys":false,"twoFactor":false,"turnstile":false,"agentAuth":false} as const;
 
+export function createSelectedAuthSecondaryStorage(_input: SelectedAuthPluginInput) { return undefined; }
+
 export function createSelectedAuthPlugins(input: SelectedAuthPluginInput) {
   return [
     createAuthPlugin0(input, selectedAuthFeatures),
