@@ -42,7 +42,9 @@ assert.match(setup, /"saas\.auth-device-authorization": \["saas\.auth-jwt", "saa
 assert.match(setup, /"saas\.auth-mcp": \["saas\.auth-jwt"\]/u);
 assert.match(setup, /"saas\.auth-phone": \["capability\.twilio-sms"\]/u);
 assert.match(setup, /"saas\.auth-oauth-provider": \["saas\.auth-mcp"\]/u);
-assert.match(await read("packs/saas/api-keys/templates/api-key-auth-plugin.ts"), /configId: "org-keys", references: "organization"/u);
+const apiKeyPlugin = await read("packs/saas/api-keys/templates/api-key-auth-plugin.ts");
+assert.match(apiKeyPlugin, /configId: "org-keys", references: "organization"/u);
+assert.match(apiKeyPlugin, /apiKey\(\[[\s\S]*\], \{ schema \}\)/u, "Multiple API-key configurations must pass schema as the plugin-wide second argument");
 assert.match(await read("packs/saas/team-organizations/templates/organization-auth-plugin.ts"), /apiKey: \["create", "read", "update", "delete"\]/u);
 assert.match(await read("packs/saas/auth-magic-link/templates/magic-link-auth-plugin.ts"), /escapeHtml\(url\)/u);
 assert.equal(catalogById.get("saas.auth-agent")?.status, "experimental");
