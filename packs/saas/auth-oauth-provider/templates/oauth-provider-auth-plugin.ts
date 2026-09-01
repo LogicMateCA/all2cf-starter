@@ -1,0 +1,3 @@
+import { oauthProvider } from "@better-auth/oauth-provider";
+import type { SelectedAuthPluginInput } from "../generated/auth-plugins";
+export function createOAuthProviderAuthPlugin(_input:SelectedAuthPluginInput,_features:Record<string,boolean>){return oauthProvider({loginPage:"/auth",consentPage:"/oauth/consent",scopes:["openid","profile","email","offline_access"],grantTypes:["authorization_code","refresh_token","client_credentials"],allowDynamicClientRegistration:false,allowUnauthenticatedClientRegistration:false,enforcePerClientResources:true,clientPrivileges:({user})=>String(user?.role||"").split(",").map((role)=>role.trim()).includes("admin")});}

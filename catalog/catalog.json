@@ -2345,6 +2345,48 @@
       "documentation": [
         "features/auth/MODULE.md"
       ]
+    },
+    {
+      "id": "saas.auth-oauth-provider",
+      "kind": "saas",
+      "name": "OAuth 2.1 and OIDC Provider",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": [
+        "worker",
+        "web",
+        "database"
+      ],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth OAuth Provider",
+          "url": "https://better-auth.com/docs/plugins/oauth-provider",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": [
+        "authorization code, refresh and client credentials grants",
+        "OIDC consent"
+      ],
+      "requires": [
+        "saas.auth-jwt"
+      ],
+      "conflicts": [
+        "saas.auth-mcp-agent"
+      ],
+      "performance": [
+        "no provider routes or schema when deselected"
+      ],
+      "verification": [
+        "PKCE, exact redirects, consent and client privilege gates",
+        "deselection"
+      ],
+      "documentation": [
+        "features/auth/MODULE.md"
+      ]
     }
   ]
 }

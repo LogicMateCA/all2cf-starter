@@ -496,6 +496,15 @@ const advancedIdentityPackIds = new Set([
   "saas.auth-anonymous",
   "saas.auth-google-one-tap",
 ]);
+const identityPackDependencies: Record<string, string[]> = {
+  "saas.auth-oauth-provider": ["saas.auth-jwt"],
+  "saas.auth-device-authorization": ["saas.auth-jwt", "saas.auth-oauth-provider"],
+  "saas.auth-mcp-agent": ["saas.auth-jwt"],
+  "saas.auth-phone": ["capability.twilio-sms"],
+};
+const identityPackConflicts: Record<string, string[]> = {
+  "saas.auth-oauth-provider": ["saas.auth-mcp-agent"], "saas.auth-mcp-agent": ["saas.auth-oauth-provider"],
+};
 const emptyLifecycle = (): Lifecycle => ({
   selected: false,
   materialized: false,
@@ -1095,10 +1104,18 @@ export function SetupPage() {
     updateBlueprint((blueprint) => {
       if (pack.delivery === "planned") return blueprint;
       const group = groupForKind[pack.kind];
+      const selectedIds = new Set(Object.values(blueprint.selections).flat().filter(({ lifecycle }) => lifecycle.selected).map(({ id }) => id));
+      if (!selected && Object.entries(identityPackDependencies).some(([dependent, dependencies]) => selectedIds.has(dependent) && dependencies.includes(pack.id))) return blueprint;
+      const dependencies = new Set(selected ? identityPackDependencies[pack.id] || [] : []);
+      const conflicts = new Set(selected ? identityPackConflicts[pack.id] || [] : []);
       const selections = blueprint.selections[group].map((selection) => {
         const nextSelected =
           pack.kind === "design"
             ? selection.id === pack.id
+            : dependencies.has(selection.id)
+              ? true
+            : conflicts.has(selection.id)
+              ? false
             : selection.id === pack.id
               ? selected
               : selection.lifecycle.selected;

@@ -1,0 +1,67 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "saas.auth-oauth-provider",
+  "version": "0.1.0",
+  "source": {
+    "name": "Better Auth OAuth 2.1 Provider",
+    "url": "https://better-auth.com/docs/plugins/oauth-provider",
+    "revision": "1.7.2",
+    "license": "MIT",
+    "relationship": "tracked-upstream"
+  },
+  "files": [
+    {
+      "source": "templates/oauth-provider-auth-plugin.ts",
+      "target": "workers/app/features/oauth-provider-auth-plugin.ts"
+    },
+    {
+      "source": "templates/oauth-provider-auth-client-plugin.ts",
+      "target": "apps/web/src/features/oauth-provider-auth-client-plugin.ts"
+    },
+    {
+      "source": "templates/oauth-consent-page.tsx",
+      "target": "apps/web/src/components/features/oauth-consent-page.tsx"
+    },
+    {
+      "source": "templates/oauth-consent-page.css",
+      "target": "apps/web/src/components/features/oauth-consent-page.css"
+    },
+    {
+      "source": "templates/0001_oauth_provider.sql",
+      "target": "db/migrations/1017_oauth_provider.sql"
+    }
+  ],
+  "dependencies": [
+    {
+      "packageFile": "workers/app/package.json",
+      "section": "dependencies",
+      "name": "@better-auth/oauth-provider",
+      "version": "1.7.2"
+    },
+    {
+      "packageFile": "apps/web/package.json",
+      "section": "dependencies",
+      "name": "@better-auth/oauth-provider",
+      "version": "1.7.2"
+    }
+  ],
+  "routes": [
+    {
+      "path": "/oauth/consent",
+      "module": "../components/features/oauth-consent-page",
+      "export": "OAuthConsentPage",
+      "workerFirst": false
+    }
+  ],
+  "authPlugins": {
+    "server": {
+      "module": "../features/oauth-provider-auth-plugin",
+      "export": "createOAuthProviderAuthPlugin"
+    },
+    "client": {
+      "module": "../features/oauth-provider-auth-client-plugin",
+      "export": "createOAuthProviderAuthClientPlugin"
+    }
+  }
+}
