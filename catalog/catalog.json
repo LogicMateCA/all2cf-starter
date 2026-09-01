@@ -2229,6 +2229,44 @@
       "documentation": [
         "features/auth/MODULE.md"
       ]
+    },
+    {
+      "id": "saas.auth-generic-oauth",
+      "kind": "saas",
+      "name": "Generic OAuth and OIDC",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": [
+        "worker",
+        "web"
+      ],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth Generic OAuth",
+          "url": "https://better-auth.com/docs/plugins/generic-oauth",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": [
+        "operator-configured OAuth/OIDC providers"
+      ],
+      "requires": [
+        "identity core"
+      ],
+      "conflicts": [],
+      "performance": [
+        "no provider discovery when deselected"
+      ],
+      "verification": [
+        "strict JSON validation, HTTPS discovery, PKCE and callback",
+        "deselection"
+      ],
+      "documentation": [
+        "features/auth/MODULE.md"
+      ]
     }
   ]
 }

@@ -19,6 +19,16 @@ export type SelectedAuthPluginInput = {
   polarProductPro?: string;
   autumnSecretKey?: string;
   turnstileSecretKey?: string;
+  genericOAuthProvidersJson?: string;
+  ssoProvidersJson?: string;
+  scimConnectionsJson?: string;
+  scimCredentialHashSecret?: string;
+  googleOneTapClientId?: string;
+  twilioApiBaseUrl?: string;
+  twilioAccountSid?: string;
+  twilioApiKey?: string;
+  twilioApiSecret?: string;
+  twilioFrom?: string;
 };
 
 export const selectedAuthFeatures = {"organizations":true,"stripeBilling":true,"apiKeys":false,"twoFactor":false,"turnstile":false} as const;

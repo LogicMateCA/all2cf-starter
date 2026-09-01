@@ -40,6 +40,10 @@ export type AuthRuntimeEnv = {
   POLAR_WEBHOOK_SECRET?: string;
   POLAR_PRODUCT_PRO?: string;
   AUTUMN_SECRET_KEY?: string;
+  GENERIC_OAUTH_PROVIDERS_JSON?: string;
+  SSO_PROVIDERS_JSON?: string;
+  SCIM_CONNECTIONS_JSON?: string;
+  SCIM_CREDENTIAL_HASH_SECRET?: string;
   CFSEND_API_URL?: string;
   CFSEND_API_KEY?: string;
   CFSEND_FROM?: string;
@@ -165,6 +169,16 @@ export async function withRequestAuth<T>(env: AuthRuntimeEnv, ctx: RequestExecut
     polarProductPro: env.POLAR_PRODUCT_PRO,
     autumnSecretKey: env.AUTUMN_SECRET_KEY,
     turnstileSecretKey: env.TURNSTILE_SECRET_KEY,
+    genericOAuthProvidersJson: env.GENERIC_OAUTH_PROVIDERS_JSON,
+    ssoProvidersJson: env.SSO_PROVIDERS_JSON,
+    scimConnectionsJson: env.SCIM_CONNECTIONS_JSON,
+    scimCredentialHashSecret: env.SCIM_CREDENTIAL_HASH_SECRET,
+    googleOneTapClientId: env.GOOGLE_CLIENT_ID,
+    twilioApiBaseUrl: env.TWILIO_API_BASE_URL,
+    twilioAccountSid: env.TWILIO_ACCOUNT_SID,
+    twilioApiKey: env.TWILIO_API_KEY,
+    twilioApiSecret: env.TWILIO_API_SECRET,
+    twilioFrom: env.TWILIO_FROM,
   });
 
   try {

@@ -1,0 +1,19 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "saas.auth-generic-oauth",
+  "version": "0.1.0",
+  "source": { "name": "Better Auth Generic OAuth", "url": "https://better-auth.com/docs/plugins/generic-oauth", "revision": "1.7.2", "license": "MIT", "relationship": "tracked-upstream" },
+  "files": [
+    { "source": "templates/generic-oauth-config.ts", "target": "workers/app/features/generic-oauth-config.ts" },
+    { "source": "templates/generic-oauth-auth-plugin.ts", "target": "workers/app/features/generic-oauth-auth-plugin.ts" },
+    { "source": "templates/generic-oauth-worker.ts", "target": "workers/app/features/generic-oauth-worker.ts" },
+    { "source": "templates/generic-oauth-page.tsx", "target": "apps/web/src/components/features/generic-oauth-page.tsx" },
+    { "source": "templates/generic-oauth-page.css", "target": "apps/web/src/components/features/generic-oauth-page.css" }
+  ],
+  "dependencies": [],
+  "routes": [{ "path": "/oauth-providers", "module": "../components/features/generic-oauth-page", "export": "GenericOAuthPage", "workerFirst": false }],
+  "authPlugins": { "server": { "module": "../features/generic-oauth-auth-plugin", "export": "createGenericOAuthAuthPlugin" } },
+  "workerFeature": { "module": "../features/generic-oauth-worker", "export": "genericOAuthFeature" },
+  "cloudflare": { "requiredSecrets": ["GENERIC_OAUTH_PROVIDERS_JSON"] }
+}

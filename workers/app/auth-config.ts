@@ -50,6 +50,16 @@ type StarterAuthInput = {
   polarProductPro?: string;
   autumnSecretKey?: string;
   turnstileSecretKey?: string;
+  genericOAuthProvidersJson?: string;
+  ssoProvidersJson?: string;
+  scimConnectionsJson?: string;
+  scimCredentialHashSecret?: string;
+  googleOneTapClientId?: string;
+  twilioApiBaseUrl?: string;
+  twilioAccountSid?: string;
+  twilioApiKey?: string;
+  twilioApiSecret?: string;
+  twilioFrom?: string;
 };
 
 function escapeHtml(value: string) {
@@ -252,6 +262,16 @@ export function createStarterAuth(input: StarterAuthInput) {
         polarProductPro: input.polarProductPro,
         autumnSecretKey: input.autumnSecretKey,
         turnstileSecretKey: input.turnstileSecretKey,
+        genericOAuthProvidersJson: input.genericOAuthProvidersJson,
+        ssoProvidersJson: input.ssoProvidersJson,
+        scimConnectionsJson: input.scimConnectionsJson,
+        scimCredentialHashSecret: input.scimCredentialHashSecret,
+        googleOneTapClientId: input.googleOneTapClientId,
+        twilioApiBaseUrl: input.twilioApiBaseUrl,
+        twilioAccountSid: input.twilioAccountSid,
+        twilioApiKey: input.twilioApiKey,
+        twilioApiSecret: input.twilioApiSecret,
+        twilioFrom: input.twilioFrom,
       }),
     ],
     trustHost: false,

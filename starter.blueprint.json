@@ -400,6 +400,16 @@
           "developmentVerified": false,
           "productionReleased": false
         }
+      },
+      {
+        "id": "saas.auth-generic-oauth",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
       }
     ],
     "capabilities": [
