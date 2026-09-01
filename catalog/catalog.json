@@ -2267,6 +2267,45 @@
       "documentation": [
         "features/auth/MODULE.md"
       ]
+    },
+    {
+      "id": "saas.auth-sso",
+      "kind": "saas",
+      "name": "Enterprise SSO",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": [
+        "worker",
+        "web",
+        "database"
+      ],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth SSO",
+          "url": "https://better-auth.com/docs/plugins/sso",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": [
+        "OIDC and SAML SSO"
+      ],
+      "requires": [
+        "identity core"
+      ],
+      "conflicts": [],
+      "performance": [
+        "no discovery or SAML code when deselected"
+      ],
+      "verification": [
+        "OIDC discovery, SAML signed assertion and domain routing",
+        "deselection"
+      ],
+      "documentation": [
+        "features/auth/MODULE.md"
+      ]
     }
   ]
 }
