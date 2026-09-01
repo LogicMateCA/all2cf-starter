@@ -420,6 +420,16 @@
           "developmentVerified": false,
           "productionReleased": false
         }
+      },
+      {
+        "id": "saas.auth-scim",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
       }
     ],
     "capabilities": [

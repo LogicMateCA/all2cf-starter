@@ -2306,6 +2306,45 @@
       "documentation": [
         "features/auth/MODULE.md"
       ]
+    },
+    {
+      "id": "saas.auth-scim",
+      "kind": "saas",
+      "name": "SCIM directory provisioning",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": [
+        "worker",
+        "database"
+      ],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth SCIM",
+          "url": "https://better-auth.com/docs/plugins/scim",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": [
+        "SCIM 2.0 users and groups"
+      ],
+      "requires": [
+        "identity core",
+        "PostgreSQL interactive transactions"
+      ],
+      "conflicts": [],
+      "performance": [
+        "no SCIM routes or schema when deselected"
+      ],
+      "verification": [
+        "credential scopes, connection isolation and lifecycle",
+        "deselection"
+      ],
+      "documentation": [
+        "features/auth/MODULE.md"
+      ]
     }
   ]
 }
