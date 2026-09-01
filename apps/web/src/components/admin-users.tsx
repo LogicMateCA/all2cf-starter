@@ -8,6 +8,7 @@ import {
   Search,
   Shield,
   ShieldOff,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -239,7 +240,13 @@ export function AdminUsers({ currentUserId }: { currentUserId: string }) {
             <RefreshCw size={15} />
           </Button>
         </div>
-        <div className="admin-user-rows" aria-busy={loading}>
+        <div className="admin-user-table" role="table" aria-label="Platform users" aria-busy={loading}>
+          <div className="admin-user-table-head" role="row">
+            <span role="columnheader">User</span>
+            <span role="columnheader">Verification</span>
+            <span role="columnheader">Platform authority</span>
+            <span role="columnheader">Registered</span>
+          </div>
           {loading ? (
             <p className="admin-user-loading">Loading users…</p>
           ) : null}
@@ -250,17 +257,18 @@ export function AdminUsers({ currentUserId }: { currentUserId: string }) {
             <button
               type="button"
               key={user.id}
+              role="row"
               className={selectedId === user.id ? "selected" : ""}
               aria-current={selectedId === user.id ? "true" : undefined}
               onClick={() => setSelectedId(user.id)}
             >
-              <span>
+              <span role="cell" className="admin-user-identity">
                 <strong>{user.name || user.email}</strong>
                 <small>{user.email}</small>
               </span>
-              <i className={`status ${user.banned ? "failed" : "implemented"}`}>
-                {user.banned ? "banned" : user.role || "user"}
-              </i>
+              <span role="cell"><i className={`status ${user.emailVerified ? "implemented" : "attention"}`}>{user.emailVerified ? "verified" : "unverified"}</i></span>
+              <span role="cell"><i className={`status ${user.banned ? "failed" : hasRole(user, "admin") ? "implemented" : "neutral"}`}>{user.banned ? "banned" : hasRole(user, "admin") ? "platform admin" : "standard user"}</i></span>
+              <span role="cell" className="admin-user-created">{formatDate(user.createdAt)}</span>
             </button>
           ))}
         </div>
@@ -290,7 +298,8 @@ export function AdminUsers({ currentUserId }: { currentUserId: string }) {
         </footer>
       </section>
 
-      <section className="operations-card admin-user-detail">
+      {selected ? <button type="button" className="admin-detail-scrim" aria-label="Close user details" onClick={() => setSelectedId("")} /> : null}
+      <section className="operations-card admin-user-detail" data-open={Boolean(selected)} aria-hidden={!selected}>
         {!selected ? (
           <div className="admin-module-empty">
             <Shield size={22} />
@@ -310,6 +319,7 @@ export function AdminUsers({ currentUserId }: { currentUserId: string }) {
               >
                 {selected.banned ? "banned" : "active"}
               </i>
+              <Button type="button" size="icon" variant="ghost" aria-label="Close user details" onClick={() => setSelectedId("")}><X size={16} /></Button>
             </header>
             <dl className="admin-user-facts">
               <div>

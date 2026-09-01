@@ -10,6 +10,40 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Nothing yet.
 
+## [2.2.0] - 2026-09-01
+
+### Added
+
+- A mature Open SaaS-derived Admin control center with one-row Users and Organizations directories, focused detail drawers and persistent client-side navigation.
+- Real Admin modules for Organizations, product Subscriptions, Entitlements, Usage, API keys, Webhooks and Onboarding with lazy selected-Pack table discovery.
+- Platform Settings for product identity, support email, default locale and signup policy.
+- Privileged custom analytics snippets with HTTPS external-source validation and a same-origin JavaScript endpoint.
+
+### Changed
+
+- Open SaaS, SaaSBoard and LastSaaS capability provenance is now an explicit Admin contract rather than a visual reference.
+- SaaS Pack operations are grouped by People, Revenue, Engage and Operate while unselected Packs remain unloaded.
+- Dashboard evidence includes new signups, active subscriptions and published analytics destinations.
+
+### Fixed
+
+- Admin capabilities are no longer represented only by catalog cards when their selected Pack exposes real data.
+- Support and Admin module navigation no longer require a full document navigation.
+- Platform authority is kept separate from organization membership and database roles.
+
+### Performance
+
+- Optional Pack tables are checked with `to_regclass` only when their Admin module is opened; no unselected Provider dependency is loaded.
+
+### Security
+
+- Subscription, Entitlement, API-key, Webhook and Onboarding mutations are allow-listed, transactional and audited.
+- Custom analytics code is limited to 50,000 characters, rejects non-HTTPS external sources and uses neither `eval` nor `unsafe-inline`.
+
+### Migration
+
+- Adds platform settings and independent product subscription identity. Existing customer modifications remain protected by Base/Local/Target update conflict checks.
+
 ## [2.1.12] - 2026-08-31
 
 ### Added
@@ -422,7 +456,8 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Established Web/Mobile foundation, authentication email Providers, account menu, dual UI strategy, operational Skills and always-current `/dp`.
 
-[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.1.12...HEAD
+[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.2.0...HEAD
+[2.2.0]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.2.0
 [2.1.12]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.12
 [2.1.11]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.11
 [2.1.10]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.10

@@ -4,6 +4,8 @@ import { ProductShell } from "@/components/product-shell";
 import { AdminHealth } from "@/components/admin-health";
 import { AdminAnalytics } from "@/components/admin-analytics";
 import { AdminUsers } from "@/components/admin-users";
+import { AdminSaasDirectory, type AdminSaasResource } from "@/components/admin-saas-directory";
+import { AdminPlatformSettings } from "@/components/admin-platform-settings";
 import { Button } from "@/components/ui/button";
 import { adminCapabilityCatalog, adminModules } from "@/lib/admin-modules";
 import { authClient } from "@/lib/auth-client";
@@ -46,6 +48,9 @@ type UserRow = {
 };
 type Overview = {
   users: number;
+  signups24h: number;
+  activeSubscriptions: number;
+  publishedIntegrations: number;
   openTickets: number;
   notifications24h: number;
   auditEvents24h: number;
@@ -88,7 +93,8 @@ const emptyAuditFilters: AuditFilters = {
 
 export function AdminPage() {
   const { data: session, isPending } = authClient.useSession();
-  const activeModule = adminModules.find(({ path }) => path === window.location.pathname)?.id || "overview";
+  const [activePath, setActivePath] = useState(window.location.pathname);
+  const activeModule = adminModules.find(({ path }) => path === activePath)?.id || "overview";
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [users, setUsers] = useState<UserRow[]>([]);
   const [overview, setOverview] = useState<Overview | null>(null);
@@ -232,6 +238,8 @@ export function AdminPage() {
       );
     else if (!isPending && admin) void loadActiveModule();
   }, [activeModule, admin, isPending, session?.user?.id]);
+  useEffect(() => { const update = () => setActivePath(window.location.pathname); window.addEventListener("popstate", update); return () => window.removeEventListener("popstate", update); }, []);
+  const navigate = (path: string) => { if (path !== window.location.pathname) window.history.pushState(null, "", path); setActivePath(path); };
 
   useEffect(() => {
     if (selectedTicketId)
@@ -366,11 +374,11 @@ export function AdminPage() {
         {error ? <p className="operations-error">{error}</p> : null}
         <div className="admin-layout">
           <nav className="operations-card admin-module-nav" aria-label="Admin modules">
-            {["Workspace", "People", "Engage", "Operate"].map((group) => (
+            {["Workspace", "People", "Revenue", "Engage", "Operate"].map((group) => (
               <div className="admin-nav-group" key={group}>
                 <span>{group}</span>
                 {adminModules.filter((module) => module.group === group).map((module) => (
-                  <a key={module.id} href={module.path} aria-current={activeModule === module.id ? "page" : undefined}>
+                  <a key={module.id} href={module.path} onClick={(event) => { event.preventDefault(); navigate(module.path); }} aria-current={activeModule === module.id ? "page" : undefined}>
                     <strong>{module.label}</strong>
                   </a>
                 ))}
@@ -393,6 +401,9 @@ export function AdminPage() {
               <div className="admin-metrics">
                 {[
                   ["Users", overview.users],
+                  ["Signups · 24h", overview.signups24h],
+                  ["Active subscriptions", overview.activeSubscriptions],
+                  ["Published integrations", overview.publishedIntegrations],
                   ["Open tickets", overview.openTickets],
                   ["Notifications · 24h", overview.notifications24h],
                   ["Audit events · 24h", overview.auditEvents24h],
@@ -408,6 +419,8 @@ export function AdminPage() {
             {activeModule === "users" ? (
               <AdminUsers currentUserId={session.user.id} />
             ) : null}
+            {activeModule === "settings" ? <AdminPlatformSettings /> : null}
+            {(["organizations", "subscriptions", "entitlements", "usage", "api-keys", "webhooks", "onboarding"] as string[]).includes(activeModule) ? <AdminSaasDirectory resource={activeModule as AdminSaasResource} /> : null}
 
             {activeModule === "support" ? (
               <div className="admin-support-grid">
@@ -717,15 +730,15 @@ export function AdminPage() {
                 {audit.map((event) => (
                   <article key={event.id}>
                     <div>
-                      <h3>{event.action}</h3>
+                      <h3>{event.action.replaceAll(/[._]/g, " ")}</h3>
                       <p>
-                        {event.target_type} · {event.target_id}
+                        {event.actor_user_id || "System"} changed {event.target_type.replaceAll("_", " ")}{event.target_id ? ` · ${event.target_id}` : ""}
                       </p>
                       <small>
                         {new Date(event.created_at).toLocaleString()}
                       </small>
                     </div>
-                    <code>{JSON.stringify(event.metadata)}</code>
+                    <details><summary>Technical evidence</summary><code>{JSON.stringify({ action: event.action, targetType: event.target_type, targetId: event.target_id, metadata: event.metadata }, null, 2)}</code></details>
                   </article>
                 ))}
                 {auditNextCursor ? (
