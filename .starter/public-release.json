@@ -1,8 +1,8 @@
 {
   "schemaVersion": "all2cf-public-source/v1",
-  "version": "2.1.9",
-  "canonicalSourceCommit": "00bd6d4ac797df5332a62438abd908bd378165a1",
-  "engineArtifactSha256": "96533e43f33a4967fab8edf5568542b4a4575f042cab64faf94c3ed6299aa781",
+  "version": "2.1.12",
+  "canonicalSourceCommit": "8e6d40010140095848720242f29359f3eae611b5",
+  "engineArtifactSha256": "6ad8989f72b328d4b6b6f05938f7cba8f7af2608cd27946bda8e65612633463a",
   "optionalPackCount": 0,
   "permanentPackIds": [
     "design.owned-neutral",

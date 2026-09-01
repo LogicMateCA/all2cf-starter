@@ -299,11 +299,11 @@ async function exercisePage({ page, route, viewport, outputRoot, caseId }) {
   if (route === "/admin") {
     const modules = page.getByRole("navigation", { name: "Admin modules" });
     await modules.waitFor();
-    const labels = await modules.getByRole("button").allTextContents();
+    const labels = await modules.getByRole("link").allTextContents();
     if (!labels.some((label) => /health/iu.test(label)))
       throw new Error("Admin Health module is missing from the module tabs");
     interactions.push(`admin-modules:${labels.map((label) => label.trim()).join(",")}`);
-    await modules.getByRole("button", { name: /^Audit/iu }).click();
+    await modules.getByRole("link", { name: /^Audit log/iu }).click();
     const auditRegion = page.locator(".audit-list");
     await auditRegion.getByRole("heading", { name: "Audit events" }).waitFor();
     await auditRegion.getByLabel("Target type").fill("support_ticket");
@@ -314,7 +314,7 @@ async function exercisePage({ page, route, viewport, outputRoot, caseId }) {
       await takeStateScreenshot(page, outputRoot, caseId, "admin-audit-filter"),
     );
     await modules
-      .getByRole("button", { name: /^Notifications & announcements/iu })
+      .getByRole("link", { name: /^Announcements/iu })
       .click();
     const announcementForm = page.locator(".announcement-form");
     await announcementForm.getByLabel("Title").fill(
@@ -334,6 +334,13 @@ async function exercisePage({ page, route, viewport, outputRoot, caseId }) {
     interactions.push("admin-announcement-publish");
     stateScreenshots.push(
       await takeStateScreenshot(page, outputRoot, caseId, "admin-announcement"),
+    );
+    await modules.getByRole("link", { name: /^Analytics & scripts/iu }).click();
+    await page.getByRole("heading", { name: "Add analytics or an external script" }).waitFor();
+    await page.getByText("External analytics only").waitFor();
+    interactions.push("admin-analytics-destinations");
+    stateScreenshots.push(
+      await takeStateScreenshot(page, outputRoot, caseId, "admin-analytics"),
     );
   }
 

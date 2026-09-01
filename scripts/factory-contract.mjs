@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { readFile, rm, stat, symlink, writeFile } from "node:fs/promises";
+import { readFile, readdir, rm, stat, symlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -7,8 +7,25 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const slug = `factory-contract-${process.pid}`;
 const target = path.join(root, ".factory-output", slug);
 const run = (script, args, cwd = root) => execFileSync(process.execPath, [path.join(root, script), ...args], { cwd, encoding: "utf8" });
-const runProjectScript = (projectRoot, script, args = []) => execFileSync(process.execPath, [path.join(projectRoot, script), ...args], { cwd: projectRoot, encoding: "utf8" });
+const runWithEnv = (script, args, cwd, env) => execFileSync(process.execPath, [path.join(root, script), ...args], { cwd, encoding: "utf8", env: { ...process.env, ...env } });
+const runProjectScript = (projectRoot, script, args = [], env = {}) => execFileSync(process.execPath, [path.join(projectRoot, script), ...args], { cwd: projectRoot, encoding: "utf8", env: { ...process.env, ...env } });
 const exists = async (file) => stat(file).then(() => true, () => false);
+async function referencedProjectSkills(directory) {
+  const references = new Set();
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    if ([".git", "node_modules", "dist", ".wrangler"].includes(entry.name)) continue;
+    const absolute = path.join(directory, entry.name);
+    if (entry.isDirectory()) {
+      for (const reference of await referencedProjectSkills(absolute)) references.add(reference);
+      continue;
+    }
+    if (!/\.(?:md|mdx|json|jsonc|ya?ml|toml|ts|tsx|js|mjs|cjs|txt)$/u.test(entry.name)) continue;
+    const source = await readFile(absolute, "utf8");
+    for (const match of source.matchAll(/(?<![a-z0-9_./-])(?:\.\/)?skills\/[a-z0-9][a-z0-9-]*\/SKILL\.md/gu))
+      references.add(match[0].replace(/^\.\//u, ""));
+  }
+  return references;
+}
 
 try {
   const created = JSON.parse(run("scripts/starter-factory.mjs", ["create", `--slug=${slug}`, "--name=Factory Contract", "--allow-dirty"]));
@@ -44,6 +61,8 @@ try {
   if (await exists(path.join(target, "apps/web/public/stylekit-previews"))) failures.push("Style library preview assets leaked into the generated project");
   if (await exists(path.join(target, "plugins")))
     failures.push("Global Codex plugin source leaked into the generated project");
+  for (const skillPath of await referencedProjectSkills(target))
+    if (!(await exists(path.join(target, skillPath)))) failures.push(`Generated project references missing Skill ${skillPath}`);
   const generatedPlugins = JSON.parse(await readFile(path.join(target, ".ai/plugins.json"), "utf8"));
   const generatedProjectPlugin = generatedPlugins.plugins?.find(({ id }) => id === "all2cf-project");
   if (!generatedProjectPlugin || generatedProjectPlugin.installation !== "external-recommended" || generatedProjectPlugin.optional !== true || generatedProjectPlugin.path)
@@ -119,9 +138,29 @@ try {
     failures.push("portable Blueprint retained canonical resource identity");
   await rm(injectedTarget, { recursive: true, force: true });
   await rm(path.join(root, ".factory-output", `${injectedSlug}.tar.gz`), { force: true });
-  run("scripts/starter-factory.mjs", ["add", "saas.account-security-2fa", `--project-root=${target}`], target);
+  const marketingFiles = Object.values(initialMaterialization.packs || {})
+    .flatMap((pack) => Object.keys(pack.files || {}))
+    .filter((file) => file.startsWith("apps/marketing/"));
+  if (!marketingFiles.length) failures.push("functional update regression fixture has no owned marketing files");
+  const marketingSnapshots = new Map();
+  for (const file of marketingFiles) marketingSnapshots.set(file, await readFile(path.join(target, file), "utf8"));
+  const marketingIndex = "apps/marketing/src/pages/index.astro";
+  const marketingIndexSource = marketingSnapshots.get(marketingIndex);
+  if (!marketingIndexSource) failures.push("functional update regression fixture is missing the marketing index");
+  else {
+    const customerMarketingIndex = `${marketingIndexSource}\n<!-- customer page marker -->\n`;
+    await writeFile(path.join(target, marketingIndex), customerMarketingIndex);
+    runWithEnv("scripts/starter-factory.mjs", ["add", "saas.account-security-2fa", `--project-root=${target}`], target, { STARTER_UPDATE_SCOPE: "functional" });
+    for (const [file, content] of marketingSnapshots) {
+      const expected = file === marketingIndex ? customerMarketingIndex : content;
+      if (!(await exists(path.join(target, file)))) failures.push(`functional update deleted legacy product page ${file}`);
+      else if (await readFile(path.join(target, file), "utf8") !== expected) failures.push(`functional update overwrote legacy product page ${file}`);
+    }
+    await writeFile(path.join(target, marketingIndex), marketingIndexSource);
+    runWithEnv("scripts/starter-factory.mjs", ["update", `--project-root=${target}`], target, { STARTER_UPDATE_SCOPE: "functional" });
+  }
   const addedStatus = JSON.parse(run("scripts/starter-factory.mjs", ["status", `--project-root=${target}`], target));
-  const addedDiff = JSON.parse(run("scripts/starter-factory.mjs", ["diff", `--project-root=${target}`], target));
+  const addedDiff = JSON.parse(runWithEnv("scripts/starter-factory.mjs", ["diff", `--project-root=${target}`], target, { STARTER_UPDATE_SCOPE: "functional" }));
   if (!addedStatus.packs.some(({ id }) => id === "saas.account-security-2fa")) failures.push("add did not install the requested Pack");
   if (addedDiff.changes.length) failures.push(`added project has materialization drift: ${JSON.stringify(addedDiff.changes)}`);
   const ownedPath = path.join(target, "workers/app/features/object-storage-worker.ts");

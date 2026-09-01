@@ -307,7 +307,12 @@ async function applyProductShape(target) {
     shipWorker ? "Worker API" : null,
   ].filter(Boolean);
   const projectPath = path.join(target, "PROJECT.md");
-  const projectSource = await readFile(projectPath, "utf8");
+  let projectSource = await readFile(projectPath, "utf8");
+  if (!shipMobile)
+    projectSource = projectSource
+      .split("\n")
+      .filter((line) => !line.includes("`skills/expo-release/SKILL.md`"))
+      .join("\n");
   await writeFile(projectPath, projectSource.replace(
     /^Factory supports three primary product architectures\..*?shipped consumer Web application\.$/mu,
     `This generated ${productType} product ships ${outputNames.join(", ")}. The exact deployment-surface receipt is \`.starter/product-shape.json\`; local Setup tooling does not add an unselected consumer application.`,

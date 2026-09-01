@@ -8,12 +8,16 @@ Discard it when any identity changes.
 - Clean isolated worktree and dedicated Node 24 dependency volume.
 - Managed-file receipt refreshed.
 - Change Spec, Changelog and docs committed together.
+- Qualification receipt matches Git tree, lockfile SHA-256 and Node version.
 
 ## Candidate checkpoint
 
 - SQL-first, Drizzle, Website and Mobile generation passed.
 - Functional update safety passed: customer files/dependencies preserved,
   page layer frozen, true conflicts blocked, recovery snapshot restored.
+- An isolated previous-Stable project used its own lockfile/dependency volume;
+  every pre-existing marketing path and customer Page/CSS marker survived the
+  applied update, while an intentional functional conflict was blocked.
 - Two archive builds produced the same Artifact SHA.
 
 ## Development checkpoint

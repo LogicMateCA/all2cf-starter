@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { execFileSync, spawnSync } from "node:child_process";
+import { execFileSync, spawn, spawnSync } from "node:child_process";
 import { access, copyFile, mkdir, mkdtemp, readFile, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,6 +13,7 @@ const json = (value) => `${JSON.stringify(value, null, 2)}\n`;
 const candidateRoot = path.join(root, ".all2cf", "engine-candidates");
 const channelRoot = path.join(root, ".all2cf", "engine-channels");
 const verificationPath = path.join(root, ".all2cf", "source-release-verification.local.json");
+const qualificationRoot = path.join(root, ".all2cf");
 const versionPattern = /^(\d+)\.(\d+)\.(\d+)(?:-(dev|rc)\.(\d+))?$/u;
 
 function run(commandName, commandArgs, options = {}) {
@@ -25,6 +26,22 @@ function run(commandName, commandArgs, options = {}) {
   if (result.status !== 0)
     throw new Error(result.stderr || result.stdout || `${commandName} failed`);
   return result.stdout?.trim() || "";
+}
+
+function runAsync(commandName, commandArgs, options = {}) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(commandName, commandArgs, {
+      cwd: options.cwd || root,
+      env: { ...process.env, npm_config_prefer_offline: "true", npm_config_audit: "false", npm_config_fund: "false", ...options.env },
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (chunk) => { stdout += chunk; });
+    child.stderr.on("data", (chunk) => { stderr += chunk; });
+    child.on("error", reject);
+    child.on("close", (code) => code === 0 ? resolve(stdout.trim()) : reject(new Error(stderr || stdout || `${commandName} failed`)));
+  });
 }
 
 function git(args, cwd = root) {
@@ -58,6 +75,35 @@ async function exists(filename) {
 async function sha256File(filename) {
   const bytes = await readFile(filename);
   return createHash("sha256").update(bytes).digest("hex");
+}
+
+async function qualificationIdentity(source = requireCleanSource()) {
+  return {
+    sourceCommit: source.commit,
+    sourceTree: git(["rev-parse", "HEAD^{tree}"]),
+    lockfileSha256: await sha256File(path.join(root, "package-lock.json")),
+    node: process.version,
+  };
+}
+
+async function readQualification(source) {
+  const identity = await qualificationIdentity(source);
+  const receipt = path.join(qualificationRoot, `source-release-qualification-${identity.sourceTree}.local.json`);
+  if (!(await exists(receipt))) return { identity, receipt, value: null };
+  const value = JSON.parse(await readFile(receipt, "utf8"));
+  const matches = value.ok === true && value.sourceTree === identity.sourceTree && value.lockfileSha256 === identity.lockfileSha256 && value.node === identity.node;
+  return { identity, receipt, value: matches ? value : null };
+}
+
+async function qualify() {
+  const source = requireCleanSource();
+  const { identity, receipt } = await readQualification(source);
+  const started = performance.now();
+  await runAsync("npm", ["run", "verify"]);
+  const value = { schemaVersion: "starter-release-qualification/v1", ok: true, ...identity, sourceBranch: source.branch, elapsedMs: Math.round(performance.now() - started), completedAt: new Date().toISOString() };
+  await mkdir(qualificationRoot, { recursive: true });
+  await writeFile(receipt, json(value), { mode: 0o600 });
+  return { ...value, receipt };
 }
 
 async function packVersions() {
@@ -185,7 +231,7 @@ async function verifyPortableProject(source, dataLayer, version, { minimal = fal
   await writeFile(inputPath, json({ blueprint: await portableBlueprint(dataLayer, { minimal }), config }), { mode: 0o600 });
   const startedAt = performance.now();
   try {
-    const factoryOutput = run(process.execPath, [
+    const factoryOutput = await runAsync(process.execPath, [
       "scripts/starter-factory.mjs",
       "create",
       `--slug=${slug}`,
@@ -199,8 +245,8 @@ async function verifyPortableProject(source, dataLayer, version, { minimal = fal
       },
     });
     const factory = JSON.parse(factoryOutput);
-    run("npm", ["ci", "--ignore-scripts", "--no-audit", "--no-fund"], { cwd: target });
-    run("npm", ["run", "verify"], { cwd: target });
+    await runAsync("npm", ["ci", "--ignore-scripts", "--no-audit", "--no-fund", "--prefer-offline"], { cwd: target });
+    await runAsync("npm", ["run", "verify"], { cwd: target });
     const [receipt, sourceReceipt] = await Promise.all([
       readFile(path.join(target, ".starter", "materialization.json"), "utf8").then(JSON.parse),
       readFile(path.join(target, ".starter", "source.json"), "utf8").then(JSON.parse),
@@ -241,18 +287,27 @@ async function verify(versionValue) {
   const version = parseVersion(versionValue);
   const startedAt = new Date().toISOString();
   run(process.execPath, ["scripts/changelog-contract.mjs", `--version=${version}`]);
-  run("npm", ["run", "verify"]);
-  const projects = [];
-  for (const dataLayer of ["sql-first", "drizzle"])
-    projects.push(await verifyPortableProject(source, dataLayer, version));
-  projects.push(await verifyPortableProject(source, "sql-first", version, { minimal: true }));
+  const qualification = await readQualification(source);
+  const qualificationStarted = performance.now();
+  let qualificationReused = Boolean(qualification.value);
+  if (!qualification.value || flag("force-qualification")) {
+    await qualify();
+    qualificationReused = false;
+  }
+  const qualificationElapsedMs = Math.round(performance.now() - qualificationStarted);
+  const projects = await Promise.all([
+    verifyPortableProject(source, "sql-first", version),
+    verifyPortableProject(source, "drizzle", version),
+    verifyPortableProject(source, "sql-first", version, { minimal: true }),
+  ]);
   const report = {
     schemaVersion: "starter-source-verification/v1",
     ok: true,
     version,
     sourceCommit: source.commit,
     sourceBranch: source.branch,
-    sourceVerification: "npm run verify",
+    sourceVerification: qualificationReused ? "exact qualification checkpoint" : "npm run verify",
+    qualification: { reused: qualificationReused, receipt: qualification.receipt, elapsedMs: qualificationElapsedMs },
     projects,
     stylekit: { policy: "starter-owned-curated-snapshots", upstreamAutomaticSync: false },
     startedAt,
@@ -491,17 +546,23 @@ async function register(versionValue) {
 }
 
 async function candidate(versionValue) {
+  const started = performance.now();
   await verify(versionValue);
+  const verified = performance.now();
   await build(versionValue);
+  const built = performance.now();
   const checked = await check(versionValue);
+  const checkedAt = performance.now();
   if (!checked.ok) throw new Error(`Engine candidate check failed: ${checked.failures.join("; ")}`);
-  return { ok: true, command: "candidate", version: parseVersion(versionValue), verification: verificationPath, candidate: path.join(candidateRoot, parseVersion(versionValue)), check: checked, registration: await register(versionValue) };
+  const registration = await register(versionValue);
+  return { ok: true, command: "candidate", version: parseVersion(versionValue), verification: verificationPath, candidate: path.join(candidateRoot, parseVersion(versionValue)), timings: { verifyMs: Math.round(verified - started), buildMs: Math.round(built - verified), checkMs: Math.round(checkedAt - built), totalMs: Math.round(performance.now() - started) }, check: checked, registration };
 }
 
 async function main() {
   const version = option("version");
   let result;
   if (command === "status") result = await status();
+  else if (command === "qualify") result = await qualify();
   else if (command === "verify") result = await verify(version);
   else if (command === "build") result = await build(version);
   else if (command === "check") result = await check(version);

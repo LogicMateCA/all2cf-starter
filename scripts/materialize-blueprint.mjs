@@ -1350,7 +1350,15 @@ for (const [target, desired] of desiredFiles) {
 }
 
 for (const [target, previous] of previousFiles) {
-  if (frozenPageTargets.has(target)) continue;
+  const normalizedTarget = target.replaceAll("\\", "/");
+  const legacyProductPageTarget = functionalUpdateOnly && (
+    previous.packId.startsWith("page.") ||
+    normalizedTarget.startsWith("apps/marketing/")
+  );
+  if (frozenPageTargets.has(target) || legacyProductPageTarget) {
+    frozenPageTargets.add(target);
+    continue;
+  }
   if (desiredFiles.has(target)) continue;
   const ownedPath = safeProjectPath(target, "owned target");
   await assertNoSymlinkTraversal(ownedPath, target);
@@ -1782,6 +1790,7 @@ try {
     await writeFile(file, desired.content);
   }
   for (const target of previousFiles.keys()) {
+    if (functionalUpdateOnly && frozenPageTargets.has(target)) continue;
     const released = previousFiles.get(target)?.packId === foundation.id && releasedFoundationOwnership.has(target);
     if (!desiredFiles.has(target) && !released)
       await unlink(safeProjectPath(target, "owned target")).catch((error) => {

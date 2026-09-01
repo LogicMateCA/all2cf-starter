@@ -10,6 +10,92 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Nothing yet.
 
+## [2.1.12] - 2026-08-31
+
+### Added
+
+- Candidate reports now expose separate verify, build, check and total elapsed times.
+
+### Changed
+
+- Qualification lookup timing is recorded independently from concurrent portable-project verification.
+
+### Fixed
+
+- Qualification elapsed time no longer includes SQL-first, Drizzle and minimal proof execution.
+
+### Performance
+
+- Warm candidate verification reuses the exact 2.1.11 qualification design and retains concurrent portable proofs.
+
+### Security
+
+- Qualification reuse remains fail-closed on Git tree, lockfile SHA-256 or Node-version differences.
+
+### Migration
+
+- No product migration; 2.1.12 supersedes the unpublished local 2.1.11 candidate and carries its Admin control center.
+
+## [2.1.11] - 2026-08-31
+
+### Added
+
+- Route-addressable Admin control center navigation and a lightweight Analytics & Scripts publisher for external Providers.
+- A same-origin cached Loader shared by Marketing, Web and Docs without a Starter-owned analytics event store.
+- Exact Git-tree/lockfile/Node qualification receipts for resumable releases.
+
+### Changed
+
+- Executable Admin modules now use stable routes grouped by Workspace, People, Engage and Operate; unselected Pack capabilities move to the Overview catalog.
+- SQL-first, Drizzle and minimal portable-project release proofs now execute concurrently after exact source qualification.
+
+### Fixed
+
+- Admin modules no longer depend on in-memory tab state or expose optional/planned implementation placeholders in primary navigation.
+
+### Performance
+
+- The site-integration Loader is cached for 60 seconds and loads no external script when no destination is published.
+- Warm candidate and promotion stages reuse exact qualification checkpoints instead of repeating cold source verification.
+
+### Security
+
+- Admin, Auth, Setup, Factory and Maintenance routes are excluded from analytics loading; custom integrations accept only reviewed HTTPS script URLs and never inline code.
+- Destination creation and publication write immutable revisions and privileged audit events transactionally.
+
+### Migration
+
+- Empty product databases add `app_site_integration` and `app_site_integration_revision`; no visitor events, pageviews or analytics sessions are stored by Starter.
+
+## [2.1.10] - 2026-08-31
+
+### Added
+
+- A real prior-Stable functional update regression that verifies every owned marketing path, customer Page marker and Page CSS asset survives an applied update.
+- Generated-project Skill reference closure checks that reject every `skills/*/SKILL.md` reference whose file was omitted by product shaping.
+
+### Changed
+
+- Release acceptance now upgrades an isolated prior-version project with its own lockfile and dependency volume before Stable promotion.
+
+### Fixed
+
+- Functional updates now skip frozen Page targets during both planning and file application; 2.1.9 planned the freeze correctly but still unlinked those files while applying.
+- Legacy receipts now freeze prior `page.*` ownership and all existing `apps/marketing/` paths even when older Page metadata cannot be reconstructed.
+- Web-only projects no longer retain a `PROJECT.md` requirement for the intentionally omitted Expo release Skill.
+
+### Performance
+
+- Existing verified source, candidate and public checkpoints remain reusable only when their exact immutable identity matches; the corrected Engine receives a new version and Artifact.
+
+### Security
+
+- True functional conflicts remain fail-closed while product Pages are excluded from the mutation set.
+
+### Migration
+
+- 2.1.9 was withdrawn from Stable after the live prior-version upgrade gate detected deleted marketing Pages. Upgrade to 2.1.10 instead; the 2.1.9 tag and Artifact remain immutable.
+
 ## [2.1.9] - 2026-08-31
 
 ### Added
@@ -336,7 +422,10 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Established Web/Mobile foundation, authentication email Providers, account menu, dual UI strategy, operational Skills and always-current `/dp`.
 
-[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.1.9...HEAD
+[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.1.12...HEAD
+[2.1.12]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.12
+[2.1.11]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.11
+[2.1.10]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.10
 [2.1.9]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.9
 [2.1.8]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.8
 [2.1.7]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.7
