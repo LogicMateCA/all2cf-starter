@@ -2427,6 +2427,47 @@
       "documentation": [
         "features/auth/MODULE.md"
       ]
+    },
+    {
+      "id": "saas.auth-mcp",
+      "kind": "saas",
+      "name": "OAuth-protected MCP",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": [
+        "worker",
+        "web",
+        "database"
+      ],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth MCP",
+          "url": "https://better-auth.com/docs/plugins/mcp",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": [
+        "OAuth-protected MCP resource and identity tool"
+      ],
+      "requires": [
+        "saas.auth-jwt"
+      ],
+      "conflicts": [
+        "saas.auth-oauth-provider"
+      ],
+      "performance": [
+        "no MCP route or OAuth schema when deselected"
+      ],
+      "verification": [
+        "discovery, issuer/audience/scope checks and JSON-RPC tools",
+        "deselection"
+      ],
+      "documentation": [
+        "features/auth/MODULE.md"
+      ]
     }
   ]
 }

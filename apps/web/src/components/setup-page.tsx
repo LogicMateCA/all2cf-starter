@@ -489,7 +489,8 @@ const advancedIdentityPackIds = new Set([
   "saas.auth-jwt",
   "saas.auth-bearer",
   "saas.auth-oauth-provider",
-  "saas.auth-mcp-agent",
+  "saas.auth-mcp",
+  "saas.auth-agent",
   "saas.auth-device-authorization",
   "saas.auth-openapi",
   "saas.auth-phone",
@@ -499,11 +500,11 @@ const advancedIdentityPackIds = new Set([
 const identityPackDependencies: Record<string, string[]> = {
   "saas.auth-oauth-provider": ["saas.auth-jwt"],
   "saas.auth-device-authorization": ["saas.auth-jwt", "saas.auth-oauth-provider"],
-  "saas.auth-mcp-agent": ["saas.auth-jwt"],
+  "saas.auth-mcp": ["saas.auth-jwt"],
   "saas.auth-phone": ["capability.twilio-sms"],
 };
 const identityPackConflicts: Record<string, string[]> = {
-  "saas.auth-oauth-provider": ["saas.auth-mcp-agent"], "saas.auth-mcp-agent": ["saas.auth-oauth-provider"],
+  "saas.auth-oauth-provider": ["saas.auth-mcp"], "saas.auth-mcp": ["saas.auth-oauth-provider"],
 };
 const emptyLifecycle = (): Lifecycle => ({
   selected: false,
