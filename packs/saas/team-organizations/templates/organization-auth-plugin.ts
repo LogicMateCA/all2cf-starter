@@ -5,10 +5,10 @@ import type { SelectedAuthPluginInput } from "../generated/auth-plugins";
 
 type SelectedFeatures = { organizations: boolean; stripeBilling: boolean };
 
-const access = createAccessControl({ ...defaultStatements, project: ["create", "read", "update", "delete", "share"], branding: ["read", "update"] } as const);
-const owner = access.newRole({ ...ownerAc.statements, project: ["create", "read", "update", "delete", "share"], branding: ["read", "update"] });
-const admin = access.newRole({ ...adminAc.statements, project: ["create", "read", "update", "share"], branding: ["read", "update"] });
-const member = access.newRole({ ...memberAc.statements, project: ["read"], branding: ["read"] });
+const access = createAccessControl({ ...defaultStatements, project: ["create", "read", "update", "delete", "share"], branding: ["read", "update"], apiKey: ["create", "read", "update", "delete"] } as const);
+const owner = access.newRole({ ...ownerAc.statements, project: ["create", "read", "update", "delete", "share"], branding: ["read", "update"], apiKey: ["create", "read", "update", "delete"] });
+const admin = access.newRole({ ...adminAc.statements, project: ["create", "read", "update", "share"], branding: ["read", "update"], apiKey: ["create", "read", "update", "delete"] });
+const member = access.newRole({ ...memberAc.statements, project: ["read"], branding: ["read"], apiKey: ["read"] });
 
 function escapeHtml(value: string) {
   return value.replace(/[&<>"']/gu, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character] || character);

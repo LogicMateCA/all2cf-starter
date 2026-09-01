@@ -2,7 +2,7 @@
   "$schema": "../../../schemas/starter-pack.schema.json",
   "schemaVersion": "starter-pack/v1",
   "id": "saas.api-keys",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "source": {
     "name": "Better Auth API Key",
     "url": "https://better-auth.com/docs/plugins/api-key",

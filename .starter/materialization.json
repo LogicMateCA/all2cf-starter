@@ -99,8 +99,8 @@
     "saas.team-organizations": {
       "version": "0.3.0",
       "files": {
-        "workers/app/features/organization-auth-plugin.ts": "d0f4e46d34b3143f440eb25bd62a8eea525e97156e9b8b42952f05a2c1452657",
-        "apps/web/src/features/organization-auth-client-plugin.ts": "797a5083478f5acd0638247e92109e307a11757c14b6b3879ed3b3031f415dd7",
+        "workers/app/features/organization-auth-plugin.ts": "1014562f24f18c14396a709a386470abe9902b457c3da092b3f2d88d075b7459",
+        "apps/web/src/features/organization-auth-client-plugin.ts": "58afb42c9dd3dc9a0f5adbcb5397a9c78ae82efeca7fd144ddd5df8d01d12919",
         "apps/web/src/components/features/organization-page.tsx": "5610b1a041a5ead9cc2f79e18b5df68d1a8469b3119e3a910726eb5990c71bff",
         "apps/web/src/components/features/organization-page.css": "01a81b46da9e5109dcd0893f5615ec25a05b9e74876d0f6ae3492dda1aed0ea5",
         "db/migrations/1001_organization.sql": "9dfb77d4a00ec8f7053932f4b7942d417a84d66ec134cdcf40c5103a9c93cf6b"

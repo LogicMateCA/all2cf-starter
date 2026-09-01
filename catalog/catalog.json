@@ -784,7 +784,7 @@
       "id": "saas.api-keys",
       "kind": "saas",
       "name": "API keys",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "status": "local-verified",
       "delivery": "materializer",
       "targets": [
@@ -805,11 +805,9 @@
       ],
       "updatePolicy": "stable-aligned",
       "provides": [
-        "user-owned hashed API keys",
-        "one-time secret disclosure",
-        "fixed default product read scope",
-        "rate limits and expiration",
-        "list and revoke lifecycle"
+        "user-owned API keys",
+        "organization-owned API keys when Organizations is selected",
+        "hashed rate-limited keys"
       ],
       "requires": [
         "identity core",
