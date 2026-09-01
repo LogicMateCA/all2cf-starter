@@ -23,7 +23,7 @@ const providers: Array<{ id: Provider; label: string; description: string; field
   { id: "google-analytics", label: "Google Analytics", description: "Load GA through the first-party Starter loader.", field: "Measurement ID", placeholder: "G-XXXXXXXXXX" },
   { id: "google-tag-manager", label: "Google Tag Manager", description: "Use GTM as the destination manager.", field: "Container ID", placeholder: "GTM-XXXXXXX" },
   { id: "plausible", label: "Plausible", description: "Lightweight external analytics with a tracked domain.", field: "Tracked domain", placeholder: "example.com" },
-  { id: "custom-external", label: "Custom script URL", description: "Advanced: load one reviewed HTTPS script. Inline code is intentionally unsupported.", field: "HTTPS script URL", placeholder: "https://example.com/analytics.js" },
+  { id: "custom-external", label: "Custom analytics code", description: "Privileged publication of a common script snippet or JavaScript file.", field: "Script snippet or JavaScript", placeholder: "<script src=\"https://example.com/analytics.js\"></script>" },
 ];
 const surfaceOptions = [
   { id: "marketing", label: "Marketing" },
@@ -61,7 +61,7 @@ export function AdminAnalytics() {
     setValue("");
   };
   const toggleSurface = (surface: string) => setSurfaces((current) => current.includes(surface) ? current.filter((item) => item !== surface) : [...current, surface]);
-  const config = () => provider === "plausible" ? { domain: value.trim() } : provider === "custom-external" ? { source: value.trim() } : { identifier: value.trim() };
+  const config = () => provider === "plausible" ? { domain: value.trim() } : provider === "custom-external" ? { code: value.trim() } : { identifier: value.trim() };
 
   const create = async () => {
     if (!name.trim() || !value.trim() || !surfaces.length) return;
@@ -103,7 +103,7 @@ export function AdminAnalytics() {
             {providers.map((item) => <button type="button" key={item.id} className={provider === item.id ? "selected" : ""} onClick={() => selectProvider(item.id)}><strong>{item.label}</strong><small>{item.description}</small></button>)}
           </div>
           <label><span>Name</span><Input value={name} onChange={(event) => setName(event.target.value)} /></label>
-          <label><span>{selectedProvider.field}</span><Input value={value} placeholder={selectedProvider.placeholder} onChange={(event) => setValue(event.target.value)} /></label>
+          <label><span>{selectedProvider.field}</span>{provider === "custom-external" ? <textarea value={value} maxLength={50_000} rows={7} placeholder={selectedProvider.placeholder} onChange={(event) => setValue(event.target.value)} /> : <Input value={value} placeholder={selectedProvider.placeholder} onChange={(event) => setValue(event.target.value)} />}</label>
           <div className="integration-inline-fields">
             <label><span>Environment</span><select value={environment} onChange={(event) => setEnvironment(event.target.value as "development" | "production")}><option value="development">Development</option><option value="production">Production</option></select></label>
             <fieldset><legend>Surfaces</legend>{surfaceOptions.map((surface) => <label key={surface.id}><input type="checkbox" checked={surfaces.includes(surface.id)} onChange={() => toggleSurface(surface.id)} /> {surface.label}</label>)}</fieldset>

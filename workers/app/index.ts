@@ -1119,9 +1119,37 @@ function normalizeSiteIntegration(input: SiteIntegrationInput) {
     throw new Error("This provider requires its public site identifier");
   if (provider === "plausible" && !String(config.domain || "").trim()) throw new Error("Plausible requires a tracked domain");
   if (provider === "custom-external") {
-    const source = new URL(String(config.source || ""));
-    if (source.protocol !== "https:") throw new Error("Custom script URL must use HTTPS");
-    config.source = source.toString();
+    const code = String(config.code || config.source || "").trim();
+    const externalSources: string[] = [];
+    const inlineParts: string[] = [];
+    if (!code && (Array.isArray(config.externalSources) || typeof config.inlineCode === "string")) {
+      for (const source of Array.isArray(config.externalSources) ? config.externalSources : []) {
+        const url = new URL(String(source));
+        if (url.protocol !== "https:") throw new Error("External script sources must use HTTPS");
+        externalSources.push(url.toString());
+      }
+      if (String(config.inlineCode || "").trim()) inlineParts.push(String(config.inlineCode).trim());
+    } else {
+      if (!code || code.length > 50_000) throw new Error("Custom code must be between 1 and 50,000 characters");
+      const scriptPattern = /<script\b([^>]*)>([\s\S]*?)<\/script>/giu;
+      let matched = false;
+      for (const match of code.matchAll(scriptPattern)) {
+        matched = true;
+        const source = (match[1] || "").match(/\bsrc\s*=\s*["']([^"']+)["']/iu)?.[1];
+        if (source) {
+          const url = new URL(source);
+          if (url.protocol !== "https:") throw new Error("External script sources must use HTTPS");
+          externalSources.push(url.toString());
+        }
+        if ((match[2] || "").trim()) inlineParts.push((match[2] || "").trim());
+      }
+      if (!matched) inlineParts.push(code);
+    }
+    if (inlineParts.join("\n\n").length > 50_000) throw new Error("Custom code must not exceed 50,000 characters");
+    config.externalSources = [...new Set(externalSources)];
+    config.inlineCode = inlineParts.join("\n\n");
+    delete config.code;
+    delete config.source;
   }
   const cspSources: { scriptSrc: string[]; connectSrc: string[]; imgSrc: string[] } = { scriptSrc: [], connectSrc: [], imgSrc: [] };
   if (provider === "cloudflare-web-analytics") {
@@ -1136,10 +1164,7 @@ function normalizeSiteIntegration(input: SiteIntegrationInput) {
     cspSources.scriptSrc.push(source.origin);
     cspSources.connectSrc.push(source.origin);
     config.source = source.toString();
-  } else if (provider === "custom-external") {
-    const source = new URL(String(config.source));
-    cspSources.scriptSrc.push(source.origin);
-  }
+  } else if (provider === "custom-external") for (const source of config.externalSources as string[]) cspSources.scriptSrc.push(new URL(source).origin);
   return { name, provider, status, environment, surfaces, config, cspSources };
 }
 
@@ -1150,18 +1175,31 @@ app.get("/api/public/site-integrations.js", async (c) => {
   const database = createDatabaseClient(c.env, `${c.env.SERVICE_NAME}-site-integrations`);
   try {
     await database.connect();
-    const result = await database.query<{ provider: SiteIntegrationProvider; config: Record<string, unknown> }>(
-      `select provider, config from app_site_integration
+    const result = await database.query<{ id: string; provider: SiteIntegrationProvider; config: Record<string, unknown> }>(
+      `select id, provider, config from app_site_integration
        where status = 'published' and environment = $1 and $2 = any(surfaces)
        order by created_at asc`,
       [environment, surface],
     );
     const integrations = JSON.stringify(result.rows).replaceAll("<", "\\u003c");
-    const source = `(()=>{if(["/admin","/login","/setup","/factory","/maintenance","/update","/all2cf"].some(p=>location.pathname===p||location.pathname.startsWith(p+"/")))return;const items=${integrations};const add=(src,attrs={})=>{const s=document.createElement("script");s.src=src;s.async=true;for(const[k,v]of Object.entries(attrs))s.setAttribute(k,String(v));document.head.appendChild(s)};for(const item of items){const c=item.config||{};if(item.provider==="cloudflare-web-analytics")add("https://static.cloudflareinsights.com/beacon.min.js",{"type":"module","data-cf-beacon":JSON.stringify({token:c.identifier,spa:true})});else if(item.provider==="google-analytics"){self.dataLayer=self.dataLayer||[];self.gtag=self.gtag||function(){dataLayer.push(arguments)};gtag("js",new Date());gtag("config",c.identifier);add("https://www.googletagmanager.com/gtag/js?id="+encodeURIComponent(c.identifier))}else if(item.provider==="google-tag-manager"){self.dataLayer=self.dataLayer||[];dataLayer.push({"gtm.start":Date.now(),event:"gtm.js"});add("https://www.googletagmanager.com/gtm.js?id="+encodeURIComponent(c.identifier))}else if(item.provider==="plausible")add(c.source||"https://plausible.io/js/script.js",{"data-domain":c.domain});else if(item.provider==="custom-external")add(c.source,{"type":c.module?"module":"text/javascript"})}}})();`;
+    const source = `(()=>{if(["/admin","/login","/setup","/factory","/maintenance","/update","/all2cf"].some(p=>location.pathname===p||location.pathname.startsWith(p+"/")))return;const items=${integrations};const add=(src,attrs={})=>{const s=document.createElement("script");s.src=src;s.async=true;for(const[k,v]of Object.entries(attrs))s.setAttribute(k,String(v));document.head.appendChild(s)};for(const item of items){const c=item.config||{};if(item.provider==="cloudflare-web-analytics")add("https://static.cloudflareinsights.com/beacon.min.js",{"type":"module","data-cf-beacon":JSON.stringify({token:c.identifier,spa:true})});else if(item.provider==="google-analytics"){self.dataLayer=self.dataLayer||[];self.gtag=self.gtag||function(){dataLayer.push(arguments)};gtag("js",new Date());gtag("config",c.identifier);add("https://www.googletagmanager.com/gtag/js?id="+encodeURIComponent(c.identifier))}else if(item.provider==="google-tag-manager"){self.dataLayer=self.dataLayer||[];dataLayer.push({"gtm.start":Date.now(),event:"gtm.js"});add("https://www.googletagmanager.com/gtm.js?id="+encodeURIComponent(c.identifier))}else if(item.provider==="plausible")add(c.source||"https://plausible.io/js/script.js",{"data-domain":c.domain});else if(item.provider==="custom-external"){for(const src of c.externalSources||[])add(src);if(c.inlineCode)add("/api/public/site-integrations/"+encodeURIComponent(item.id)+"/code.js")}}})();`;
     return c.text(source, 200, { "Content-Type": "application/javascript; charset=utf-8", "Cache-Control": "public, max-age=60, stale-while-revalidate=300", "X-Content-Type-Options": "nosniff" });
   } catch (error) {
     console.error("site_integrations_loader_failed", error);
     return c.text("/* Site integrations are temporarily unavailable. */", 200, { "Content-Type": "application/javascript; charset=utf-8", "Cache-Control": "no-store" });
+  } finally {
+    await database.end().catch(() => undefined);
+  }
+});
+
+app.get("/api/public/site-integrations/:id/code.js", async (c) => {
+  const environment = c.env.APP_ENV === "production" ? "production" : "development";
+  const database = createDatabaseClient(c.env, `${c.env.SERVICE_NAME}-site-integration-code`);
+  try {
+    await database.connect();
+    const result = await database.query<{ config: Record<string, unknown> }>(`select config from app_site_integration where id=$1 and provider='custom-external' and status='published' and environment=$2`, [c.req.param("id"), environment]);
+    if (!result.rows[0]) return c.text("/* Integration unavailable. */", 404, { "Content-Type": "application/javascript; charset=utf-8" });
+    return c.text(String(result.rows[0].config.inlineCode || ""), 200, { "Content-Type": "application/javascript; charset=utf-8", "Cache-Control": "public, max-age=60", "X-Content-Type-Options": "nosniff" });
   } finally {
     await database.end().catch(() => undefined);
   }
@@ -1266,21 +1304,29 @@ app.get("/api/admin/overview", (c) =>
       );
     const result = await database.query<{
       users: string;
+      signups_24h: string;
       open_tickets: string;
       notifications_24h: string;
       audit_events_24h: string;
     }>(
       `select
         (select count(*)::text from app_user) as users,
+        (select count(*)::text from app_user where created_at > now() - interval '24 hours') as signups_24h,
         (select count(*)::text from app_support_ticket where status in ('open', 'in_progress')) as open_tickets,
         (select count(*)::text from app_notification where created_at > now() - interval '24 hours') as notifications_24h,
         (select count(*)::text from app_admin_audit_event where created_at > now() - interval '24 hours') as audit_events_24h`,
     );
     const row = result.rows[0];
+    const optionalTables = await database.query<{ subscriptions: boolean; integrations: boolean }>(`select to_regclass('app_subscription') is not null subscriptions,to_regclass('app_site_integration') is not null integrations`);
+    const activeSubscriptions = optionalTables.rows[0]?.subscriptions ? Number((await database.query<{ count: string }>(`select count(*)::text count from app_subscription where status in ('active','trialing')`)).rows[0]?.count || 0) : 0;
+    const publishedIntegrations = optionalTables.rows[0]?.integrations ? Number((await database.query<{ count: string }>(`select count(*)::text count from app_site_integration where status='published'`)).rows[0]?.count || 0) : 0;
     return c.json(
       {
         data: {
           users: Number(row?.users || 0),
+          signups24h: Number(row?.signups_24h || 0),
+          activeSubscriptions,
+          publishedIntegrations,
           openTickets: Number(row?.open_tickets || 0),
           notifications24h: Number(row?.notifications_24h || 0),
           auditEvents24h: Number(row?.audit_events_24h || 0),
@@ -1290,6 +1336,76 @@ app.get("/api/admin/overview", (c) =>
       200,
       { "Cache-Control": "no-store" },
     );
+  }),
+);
+
+const platformSettingDefaults = { product_name: "Cloudflare AI Starter", support_email: "", default_locale: "en", signup_policy: "open" } as const;
+app.get("/api/admin/platform-settings", (c) => withRequestAuth(c.env, c.executionCtx, async (auth, database) => {
+  const session = await auth.api.getSession({ headers: c.req.raw.headers });
+  if (!session?.user) return c.json({ error: { code: "UNAUTHORIZED", message: "Authentication required." } }, 401);
+  if (!isPlatformAdmin(session.user)) return c.json({ error: { code: "FORBIDDEN", message: "Admin role required." } }, 403);
+  const exists = await database.query<{ available: boolean }>(`select to_regclass('app_platform_setting') is not null available`);
+  if (!exists.rows[0]?.available) return c.json({ data: platformSettingDefaults }, 200, { "Cache-Control": "no-store" });
+  const result = await database.query<{ key: keyof typeof platformSettingDefaults; value: unknown }>(`select key,value from app_platform_setting`);
+  return c.json({ data: Object.assign({}, platformSettingDefaults, Object.fromEntries(result.rows.map((row) => [row.key, row.value]))) }, 200, { "Cache-Control": "no-store" });
+}));
+app.patch("/api/admin/platform-settings", (c) => withRequestAuth(c.env, c.executionCtx, async (auth, database) => {
+  const session = await auth.api.getSession({ headers: c.req.raw.headers });
+  if (!session?.user) return c.json({ error: { code: "UNAUTHORIZED", message: "Authentication required." } }, 401);
+  if (!isPlatformAdmin(session.user)) return c.json({ error: { code: "FORBIDDEN", message: "Admin role required." } }, 403);
+  const input = await c.req.json<Record<string, unknown>>();
+  const values = { product_name: String(input.product_name || "").trim(), support_email: String(input.support_email || "").trim(), default_locale: String(input.default_locale || "en"), signup_policy: String(input.signup_policy || "open") };
+  if (values.product_name.length < 2 || values.product_name.length > 80 || (values.support_email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/u.test(values.support_email)) || !["en","fr","zh-CN"].includes(values.default_locale) || !["open","invite-only"].includes(values.signup_policy)) return c.json({ error: { code: "INVALID_SETTINGS", message: "Platform settings are invalid." } }, 400);
+  const client = await database.connect(); try { await client.query("begin"); for (const [key,value] of Object.entries(values)) await client.query(`insert into app_platform_setting(key,value,updated_by_user_id,updated_at) values ($1,$2::jsonb,$3,now()) on conflict(key) do update set value=excluded.value,updated_by_user_id=excluded.updated_by_user_id,updated_at=now()`, [key, JSON.stringify(value), session.user.id]); await client.query(`insert into app_admin_audit_event(id,actor_user_id,action,target_type,target_id,metadata) values($1,$2,'platform.settings.updated','platform_settings','global',jsonb_build_object('keys',$3::text[]))`, [crypto.randomUUID(),session.user.id,Object.keys(values)]); await client.query("commit"); return c.json({ data: values }, 200, { "Cache-Control": "no-store" }); } catch(error) { await client.query("rollback").catch(() => undefined); return c.json({ error: { code: "SETTINGS_FAILED", message: error instanceof Error ? error.message : "Unable to save settings." } }, 400); } finally { client.release(); }
+}));
+
+const adminSaasDirectories = {
+  organizations: { table: "app_organization", columns: ["id", "name", "slug", "owner", "members", "created_at"], sql: `select o.id,o.name,o.slug,coalesce(owner_user.email,'Unassigned') owner,count(m.user_id)::int members,o.created_at from app_organization o left join app_organization_member m on m.organization_id=o.id left join app_organization_member owner_member on owner_member.organization_id=o.id and owner_member.role='owner' left join app_user owner_user on owner_user.id=owner_member.user_id group by o.id,o.name,o.slug,owner_user.email,o.created_at order by o.created_at desc limit 500` },
+  subscriptions: { table: "app_subscription", columns: ["id", "reference_id", "product_key", "plan", "status", "period_end"], sql: `select id,reference_id,coalesce(product_key,'default') product_key,plan,status,period_end from app_subscription order by created_at desc limit 500` },
+  entitlements: { table: "app_billing_plan_entitlement", columns: ["plan_id", "feature_key", "enabled", "limit_value"], sql: `select plan_id,feature_key,enabled,limit_value from app_billing_plan_entitlement order by plan_id,feature_key limit 500` },
+  usage: { table: "app_usage_bucket", columns: ["owner_user_id", "metric", "window_start", "quantity"], sql: `select owner_user_id,metric,window_start,quantity from app_usage_bucket order by window_start desc limit 500` },
+  "api-keys": { table: "app_api_key", columns: ["id", "reference_id", "name", "prefix", "enabled", "request_count", "expires_at"], sql: `select id,reference_id,name,prefix,enabled,request_count,expires_at from app_api_key order by created_at desc limit 500` },
+  webhooks: { table: "app_webhook_endpoint", columns: ["id", "owner_user_id", "url", "event_types", "enabled", "updated_at"], sql: `select id,owner_user_id,url,event_types,enabled,updated_at from app_webhook_endpoint where archived_at is null order by updated_at desc limit 500` },
+  onboarding: { table: "app_onboarding_progress", columns: ["user_id", "definition_version", "completed_steps", "started_at", "completed_at"], sql: `select user_id,definition_version,completed_steps,started_at,completed_at from app_onboarding_progress order by updated_at desc limit 500` },
+} as const;
+
+app.get("/api/admin/saas-directory/:resource", (c) =>
+  withRequestAuth(c.env, c.executionCtx, async (auth, database) => {
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    if (!session?.user) return c.json({ error: { code: "UNAUTHORIZED", message: "Authentication required." } }, 401);
+    if (!isPlatformAdmin(session.user)) return c.json({ error: { code: "FORBIDDEN", message: "Admin role required." } }, 403);
+    const resource = c.req.param("resource") as keyof typeof adminSaasDirectories;
+    const definition = adminSaasDirectories[resource];
+    if (!definition) return c.json({ error: { code: "NOT_FOUND", message: "Unknown SaaS Admin resource." } }, 404);
+    const exists = await database.query<{ available: boolean }>(`select to_regclass($1) is not null available`, [definition.table]);
+    if (!exists.rows[0]?.available) return c.json({ data: { available: false, columns: definition.columns, rows: [], total: 0 } }, 200, { "Cache-Control": "no-store" });
+    const result = await database.query(definition.sql);
+    return c.json({ data: { available: true, columns: definition.columns, rows: result.rows, total: result.rows.length } }, 200, { "Cache-Control": "no-store" });
+  }),
+);
+
+app.patch("/api/admin/saas-directory/:resource/:id", (c) =>
+  withRequestAuth(c.env, c.executionCtx, async (auth, database) => {
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    if (!session?.user) return c.json({ error: { code: "UNAUTHORIZED", message: "Authentication required." } }, 401);
+    if (!isPlatformAdmin(session.user)) return c.json({ error: { code: "FORBIDDEN", message: "Admin role required." } }, 403);
+    const resource = c.req.param("resource"); const id = c.req.param("id"); const body = await c.req.json<{ action?: string }>(); const action = String(body.action || "");
+    const client = await database.connect();
+    try {
+      await client.query("begin");
+      let result;
+      if (resource === "subscriptions" && ["pause", "activate"].includes(action)) result = await client.query(`update app_subscription set status=$2 where id=$1 returning id`, [id, action === "pause" ? "paused" : "active"]);
+      else if (resource === "entitlements" && ["enable", "disable"].includes(action)) { const [planId, featureKey] = id.split("|"); result = await client.query(`update app_billing_plan_entitlement set enabled=$3 where plan_id=$1 and feature_key=$2 returning plan_id`, [planId, featureKey, action === "enable"]); }
+      else if (resource === "api-keys" && ["enable", "disable"].includes(action)) result = await client.query(`update app_api_key set enabled=$2,updated_at=now() where id=$1 returning id`, [id, action === "enable"]);
+      else if (resource === "webhooks" && ["enable", "disable"].includes(action)) result = await client.query(`update app_webhook_endpoint set enabled=$2,updated_at=now() where id=$1 and archived_at is null returning id`, [id, action === "enable"]);
+      else if (resource === "onboarding" && action === "reset") result = await client.query(`update app_onboarding_progress set completed_steps='{}'::text[],completed_at=null,started_at=now(),updated_at=now() where user_id=$1 returning user_id`, [id]);
+      else { await client.query("rollback"); return c.json({ error: { code: "INVALID_ACTION", message: "This Admin action is not supported." } }, 400); }
+      if (!result.rows[0]) { await client.query("rollback"); return c.json({ error: { code: "NOT_FOUND", message: "The SaaS record no longer exists." } }, 404); }
+      await client.query(`insert into app_admin_audit_event (id,actor_user_id,action,target_type,target_id,metadata) values ($1,$2,$3,$4,$5,jsonb_build_object('resource',$4::text))`, [crypto.randomUUID(), session.user.id, `saas.${resource}.${action}`, resource, id]);
+      await client.query("commit");
+      return c.json({ data: { ok: true } }, 200, { "Cache-Control": "no-store" });
+    } catch (error) { await client.query("rollback").catch(() => undefined); return c.json({ error: { code: "ADMIN_ACTION_FAILED", message: error instanceof Error ? error.message : "Unable to apply Admin action." } }, 400); }
+    finally { client.release(); }
   }),
 );
 

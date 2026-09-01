@@ -4,14 +4,25 @@
   "version": "1.0.0",
   "files": [
     "apps/web/src/App.tsx",
+    "apps/web/src/components/admin-analytics.tsx",
+    "apps/web/src/components/admin-page.tsx",
+    "apps/web/src/components/admin-platform-settings.tsx",
+    "apps/web/src/components/admin-saas-directory.tsx",
+    "apps/web/src/components/admin-users.tsx",
     "apps/web/src/components/update-page.tsx",
+    "apps/web/src/index.css",
+    "apps/web/src/lib/admin-modules.ts",
     "apps/web/src/maintenance.css",
     "apps/web/vite.config.ts",
     "db/migrations/0010_platform_administrators.sql",
+    "db/migrations/0012_platform_settings.sql",
+    "db/migrations/1003_multi_product_subscriptions.sql",
     "scripts/all2cf-project.mjs",
     "scripts/materialize-blueprint.mjs",
+    "scripts/admin-saas-database-contract.mjs",
     "scripts/starter-link.mjs",
-    "skills/starter-maintenance/SKILL.md"
+    "skills/starter-maintenance/SKILL.md",
+    "workers/app/index.ts"
   ],
   "releaseOwnership": [
     "AGENTS.md",

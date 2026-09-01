@@ -27,14 +27,25 @@
       "version": "1.0.0",
       "files": {
         "apps/web/src/App.tsx": "98a1ecea5999a5c76ddee1131f6f22d7f9d32f37f28f003f0f27563542362df9",
+        "apps/web/src/components/admin-analytics.tsx": "84289c5cd7cad62db1f5a7e452cdc654610f521c6999611e6a56d041b5cdb6d1",
+        "apps/web/src/components/admin-page.tsx": "67f1a19b83e87e40992efd72b50ef39a721d3f1586f706f0a0e7188e3f702df6",
+        "apps/web/src/components/admin-platform-settings.tsx": "1ec85b8639d2614bdedc493990d2b96ffcc86986b64015affd1aa653ff60ea93",
+        "apps/web/src/components/admin-saas-directory.tsx": "e22bf6a105373142ea202036d0a220f96e200067d127d70ec753a028587b6b1f",
+        "apps/web/src/components/admin-users.tsx": "6524a56d1fc9199983817d720eab057891c11d63c4279108db4012d30d289777",
         "apps/web/src/components/update-page.tsx": "85ade2bee891102088e262d704d1f43eba45907e0d47d9a3cb4b000b9cb1fdd7",
+        "apps/web/src/index.css": "411ba433a03ea027bd8d4b081ebaa131ea644774335232adea90021f37c752c1",
+        "apps/web/src/lib/admin-modules.ts": "062a046912571bcbba406961146059869aa1d0c2c704f2db84686dc1853c8346",
         "apps/web/src/maintenance.css": "717fc86f6814d09f931cce00f1d820447b23017bee09b9d581b07f474018b819",
         "apps/web/vite.config.ts": "b7e86c1ee0ef4d7a88f8b5c43900f74b1d948ecb81fc1156e7c5ca2a8bda0f5e",
         "db/migrations/0010_platform_administrators.sql": "8de2d1f092bd772021cbf35f2439a618bc9eb3059c048563b8c09a9488da1f1d",
+        "db/migrations/0012_platform_settings.sql": "524f03349188155dce817129401152cb5ae6399d1e6043610223d373c33d8a52",
+        "db/migrations/1003_multi_product_subscriptions.sql": "96971a355cb14a815a6745b20e0759506248439275fb0254e9445e021365f9e9",
         "scripts/all2cf-project.mjs": "dabaae31585293e764846bf87fa40086be8510610940d021d6ba43c98784db61",
         "scripts/materialize-blueprint.mjs": "fc13de78f7a722f04acd6bfb1f55b51344608ce3a5f314d98e9a7f541307d02c",
+        "scripts/admin-saas-database-contract.mjs": "1faeedf2a59a12c03d20113df772033f87e3cc1d66ac7c9876871eb6da2c87e6",
         "scripts/starter-link.mjs": "9b5ff7eccc44df2b7c917bcaeff00569b9a4c7255cb7b71caa78991a1c2b37ee",
-        "skills/starter-maintenance/SKILL.md": "cc006c17c94c02c9aec79e09b86a6ca7302fc872ed5ba6aee91b539880fe54a4"
+        "skills/starter-maintenance/SKILL.md": "cc006c17c94c02c9aec79e09b86a6ca7302fc872ed5ba6aee91b539880fe54a4",
+        "workers/app/index.ts": "1c5e583abebff52cb4ce043234c8c58f22cc40fa6443cecf2b8c438198f7673d"
       }
     }
   },
