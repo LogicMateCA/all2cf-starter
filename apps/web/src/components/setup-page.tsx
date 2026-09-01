@@ -1126,11 +1126,22 @@ export function SetupPage() {
           lifecycle: selectLifecycle(selection.lifecycle, nextSelected),
         };
       });
+      const baseSelections = { ...blueprint.selections, [group]: selections };
+      const nextSelections = Object.fromEntries(Object.entries(baseSelections).map(([selectionGroup, groupSelections]) => [
+        selectionGroup,
+        groupSelections.map((selection) => {
+          const implied = dependencies.has(selection.id) ? true : conflicts.has(selection.id) ? false : selection.lifecycle.selected;
+          return implied === selection.lifecycle.selected ? selection : { ...selection, lifecycle: selectLifecycle(selection.lifecycle, implied) };
+        }),
+      ])) as Blueprint["selections"];
       return {
         ...blueprint,
         preset: requiredPacks.has(pack.id) ? blueprint.preset : "custom",
-        selections: { ...blueprint.selections, [group]: selections },
+        selections: nextSelections,
         providers:
+          pack.id === "saas.auth-phone" && selected
+            ? { ...blueprint.providers, sms: { ...blueprint.providers.sms, provider: "twilio" } }
+            :
           pack.id === "capability.object-storage"
             ? {
                 ...blueprint.providers,

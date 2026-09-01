@@ -2507,6 +2507,45 @@
       "documentation": [
         "features/auth/MODULE.md"
       ]
+    },
+    {
+      "id": "saas.auth-phone",
+      "kind": "saas",
+      "name": "Phone authentication",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": [
+        "worker",
+        "web",
+        "database"
+      ],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth Phone Number",
+          "url": "https://better-auth.com/docs/plugins/phone-number",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": [
+        "verified phone linking and sign-in"
+      ],
+      "requires": [
+        "capability.twilio-sms"
+      ],
+      "conflicts": [],
+      "performance": [
+        "no phone endpoints, SMS helper or schema when deselected"
+      ],
+      "verification": [
+        "E.164, OTP expiry/attempts, delivery and account linking",
+        "deselection"
+      ],
+      "documentation": [
+        "features/auth/MODULE.md"
+      ]
     }
   ]
 }

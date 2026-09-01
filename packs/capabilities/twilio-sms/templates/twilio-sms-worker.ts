@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import type { Pool } from "pg";
 import { withRequestAuth, type AuthRuntimeEnv } from "../auth-runtime";
 
-type TwilioEnv = AuthRuntimeEnv & {
+export type TwilioSmsEnv = Pick<AuthRuntimeEnv, "TWILIO_API_BASE_URL" | "TWILIO_ACCOUNT_SID" | "TWILIO_API_KEY" | "TWILIO_API_SECRET" | "TWILIO_FROM"> & {
   TWILIO_API_BASE_URL: string;
   TWILIO_ACCOUNT_SID: string;
   TWILIO_API_KEY: string;
@@ -21,7 +21,7 @@ async function recipientHash(value: string) {
 
 export async function sendTwilioSms(
   database: Pool,
-  env: TwilioEnv,
+  env: TwilioSmsEnv,
   input: { to: string; body: string; kind: string; idempotencyKey: string; actorUserId?: string | null },
 ) {
   const to = input.to.trim();
@@ -75,7 +75,7 @@ feature.post("/api/admin/sms/test", (c) => withRequestAuth(c.env, c.executionCtx
   if (!roles.includes("admin")) return c.json({ error: { code: "FORBIDDEN", message: "Admin role required." } }, 403);
   const body = await c.req.json<{ to?: string }>();
   try {
-    const result = await sendTwilioSms(database, c.env as TwilioEnv, {
+    const result = await sendTwilioSms(database, c.env as TwilioSmsEnv, {
       to: String(body.to || ""),
       body: "Starter Twilio SMS delivery is configured.",
       kind: "starter-admin-test",
