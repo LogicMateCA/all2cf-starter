@@ -1916,7 +1916,7 @@
       "id": "saas.auth-multi-session",
       "kind": "saas",
       "name": "Multi-account sessions",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "status": "implemented",
       "delivery": "materializer",
       "targets": [
@@ -1934,9 +1934,8 @@
       ],
       "updatePolicy": "stable-aligned",
       "provides": [
-        "multiple browser accounts",
-        "active-session switching",
-        "device-session revoke"
+        "up to five browser account sessions",
+        "account switching and session removal"
       ],
       "requires": [
         "identity core"
