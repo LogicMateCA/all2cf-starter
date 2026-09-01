@@ -2387,6 +2387,46 @@
       "documentation": [
         "features/auth/MODULE.md"
       ]
+    },
+    {
+      "id": "saas.auth-device-authorization",
+      "kind": "saas",
+      "name": "Device Authorization",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": [
+        "worker",
+        "web",
+        "database"
+      ],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth Device Authorization",
+          "url": "https://better-auth.com/docs/plugins/device-authorization",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": [
+        "RFC 8628 device grant"
+      ],
+      "requires": [
+        "saas.auth-jwt",
+        "saas.auth-oauth-provider"
+      ],
+      "conflicts": [],
+      "performance": [
+        "no device endpoints or schema when deselected"
+      ],
+      "verification": [
+        "code ownership, explicit approval, expiry, polling and OAuth token exchange",
+        "deselection"
+      ],
+      "documentation": [
+        "features/auth/MODULE.md"
+      ]
     }
   ]
 }
