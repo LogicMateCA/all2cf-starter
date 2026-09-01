@@ -1,0 +1,17 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "saas.auth-google-one-tap",
+  "version": "0.1.0",
+  "source": { "name": "Better Auth One Tap", "url": "https://better-auth.com/docs/plugins/one-tap", "revision": "1.7.2", "license": "MIT", "relationship": "tracked-upstream" },
+  "files": [
+    { "source": "templates/one-tap-auth-plugin.ts", "target": "workers/app/features/one-tap-auth-plugin.ts" },
+    { "source": "templates/one-tap-worker.ts", "target": "workers/app/features/one-tap-worker.ts" },
+    { "source": "templates/one-tap-page.tsx", "target": "apps/web/src/components/features/one-tap-page.tsx" },
+    { "source": "templates/one-tap-page.css", "target": "apps/web/src/components/features/one-tap-page.css" }
+  ],
+  "dependencies": [],
+  "routes": [{ "path": "/one-tap", "module": "../components/features/one-tap-page", "export": "GoogleOneTapPage", "workerFirst": false }],
+  "authPlugins": { "server": { "module": "../features/one-tap-auth-plugin", "export": "createOneTapAuthPlugin" } },
+  "workerFeature": { "module": "../features/one-tap-worker", "export": "oneTapFeature" }
+}

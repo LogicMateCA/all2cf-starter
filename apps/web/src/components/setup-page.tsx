@@ -1139,6 +1139,9 @@ export function SetupPage() {
         preset: requiredPacks.has(pack.id) ? blueprint.preset : "custom",
         selections: nextSelections,
         providers:
+          pack.id === "saas.auth-google-one-tap" && selected
+            ? { ...blueprint.providers, socialAuth: [...new Set([...blueprint.providers.socialAuth, "google"])] }
+            :
           pack.id === "saas.auth-phone" && selected
             ? { ...blueprint.providers, sms: { ...blueprint.providers.sms, provider: "twilio" } }
             :

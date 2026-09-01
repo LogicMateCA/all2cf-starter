@@ -2546,6 +2546,43 @@
       "documentation": [
         "features/auth/MODULE.md"
       ]
+    },
+    {
+      "id": "saas.auth-google-one-tap",
+      "kind": "saas",
+      "name": "Google One Tap",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": [
+        "worker",
+        "web"
+      ],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth One Tap",
+          "url": "https://better-auth.com/docs/plugins/one-tap",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": [
+        "explicit Google One Tap sign-in"
+      ],
+      "requires": [
+        "Google social provider"
+      ],
+      "conflicts": [],
+      "performance": [
+        "Google script loads only on the lazy One Tap route"
+      ],
+      "verification": [
+        "credential callback, account choice and deselection"
+      ],
+      "documentation": [
+        "features/auth/MODULE.md"
+      ]
     }
   ]
 }
