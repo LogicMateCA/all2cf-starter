@@ -2390,7 +2390,7 @@ export function SetupPage() {
       message: "Creating the independent project and AI handoff…",
     });
     try {
-      const response = await fetch("/__starter/factory", {
+      const response = await fetch("/__starter/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -2428,7 +2428,7 @@ export function SetupPage() {
       <header className="setup-header">
         <a href="/">{payload.blueprint.project.name}</a>
         <span>
-          {__STARTER_FACTORY_MODE__ ? "Starter Factory" : "Local project setup"}
+          {__STARTER_FACTORY_MODE__ ? "New project setup" : "Local project setup"}
         </span>
         <div className="setup-header-actions">
           <span

@@ -14,7 +14,7 @@ The always-running `starter-dev` container has only project, dependency and shar
 
 Assembly control flow:
 
-`product brief` → source `/factory` → ignored Factory Draft → deterministic source/target materialization → independent product `/setup` + Agent Map + receipt → local verification → Development release → explicit Production release
+`product brief` → canonical `/setup` → ignored Factory Draft → deterministic source/target materialization → independent product `/setup` + Agent Map + receipt → local verification → Development release → explicit Production release
 
 Product type and selected platforms control deployable surfaces before dependency locking and release. Web SaaS retains Marketing, Docs, Web App and Worker API, while Expo/Mobile output is added only when Mobile Web, iOS or Android is explicitly selected. Website/content retains Astro output (and Docs when selected) while pruning Worker, database, Cloudflare runtime and mobile source. Mobile App retains Expo and Worker API, with companion Astro and Web Admin controlled independently. Local `/setup` is tooling and does not imply a consumer Web output.
 
@@ -53,7 +53,7 @@ The permanent Product Shell owns responsive navigation, global search seam, work
 
 ## Configuration and knowledge boundaries
 
-- `/factory` is the canonical source repository's local-only creation UI. It writes an ignored draft and generates a separate Git project without changing source identity. Generated projects retain local-only `/setup`, which writes their reviewed Blueprint/config and refreshes their `/dp`. Neither route mutates Cloudflare or database infrastructure directly; deployed Workers reject `/factory`, `/setup` and `/__starter/*`.
+- `/setup` is the single local configuration route in both the canonical source and generated projects. In canonical source mode it writes an ignored draft and can generate a separate Git project without changing source identity; in a generated project it writes the reviewed Blueprint/config and refreshes `/dp`. It does not mutate Cloudflare or database infrastructure directly; deployed Workers reject `/setup` and `/__starter/*`. Legacy `/factory` requests redirect to `/setup` and are not a product surface.
 - Universal visual intelligence is independently owned by `/opt/1panel/apps/visual`. Starter pins its cross-project contract in `integrations/visual.json`, declares `visual-design` as an external optional plugin, and records the requested state in `blueprint.visualIntegration`. `all2cf-project` does not own design search, Recipes, third-party visual catalogs or Visual MCP operations.
 - The integration fails toward a Starter-owned baseline rather than blocking Factory. Runtime capability discovery is required before any MCP use, and a transport response never proves a profile was materialized. Starter retains Factory request construction, response validation, collision protection and local verification; the generated project owns its `.visual/` archive.
 - PostgreSQL is the only database contract. Product-domain code selects SQL-first or Drizzle; both reuse `pg` and `createDatabasePool`. Hyperdrive and CFPG are transport bindings only, so CFPG never introduces separate queries, migrations, Drizzle schemas or commands.

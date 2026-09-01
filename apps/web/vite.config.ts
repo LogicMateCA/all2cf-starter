@@ -753,7 +753,17 @@ function localSetupApi(): Plugin {
           next: () => void,
         ) => {
           const url = new URL(request.url || "/", "http://starter.local");
-          if (!new Set(["/__starter/setup", "/__starter/provider-test", "/__starter/visual-discovery", "/__starter/factory", "/__starter/update/receipt", "/__starter/update/check", "/__starter/update/status", "/__starter/update/diff", "/__starter/update/update", "/__starter/all2cf/status", "/__starter/all2cf/authorize", "/__starter/all2cf/complete", "/__starter/all2cf/connect", "/__starter/all2cf/disconnect", "/__starter/all2cf/doctor"]).has(url.pathname))
+          if (
+            url.pathname === "/api/public/site-integrations.js" &&
+            request.method === "GET"
+          ) {
+            response.statusCode = 200;
+            response.setHeader("Content-Type", "text/javascript; charset=utf-8");
+            response.setHeader("Cache-Control", "no-store");
+            response.end("// Local Setup has no published site integrations.\n");
+            return;
+          }
+          if (!new Set(["/__starter/setup", "/__starter/provider-test", "/__starter/visual-discovery", "/__starter/generate", "/__starter/update/receipt", "/__starter/update/check", "/__starter/update/status", "/__starter/update/diff", "/__starter/update/update", "/__starter/all2cf/status", "/__starter/all2cf/authorize", "/__starter/all2cf/complete", "/__starter/all2cf/connect", "/__starter/all2cf/disconnect", "/__starter/all2cf/doctor"]).has(url.pathname))
             return next();
           response.setHeader("Content-Type", "application/json; charset=utf-8");
           response.setHeader("Cache-Control", "no-store");
@@ -892,7 +902,7 @@ function localSetupApi(): Plugin {
               response.end(json({ ok: false, error: "Unknown All2CF action." }));
               return;
             }
-            if (url.pathname === "/__starter/factory") {
+            if (url.pathname === "/__starter/generate") {
               if (!starterFactoryMode || request.method !== "POST") {
                 response.statusCode = 405;
                 response.end(json({ error: "Project generation is available only from the canonical Factory." }));
