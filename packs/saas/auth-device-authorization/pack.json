@@ -63,5 +63,6 @@
       "module": "../features/device-auth-client-plugin",
       "export": "createDeviceAuthClientPlugin"
     }
-  }
+  },
+  "requiresPacks": ["saas.auth-jwt", "saas.auth-oauth-provider"]
 }

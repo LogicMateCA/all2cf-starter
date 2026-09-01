@@ -3,23 +3,75 @@
   "schemaVersion": "starter-pack/v1",
   "id": "saas.auth-mcp",
   "version": "0.1.0",
-  "source": { "name": "Better Auth MCP", "url": "https://better-auth.com/docs/plugins/mcp", "revision": "1.7.2", "license": "MIT", "relationship": "tracked-upstream" },
+  "source": {
+    "name": "Better Auth MCP",
+    "url": "https://better-auth.com/docs/plugins/mcp",
+    "revision": "1.7.2",
+    "license": "MIT",
+    "relationship": "tracked-upstream"
+  },
   "files": [
-    { "source": "templates/mcp-auth-plugin.ts", "target": "workers/app/features/mcp-auth-plugin.ts" },
-    { "source": "templates/mcp-auth-client-plugin.ts", "target": "apps/web/src/features/mcp-auth-client-plugin.ts" },
-    { "source": "templates/mcp-worker.ts", "target": "workers/app/features/mcp-worker.ts" },
-    { "source": "templates/mcp-consent-page.tsx", "target": "apps/web/src/components/features/mcp-consent-page.tsx" },
-    { "source": "templates/mcp-consent-page.css", "target": "apps/web/src/components/features/mcp-consent-page.css" },
-    { "source": "templates/0001_mcp_oauth.sql", "target": "db/migrations/1019_mcp_oauth.sql" }
+    {
+      "source": "templates/mcp-auth-plugin.ts",
+      "target": "workers/app/features/mcp-auth-plugin.ts"
+    },
+    {
+      "source": "templates/mcp-auth-client-plugin.ts",
+      "target": "apps/web/src/features/mcp-auth-client-plugin.ts"
+    },
+    {
+      "source": "templates/mcp-worker.ts",
+      "target": "workers/app/features/mcp-worker.ts"
+    },
+    {
+      "source": "templates/mcp-consent-page.tsx",
+      "target": "apps/web/src/components/features/mcp-consent-page.tsx"
+    },
+    {
+      "source": "templates/mcp-consent-page.css",
+      "target": "apps/web/src/components/features/mcp-consent-page.css"
+    },
+    {
+      "source": "templates/0001_mcp_oauth.sql",
+      "target": "db/migrations/1019_mcp_oauth.sql"
+    }
   ],
   "dependencies": [
-    { "packageFile": "workers/app/package.json", "section": "dependencies", "name": "@better-auth/mcp", "version": "1.7.2" },
-    { "packageFile": "apps/web/package.json", "section": "dependencies", "name": "@better-auth/oauth-provider", "version": "1.7.2" }
+    {
+      "packageFile": "workers/app/package.json",
+      "section": "dependencies",
+      "name": "@better-auth/mcp",
+      "version": "1.7.2"
+    },
+    {
+      "packageFile": "apps/web/package.json",
+      "section": "dependencies",
+      "name": "@better-auth/oauth-provider",
+      "version": "1.7.2"
+    }
   ],
-  "routes": [{ "path": "/mcp/consent", "module": "../components/features/mcp-consent-page", "export": "McpConsentPage", "workerFirst": false }],
+  "routes": [
+    {
+      "path": "/mcp/consent",
+      "module": "../components/features/mcp-consent-page",
+      "export": "McpConsentPage",
+      "workerFirst": false
+    }
+  ],
   "authPlugins": {
-    "server": { "module": "../features/mcp-auth-plugin", "export": "createMcpAuthPlugin" },
-    "client": { "module": "../features/mcp-auth-client-plugin", "export": "createMcpAuthClientPlugin" }
+    "server": {
+      "module": "../features/mcp-auth-plugin",
+      "export": "createMcpAuthPlugin"
+    },
+    "client": {
+      "module": "../features/mcp-auth-client-plugin",
+      "export": "createMcpAuthClientPlugin"
+    }
   },
-  "workerFeature": { "module": "../features/mcp-worker", "export": "mcpFeature" }
+  "workerFeature": {
+    "module": "../features/mcp-worker",
+    "export": "mcpFeature"
+  },
+  "requiresPacks": ["saas.auth-jwt"],
+  "conflictsPacks": ["saas.auth-oauth-provider"]
 }

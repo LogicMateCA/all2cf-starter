@@ -31,7 +31,7 @@ export type SelectedAuthPluginInput = {
   twilioFrom?: string;
 };
 
-export const selectedAuthFeatures = {"organizations":true,"stripeBilling":true,"apiKeys":false,"twoFactor":false,"turnstile":false} as const;
+export const selectedAuthFeatures = {"organizations":true,"stripeBilling":true,"apiKeys":false,"twoFactor":false,"turnstile":false,"agentAuth":false} as const;
 
 export function createSelectedAuthPlugins(input: SelectedAuthPluginInput) {
   return [

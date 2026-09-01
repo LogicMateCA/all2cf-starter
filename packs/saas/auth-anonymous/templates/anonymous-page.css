@@ -1,1 +1,33 @@
-.anonymous-auth{min-height:100vh;display:grid;place-items:center;padding:2rem;background:var(--background);color:var(--foreground)}.anonymous-auth section{width:min(100%,34rem);border:1px solid var(--border);border-radius:1rem;padding:2rem;background:var(--card)}.anonymous-auth span{font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted-foreground)}.anonymous-auth h1{margin:.7rem 0;font-size:clamp(2rem,6vw,3.5rem)}.anonymous-auth p{color:var(--muted-foreground);line-height:1.6}.anonymous-auth [role=alert]{color:var(--destructive)}
+.anonymous-auth {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background: var(--background);
+  color: var(--foreground);
+}
+.anonymous-auth section {
+  width: min(100%, 34rem);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 2rem;
+  background: var(--card);
+}
+.anonymous-auth span {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.anonymous-auth h1 {
+  margin: 0.7rem 0;
+  font-size: clamp(2rem, 6vw, 3.5rem);
+}
+.anonymous-auth p {
+  color: var(--muted-foreground);
+  line-height: 1.6;
+}
+.anonymous-auth [role="alert"] {
+  color: var(--destructive);
+}

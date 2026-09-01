@@ -3,7 +3,12 @@ id: better-auth-advanced-packs
 title: Select advanced Better Auth capabilities without changing the default runtime
 status: implemented
 affectedModules: [auth, organizations, setup, materializer]
-docsImpact: [features/auth/MODULE.md, features/organizations/MODULE.md, docs/guides/optional-saas-packs]
+docsImpact:
+  [
+    features/auth/MODULE.md,
+    features/organizations/MODULE.md,
+    docs/guides/optional-saas-packs,
+  ]
 ---
 
 # Outcome
@@ -28,4 +33,3 @@ Setup exposes Better Auth security, passwordless and API identity capabilities u
 # Release
 
 Starter `2.3.0` is not yet released. Enterprise Identity, OAuth/MCP/Agent Auth and the remaining advanced optional login Packs remain in this same release scope.
-

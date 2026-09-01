@@ -1,1 +1,75 @@
-import { useMemo,useState } from "react";import { authClient } from "@/lib/auth-client";import { Button } from "@/components/ui/button";import "./agent-approval-page.css";export function AgentApprovalPage(){const query=useMemo(()=>new URLSearchParams(window.location.search),[]);const agentId=query.get("agent_id")||"";const code=query.get("code")||"";const [busy,setBusy]=useState(false);const [error,setError]=useState("");async function decide(action:"approve"|"deny"){if(!agentId||!code){setError("This approval request is incomplete.");return;}setBusy(true);setError("");const result=await authClient.agent.approveCapability({agent_id:agentId,user_code:code,action,capabilities:["starter.identity.read"],ttl:600});setBusy(false);if(result.error){setError("The request is invalid, expired, or belongs to another user.");return;}window.location.assign("/app");}return <main className="agent-approval"><section><span>Experimental Agent Auth</span><h1>Authorize an AI agent</h1><p>This protocol is experimental. Approve only an agent you initiated. The grant expires after ten minutes and can read only the authorizing account identity.</p><dl><div><dt>Agent</dt><dd>{agentId||"Missing"}</dd></div><div><dt>Capability</dt><dd>starter.identity.read</dd></div><div><dt>Approval code</dt><dd>{code||"Missing"}</dd></div></dl><div><Button variant="outline" disabled={busy} onClick={()=>void decide("deny")}>Deny</Button><Button disabled={busy||!agentId||!code} onClick={()=>void decide("approve")}>Approve for 10 minutes</Button></div>{error?<p role="alert">{error}</p>:null}</section></main>;}
+import { useMemo, useState } from "react";
+import { authClient } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
+import "./agent-approval-page.css";
+export function AgentApprovalPage() {
+  const query = useMemo(() => new URLSearchParams(window.location.search), []);
+  const agentId = query.get("agent_id") || "";
+  const code = query.get("code") || "";
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  async function decide(action: "approve" | "deny") {
+    if (!agentId || !code) {
+      setError("This approval request is incomplete.");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    const result = await authClient.agent.approveCapability({
+      agent_id: agentId,
+      user_code: code,
+      action,
+      capabilities: ["starter.identity.read"],
+      ttl: 600,
+    });
+    setBusy(false);
+    if (result.error) {
+      setError("The request is invalid, expired, or belongs to another user.");
+      return;
+    }
+    window.location.assign("/app");
+  }
+  return (
+    <main className="agent-approval">
+      <section>
+        <span>Experimental Agent Auth</span>
+        <h1>Authorize an AI agent</h1>
+        <p>
+          This protocol is experimental. Approve only an agent you initiated.
+          The grant expires after ten minutes and can read only the authorizing
+          account identity.
+        </p>
+        <dl>
+          <div>
+            <dt>Agent</dt>
+            <dd>{agentId || "Missing"}</dd>
+          </div>
+          <div>
+            <dt>Capability</dt>
+            <dd>starter.identity.read</dd>
+          </div>
+          <div>
+            <dt>Approval code</dt>
+            <dd>{code || "Missing"}</dd>
+          </div>
+        </dl>
+        <div>
+          <Button
+            variant="outline"
+            disabled={busy}
+            onClick={() => void decide("deny")}
+          >
+            Deny
+          </Button>
+          <Button
+            disabled={busy || !agentId || !code}
+            onClick={() => void decide("approve")}
+          >
+            Approve for 10 minutes
+          </Button>
+        </div>
+        {error ? <p role="alert">{error}</p> : null}
+      </section>
+    </main>
+  );
+}

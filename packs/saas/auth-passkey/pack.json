@@ -3,24 +3,71 @@
   "schemaVersion": "starter-pack/v1",
   "id": "saas.auth-passkey",
   "version": "0.1.0",
-  "source": { "name": "Better Auth Passkey", "url": "https://better-auth.com/docs/plugins/passkey", "revision": "1.7.2", "license": "MIT", "relationship": "tracked-upstream" },
+  "source": {
+    "name": "Better Auth Passkey",
+    "url": "https://better-auth.com/docs/plugins/passkey",
+    "revision": "1.7.2",
+    "license": "MIT",
+    "relationship": "tracked-upstream"
+  },
   "files": [
-    { "source": "templates/passkey-auth-plugin.ts", "target": "workers/app/features/passkey-auth-plugin.ts" },
-    { "source": "templates/passkey-auth-client-plugin.ts", "target": "apps/web/src/features/passkey-auth-client-plugin.ts" },
-    { "source": "templates/passkey-page.tsx", "target": "apps/web/src/components/features/passkey-page.tsx" },
-    { "source": "templates/passkey-page.css", "target": "apps/web/src/components/features/passkey-page.css" },
-    { "source": "templates/0001_passkey.sql", "target": "db/migrations/1011_passkey.sql" }
+    {
+      "source": "templates/passkey-auth-plugin.ts",
+      "target": "workers/app/features/passkey-auth-plugin.ts"
+    },
+    {
+      "source": "templates/passkey-auth-client-plugin.ts",
+      "target": "apps/web/src/features/passkey-auth-client-plugin.ts"
+    },
+    {
+      "source": "templates/passkey-page.tsx",
+      "target": "apps/web/src/components/features/passkey-page.tsx"
+    },
+    {
+      "source": "templates/passkey-page.css",
+      "target": "apps/web/src/components/features/passkey-page.css"
+    },
+    {
+      "source": "templates/0001_passkey.sql",
+      "target": "db/migrations/1011_passkey.sql"
+    }
   ],
   "dependencies": [
-    { "packageFile": "workers/app/package.json", "section": "dependencies", "name": "@better-auth/passkey", "version": "1.7.2" },
-    { "packageFile": "apps/web/package.json", "section": "dependencies", "name": "@better-auth/passkey", "version": "1.7.2" }
+    {
+      "packageFile": "workers/app/package.json",
+      "section": "dependencies",
+      "name": "@better-auth/passkey",
+      "version": "1.7.2"
+    },
+    {
+      "packageFile": "apps/web/package.json",
+      "section": "dependencies",
+      "name": "@better-auth/passkey",
+      "version": "1.7.2"
+    }
   ],
   "routes": [
-    { "path": "/passkey", "module": "../components/features/passkey-page", "export": "PasskeySignInPage", "workerFirst": false },
-    { "path": "/app/security/passkeys", "module": "../components/features/passkey-page", "export": "PasskeySettingsPage", "workerFirst": false }
+    {
+      "path": "/passkey",
+      "module": "../components/features/passkey-page",
+      "export": "PasskeySignInPage",
+      "workerFirst": false
+    },
+    {
+      "path": "/app/security/passkeys",
+      "module": "../components/features/passkey-page",
+      "export": "PasskeySettingsPage",
+      "workerFirst": false
+    }
   ],
   "authPlugins": {
-    "server": { "module": "../features/passkey-auth-plugin", "export": "createPasskeyAuthPlugin" },
-    "client": { "module": "../features/passkey-auth-client-plugin", "export": "createPasskeyAuthClientPlugin" }
+    "server": {
+      "module": "../features/passkey-auth-plugin",
+      "export": "createPasskeyAuthPlugin"
+    },
+    "client": {
+      "module": "../features/passkey-auth-client-plugin",
+      "export": "createPasskeyAuthClientPlugin"
+    }
   }
 }

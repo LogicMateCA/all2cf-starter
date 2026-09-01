@@ -1,7 +1,34 @@
 {
-  "$schema": "../../../schemas/starter-pack.schema.json", "schemaVersion": "starter-pack/v1", "id": "saas.auth-i18n", "version": "0.1.0",
-  "source": { "name": "Better Auth i18n", "url": "https://better-auth.com/docs/plugins/i18n", "revision": "1.7.2", "license": "MIT", "relationship": "tracked-upstream" },
-  "files": [{ "source": "templates/i18n-auth-plugin.ts", "target": "workers/app/features/i18n-auth-plugin.ts" }],
-  "dependencies": [{ "packageFile": "workers/app/package.json", "section": "dependencies", "name": "@better-auth/i18n", "version": "1.7.2" }],
-  "routes": [], "authPlugins": { "server": { "module": "../features/i18n-auth-plugin", "export": "createI18nAuthPlugin" } }
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "saas.auth-i18n",
+  "version": "0.1.0",
+  "source": {
+    "name": "Better Auth i18n",
+    "url": "https://better-auth.com/docs/plugins/i18n",
+    "revision": "1.7.2",
+    "license": "MIT",
+    "relationship": "tracked-upstream"
+  },
+  "files": [
+    {
+      "source": "templates/i18n-auth-plugin.ts",
+      "target": "workers/app/features/i18n-auth-plugin.ts"
+    }
+  ],
+  "dependencies": [
+    {
+      "packageFile": "workers/app/package.json",
+      "section": "dependencies",
+      "name": "@better-auth/i18n",
+      "version": "1.7.2"
+    }
+  ],
+  "routes": [],
+  "authPlugins": {
+    "server": {
+      "module": "../features/i18n-auth-plugin",
+      "export": "createI18nAuthPlugin"
+    }
+  }
 }

@@ -1,1 +1,64 @@
-.passkey-entry,.passkey-settings{width:min(100% - 32px,760px);margin:0 auto;padding:48px 0;color:var(--text)}.passkey-entry{min-height:100dvh;display:grid;align-content:center;gap:16px}.passkey-entry h1,.passkey-entry p,.passkey-settings h1,.passkey-settings p{margin:0}.passkey-entry button,.passkey-settings button{min-height:40px;padding:0 14px;border:1px solid var(--border);border-radius:var(--design-radius-sm);color:var(--text);background:var(--surface);font:inherit}.passkey-settings{display:grid;gap:22px}.passkey-settings header,.passkey-settings section{padding:20px;border:1px solid var(--border);border-radius:var(--design-radius-md);background:var(--surface)}.passkey-settings header{display:grid;gap:10px}.passkey-settings ul{list-style:none;padding:0;margin:16px 0 0}.passkey-settings li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-top:1px solid var(--border)}.passkey-settings li div{display:grid;gap:4px}.passkey-settings small{color:var(--muted)}
+.passkey-entry,
+.passkey-settings {
+  width: min(100% - 32px, 760px);
+  margin: 0 auto;
+  padding: 48px 0;
+  color: var(--text);
+}
+.passkey-entry {
+  min-height: 100dvh;
+  display: grid;
+  align-content: center;
+  gap: 16px;
+}
+.passkey-entry h1,
+.passkey-entry p,
+.passkey-settings h1,
+.passkey-settings p {
+  margin: 0;
+}
+.passkey-entry button,
+.passkey-settings button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--design-radius-sm);
+  color: var(--text);
+  background: var(--surface);
+  font: inherit;
+}
+.passkey-settings {
+  display: grid;
+  gap: 22px;
+}
+.passkey-settings header,
+.passkey-settings section {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--design-radius-md);
+  background: var(--surface);
+}
+.passkey-settings header {
+  display: grid;
+  gap: 10px;
+}
+.passkey-settings ul {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+}
+.passkey-settings li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 0;
+  border-top: 1px solid var(--border);
+}
+.passkey-settings li div {
+  display: grid;
+  gap: 4px;
+}
+.passkey-settings small {
+  color: var(--muted);
+}

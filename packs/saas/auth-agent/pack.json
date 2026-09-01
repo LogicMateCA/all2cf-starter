@@ -34,6 +34,10 @@
     {
       "source": "templates/0001_agent_auth.sql",
       "target": "db/migrations/1020_agent_auth.sql"
+    },
+    {
+      "source": "templates/0002_agent_secondary_storage.sql",
+      "target": "db/migrations/1022_agent_secondary_storage.sql"
     }
   ],
   "dependencies": [

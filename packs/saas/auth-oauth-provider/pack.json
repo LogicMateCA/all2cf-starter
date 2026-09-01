@@ -63,5 +63,7 @@
       "module": "../features/oauth-provider-auth-client-plugin",
       "export": "createOAuthProviderAuthClientPlugin"
     }
-  }
+  },
+  "requiresPacks": ["saas.auth-jwt"],
+  "conflictsPacks": ["saas.auth-mcp"]
 }

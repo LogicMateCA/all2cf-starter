@@ -7,13 +7,7 @@
     "tooling": "node-24",
     "deployment": "wrangler"
   },
-  "applications": [
-    "marketing",
-    "web",
-    "worker",
-    "mobile",
-    "docs"
-  ],
+  "applications": ["marketing", "web", "worker", "mobile", "docs"],
   "modules": [
     "assembler",
     "marketing",

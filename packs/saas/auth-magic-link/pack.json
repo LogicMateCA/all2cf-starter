@@ -3,18 +3,52 @@
   "schemaVersion": "starter-pack/v1",
   "id": "saas.auth-magic-link",
   "version": "0.1.0",
-  "source": { "name": "Better Auth Magic Link", "url": "https://better-auth.com/docs/plugins/magic-link", "revision": "1.7.2", "license": "MIT", "relationship": "tracked-upstream" },
+  "source": {
+    "name": "Better Auth Magic Link",
+    "url": "https://better-auth.com/docs/plugins/magic-link",
+    "revision": "1.7.2",
+    "license": "MIT",
+    "relationship": "tracked-upstream"
+  },
   "files": [
-    { "source": "templates/magic-link-auth-plugin.ts", "target": "workers/app/features/magic-link-auth-plugin.ts" },
-    { "source": "templates/magic-link-auth-client-plugin.ts", "target": "apps/web/src/features/magic-link-auth-client-plugin.ts" },
-    { "source": "templates/magic-link-page.tsx", "target": "apps/web/src/components/features/magic-link-page.tsx" },
-    { "source": "templates/magic-link-page.css", "target": "apps/web/src/components/features/magic-link-page.css" },
-    { "source": "templates/0001_magic_link.sql", "target": "db/migrations/1012_magic_link.sql" }
+    {
+      "source": "templates/magic-link-auth-plugin.ts",
+      "target": "workers/app/features/magic-link-auth-plugin.ts"
+    },
+    {
+      "source": "templates/magic-link-auth-client-plugin.ts",
+      "target": "apps/web/src/features/magic-link-auth-client-plugin.ts"
+    },
+    {
+      "source": "templates/magic-link-page.tsx",
+      "target": "apps/web/src/components/features/magic-link-page.tsx"
+    },
+    {
+      "source": "templates/magic-link-page.css",
+      "target": "apps/web/src/components/features/magic-link-page.css"
+    },
+    {
+      "source": "templates/0001_magic_link.sql",
+      "target": "db/migrations/1012_magic_link.sql"
+    }
   ],
   "dependencies": [],
-  "routes": [{ "path": "/magic-link", "module": "../components/features/magic-link-page", "export": "MagicLinkPage", "workerFirst": false }],
+  "routes": [
+    {
+      "path": "/magic-link",
+      "module": "../components/features/magic-link-page",
+      "export": "MagicLinkPage",
+      "workerFirst": false
+    }
+  ],
   "authPlugins": {
-    "server": { "module": "../features/magic-link-auth-plugin", "export": "createMagicLinkAuthPlugin" },
-    "client": { "module": "../features/magic-link-auth-client-plugin", "export": "createMagicLinkAuthClientPlugin" }
+    "server": {
+      "module": "../features/magic-link-auth-plugin",
+      "export": "createMagicLinkAuthPlugin"
+    },
+    "client": {
+      "module": "../features/magic-link-auth-client-plugin",
+      "export": "createMagicLinkAuthClientPlugin"
+    }
   }
 }

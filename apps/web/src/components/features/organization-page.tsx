@@ -36,7 +36,11 @@ type OrganizationTeam = {
   createdAt: string | Date;
 };
 type OrganizationTeamMember = { id: string; userId: string; teamId: string };
-type OrganizationCustomRole = { id: string; role: string; permission: Record<string, string[]> };
+type OrganizationCustomRole = {
+  id: string;
+  role: string;
+  permission: Record<string, string[]>;
+};
 
 export function OrganizationPage() {
   const { data: session, isPending } = authClient.useSession();
@@ -66,7 +70,9 @@ export function OrganizationPage() {
   const [activeTeamId, setActiveTeamId] = useState("");
   const [customRoles, setCustomRoles] = useState<OrganizationCustomRole[]>([]);
   const [customRoleName, setCustomRoleName] = useState("");
-  const [customRoleTemplate, setCustomRoleTemplate] = useState<"viewer" | "editor">("viewer");
+  const [customRoleTemplate, setCustomRoleTemplate] = useState<
+    "viewer" | "editor"
+  >("viewer");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -107,21 +113,27 @@ export function OrganizationPage() {
       setActiveRole("");
       return;
     }
-    const [memberResult, roleResult, teamResult, customRoleResult] = await Promise.all([
-      authClient.organization.listMembers({
-        query: {
-          organizationId,
-          limit: 100,
-          offset: 0,
-          sortBy: "createdAt",
-          sortDirection: "asc",
-        },
-      }),
-      authClient.organization.getActiveMemberRole(),
-      authClient.organization.listTeams({ query: { organizationId } }),
-      authClient.organization.listRoles({ query: { organizationId } }),
-    ]);
-    if (memberResult.error || roleResult.error || teamResult.error || customRoleResult.error) {
+    const [memberResult, roleResult, teamResult, customRoleResult] =
+      await Promise.all([
+        authClient.organization.listMembers({
+          query: {
+            organizationId,
+            limit: 100,
+            offset: 0,
+            sortBy: "createdAt",
+            sortDirection: "asc",
+          },
+        }),
+        authClient.organization.getActiveMemberRole(),
+        authClient.organization.listTeams({ query: { organizationId } }),
+        authClient.organization.listRoles({ query: { organizationId } }),
+      ]);
+    if (
+      memberResult.error ||
+      roleResult.error ||
+      teamResult.error ||
+      customRoleResult.error
+    ) {
       setMessage(
         memberResult.error?.message ||
           roleResult.error?.message ||
@@ -348,27 +360,69 @@ export function OrganizationPage() {
     setBusy(false);
   }
   async function createCustomRole(event: FormEvent) {
-    event.preventDefault(); if (!activeId || !canManage || !customRoleName.trim()) return; setBusy(true);
-    const permission = customRoleTemplate === "editor" ? { project: ["read", "create", "update", "share"], branding: ["read"] } : { project: ["read"], branding: ["read"] };
-    const result = await authClient.organization.createRole({ organizationId: activeId, role: customRoleName.trim().toLowerCase(), permission });
-    if (result.error) setMessage(result.error.message || "Custom role could not be created."); else { setCustomRoleName(""); await refreshOrganization(activeId); } setBusy(false);
+    event.preventDefault();
+    if (!activeId || !canManage || !customRoleName.trim()) return;
+    setBusy(true);
+    const permission =
+      customRoleTemplate === "editor"
+        ? { project: ["read", "create", "update", "share"], branding: ["read"] }
+        : { project: ["read"], branding: ["read"] };
+    const result = await authClient.organization.createRole({
+      organizationId: activeId,
+      role: customRoleName.trim().toLowerCase(),
+      permission,
+    });
+    if (result.error)
+      setMessage(result.error.message || "Custom role could not be created.");
+    else {
+      setCustomRoleName("");
+      await refreshOrganization(activeId);
+    }
+    setBusy(false);
   }
   async function deleteCustomRole(roleName: string) {
-    if (!activeId) return; setBusy(true); const result = await authClient.organization.deleteRole({ organizationId: activeId, roleName });
-    if (result.error) setMessage(result.error.message || "Custom role could not be deleted."); else await refreshOrganization(activeId); setBusy(false);
+    if (!activeId) return;
+    setBusy(true);
+    const result = await authClient.organization.deleteRole({
+      organizationId: activeId,
+      roleName,
+    });
+    if (result.error)
+      setMessage(result.error.message || "Custom role could not be deleted.");
+    else await refreshOrganization(activeId);
+    setBusy(false);
   }
   async function deleteOrganization() {
-    if (!activeId || !activeRole.includes("owner") || deleteConfirmation !== activeSlug) return;
+    if (
+      !activeId ||
+      !activeRole.includes("owner") ||
+      deleteConfirmation !== activeSlug
+    )
+      return;
     setBusy(true);
-    const result = await authClient.organization.delete({ organizationId: activeId });
-    if (result.error) setMessage(result.error.message || "Organization could not be deleted."); else { setMessage("Organization deleted."); await refresh(); }
+    const result = await authClient.organization.delete({
+      organizationId: activeId,
+    });
+    if (result.error)
+      setMessage(result.error.message || "Organization could not be deleted.");
+    else {
+      setMessage("Organization deleted.");
+      await refresh();
+    }
     setBusy(false);
   }
   async function leaveOrganization() {
     if (!activeId || activeRole.includes("owner")) return;
     setBusy(true);
-    const result = await authClient.organization.leave({ organizationId: activeId });
-    if (result.error) setMessage(result.error.message || "Organization could not be left."); else { setMessage("You left the organization."); await refresh(); }
+    const result = await authClient.organization.leave({
+      organizationId: activeId,
+    });
+    if (result.error)
+      setMessage(result.error.message || "Organization could not be left.");
+    else {
+      setMessage("You left the organization.");
+      await refresh();
+    }
     setBusy(false);
   }
 
@@ -535,11 +589,20 @@ export function OrganizationPage() {
             <div className="org-branding-grid">
               <label>
                 Organization name
-                <input required value={activeName} onChange={(event) => setActiveName(event.target.value)} />
+                <input
+                  required
+                  value={activeName}
+                  onChange={(event) => setActiveName(event.target.value)}
+                />
               </label>
               <label>
                 Organization slug
-                <input required pattern="[a-z0-9-]+" value={activeSlug} onChange={(event) => setActiveSlug(event.target.value)} />
+                <input
+                  required
+                  pattern="[a-z0-9-]+"
+                  value={activeSlug}
+                  onChange={(event) => setActiveSlug(event.target.value)}
+                />
               </label>
               <label>
                 Logo URL
@@ -589,14 +652,101 @@ export function OrganizationPage() {
               Custom domains remain unverified until the product domain workflow
               proves DNS ownership.
             </p>
-            {activeRole.includes("owner") ? <div className="org-delete"><label>Type <strong>{activeSlug}</strong> to delete<input value={deleteConfirmation} onChange={(event) => setDeleteConfirmation(event.target.value)} /></label><button type="button" className="org-danger" disabled={busy || deleteConfirmation !== activeSlug} onClick={() => void deleteOrganization()}>Delete organization</button></div> : <button type="button" className="org-danger" disabled={busy} onClick={() => void leaveOrganization()}>Leave organization</button>}
+            {activeRole.includes("owner") ? (
+              <div className="org-delete">
+                <label>
+                  Type <strong>{activeSlug}</strong> to delete
+                  <input
+                    value={deleteConfirmation}
+                    onChange={(event) =>
+                      setDeleteConfirmation(event.target.value)
+                    }
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="org-danger"
+                  disabled={busy || deleteConfirmation !== activeSlug}
+                  onClick={() => void deleteOrganization()}
+                >
+                  Delete organization
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="org-danger"
+                disabled={busy}
+                onClick={() => void leaveOrganization()}
+              >
+                Leave organization
+              </button>
+            )}
           </form>
         ) : null}
         {activeId && canManage ? (
           <section className="org-roles">
-            <div className="org-section-title"><div><h2>Custom roles</h2><small>Organization-scoped roles; they never grant platform Admin.</small></div><span>{customRoles.length}</span></div>
-            <form onSubmit={createCustomRole}><label>Role name<input value={customRoleName} pattern="[a-zA-Z0-9-]+" onChange={(event) => setCustomRoleName(event.target.value)} /></label><label>Permission template<select value={customRoleTemplate} onChange={(event) => setCustomRoleTemplate(event.target.value as "viewer" | "editor")}><option value="viewer">Viewer</option><option value="editor">Project editor</option></select></label><button type="submit" disabled={busy || !customRoleName.trim()}>Create role</button></form>
-            <ul>{customRoles.map((role) => <li key={role.id}><div><strong>{role.role}</strong><small>{Object.entries(role.permission || {}).map(([resource, actions]) => `${resource}: ${actions.join(", ")}`).join(" · ")}</small></div><button type="button" className="org-danger" disabled={busy} onClick={() => void deleteCustomRole(role.role)}>Delete</button></li>)}</ul>
+            <div className="org-section-title">
+              <div>
+                <h2>Custom roles</h2>
+                <small>
+                  Organization-scoped roles; they never grant platform Admin.
+                </small>
+              </div>
+              <span>{customRoles.length}</span>
+            </div>
+            <form onSubmit={createCustomRole}>
+              <label>
+                Role name
+                <input
+                  value={customRoleName}
+                  pattern="[a-zA-Z0-9-]+"
+                  onChange={(event) => setCustomRoleName(event.target.value)}
+                />
+              </label>
+              <label>
+                Permission template
+                <select
+                  value={customRoleTemplate}
+                  onChange={(event) =>
+                    setCustomRoleTemplate(
+                      event.target.value as "viewer" | "editor",
+                    )
+                  }
+                >
+                  <option value="viewer">Viewer</option>
+                  <option value="editor">Project editor</option>
+                </select>
+              </label>
+              <button type="submit" disabled={busy || !customRoleName.trim()}>
+                Create role
+              </button>
+            </form>
+            <ul>
+              {customRoles.map((role) => (
+                <li key={role.id}>
+                  <div>
+                    <strong>{role.role}</strong>
+                    <small>
+                      {Object.entries(role.permission || {})
+                        .map(
+                          ([resource, actions]) =>
+                            `${resource}: ${actions.join(", ")}`,
+                        )
+                        .join(" · ")}
+                    </small>
+                  </div>
+                  <button
+                    type="button"
+                    className="org-danger"
+                    disabled={busy}
+                    onClick={() => void deleteCustomRole(role.role)}
+                  >
+                    Delete
+                  </button>
+                </li>
+              ))}
+            </ul>
           </section>
         ) : null}
         {activeId ? (
@@ -604,14 +754,25 @@ export function OrganizationPage() {
             <div className="org-section-title">
               <div>
                 <h2>Teams</h2>
-                <small>Group organization members without changing platform authority.</small>
+                <small>
+                  Group organization members without changing platform
+                  authority.
+                </small>
               </div>
               <span>{teams.length}</span>
             </div>
             {canManage ? (
               <form onSubmit={createTeam}>
-                <label>New team<input value={teamName} onChange={(event) => setTeamName(event.target.value)} /></label>
-                <button type="submit" disabled={busy || !teamName.trim()}>Create team</button>
+                <label>
+                  New team
+                  <input
+                    value={teamName}
+                    onChange={(event) => setTeamName(event.target.value)}
+                  />
+                </label>
+                <button type="submit" disabled={busy || !teamName.trim()}>
+                  Create team
+                </button>
               </form>
             ) : null}
             <ul>
@@ -622,14 +783,45 @@ export function OrganizationPage() {
                     <small>{(teamMembers[team.id] || []).length} members</small>
                     <div className="org-team-members">
                       {members.map((member) => {
-                        const included = (teamMembers[team.id] || []).some((item) => item.userId === member.userId);
-                        return <button type="button" key={member.userId} disabled={!canManage || busy} aria-pressed={included} onClick={() => void (included ? removeTeamMember(team.id, member.userId) : addTeamMember(team.id, member.userId))}>{member.user.name}</button>;
+                        const included = (teamMembers[team.id] || []).some(
+                          (item) => item.userId === member.userId,
+                        );
+                        return (
+                          <button
+                            type="button"
+                            key={member.userId}
+                            disabled={!canManage || busy}
+                            aria-pressed={included}
+                            onClick={() =>
+                              void (included
+                                ? removeTeamMember(team.id, member.userId)
+                                : addTeamMember(team.id, member.userId))
+                            }
+                          >
+                            {member.user.name}
+                          </button>
+                        );
                       })}
                     </div>
                   </div>
                   <div className="org-member-actions">
-                    <button type="button" aria-pressed={activeTeamId === team.id} onClick={() => void useTeam(team.id)}>{activeTeamId === team.id ? "Active" : "Use team"}</button>
-                    {canManage ? <button type="button" className="org-danger" disabled={busy || teams.length <= 1} onClick={() => void removeTeam(team.id)}>Remove</button> : null}
+                    <button
+                      type="button"
+                      aria-pressed={activeTeamId === team.id}
+                      onClick={() => void useTeam(team.id)}
+                    >
+                      {activeTeamId === team.id ? "Active" : "Use team"}
+                    </button>
+                    {canManage ? (
+                      <button
+                        type="button"
+                        className="org-danger"
+                        disabled={busy || teams.length <= 1}
+                        onClick={() => void removeTeam(team.id)}
+                      >
+                        Remove
+                      </button>
+                    ) : null}
                   </div>
                 </li>
               ))}
@@ -759,8 +951,12 @@ export function OrganizationInvitationPage() {
     else window.location.replace("/app/team");
   }
   async function reject() {
-    const result = await authClient.organization.rejectInvitation({ invitationId });
-    if (result.error) setMessage(result.error.message || "Invitation could not be rejected."); else window.location.replace("/app");
+    const result = await authClient.organization.rejectInvitation({
+      invitationId,
+    });
+    if (result.error)
+      setMessage(result.error.message || "Invitation could not be rejected.");
+    else window.location.replace("/app");
   }
   if (isPending || !session?.user)
     return <main className="org-loading">Loading invitation…</main>;
@@ -779,7 +975,14 @@ export function OrganizationInvitationPage() {
       >
         Accept invitation
       </button>
-      <button type="button" className="org-danger" disabled={!invitationId} onClick={() => void reject()}>Reject invitation</button>
+      <button
+        type="button"
+        className="org-danger"
+        disabled={!invitationId}
+        onClick={() => void reject()}
+      >
+        Reject invitation
+      </button>
       {message ? <p role="alert">{message}</p> : null}
     </main>
   );

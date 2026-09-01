@@ -3,11 +3,19 @@ import { expo } from "@better-auth/expo";
 import { createAuthMiddleware, isAPIError } from "better-auth/api";
 import { admin, emailOTP } from "better-auth/plugins";
 import type { Pool } from "pg";
-import { createSelectedAuthPlugins } from "./generated/auth-plugins";
+import {
+  createSelectedAuthPlugins,
+  selectedAuthFeatures,
+} from "./generated/auth-plugins";
 import { generateAppleClientSecret } from "../../scripts/lib/apple-oauth.mjs";
 
 export type AuthEmail = {
-  kind: "email-verification" | "password-reset" | "email-otp" | "organization-invitation" | "magic-link";
+  kind:
+    | "email-verification"
+    | "password-reset"
+    | "email-otp"
+    | "organization-invitation"
+    | "magic-link";
   to: string;
   subject: string;
   text: string;
@@ -85,11 +93,72 @@ function authOtpHtml(appName: string, otp: string) {
   return `<!doctype html><html><body style="margin:0;background:#f4f7fb;font-family:Arial,sans-serif;color:#111827"><div style="max-width:560px;margin:40px auto;background:#fff;border:1px solid #dbe3ee;border-radius:16px;padding:32px"><h1 style="font-size:24px;margin:0 0 14px">Confirm your email</h1><p style="line-height:1.65;color:#475569">Enter this code in ${escapeHtml(appName)} to confirm that this email belongs to you.</p><div style="margin:24px 0;border:2px solid #172033;border-radius:14px;background:#f8fafc;padding:22px;text-align:center;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:38px;font-weight:800;letter-spacing:10px">${escapeHtml(otp)}</div><p style="color:#64748b;font-size:13px">This code expires in 10 minutes. If you did not request it, you can ignore this email.</p></div></body></html>`;
 }
 
+function postgresSecondaryStorage(database: Pool) {
+  return {
+    async get(key: string) {
+      const result = await database.query<{ value: string }>(
+        "select value from app_auth_secondary_store where key = $1 and (expires_at is null or expires_at > current_timestamp)",
+        [key],
+      );
+      if (!result.rows[0])
+        await database.query(
+          "delete from app_auth_secondary_store where key = $1 and expires_at <= current_timestamp",
+          [key],
+        );
+      return result.rows[0]?.value ?? null;
+    },
+    async getAndDelete(key: string) {
+      const result = await database.query<{
+        value: string;
+        expires_at: Date | null;
+      }>(
+        "delete from app_auth_secondary_store where key = $1 returning value, expires_at",
+        [key],
+      );
+      const row = result.rows[0];
+      return row && (!row.expires_at || row.expires_at > new Date())
+        ? row.value
+        : null;
+    },
+    async increment(key: string, ttl: number) {
+      const result = await database.query<{ value: string }>(
+        `insert into app_auth_secondary_store (key, value, expires_at, updated_at)
+         values ($1, '1', current_timestamp + make_interval(secs => $2::int), current_timestamp)
+         on conflict (key) do update set
+           value = case when app_auth_secondary_store.expires_at <= current_timestamp then '1' else (app_auth_secondary_store.value::bigint + 1)::text end,
+           expires_at = case when app_auth_secondary_store.expires_at <= current_timestamp then excluded.expires_at else app_auth_secondary_store.expires_at end,
+           updated_at = current_timestamp
+         returning value`,
+        [key, ttl],
+      );
+      return Number(result.rows[0]?.value || 1);
+    },
+    async set(key: string, value: string, ttl?: number) {
+      await database.query(
+        "insert into app_auth_secondary_store (key, value, expires_at, updated_at) values ($1, $2, case when $3::int is null then null else current_timestamp + make_interval(secs => $3::int) end, current_timestamp) on conflict (key) do update set value = excluded.value, expires_at = excluded.expires_at, updated_at = current_timestamp",
+        [key, value, ttl ?? null],
+      );
+    },
+    async delete(key: string) {
+      await database.query(
+        "delete from app_auth_secondary_store where key = $1",
+        [key],
+      );
+    },
+  };
+}
+
 export function createStarterAuth(input: StarterAuthInput) {
   const secure = input.baseURL.startsWith("https://");
   const selectedSocialProviders = new Set(input.socialProviders);
-  const googleReady = selectedSocialProviders.has("google") && input.googleClientId && input.googleClientSecret;
-  const githubReady = selectedSocialProviders.has("github") && input.githubClientId && input.githubClientSecret;
+  const googleReady =
+    selectedSocialProviders.has("google") &&
+    input.googleClientId &&
+    input.googleClientSecret;
+  const githubReady =
+    selectedSocialProviders.has("github") &&
+    input.githubClientId &&
+    input.githubClientSecret;
   const appleReady =
     selectedSocialProviders.has("apple") &&
     input.appleClientId &&
@@ -97,10 +166,22 @@ export function createStarterAuth(input: StarterAuthInput) {
     input.appleKeyId &&
     input.applePrivateKeyBase64 &&
     input.appleAppBundleIdentifier;
-  const microsoftReady = selectedSocialProviders.has("microsoft") && input.microsoftClientId && input.microsoftClientSecret;
-  const discordReady = selectedSocialProviders.has("discord") && input.discordClientId && input.discordClientSecret;
-  const facebookReady = selectedSocialProviders.has("facebook") && input.facebookClientId && input.facebookClientSecret;
-  const linkedinReady = selectedSocialProviders.has("linkedin") && input.linkedinClientId && input.linkedinClientSecret;
+  const microsoftReady =
+    selectedSocialProviders.has("microsoft") &&
+    input.microsoftClientId &&
+    input.microsoftClientSecret;
+  const discordReady =
+    selectedSocialProviders.has("discord") &&
+    input.discordClientId &&
+    input.discordClientSecret;
+  const facebookReady =
+    selectedSocialProviders.has("facebook") &&
+    input.facebookClientId &&
+    input.facebookClientSecret;
+  const linkedinReady =
+    selectedSocialProviders.has("linkedin") &&
+    input.linkedinClientId &&
+    input.linkedinClientSecret;
   const cookiePrefix =
     input.appName
       .toLowerCase()
@@ -115,7 +196,9 @@ export function createStarterAuth(input: StarterAuthInput) {
     trustedOrigins: [
       input.baseURL,
       ...input.mobileSchemes,
-      ...(selectedSocialProviders.has("apple") ? ["https://appleid.apple.com"] : []),
+      ...(selectedSocialProviders.has("apple")
+        ? ["https://appleid.apple.com"]
+        : []),
     ],
     hooks: {
       after: createAuthMiddleware(async (context) => {
@@ -276,6 +359,9 @@ export function createStarterAuth(input: StarterAuthInput) {
     ],
     trustHost: false,
     database: input.database,
+    secondaryStorage: selectedAuthFeatures.agentAuth
+      ? postgresSecondaryStorage(input.database)
+      : undefined,
     user: {
       modelName: "app_user",
       fields: {
@@ -340,10 +426,21 @@ export function createStarterAuth(input: StarterAuthInput) {
     },
     socialProviders: {
       ...(googleReady
-        ? { google: { clientId: input.googleClientId!, clientSecret: input.googleClientSecret! } }
+        ? {
+            google: {
+              clientId: input.googleClientId!,
+              clientSecret: input.googleClientSecret!,
+            },
+          }
         : {}),
       ...(githubReady
-        ? { github: { clientId: input.githubClientId!, clientSecret: input.githubClientSecret!, scope: ["user:email"] } }
+        ? {
+            github: {
+              clientId: input.githubClientId!,
+              clientSecret: input.githubClientSecret!,
+              scope: ["user:email"],
+            },
+          }
         : {}),
       ...(appleReady
         ? {
@@ -359,10 +456,38 @@ export function createStarterAuth(input: StarterAuthInput) {
             }),
           }
         : {}),
-      ...(microsoftReady ? { microsoft: { clientId: input.microsoftClientId!, clientSecret: input.microsoftClientSecret! } } : {}),
-      ...(discordReady ? { discord: { clientId: input.discordClientId!, clientSecret: input.discordClientSecret! } } : {}),
-      ...(facebookReady ? { facebook: { clientId: input.facebookClientId!, clientSecret: input.facebookClientSecret! } } : {}),
-      ...(linkedinReady ? { linkedin: { clientId: input.linkedinClientId!, clientSecret: input.linkedinClientSecret! } } : {}),
+      ...(microsoftReady
+        ? {
+            microsoft: {
+              clientId: input.microsoftClientId!,
+              clientSecret: input.microsoftClientSecret!,
+            },
+          }
+        : {}),
+      ...(discordReady
+        ? {
+            discord: {
+              clientId: input.discordClientId!,
+              clientSecret: input.discordClientSecret!,
+            },
+          }
+        : {}),
+      ...(facebookReady
+        ? {
+            facebook: {
+              clientId: input.facebookClientId!,
+              clientSecret: input.facebookClientSecret!,
+            },
+          }
+        : {}),
+      ...(linkedinReady
+        ? {
+            linkedin: {
+              clientId: input.linkedinClientId!,
+              clientSecret: input.linkedinClientSecret!,
+            },
+          }
+        : {}),
     },
     emailAndPassword: {
       enabled: true,

@@ -1,2 +1,4 @@
 import { ssoClient } from "@better-auth/sso/client";
-export function createSsoAuthClientPlugin() { return ssoClient(); }
+export function createSsoAuthClientPlugin() {
+  return ssoClient();
+}

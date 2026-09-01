@@ -1,2 +1,4 @@
 import { jwtClient } from "better-auth/client/plugins";
-export function createJwtAuthClientPlugin() { return jwtClient(); }
+export function createJwtAuthClientPlugin() {
+  return jwtClient();
+}

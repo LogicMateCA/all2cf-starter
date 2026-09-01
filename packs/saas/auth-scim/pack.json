@@ -48,8 +48,6 @@
     "export": "scimFeature"
   },
   "cloudflare": {
-    "requiredSecrets": [
-      "SCIM_CONNECTIONS_JSON"
-    ]
+    "requiredSecrets": ["SCIM_CONNECTIONS_JSON"]
   }
 }

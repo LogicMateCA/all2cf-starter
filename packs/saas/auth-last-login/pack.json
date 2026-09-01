@@ -3,16 +3,37 @@
   "schemaVersion": "starter-pack/v1",
   "id": "saas.auth-last-login",
   "version": "0.1.0",
-  "source": { "name": "Better Auth Last Login Method", "url": "https://better-auth.com/docs/plugins/last-login-method", "revision": "1.7.2", "license": "MIT", "relationship": "tracked-upstream" },
+  "source": {
+    "name": "Better Auth Last Login Method",
+    "url": "https://better-auth.com/docs/plugins/last-login-method",
+    "revision": "1.7.2",
+    "license": "MIT",
+    "relationship": "tracked-upstream"
+  },
   "files": [
-    { "source": "templates/last-login-auth-plugin.ts", "target": "workers/app/features/last-login-auth-plugin.ts" },
-    { "source": "templates/last-login-auth-client-plugin.ts", "target": "apps/web/src/features/last-login-auth-client-plugin.ts" },
-    { "source": "templates/0001_last_login_method.sql", "target": "db/migrations/1010_last_login_method.sql" }
+    {
+      "source": "templates/last-login-auth-plugin.ts",
+      "target": "workers/app/features/last-login-auth-plugin.ts"
+    },
+    {
+      "source": "templates/last-login-auth-client-plugin.ts",
+      "target": "apps/web/src/features/last-login-auth-client-plugin.ts"
+    },
+    {
+      "source": "templates/0001_last_login_method.sql",
+      "target": "db/migrations/1010_last_login_method.sql"
+    }
   ],
   "dependencies": [],
   "routes": [],
   "authPlugins": {
-    "server": { "module": "../features/last-login-auth-plugin", "export": "createLastLoginAuthPlugin" },
-    "client": { "module": "../features/last-login-auth-client-plugin", "export": "createLastLoginAuthClientPlugin" }
+    "server": {
+      "module": "../features/last-login-auth-plugin",
+      "export": "createLastLoginAuthPlugin"
+    },
+    "client": {
+      "module": "../features/last-login-auth-client-plugin",
+      "export": "createLastLoginAuthClientPlugin"
+    }
   }
 }

@@ -1,42 +1,112 @@
 import { organization } from "better-auth/plugins";
 import { createAccessControl } from "better-auth/plugins/access";
-import { adminAc, defaultStatements, memberAc, ownerAc } from "better-auth/plugins/organization/access";
+import {
+  adminAc,
+  defaultStatements,
+  memberAc,
+  ownerAc,
+} from "better-auth/plugins/organization/access";
 import type { SelectedAuthPluginInput } from "../generated/auth-plugins";
 
 type SelectedFeatures = { organizations: boolean; stripeBilling: boolean };
 
-const access = createAccessControl({ ...defaultStatements, project: ["create", "read", "update", "delete", "share"], branding: ["read", "update"], apiKey: ["create", "read", "update", "delete"] } as const);
-const owner = access.newRole({ ...ownerAc.statements, project: ["create", "read", "update", "delete", "share"], branding: ["read", "update"], apiKey: ["create", "read", "update", "delete"] });
-const admin = access.newRole({ ...adminAc.statements, project: ["create", "read", "update", "share"], branding: ["read", "update"], apiKey: ["create", "read", "update", "delete"] });
-const member = access.newRole({ ...memberAc.statements, project: ["read"], branding: ["read"], apiKey: ["read"] });
+const access = createAccessControl({
+  ...defaultStatements,
+  project: ["create", "read", "update", "delete", "share"],
+  branding: ["read", "update"],
+  apiKey: ["create", "read", "update", "delete"],
+} as const);
+const owner = access.newRole({
+  ...ownerAc.statements,
+  project: ["create", "read", "update", "delete", "share"],
+  branding: ["read", "update"],
+  apiKey: ["create", "read", "update", "delete"],
+});
+const admin = access.newRole({
+  ...adminAc.statements,
+  project: ["create", "read", "update", "share"],
+  branding: ["read", "update"],
+  apiKey: ["create", "read", "update", "delete"],
+});
+const member = access.newRole({
+  ...memberAc.statements,
+  project: ["read"],
+  branding: ["read"],
+  apiKey: ["read"],
+});
 
 function escapeHtml(value: string) {
-  return value.replace(/[&<>"']/gu, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character] || character);
+  return value.replace(
+    /[&<>"']/gu,
+    (character) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        character
+      ] || character,
+  );
 }
 function branding(metadata: unknown) {
-  if (metadata && typeof metadata === "object") return metadata as { brandColor?: string; emailFromName?: string; supportEmail?: string };
-  if (typeof metadata === "string") try { return JSON.parse(metadata) as { brandColor?: string; emailFromName?: string; supportEmail?: string }; } catch { return {}; }
+  if (metadata && typeof metadata === "object")
+    return metadata as {
+      brandColor?: string;
+      emailFromName?: string;
+      supportEmail?: string;
+    };
+  if (typeof metadata === "string")
+    try {
+      return JSON.parse(metadata) as {
+        brandColor?: string;
+        emailFromName?: string;
+        supportEmail?: string;
+      };
+    } catch {
+      return {};
+    }
   return {};
 }
 
-export function createOrganizationAuthPlugin(input: SelectedAuthPluginInput, _features: SelectedFeatures) {
+export function createOrganizationAuthPlugin(
+  input: SelectedAuthPluginInput,
+  _features: SelectedFeatures,
+) {
   const planFor = async (referenceId: string) => {
-    const result = await input.database.query<{ plan: string }>(`select plan from app_subscription where reference_id=$1 and status in ('active','trialing') order by case when status='active' then 0 else 1 end limit 1`, [referenceId]).catch(() => ({ rows: [] as { plan: string }[] }));
+    const result = await input.database
+      .query<{ plan: string }>(
+        `select plan from app_subscription where reference_id=$1 and status in ('active','trialing') order by case when status='active' then 0 else 1 end limit 1`,
+        [referenceId],
+      )
+      .catch(() => ({ rows: [] as { plan: string }[] }));
     return result.rows[0]?.plan || "free";
   };
-  const notify = async (userId: string, title: string, body: string, organizationId: string) => {
+  const notify = async (
+    userId: string,
+    title: string,
+    body: string,
+    organizationId: string,
+  ) => {
     await input.database.query(
       `insert into app_notification (id, recipient_user_id, category, title, body, deep_link)
        values ($1, $2, 'organization', $3, $4, $5)`,
-      [crypto.randomUUID(), userId, title, body, `/app/team?organization=${encodeURIComponent(organizationId)}`],
+      [
+        crypto.randomUUID(),
+        userId,
+        title,
+        body,
+        `/app/team?organization=${encodeURIComponent(organizationId)}`,
+      ],
     );
   };
-  const notifyEmailOwner = async (email: string, title: string, body: string, organizationId: string) => {
+  const notifyEmailOwner = async (
+    email: string,
+    title: string,
+    body: string,
+    organizationId: string,
+  ) => {
     const user = await input.database.query<{ id: string }>(
       "select id from app_user where lower(email) = lower($1) and email_verified = true limit 1",
       [email],
     );
-    if (user.rows[0]?.id) await notify(user.rows[0].id, title, body, organizationId);
+    if (user.rows[0]?.id)
+      await notify(user.rows[0].id, title, body, organizationId);
   };
   return organization({
     ac: access,
@@ -45,16 +115,22 @@ export function createOrganizationAuthPlugin(input: SelectedAuthPluginInput, _fe
     allowUserToCreateOrganization: true,
     organizationLimit: async (user) => {
       if ((await planFor(user.id)) === "pro") return false;
-      const result = await input.database.query<{ count: number }>(`select count(*)::int count from app_organization_member where user_id=$1 and role like '%owner%'`, [user.id]);
+      const result = await input.database.query<{ count: number }>(
+        `select count(*)::int count from app_organization_member where user_id=$1 and role like '%owner%'`,
+        [user.id],
+      );
       return Number(result.rows[0]?.count || 0) >= 3;
     },
-    membershipLimit: async (_user, organization) => (await planFor(organization.id)) === "pro" ? 100 : 10,
+    membershipLimit: async (_user, organization) =>
+      (await planFor(organization.id)) === "pro" ? 100 : 10,
     invitationLimit: 100,
     teams: {
       enabled: true,
       allowRemovingAllTeams: false,
-      maximumTeams: async ({ organizationId }) => (await planFor(organizationId)) === "pro" ? 20 : 3,
-      maximumMembersPerTeam: async ({ organizationId }) => (await planFor(organizationId)) === "pro" ? 50 : 10,
+      maximumTeams: async ({ organizationId }) =>
+        (await planFor(organizationId)) === "pro" ? 20 : 3,
+      maximumMembersPerTeam: async ({ organizationId }) =>
+        (await planFor(organizationId)) === "pro" ? 50 : 10,
     },
     invitationExpiresIn: 60 * 60 * 48,
     cancelPendingInvitationsOnReInvite: true,
@@ -68,7 +144,12 @@ export function createOrganizationAuthPlugin(input: SelectedAuthPluginInput, _fe
           organization.id,
         );
       },
-      async afterUpdateMemberRole({ member, previousRole, user, organization }) {
+      async afterUpdateMemberRole({
+        member,
+        previousRole,
+        user,
+        organization,
+      }) {
         await notify(
           user.id,
           "Organization role changed",
@@ -114,7 +195,9 @@ export function createOrganizationAuthPlugin(input: SelectedAuthPluginInput, _fe
       const organizationName = data.organization.name;
       const inviterName = data.inviter.user.name || data.inviter.user.email;
       const brand = branding(data.organization.metadata);
-      const brandColor = /^#[0-9a-f]{6}$/iu.test(brand.brandColor || "") ? brand.brandColor! : "#172033";
+      const brandColor = /^#[0-9a-f]{6}$/iu.test(brand.brandColor || "")
+        ? brand.brandColor!
+        : "#172033";
       const senderName = brand.emailFromName?.trim() || organizationName;
       await input.enqueueEmail({
         kind: "organization-invitation",
@@ -126,13 +209,60 @@ export function createOrganizationAuthPlugin(input: SelectedAuthPluginInput, _fe
       });
     },
     schema: {
-      session: { fields: { activeOrganizationId: "active_organization_id", activeTeamId: "active_team_id" } },
-      organization: { modelName: "app_organization", fields: { createdAt: "created_at" } },
-      member: { modelName: "app_organization_member", fields: { organizationId: "organization_id", userId: "user_id", createdAt: "created_at" } },
-      invitation: { modelName: "app_organization_invitation", fields: { organizationId: "organization_id", teamId: "team_id", inviterId: "inviter_id", expiresAt: "expires_at", createdAt: "created_at" } },
-      team: { modelName: "app_team", fields: { memberCount: "member_count", organizationId: "organization_id", createdAt: "created_at", updatedAt: "updated_at" } },
-      teamMember: { modelName: "app_team_member", fields: { teamId: "team_id", userId: "user_id", membershipKey: "membership_key", createdAt: "created_at" } },
-      organizationRole: { modelName: "app_organization_role", fields: { organizationId: "organization_id", createdAt: "created_at", updatedAt: "updated_at" } },
+      session: {
+        fields: {
+          activeOrganizationId: "active_organization_id",
+          activeTeamId: "active_team_id",
+        },
+      },
+      organization: {
+        modelName: "app_organization",
+        fields: { createdAt: "created_at" },
+      },
+      member: {
+        modelName: "app_organization_member",
+        fields: {
+          organizationId: "organization_id",
+          userId: "user_id",
+          createdAt: "created_at",
+        },
+      },
+      invitation: {
+        modelName: "app_organization_invitation",
+        fields: {
+          organizationId: "organization_id",
+          teamId: "team_id",
+          inviterId: "inviter_id",
+          expiresAt: "expires_at",
+          createdAt: "created_at",
+        },
+      },
+      team: {
+        modelName: "app_team",
+        fields: {
+          memberCount: "member_count",
+          organizationId: "organization_id",
+          createdAt: "created_at",
+          updatedAt: "updated_at",
+        },
+      },
+      teamMember: {
+        modelName: "app_team_member",
+        fields: {
+          teamId: "team_id",
+          userId: "user_id",
+          membershipKey: "membership_key",
+          createdAt: "created_at",
+        },
+      },
+      organizationRole: {
+        modelName: "app_organization_role",
+        fields: {
+          organizationId: "organization_id",
+          createdAt: "created_at",
+          updatedAt: "updated_at",
+        },
+      },
     },
   });
 }

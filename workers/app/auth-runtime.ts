@@ -1,5 +1,9 @@
 import { Pool } from "pg";
-import { createStarterAuth, type AuthEmail, type StarterAuth } from "./auth-config";
+import {
+  createStarterAuth,
+  type AuthEmail,
+  type StarterAuth,
+} from "./auth-config";
 import { AuthEmailProviderError, sendAuthEmail } from "./auth-email-provider";
 import { selectedSocialProviders } from "../../scripts/lib/social-providers.mjs";
 import { createDatabasePool } from "./database-runtime";
@@ -111,26 +115,72 @@ export type AuthRuntimeEnv = {
 type RequestExecutionContext = Pick<ExecutionContext, "waitUntil">;
 
 function mobileSchemes(env: AuthRuntimeEnv) {
-  return env.MOBILE_DEEP_LINK_SCHEMES.split(",").map((value) => value.trim()).filter(Boolean);
+  return env.MOBILE_DEEP_LINK_SCHEMES.split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
 }
 
-export async function withRequestAuth<T>(env: AuthRuntimeEnv, ctx: RequestExecutionContext, operation: (auth: StarterAuth, database: Pool) => Promise<T>): Promise<T> {
+export async function withRequestAuth<T>(
+  env: AuthRuntimeEnv,
+  ctx: RequestExecutionContext,
+  operation: (auth: StarterAuth, database: Pool) => Promise<T>,
+): Promise<T> {
   const pool = createDatabasePool(env, `${env.SERVICE_NAME}-auth`);
   const enqueueEmail = async (email: AuthEmail) => {
     const id = crypto.randomUUID();
-    const provider = String(env.AUTH_EMAIL_PROVIDER || "cfsend").trim().toLowerCase();
+    const provider = String(env.AUTH_EMAIL_PROVIDER || "cfsend")
+      .trim()
+      .toLowerCase();
     await pool.query(
       `insert into app_auth_email_outbox (id, kind, recipient, subject, text_body, action_url, delivery_mode, status, created_at)
        values ($1, $2, $3, $4, $5, $6, $7, 'pending', now())`,
-      [id, email.kind, email.to, email.subject, email.text, email.url, provider],
+      [
+        id,
+        email.kind,
+        email.to,
+        email.subject,
+        email.text,
+        email.url,
+        provider,
+      ],
     );
-    await pool.query("update app_auth_email_outbox set status = 'sending' where id = $1", [id]);
+    await pool.query(
+      "update app_auth_email_outbox set status = 'sending' where id = $1",
+      [id],
+    );
     try {
-      const result = await sendAuthEmail(env, { id, to: email.to, subject: email.subject, text: email.text, html: email.html });
-      await pool.query("update app_auth_email_outbox set status = 'sent', attempt_count = $2, provider_message_id = $3, failure_code = null, last_error = null, sent_at = now() where id = $1", [id, result.attempts, result.providerMessageId]);
+      const result = await sendAuthEmail(env, {
+        id,
+        to: email.to,
+        subject: email.subject,
+        text: email.text,
+        html: email.html,
+      });
+      await pool.query(
+        "update app_auth_email_outbox set status = 'sent', attempt_count = $2, provider_message_id = $3, failure_code = null, last_error = null, sent_at = now() where id = $1",
+        [id, result.attempts, result.providerMessageId],
+      );
     } catch (error) {
-      const providerError = error instanceof AuthEmailProviderError ? error : new AuthEmailProviderError("Authentication email delivery failed", { code: "provider_unknown_error", retryable: false, attempts: 1, cause: error });
-      await pool.query("update app_auth_email_outbox set status = 'failed', attempt_count = $2, failure_code = $3, last_error = $4 where id = $1", [id, providerError.attempts, providerError.code, providerError.message.slice(0, 500)]).catch(() => undefined);
+      const providerError =
+        error instanceof AuthEmailProviderError
+          ? error
+          : new AuthEmailProviderError("Authentication email delivery failed", {
+              code: "provider_unknown_error",
+              retryable: false,
+              attempts: 1,
+              cause: error,
+            });
+      await pool
+        .query(
+          "update app_auth_email_outbox set status = 'failed', attempt_count = $2, failure_code = $3, last_error = $4 where id = $1",
+          [
+            id,
+            providerError.attempts,
+            providerError.code,
+            providerError.message.slice(0, 500),
+          ],
+        )
+        .catch(() => undefined);
       throw providerError;
     }
   };

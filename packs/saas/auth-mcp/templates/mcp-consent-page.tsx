@@ -1,1 +1,67 @@
-import { useEffect,useMemo,useState } from "react";import { authClient } from "@/lib/auth-client";import { Button } from "@/components/ui/button";import "./mcp-consent-page.css";type Client={client_name?:string;client_id?:string};export function McpConsentPage(){const query=useMemo(()=>new URLSearchParams(window.location.search),[]);const clientId=query.get("client_id")||"";const scopes=(query.get("scope")||"").split(" ").filter(Boolean);const [client,setClient]=useState<Client|null>(null);const [error,setError]=useState("");const [busy,setBusy]=useState(false);useEffect(()=>{if(!clientId){setError("Missing MCP client ID.");return;}void authClient.oauth2.publicClient({query:{client_id:clientId}}).then((result)=>result.error?setError("The MCP client could not be verified."):setClient(result.data as Client));},[clientId]);async function decide(accept:boolean){setBusy(true);const result=await authClient.oauth2.consent({accept,scope:scopes.join(" ")});if(result.error){setError("The authorization decision failed.");setBusy(false);}}return <main className="mcp-consent"><section><span>MCP authorization</span><h1>{client?.client_name||"Connect an MCP client"}</h1><p>Allow this verified client to use only the listed scopes. Project source and unrelated account data are not exposed.</p><ul>{scopes.map((scope)=><li key={scope}>{scope}</li>)}</ul><div><Button variant="outline" disabled={busy||!client} onClick={()=>void decide(false)}>Deny</Button><Button disabled={busy||!client} onClick={()=>void decide(true)}>Allow MCP access</Button></div>{error?<p role="alert">{error}</p>:null}</section></main>;}
+import { useEffect, useMemo, useState } from "react";
+import { authClient } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
+import "./mcp-consent-page.css";
+type Client = { client_name?: string; client_id?: string };
+export function McpConsentPage() {
+  const query = useMemo(() => new URLSearchParams(window.location.search), []);
+  const clientId = query.get("client_id") || "";
+  const scopes = (query.get("scope") || "").split(" ").filter(Boolean);
+  const [client, setClient] = useState<Client | null>(null);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    if (!clientId) {
+      setError("Missing MCP client ID.");
+      return;
+    }
+    void authClient.oauth2
+      .publicClient({ query: { client_id: clientId } })
+      .then((result) =>
+        result.error
+          ? setError("The MCP client could not be verified.")
+          : setClient(result.data as Client),
+      );
+  }, [clientId]);
+  async function decide(accept: boolean) {
+    setBusy(true);
+    const result = await authClient.oauth2.consent({
+      accept,
+      scope: scopes.join(" "),
+    });
+    if (result.error) {
+      setError("The authorization decision failed.");
+      setBusy(false);
+    }
+  }
+  return (
+    <main className="mcp-consent">
+      <section>
+        <span>MCP authorization</span>
+        <h1>{client?.client_name || "Connect an MCP client"}</h1>
+        <p>
+          Allow this verified client to use only the listed scopes. Project
+          source and unrelated account data are not exposed.
+        </p>
+        <ul>
+          {scopes.map((scope) => (
+            <li key={scope}>{scope}</li>
+          ))}
+        </ul>
+        <div>
+          <Button
+            variant="outline"
+            disabled={busy || !client}
+            onClick={() => void decide(false)}
+          >
+            Deny
+          </Button>
+          <Button disabled={busy || !client} onClick={() => void decide(true)}>
+            Allow MCP access
+          </Button>
+        </div>
+        {error ? <p role="alert">{error}</p> : null}
+      </section>
+    </main>
+  );
+}

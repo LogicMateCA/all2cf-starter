@@ -1,6 +1,27 @@
 {
-  "$schema": "../../../schemas/starter-pack.schema.json", "schemaVersion": "starter-pack/v1", "id": "saas.auth-openapi", "version": "0.1.0",
-  "source": { "name": "Better Auth Open API", "url": "https://better-auth.com/docs/plugins/open-api", "revision": "1.7.2", "license": "MIT", "relationship": "tracked-upstream" },
-  "files": [{ "source": "templates/openapi-auth-plugin.ts", "target": "workers/app/features/openapi-auth-plugin.ts" }],
-  "dependencies": [], "routes": [], "authPlugins": { "server": { "module": "../features/openapi-auth-plugin", "export": "createOpenApiAuthPlugin" } }
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "saas.auth-openapi",
+  "version": "0.1.0",
+  "source": {
+    "name": "Better Auth Open API",
+    "url": "https://better-auth.com/docs/plugins/open-api",
+    "revision": "1.7.2",
+    "license": "MIT",
+    "relationship": "experimental-upstream"
+  },
+  "files": [
+    {
+      "source": "templates/openapi-auth-plugin.ts",
+      "target": "workers/app/features/openapi-auth-plugin.ts"
+    }
+  ],
+  "dependencies": [],
+  "routes": [],
+  "authPlugins": {
+    "server": {
+      "module": "../features/openapi-auth-plugin",
+      "export": "createOpenApiAuthPlugin"
+    }
+  }
 }

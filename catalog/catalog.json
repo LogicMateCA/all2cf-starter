@@ -91,13 +91,8 @@
         "shadcn Web primitives",
         "lean Tamagui mobile tokens"
       ],
-      "requires": [
-        "accessibility states",
-        "bundle budgets"
-      ],
-      "conflicts": [
-        "a second full component system on the same target"
-      ],
+      "requires": ["accessibility states", "bundle budgets"],
+      "conflicts": ["a second full component system on the same target"],
       "performance": [
         "route-level lazy loading",
         "package-level Tamagui imports"
@@ -107,10 +102,7 @@
         "Web bundle budget",
         "mobile export and bundle budget"
       ],
-      "documentation": [
-        "DESIGN.md",
-        "features/mobile/MODULE.md"
-      ]
+      "documentation": ["DESIGN.md", "features/mobile/MODULE.md"]
     },
     {
       "id": "design.stylekit-adapted",
@@ -163,10 +155,7 @@
         "Core Web Vitals",
         "mobile bundle checks"
       ],
-      "documentation": [
-        "DESIGN.md",
-        "features/assembler/MODULE.md"
-      ]
+      "documentation": ["DESIGN.md", "features/assembler/MODULE.md"]
     },
     {
       "id": "page.core-product-site",
@@ -175,10 +164,7 @@
       "version": "0.1.0",
       "status": "local-verified",
       "delivery": "materializer",
-      "targets": [
-        "desktop-web",
-        "docs"
-      ],
+      "targets": ["desktop-web", "docs"],
       "ownership": "starter-owned",
       "source": [
         {
@@ -236,9 +222,7 @@
       "version": "0.2.0",
       "status": "local-verified",
       "delivery": "materializer",
-      "targets": [
-        "desktop-web"
-      ],
+      "targets": ["desktop-web"],
       "ownership": "starter-owned",
       "source": [],
       "updatePolicy": "internal-curated",
@@ -249,26 +233,16 @@
         "Blog RSS",
         "honest noindex sample content and release gates"
       ],
-      "requires": [
-        "explicit Blueprint selection"
-      ],
-      "conflicts": [
-        "generating unselected routes"
-      ],
-      "performance": [
-        "static-first output",
-        "no unused client bundles"
-      ],
+      "requires": ["explicit Blueprint selection"],
+      "conflicts": ["generating unselected routes"],
+      "performance": ["static-first output", "no unused client bundles"],
       "verification": [
         "isolated all-family materialization",
         "Astro schema and type check",
         "17-route static build",
         "desktop/mobile light/dark browser acceptance and screenshot review"
       ],
-      "documentation": [
-        "ARCHITECTURE.md",
-        "DESIGN.md"
-      ]
+      "documentation": ["ARCHITECTURE.md", "DESIGN.md"]
     },
     {
       "id": "saas.identity-core",
@@ -277,13 +251,7 @@
       "version": "0.1.0",
       "status": "development-verified",
       "delivery": "baseline",
-      "targets": [
-        "desktop-web",
-        "mobile-web",
-        "ios",
-        "android",
-        "worker"
-      ],
+      "targets": ["desktop-web", "mobile-web", "ios", "android", "worker"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -319,10 +287,7 @@
         "auth smoke",
         "Development release"
       ],
-      "documentation": [
-        "features/auth/MODULE.md",
-        "ARCHITECTURE.md"
-      ]
+      "documentation": ["features/auth/MODULE.md", "ARCHITECTURE.md"]
     },
     {
       "id": "saas.product-shell",
@@ -331,10 +296,7 @@
       "version": "0.1.0",
       "status": "local-verified",
       "delivery": "baseline",
-      "targets": [
-        "desktop-web",
-        "admin"
-      ],
+      "targets": ["desktop-web", "admin"],
       "ownership": "starter-owned",
       "source": [
         {
@@ -395,11 +357,7 @@
       "version": "0.1.0",
       "status": "local-verified",
       "delivery": "baseline",
-      "targets": [
-        "desktop-web",
-        "worker",
-        "admin"
-      ],
+      "targets": ["desktop-web", "worker", "admin"],
       "ownership": "starter-owned",
       "source": [
         {
@@ -426,10 +384,7 @@
         "full notifications route",
         "module event seam"
       ],
-      "requires": [
-        "identity core",
-        "new empty Starter database"
-      ],
+      "requires": ["identity core", "new empty Starter database"],
       "conflicts": [
         "client-authoritative recipient ids",
         "external or scheme-based stored deep links",
@@ -459,12 +414,7 @@
       "version": "0.1.0",
       "status": "local-verified",
       "delivery": "baseline",
-      "targets": [
-        "desktop-web",
-        "worker",
-        "admin",
-        "docs"
-      ],
+      "targets": ["desktop-web", "worker", "admin", "docs"],
       "ownership": "starter-owned",
       "source": [
         {
@@ -489,10 +439,7 @@
         "lightweight support and bug intake",
         "append-only privileged mutation evidence"
       ],
-      "requires": [
-        "identity core",
-        "explicit module selection"
-      ],
+      "requires": ["identity core", "explicit module selection"],
       "conflicts": [
         "full helpdesk scope",
         "unselected organization or billing schema"
@@ -520,11 +467,7 @@
       "version": "0.1.0",
       "status": "local-verified",
       "delivery": "materializer",
-      "targets": [
-        "desktop-web",
-        "mobile-web",
-        "worker"
-      ],
+      "targets": ["desktop-web", "mobile-web", "worker"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -606,9 +549,7 @@
         "new empty Starter database",
         "configured authentication email provider"
       ],
-      "conflicts": [
-        "using organization roles as platform Admin roles"
-      ],
+      "conflicts": ["using organization roles as platform Admin roles"],
       "performance": [
         "bounded membership lookups",
         "no organization data on public routes"
@@ -632,11 +573,7 @@
       "version": "0.2.0",
       "status": "local-verified",
       "delivery": "materializer",
-      "targets": [
-        "desktop-web",
-        "worker",
-        "admin"
-      ],
+      "targets": ["desktop-web", "worker", "admin"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -695,10 +632,7 @@
       "version": "0.1.0",
       "status": "implemented",
       "delivery": "materializer",
-      "targets": [
-        "desktop-web",
-        "worker"
-      ],
+      "targets": ["desktop-web", "worker"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -714,13 +648,8 @@
         "usage metering",
         "signed webhooks"
       ],
-      "requires": [
-        "identity core",
-        "Polar Sandbox or Production credentials"
-      ],
-      "conflicts": [
-        "another selected billing provider"
-      ],
+      "requires": ["identity core", "Polar Sandbox or Production credentials"],
+      "conflicts": ["another selected billing provider"],
       "performance": [
         "billing route is lazy",
         "Polar SDK is absent when deselected"
@@ -730,9 +659,7 @@
         "selected Worker dry run",
         "real Sandbox checkout before Development verification"
       ],
-      "documentation": [
-        "features/billing/MODULE.md"
-      ]
+      "documentation": ["features/billing/MODULE.md"]
     },
     {
       "id": "saas.billing-autumn",
@@ -741,10 +668,7 @@
       "version": "0.1.0",
       "status": "implemented",
       "delivery": "materializer",
-      "targets": [
-        "desktop-web",
-        "worker"
-      ],
+      "targets": ["desktop-web", "worker"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -760,13 +684,8 @@
         "usage",
         "feature permissions"
       ],
-      "requires": [
-        "identity core",
-        "Autumn environment and secret key"
-      ],
-      "conflicts": [
-        "another selected billing provider"
-      ],
+      "requires": ["identity core", "Autumn environment and secret key"],
+      "conflicts": ["another selected billing provider"],
       "performance": [
         "billing route is lazy",
         "Autumn SDK is absent when deselected"
@@ -776,9 +695,7 @@
         "selected Worker dry run",
         "real Autumn test checkout before Development verification"
       ],
-      "documentation": [
-        "features/billing/MODULE.md"
-      ]
+      "documentation": ["features/billing/MODULE.md"]
     },
     {
       "id": "saas.api-keys",
@@ -787,12 +704,7 @@
       "version": "0.2.0",
       "status": "local-verified",
       "delivery": "materializer",
-      "targets": [
-        "desktop-web",
-        "worker",
-        "admin",
-        "docs"
-      ],
+      "targets": ["desktop-web", "worker", "admin", "docs"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -844,12 +756,7 @@
       "version": "0.2.0",
       "status": "local-verified",
       "delivery": "materializer",
-      "targets": [
-        "desktop-web",
-        "worker",
-        "admin",
-        "docs"
-      ],
+      "targets": ["desktop-web", "worker", "admin", "docs"],
       "ownership": "starter-owned",
       "source": [],
       "updatePolicy": "internal-curated",
@@ -893,12 +800,7 @@
       "version": "0.1.0",
       "status": "local-verified",
       "delivery": "materializer",
-      "targets": [
-        "desktop-web",
-        "worker",
-        "admin",
-        "docs"
-      ],
+      "targets": ["desktop-web", "worker", "admin", "docs"],
       "ownership": "starter-owned",
       "source": [],
       "updatePolicy": "internal-curated",
@@ -945,12 +847,7 @@
       "version": "0.1.0",
       "status": "local-verified",
       "delivery": "materializer",
-      "targets": [
-        "desktop-web",
-        "worker",
-        "admin",
-        "docs"
-      ],
+      "targets": ["desktop-web", "worker", "admin", "docs"],
       "ownership": "starter-owned",
       "source": [
         {
@@ -1007,12 +904,7 @@
       "version": "0.1.0",
       "status": "local-verified",
       "delivery": "materializer",
-      "targets": [
-        "desktop-web",
-        "worker",
-        "admin",
-        "docs"
-      ],
+      "targets": ["desktop-web", "worker", "admin", "docs"],
       "ownership": "starter-owned",
       "source": [
         {
@@ -1068,12 +960,7 @@
       "version": "0.1.0",
       "status": "local-verified",
       "delivery": "materializer",
-      "targets": [
-        "desktop-web",
-        "worker",
-        "admin",
-        "docs"
-      ],
+      "targets": ["desktop-web", "worker", "admin", "docs"],
       "ownership": "starter-owned",
       "source": [
         {
@@ -1126,11 +1013,7 @@
       "version": "0.1.0",
       "status": "development-verified",
       "delivery": "materializer",
-      "targets": [
-        "desktop-web",
-        "worker",
-        "admin"
-      ],
+      "targets": ["desktop-web", "worker", "admin"],
       "ownership": "starter-owned",
       "source": [
         {
@@ -1173,10 +1056,7 @@
         "public/private access",
         "provider switch and clean removal"
       ],
-      "documentation": [
-        "ARCHITECTURE.md",
-        "features/storage/MODULE.md"
-      ]
+      "documentation": ["ARCHITECTURE.md", "features/storage/MODULE.md"]
     },
     {
       "id": "capability.turnstile",
@@ -1185,10 +1065,7 @@
       "version": "0.1.0",
       "status": "local-verified",
       "delivery": "materializer",
-      "targets": [
-        "desktop-web",
-        "worker"
-      ],
+      "targets": ["desktop-web", "worker"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -1231,10 +1108,7 @@
         "valid-token acceptance",
         "pack clean removal"
       ],
-      "documentation": [
-        "ARCHITECTURE.md",
-        "features/auth/MODULE.md"
-      ]
+      "documentation": ["ARCHITECTURE.md", "features/auth/MODULE.md"]
     },
     {
       "id": "capability.workers-ai",
@@ -1243,10 +1117,7 @@
       "version": "0.1.0",
       "status": "local-verified",
       "delivery": "materializer",
-      "targets": [
-        "worker",
-        "admin"
-      ],
+      "targets": ["worker", "admin"],
       "ownership": "starter-owned",
       "source": [
         {
@@ -1297,10 +1168,7 @@
       "version": "0.1.0",
       "status": "local-verified",
       "delivery": "materializer",
-      "targets": [
-        "worker",
-        "admin"
-      ],
+      "targets": ["worker", "admin"],
       "ownership": "starter-owned",
       "source": [
         {
@@ -1350,11 +1218,7 @@
       "version": "0.1.1",
       "status": "implemented",
       "delivery": "materializer",
-      "targets": [
-        "mobile",
-        "worker",
-        "admin"
-      ],
+      "targets": ["mobile", "worker", "admin"],
       "ownership": "starter-owned",
       "source": [
         {
@@ -1409,10 +1273,7 @@
       "version": "0.1.0",
       "status": "implemented",
       "delivery": "materializer",
-      "targets": [
-        "worker",
-        "admin"
-      ],
+      "targets": ["worker", "admin"],
       "ownership": "starter-owned",
       "source": [
         {
@@ -1466,10 +1327,7 @@
       "version": "0.1.0",
       "status": "local-verified",
       "delivery": "materializer",
-      "targets": [
-        "worker",
-        "admin"
-      ],
+      "targets": ["worker", "admin"],
       "ownership": "starter-owned",
       "source": [
         {
@@ -1518,10 +1376,7 @@
       "version": "0.1.0",
       "status": "implemented",
       "delivery": "materializer",
-      "targets": [
-        "worker",
-        "admin"
-      ],
+      "targets": ["worker", "admin"],
       "ownership": "starter-owned",
       "source": [
         {
@@ -1573,10 +1428,7 @@
       "version": "0.1.0",
       "status": "local-verified",
       "delivery": "materializer",
-      "targets": [
-        "worker",
-        "admin"
-      ],
+      "targets": ["worker", "admin"],
       "ownership": "starter-owned",
       "source": [
         {
@@ -1624,10 +1476,7 @@
       "version": "0.1.0",
       "status": "local-verified",
       "delivery": "materializer",
-      "targets": [
-        "worker",
-        "admin"
-      ],
+      "targets": ["worker", "admin"],
       "ownership": "starter-owned",
       "source": [
         {
@@ -1677,10 +1526,7 @@
       "version": "0.1.0",
       "status": "local-verified",
       "delivery": "materializer",
-      "targets": [
-        "worker",
-        "admin"
-      ],
+      "targets": ["worker", "admin"],
       "ownership": "starter-owned",
       "source": [
         {
@@ -1732,9 +1578,7 @@
       "version": "0.1.0",
       "status": "implemented",
       "delivery": "materializer",
-      "targets": [
-        "worker"
-      ],
+      "targets": ["worker"],
       "ownership": "starter-owned",
       "source": [
         {
@@ -1783,10 +1627,7 @@
       "version": "0.1.0",
       "status": "local-verified",
       "delivery": "materializer",
-      "targets": [
-        "desktop-web",
-        "admin"
-      ],
+      "targets": ["desktop-web", "admin"],
       "ownership": "starter-owned",
       "source": [
         {
@@ -1812,10 +1653,7 @@
         "explicit Blueprint selection and materialization",
         "map style and data source configuration"
       ],
-      "conflicts": [
-        "native Expo target",
-        "eager loading on non-map routes"
-      ],
+      "conflicts": ["native Expo target", "eager loading on non-map routes"],
       "performance": [
         "dynamic import",
         "300 KB gzip MapLibre main-module budget",
@@ -1830,10 +1668,7 @@
         "bundle isolation",
         "keyboard and reduced-motion checks"
       ],
-      "documentation": [
-        "features/assembler/MODULE.md",
-        "PERFORMANCE.md"
-      ]
+      "documentation": ["features/assembler/MODULE.md", "PERFORMANCE.md"]
     },
     {
       "id": "saas.auth-hibp",
@@ -1842,9 +1677,7 @@
       "version": "0.1.0",
       "status": "implemented",
       "delivery": "materializer",
-      "targets": [
-        "worker"
-      ],
+      "targets": ["worker"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -1854,24 +1687,12 @@
         }
       ],
       "updatePolicy": "stable-aligned",
-      "provides": [
-        "compromised-password rejection"
-      ],
-      "requires": [
-        "identity core",
-        "outbound HIBP API access"
-      ],
+      "provides": ["compromised-password rejection"],
+      "requires": ["identity core", "outbound HIBP API access"],
       "conflicts": [],
-      "performance": [
-        "no runtime when deselected"
-      ],
-      "verification": [
-        "known compromised password rejection",
-        "deselection"
-      ],
-      "documentation": [
-        "features/auth/MODULE.md"
-      ]
+      "performance": ["no runtime when deselected"],
+      "verification": ["known compromised password rejection", "deselection"],
+      "documentation": ["features/auth/MODULE.md"]
     },
     {
       "id": "saas.auth-last-login",
@@ -1880,11 +1701,7 @@
       "version": "0.1.0",
       "status": "implemented",
       "delivery": "materializer",
-      "targets": [
-        "desktop-web",
-        "mobile-web",
-        "worker"
-      ],
+      "targets": ["desktop-web", "mobile-web", "worker"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -1894,23 +1711,12 @@
         }
       ],
       "updatePolicy": "stable-aligned",
-      "provides": [
-        "database-backed last login method"
-      ],
-      "requires": [
-        "identity core"
-      ],
+      "provides": ["database-backed last login method"],
+      "requires": ["identity core"],
       "conflicts": [],
-      "performance": [
-        "no non-essential client cookie"
-      ],
-      "verification": [
-        "email and social method tracking",
-        "deselection"
-      ],
-      "documentation": [
-        "features/auth/MODULE.md"
-      ]
+      "performance": ["no non-essential client cookie"],
+      "verification": ["email and social method tracking", "deselection"],
+      "documentation": ["features/auth/MODULE.md"]
     },
     {
       "id": "saas.auth-multi-session",
@@ -1919,11 +1725,7 @@
       "version": "0.2.0",
       "status": "implemented",
       "delivery": "materializer",
-      "targets": [
-        "desktop-web",
-        "mobile-web",
-        "worker"
-      ],
+      "targets": ["desktop-web", "mobile-web", "worker"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -1937,20 +1739,11 @@
         "up to five browser account sessions",
         "account switching and session removal"
       ],
-      "requires": [
-        "identity core"
-      ],
+      "requires": ["identity core"],
       "conflicts": [],
-      "performance": [
-        "maximum five device sessions"
-      ],
-      "verification": [
-        "list switch revoke",
-        "deselection"
-      ],
-      "documentation": [
-        "features/auth/MODULE.md"
-      ]
+      "performance": ["maximum five device sessions"],
+      "verification": ["list switch revoke", "deselection"],
+      "documentation": ["features/auth/MODULE.md"]
     },
     {
       "id": "saas.auth-passkey",
@@ -1959,11 +1752,7 @@
       "version": "0.1.0",
       "status": "implemented",
       "delivery": "materializer",
-      "targets": [
-        "desktop-web",
-        "mobile-web",
-        "worker"
-      ],
+      "targets": ["desktop-web", "mobile-web", "worker"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -1977,23 +1766,14 @@
         "WebAuthn sign-in",
         "passkey registration, listing and removal"
       ],
-      "requires": [
-        "secure context",
-        "identity core",
-        "@better-auth/passkey"
-      ],
+      "requires": ["secure context", "identity core", "@better-auth/passkey"],
       "conflicts": [],
-      "performance": [
-        "lazy passkey routes",
-        "no dependency when deselected"
-      ],
+      "performance": ["lazy passkey routes", "no dependency when deselected"],
       "verification": [
         "real virtual authenticator registration and sign-in",
         "deselection"
       ],
-      "documentation": [
-        "features/auth/MODULE.md"
-      ]
+      "documentation": ["features/auth/MODULE.md"]
     },
     {
       "id": "saas.auth-magic-link",
@@ -2002,11 +1782,7 @@
       "version": "0.1.0",
       "status": "implemented",
       "delivery": "materializer",
-      "targets": [
-        "desktop-web",
-        "mobile-web",
-        "worker"
-      ],
+      "targets": ["desktop-web", "mobile-web", "worker"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -2016,22 +1792,14 @@
         }
       ],
       "updatePolicy": "stable-aligned",
-      "provides": [
-        "one-time email sign-in link"
-      ],
-      "requires": [
-        "configured authentication email provider"
-      ],
+      "provides": ["one-time email sign-in link"],
+      "requires": ["configured authentication email provider"],
       "conflicts": [],
-      "performance": [
-        "lazy entry route"
-      ],
+      "performance": ["lazy entry route"],
       "verification": [
         "hashed token, expiry, single use, delivery and deselection"
       ],
-      "documentation": [
-        "features/auth/MODULE.md"
-      ]
+      "documentation": ["features/auth/MODULE.md"]
     },
     {
       "id": "saas.auth-i18n",
@@ -2040,9 +1808,7 @@
       "version": "0.1.0",
       "status": "implemented",
       "delivery": "materializer",
-      "targets": [
-        "worker"
-      ],
+      "targets": ["worker"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -2052,34 +1818,21 @@
         }
       ],
       "updatePolicy": "stable-aligned",
-      "provides": [
-        "English, French and Chinese auth errors"
-      ],
-      "requires": [
-        "identity core"
-      ],
+      "provides": ["English, French and Chinese auth errors"],
+      "requires": ["identity core"],
       "conflicts": [],
-      "performance": [
-        "three locale subset only"
-      ],
-      "verification": [
-        "header and session locale detection",
-        "deselection"
-      ],
-      "documentation": [
-        "features/auth/MODULE.md"
-      ]
+      "performance": ["three locale subset only"],
+      "verification": ["header and session locale detection", "deselection"],
+      "documentation": ["features/auth/MODULE.md"]
     },
     {
       "id": "saas.auth-openapi",
       "kind": "saas",
       "name": "Authentication OpenAPI reference",
       "version": "0.1.0",
-      "status": "implemented",
+      "status": "experimental",
       "delivery": "materializer",
-      "targets": [
-        "worker"
-      ],
+      "targets": ["worker"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -2088,24 +1841,13 @@
           "relationship": "tracked-upstream"
         }
       ],
-      "updatePolicy": "stable-aligned",
-      "provides": [
-        "OpenAPI 3.1 auth schema and reference"
-      ],
-      "requires": [
-        "identity core"
-      ],
+      "updatePolicy": "reviewed-experimental",
+      "provides": ["OpenAPI 3.1 auth schema and reference"],
+      "requires": ["identity core"],
       "conflicts": [],
-      "performance": [
-        "reference route only when selected"
-      ],
-      "verification": [
-        "schema endpoint and reference route",
-        "deselection"
-      ],
-      "documentation": [
-        "features/auth/MODULE.md"
-      ]
+      "performance": ["reference route only when selected"],
+      "verification": ["schema endpoint and reference route", "deselection"],
+      "documentation": ["features/auth/MODULE.md"]
     },
     {
       "id": "saas.auth-jwt",
@@ -2114,11 +1856,7 @@
       "version": "0.1.0",
       "status": "implemented",
       "delivery": "materializer",
-      "targets": [
-        "worker",
-        "desktop-web",
-        "mobile-web"
-      ],
+      "targets": ["worker", "desktop-web", "mobile-web"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -2128,26 +1866,12 @@
         }
       ],
       "updatePolicy": "stable-aligned",
-      "provides": [
-        "15-minute JWT",
-        "JWKS",
-        "30-day key rotation"
-      ],
-      "requires": [
-        "identity core"
-      ],
-      "conflicts": [
-        "OAuth Provider must disable the legacy token endpoint"
-      ],
-      "performance": [
-        "no key table when deselected"
-      ],
-      "verification": [
-        "signature, issuer, audience, expiry and rotation"
-      ],
-      "documentation": [
-        "features/auth/MODULE.md"
-      ]
+      "provides": ["15-minute JWT", "JWKS", "30-day key rotation"],
+      "requires": ["identity core"],
+      "conflicts": ["OAuth Provider must disable the legacy token endpoint"],
+      "performance": ["no key table when deselected"],
+      "verification": ["signature, issuer, audience, expiry and rotation"],
+      "documentation": ["features/auth/MODULE.md"]
     },
     {
       "id": "saas.auth-bearer",
@@ -2156,9 +1880,7 @@
       "version": "0.1.0",
       "status": "implemented",
       "delivery": "materializer",
-      "targets": [
-        "worker"
-      ],
+      "targets": ["worker"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -2168,24 +1890,12 @@
         }
       ],
       "updatePolicy": "stable-aligned",
-      "provides": [
-        "Authorization Bearer session token"
-      ],
-      "requires": [
-        "identity core"
-      ],
-      "conflicts": [
-        "not a general OAuth access token"
-      ],
-      "performance": [
-        "no plugin when deselected"
-      ],
-      "verification": [
-        "header authentication and revocation"
-      ],
-      "documentation": [
-        "features/auth/MODULE.md"
-      ]
+      "provides": ["Authorization Bearer session token"],
+      "requires": ["identity core"],
+      "conflicts": ["not a general OAuth access token"],
+      "performance": ["no plugin when deselected"],
+      "verification": ["header authentication and revocation"],
+      "documentation": ["features/auth/MODULE.md"]
     },
     {
       "id": "saas.auth-anonymous",
@@ -2194,11 +1904,7 @@
       "version": "0.1.0",
       "status": "implemented",
       "delivery": "materializer",
-      "targets": [
-        "worker",
-        "web",
-        "database"
-      ],
+      "targets": ["worker", "web", "database"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -2208,24 +1914,12 @@
         }
       ],
       "updatePolicy": "stable-aligned",
-      "provides": [
-        "guest sessions",
-        "account linking"
-      ],
-      "requires": [
-        "identity core"
-      ],
+      "provides": ["guest sessions", "account linking"],
+      "requires": ["identity core"],
       "conflicts": [],
-      "performance": [
-        "no runtime when deselected"
-      ],
-      "verification": [
-        "guest sign-in, linking and deletion",
-        "deselection"
-      ],
-      "documentation": [
-        "features/auth/MODULE.md"
-      ]
+      "performance": ["no runtime when deselected"],
+      "verification": ["guest sign-in, linking and deletion", "deselection"],
+      "documentation": ["features/auth/MODULE.md"]
     },
     {
       "id": "saas.auth-generic-oauth",
@@ -2234,10 +1928,7 @@
       "version": "0.1.0",
       "status": "implemented",
       "delivery": "materializer",
-      "targets": [
-        "worker",
-        "web"
-      ],
+      "targets": ["worker", "web"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -2247,23 +1938,15 @@
         }
       ],
       "updatePolicy": "stable-aligned",
-      "provides": [
-        "operator-configured OAuth/OIDC providers"
-      ],
-      "requires": [
-        "identity core"
-      ],
+      "provides": ["operator-configured OAuth/OIDC providers"],
+      "requires": ["identity core"],
       "conflicts": [],
-      "performance": [
-        "no provider discovery when deselected"
-      ],
+      "performance": ["no provider discovery when deselected"],
       "verification": [
         "strict JSON validation, HTTPS discovery, PKCE and callback",
         "deselection"
       ],
-      "documentation": [
-        "features/auth/MODULE.md"
-      ]
+      "documentation": ["features/auth/MODULE.md"]
     },
     {
       "id": "saas.auth-sso",
@@ -2272,11 +1955,7 @@
       "version": "0.1.0",
       "status": "implemented",
       "delivery": "materializer",
-      "targets": [
-        "worker",
-        "web",
-        "database"
-      ],
+      "targets": ["worker", "web", "database"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -2286,23 +1965,15 @@
         }
       ],
       "updatePolicy": "stable-aligned",
-      "provides": [
-        "OIDC and SAML SSO"
-      ],
-      "requires": [
-        "identity core"
-      ],
+      "provides": ["OIDC and SAML SSO"],
+      "requires": ["identity core"],
       "conflicts": [],
-      "performance": [
-        "no discovery or SAML code when deselected"
-      ],
+      "performance": ["no discovery or SAML code when deselected"],
       "verification": [
         "OIDC discovery, SAML signed assertion and domain routing",
         "deselection"
       ],
-      "documentation": [
-        "features/auth/MODULE.md"
-      ]
+      "documentation": ["features/auth/MODULE.md"]
     },
     {
       "id": "saas.auth-scim",
@@ -2311,10 +1982,7 @@
       "version": "0.1.0",
       "status": "implemented",
       "delivery": "materializer",
-      "targets": [
-        "worker",
-        "database"
-      ],
+      "targets": ["worker", "database"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -2324,24 +1992,15 @@
         }
       ],
       "updatePolicy": "stable-aligned",
-      "provides": [
-        "SCIM 2.0 users and groups"
-      ],
-      "requires": [
-        "identity core",
-        "PostgreSQL interactive transactions"
-      ],
+      "provides": ["SCIM 2.0 users and groups"],
+      "requires": ["identity core", "PostgreSQL interactive transactions"],
       "conflicts": [],
-      "performance": [
-        "no SCIM routes or schema when deselected"
-      ],
+      "performance": ["no SCIM routes or schema when deselected"],
       "verification": [
         "credential scopes, connection isolation and lifecycle",
         "deselection"
       ],
-      "documentation": [
-        "features/auth/MODULE.md"
-      ]
+      "documentation": ["features/auth/MODULE.md"]
     },
     {
       "id": "saas.auth-oauth-provider",
@@ -2350,11 +2009,7 @@
       "version": "0.1.0",
       "status": "implemented",
       "delivery": "materializer",
-      "targets": [
-        "worker",
-        "web",
-        "database"
-      ],
+      "targets": ["worker", "web", "database"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -2368,22 +2023,14 @@
         "authorization code, refresh and client credentials grants",
         "OIDC consent"
       ],
-      "requires": [
-        "saas.auth-jwt"
-      ],
-      "conflicts": [
-        "saas.auth-mcp-agent"
-      ],
-      "performance": [
-        "no provider routes or schema when deselected"
-      ],
+      "requires": ["saas.auth-jwt"],
+      "conflicts": ["saas.auth-mcp-agent"],
+      "performance": ["no provider routes or schema when deselected"],
       "verification": [
         "PKCE, exact redirects, consent and client privilege gates",
         "deselection"
       ],
-      "documentation": [
-        "features/auth/MODULE.md"
-      ]
+      "documentation": ["features/auth/MODULE.md"]
     },
     {
       "id": "saas.auth-device-authorization",
@@ -2392,11 +2039,7 @@
       "version": "0.1.0",
       "status": "implemented",
       "delivery": "materializer",
-      "targets": [
-        "worker",
-        "web",
-        "database"
-      ],
+      "targets": ["worker", "web", "database"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -2406,24 +2049,15 @@
         }
       ],
       "updatePolicy": "stable-aligned",
-      "provides": [
-        "RFC 8628 device grant"
-      ],
-      "requires": [
-        "saas.auth-jwt",
-        "saas.auth-oauth-provider"
-      ],
+      "provides": ["RFC 8628 device grant"],
+      "requires": ["saas.auth-jwt", "saas.auth-oauth-provider"],
       "conflicts": [],
-      "performance": [
-        "no device endpoints or schema when deselected"
-      ],
+      "performance": ["no device endpoints or schema when deselected"],
       "verification": [
         "code ownership, explicit approval, expiry, polling and OAuth token exchange",
         "deselection"
       ],
-      "documentation": [
-        "features/auth/MODULE.md"
-      ]
+      "documentation": ["features/auth/MODULE.md"]
     },
     {
       "id": "saas.auth-mcp",
@@ -2432,11 +2066,7 @@
       "version": "0.1.0",
       "status": "implemented",
       "delivery": "materializer",
-      "targets": [
-        "worker",
-        "web",
-        "database"
-      ],
+      "targets": ["worker", "web", "database"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -2446,25 +2076,15 @@
         }
       ],
       "updatePolicy": "stable-aligned",
-      "provides": [
-        "OAuth-protected MCP resource and identity tool"
-      ],
-      "requires": [
-        "saas.auth-jwt"
-      ],
-      "conflicts": [
-        "saas.auth-oauth-provider"
-      ],
-      "performance": [
-        "no MCP route or OAuth schema when deselected"
-      ],
+      "provides": ["OAuth-protected MCP resource and identity tool"],
+      "requires": ["saas.auth-jwt"],
+      "conflicts": ["saas.auth-oauth-provider"],
+      "performance": ["no MCP route or OAuth schema when deselected"],
       "verification": [
         "discovery, issuer/audience/scope checks and JSON-RPC tools",
         "deselection"
       ],
-      "documentation": [
-        "features/auth/MODULE.md"
-      ]
+      "documentation": ["features/auth/MODULE.md"]
     },
     {
       "id": "saas.auth-agent",
@@ -2473,11 +2093,7 @@
       "version": "0.1.0",
       "status": "experimental",
       "delivery": "materializer",
-      "targets": [
-        "worker",
-        "web",
-        "database"
-      ],
+      "targets": ["worker", "web", "database"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -2490,20 +2106,14 @@
       "provides": [
         "agent discovery, registration and scoped capability grants"
       ],
-      "requires": [
-        "identity core"
-      ],
+      "requires": ["identity core"],
       "conflicts": [],
-      "performance": [
-        "no agent routes or schema when deselected"
-      ],
+      "performance": ["no agent routes or schema when deselected"],
       "verification": [
         "short JWT lifetime, JTI replay, explicit approval and grant expiry",
         "deselection"
       ],
-      "documentation": [
-        "features/auth/MODULE.md"
-      ]
+      "documentation": ["features/auth/MODULE.md"]
     },
     {
       "id": "saas.auth-phone",
@@ -2512,11 +2122,7 @@
       "version": "0.1.0",
       "status": "implemented",
       "delivery": "materializer",
-      "targets": [
-        "worker",
-        "web",
-        "database"
-      ],
+      "targets": ["worker", "web", "database"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -2526,12 +2132,8 @@
         }
       ],
       "updatePolicy": "stable-aligned",
-      "provides": [
-        "verified phone linking and sign-in"
-      ],
-      "requires": [
-        "capability.twilio-sms"
-      ],
+      "provides": ["verified phone linking and sign-in"],
+      "requires": ["capability.twilio-sms"],
       "conflicts": [],
       "performance": [
         "no phone endpoints, SMS helper or schema when deselected"
@@ -2540,9 +2142,7 @@
         "E.164, OTP expiry/attempts, delivery and account linking",
         "deselection"
       ],
-      "documentation": [
-        "features/auth/MODULE.md"
-      ]
+      "documentation": ["features/auth/MODULE.md"]
     },
     {
       "id": "saas.auth-google-one-tap",
@@ -2551,10 +2151,7 @@
       "version": "0.1.0",
       "status": "implemented",
       "delivery": "materializer",
-      "targets": [
-        "worker",
-        "web"
-      ],
+      "targets": ["worker", "web"],
       "ownership": "upstream-tracked",
       "source": [
         {
@@ -2564,22 +2161,12 @@
         }
       ],
       "updatePolicy": "stable-aligned",
-      "provides": [
-        "explicit Google One Tap sign-in"
-      ],
-      "requires": [
-        "Google social provider"
-      ],
+      "provides": ["explicit Google One Tap sign-in"],
+      "requires": ["Google social provider"],
       "conflicts": [],
-      "performance": [
-        "Google script loads only on the lazy One Tap route"
-      ],
-      "verification": [
-        "credential callback, account choice and deselection"
-      ],
-      "documentation": [
-        "features/auth/MODULE.md"
-      ]
+      "performance": ["Google script loads only on the lazy One Tap route"],
+      "verification": ["credential callback, account choice and deselection"],
+      "documentation": ["features/auth/MODULE.md"]
     }
   ]
 }
