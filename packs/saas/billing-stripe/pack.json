@@ -6,7 +6,7 @@
   "source": {
     "name": "Better Auth Stripe",
     "url": "https://better-auth.com/docs/plugins/stripe",
-    "revision": "1.7.1",
+    "revision": "1.7.2",
     "license": "MIT",
     "relationship": "tracked-upstream"
   },
@@ -37,7 +37,7 @@
       "packageFile": "workers/app/package.json",
       "section": "dependencies",
       "name": "@better-auth/stripe",
-      "version": "1.7.1"
+      "version": "1.7.2"
     },
     {
       "packageFile": "workers/app/package.json",
@@ -49,7 +49,7 @@
       "packageFile": "apps/web/package.json",
       "section": "dependencies",
       "name": "@better-auth/stripe",
-      "version": "1.7.1"
+      "version": "1.7.2"
     }
   ],
   "routes": [

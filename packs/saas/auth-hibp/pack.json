@@ -1,0 +1,11 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "saas.auth-hibp",
+  "version": "0.1.0",
+  "source": { "name": "Better Auth Have I Been Pwned", "url": "https://better-auth.com/docs/plugins/have-i-been-pwned", "revision": "1.7.2", "license": "MIT", "relationship": "tracked-upstream" },
+  "files": [{ "source": "templates/hibp-auth-plugin.ts", "target": "workers/app/features/hibp-auth-plugin.ts" }],
+  "dependencies": [],
+  "routes": [],
+  "authPlugins": { "server": { "module": "../features/hibp-auth-plugin", "export": "createHibpAuthPlugin" } }
+}

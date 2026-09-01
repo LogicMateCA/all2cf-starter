@@ -1,0 +1,11 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json", "schemaVersion": "starter-pack/v1", "id": "saas.auth-jwt", "version": "0.1.0",
+  "source": { "name": "Better Auth JWT", "url": "https://better-auth.com/docs/plugins/jwt", "revision": "1.7.2", "license": "MIT", "relationship": "tracked-upstream" },
+  "files": [
+    { "source": "templates/jwt-auth-plugin.ts", "target": "workers/app/features/jwt-auth-plugin.ts" },
+    { "source": "templates/jwt-auth-client-plugin.ts", "target": "apps/web/src/features/jwt-auth-client-plugin.ts" },
+    { "source": "templates/0001_jwks.sql", "target": "db/migrations/1013_jwks.sql" }
+  ],
+  "dependencies": [], "routes": [],
+  "authPlugins": { "server": { "module": "../features/jwt-auth-plugin", "export": "createJwtAuthPlugin" }, "client": { "module": "../features/jwt-auth-client-plugin", "export": "createJwtAuthClientPlugin" } }
+}

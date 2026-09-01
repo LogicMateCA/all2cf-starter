@@ -119,7 +119,7 @@ export const project = {
     }
   ],
   "publicPageCount": 13,
-  "selectedPackCount": 15,
+  "selectedPackCount": 16,
   "billingSelected": true
 } as const;
 const selectedPageIds = new Set<string>(project.pages.map(({ id }) => id));

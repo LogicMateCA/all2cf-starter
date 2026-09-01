@@ -206,8 +206,8 @@
         "lifecycle": {
           "selected": true,
           "materialized": true,
-          "localVerified": true,
-          "developmentVerified": true,
+          "localVerified": false,
+          "developmentVerified": false,
           "productionReleased": false
         }
       },
@@ -298,6 +298,96 @@
           "materialized": true,
           "localVerified": true,
           "developmentVerified": true,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-hibp",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-last-login",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-multi-session",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-passkey",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-magic-link",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-i18n",
+        "lifecycle": {
+          "selected": true,
+          "materialized": true,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-openapi",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-jwt",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-bearer",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
           "productionReleased": false
         }
       }

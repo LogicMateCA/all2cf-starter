@@ -6,7 +6,7 @@
   "source": {
     "name": "Better Auth Captcha and Cloudflare Turnstile",
     "url": "https://better-auth.com/docs/plugins/captcha",
-    "revision": "1.7.1",
+    "revision": "1.7.2",
     "license": "MIT",
     "relationship": "tracked-upstream"
   },

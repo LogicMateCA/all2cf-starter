@@ -7,7 +7,7 @@ import { createSelectedAuthPlugins } from "./generated/auth-plugins";
 import { generateAppleClientSecret } from "../../scripts/lib/apple-oauth.mjs";
 
 export type AuthEmail = {
-  kind: "email-verification" | "password-reset" | "email-otp" | "organization-invitation";
+  kind: "email-verification" | "password-reset" | "email-otp" | "organization-invitation" | "magic-link";
   to: string;
   subject: string;
   text: string;

@@ -8,7 +8,7 @@ source: starter
 
 Purpose: provide an optional Better Auth-owned machine credential lifecycle without inventing a parallel token system.
 
-- `saas.api-keys` materializes the official `@better-auth/api-key` 1.7.1 server and client plugins, an SQL-first empty-database table, and `/app/api-keys`.
+- `saas.api-keys` materializes the official `@better-auth/api-key` 1.7.2 server and client plugins, an SQL-first empty-database table, and `/app/api-keys`.
 - Better Auth owns random key generation, hashing, indexed verification, user ownership, expiration, per-key database rate limiting, list, and revoke behavior. The plaintext key is returned once at creation and is not recoverable from list or storage.
 - API keys cannot create browser sessions. The default permission is `product:read`; a copied product must replace that placeholder with its real resource/action vocabulary and prove allowed and denied routes before Development release.
 - Organization-owned keys remain a separate product decision requiring the Organization pack and an explicit ownership/authorization Change Spec.

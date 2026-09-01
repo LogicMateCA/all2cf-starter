@@ -58,3 +58,14 @@ create index "app_team_member_team_id_idx" on "app_team_member" ("team_id");
 create index "app_team_member_user_id_idx" on "app_team_member" ("user_id");
 create index "app_organization_invitation_organization_id_idx" on "app_organization_invitation" ("organization_id");
 create index "app_organization_invitation_email_idx" on "app_organization_invitation" ("email");
+
+create table "app_organization_role" (
+  "id" text not null primary key,
+  "organization_id" text not null references "app_organization" ("id") on delete cascade,
+  "role" text not null,
+  "permission" text not null,
+  "created_at" timestamptz not null default current_timestamp,
+  "updated_at" timestamptz,
+  unique ("organization_id", "role")
+);
+create index "app_organization_role_organization_id_idx" on "app_organization_role" ("organization_id");

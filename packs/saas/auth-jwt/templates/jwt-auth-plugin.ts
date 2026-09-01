@@ -1,0 +1,3 @@
+import { jwt } from "better-auth/plugins";
+import type { SelectedAuthPluginInput } from "../generated/auth-plugins";
+export function createJwtAuthPlugin(input: SelectedAuthPluginInput, _features: Record<string, boolean>) { return jwt({ jwks: { keyPairConfig: { alg: "EdDSA", crv: "Ed25519" }, rotationInterval: 60 * 60 * 24 * 30, gracePeriod: 60 * 60 * 24 * 30 }, jwt: { issuer: input.baseURL, audience: input.baseURL, expirationTime: "15m", definePayload: ({ user }) => ({ sub: user.id, email: user.email }) }, schema: { jwks: { modelName: "app_jwks", fields: { publicKey: "public_key", privateKey: "private_key", createdAt: "created_at", expiresAt: "expires_at" } } } }); }

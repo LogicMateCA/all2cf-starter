@@ -6,7 +6,7 @@ import { Client } from "pg";
 import { parseEnv } from "./lib/env-profile.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const betterAuthVersion = "1.7.1";
+const betterAuthVersion = "1.7.2";
 const output = path.join(root, `db/generated/better-auth-${betterAuthVersion}.sql`);
 const values = parseEnv(await readFile(path.join(root, ".dev.vars"), "utf8"));
 if (!values.get("DATABASE_URL") || !values.get("BETTER_AUTH_SECRET")) throw new Error("DATABASE_URL and BETTER_AUTH_SECRET are required");

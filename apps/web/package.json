@@ -10,8 +10,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "dependencies": {
-    "@better-auth/stripe": "1.7.1",
-    "better-auth": "1.7.1",
+    "@better-auth/stripe": "1.7.2",
+    "better-auth": "1.7.2",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "lucide-react": "1.33.0",

@@ -6,7 +6,7 @@
   "source": {
     "name": "Better Auth API Key",
     "url": "https://better-auth.com/docs/plugins/api-key",
-    "revision": "1.7.1",
+    "revision": "1.7.2",
     "license": "MIT",
     "relationship": "tracked-upstream"
   },
@@ -37,13 +37,13 @@
       "packageFile": "workers/app/package.json",
       "section": "dependencies",
       "name": "@better-auth/api-key",
-      "version": "1.7.1"
+      "version": "1.7.2"
     },
     {
       "packageFile": "apps/web/package.json",
       "section": "dependencies",
       "name": "@better-auth/api-key",
-      "version": "1.7.1"
+      "version": "1.7.2"
     }
   ],
   "routes": [

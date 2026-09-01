@@ -474,6 +474,27 @@ const requiredPacks = new Set([
   "saas.product-shell",
   "saas.notifications-core",
   "saas.product-operations-lite",
+  "saas.auth-i18n",
+]);
+const advancedIdentityPackIds = new Set([
+  "saas.account-security-2fa",
+  "saas.auth-hibp",
+  "saas.auth-last-login",
+  "saas.auth-multi-session",
+  "saas.auth-passkey",
+  "saas.auth-magic-link",
+  "saas.auth-sso",
+  "saas.auth-scim",
+  "saas.auth-generic-oauth",
+  "saas.auth-jwt",
+  "saas.auth-bearer",
+  "saas.auth-oauth-provider",
+  "saas.auth-mcp-agent",
+  "saas.auth-device-authorization",
+  "saas.auth-openapi",
+  "saas.auth-phone",
+  "saas.auth-anonymous",
+  "saas.auth-google-one-tap",
 ]);
 const emptyLifecycle = (): Lifecycle => ({
   selected: false,
@@ -1917,7 +1938,7 @@ export function SetupPage() {
                   <span className="pack-choice-main"><span><strong>Billing & subscriptions</strong><small>Optional</small></span><p>Checkout, Portal and subscription lifecycle. Choose Stripe, Polar or Autumn in Providers.</p></span>
                   <span className="pack-check"><Check size={15} /></span>
                 </label>
-                {packsFor("saas").filter((pack) => !pack.id.startsWith("saas.billing-")).map((pack) => (
+                {packsFor("saas").filter((pack) => !pack.id.startsWith("saas.billing-") && !advancedIdentityPackIds.has(pack.id)).map((pack) => (
                   <PackChoice
                     key={pack.id}
                     pack={pack}
@@ -1927,6 +1948,13 @@ export function SetupPage() {
                   />
                 ))}
               </div>
+              <details className="setup-panel advanced-identity-section">
+                <summary><span><strong>Advanced Identity & Access</strong><small>Better Auth plugins · loaded only when selected</small></span></summary>
+                <p>Passkeys, enterprise identity, API/Agent authorization and optional login methods remain independent Packs. Selecting none adds no code, dependency, route or database migration.</p>
+                <div className="pack-grid">
+                  {packsFor("saas").filter((pack) => advancedIdentityPackIds.has(pack.id)).map((pack) => <PackChoice key={pack.id} pack={pack} selection={selectionFor(pack)} type="checkbox" onChange={(selected) => setPackSelected(pack, selected)} />)}
+                </div>
+              </details>
             </div>
           ) : null}
           {currentStep.id === "providers" ? (

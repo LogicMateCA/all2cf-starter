@@ -88,12 +88,12 @@
     },
     {
       "area": "Authentication",
-      "choice": "Better Auth 1.7.1 aligned across core, official Admin plugin, Expo, selectable Google/GitHub/Apple OAuth, and issuer-scoped empty-database baseline",
+      "choice": "Better Auth 1.7.2 aligned across core, official Admin plugin, Expo, selectable Google/GitHub/Apple OAuth, and issuer-scoped empty-database baseline",
       "status": "local-verified"
     },
     {
       "area": "Account security",
-      "choice": "Optional Better Auth Two-Factor 1.7.1 pack with verified TOTP enrollment, backup-code recovery, trusted devices, and lockout",
+      "choice": "Optional Better Auth Two-Factor 1.7.2 pack with verified TOTP enrollment, backup-code recovery, trusted devices, and lockout",
       "status": "local-verified"
     },
     {
@@ -113,7 +113,7 @@
     },
     {
       "area": "API keys",
-      "choice": "Optional @better-auth/api-key 1.7.1 pack with user-owned hashed keys, fixed read scope, rate limits, and no session impersonation",
+      "choice": "Optional @better-auth/api-key 1.7.2 pack with user-owned hashed keys, fixed read scope, rate limits, and no session impersonation",
       "status": "local-verified"
     },
     {
@@ -153,12 +153,12 @@
     },
     {
       "area": "Organizations",
-      "choice": "Optional Better Auth Organization 1.7.1 pack with Product Shell switching, member administration, teams, verified invitations, lifecycle notifications, and tenant-scoped roles",
+      "choice": "Optional Better Auth Organization 1.7.2 pack with Product Shell switching, member administration, teams, verified invitations, lifecycle notifications, and tenant-scoped roles",
       "status": "local-verified"
     },
     {
       "area": "Billing",
-      "choice": "Optional @better-auth/stripe 1.7.1 + Stripe SDK 22.5.0 Product Shell billing pack with Checkout, Portal, cancellation/restore controls and signed webhook replay evidence",
+      "choice": "Optional @better-auth/stripe 1.7.2 + Stripe SDK 22.5.0 Product Shell billing pack with Checkout, Portal, cancellation/restore controls and signed webhook replay evidence",
       "status": "local-verified"
     },
     {
