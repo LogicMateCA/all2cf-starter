@@ -10,7 +10,7 @@
     "zoneName": "logicm8.com"
   },
   "email": {
-    "provider": "cfsend",
+    "provider": "resend",
     "resendApiUrl": "https://api.resend.com"
   },
   "local": {
