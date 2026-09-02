@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "starter-cloudflare-setup-plan/v1",
+  "authority": "starter.config.json",
+  "executor": "Cloudflare MCP via Codex",
+  "purpose": "Provision or reconcile the Local, Development and Production runtime identities without moving secrets into source control.",
+  "environments": {
+    "local": {
+      "configPath": "local",
+      "runtime": "vite-and-workerd",
+      "databaseConnection": "tunnel-direct",
+      "actions": [
+        "read local.worker, local.domain and local.database from starter.config.json",
+        "ensure the named Cloudflare Tunnel reaches local.database.host:local.database.port",
+        "ensure the corresponding Workers VPC service is available for the selected test database",
+        "keep the local URL on localhost and never attach it to the production Worker"
+      ]
+    },
+    "development": {
+      "configPath": "development",
+      "actions": [
+        "ensure the Development Worker exists with the configured name",
+        "ensure the configured Development domain and route point to that Worker",
+        "ensure its database and Hyperdrive/VPC binding match the Development configuration"
+      ]
+    },
+    "production": {
+      "configPath": "production",
+      "requiresExplicitConfirmation": true,
+      "actions": [
+        "ensure the Production Worker exists with the configured name",
+        "ensure the configured Production domain and route point to that Worker",
+        "ensure its database and Hyperdrive/VPC binding match the Production configuration"
+      ]
+    }
+  },
+  "rules": [
+    "Read values from starter.config.json; do not invent names or IDs.",
+    "Never read, print or commit secret values.",
+    "Do not use Production resources for Local or Development tests.",
+    "Record actual Cloudflare resource IDs and verification results in the local ignored receipt after execution.",
+    "Do not claim configured until Tunnel, Worker, route and database binding checks succeed."
+  ],
+  "receiptPath": ".starter/cloudflare-setup-receipt.local.json"
+}

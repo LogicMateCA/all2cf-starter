@@ -222,6 +222,21 @@ type StarterConfig = {
   project: { name: string; slug: string };
   cloudflare: { zoneName: string; [key: string]: unknown };
   email: { provider: string; [key: string]: unknown };
+  local: {
+    worker: string;
+    domain: string;
+    runtime: string;
+    database: {
+      connection: string;
+      tunnelId: string;
+      host: string;
+      port: number;
+      database: string;
+      user: string;
+      [key: string]: unknown;
+    };
+    [key: string]: unknown;
+  };
   development: {
     worker: string;
     domain: string;
@@ -1610,6 +1625,15 @@ export function SetupPage() {
     }));
     updateConfig((config) => ({
       ...config,
+      local: {
+        ...config.local,
+        worker: `${slug}-local`,
+        database: {
+          ...config.local.database,
+          database: `${database}dev`,
+          user: `${database}dev`,
+        },
+      },
       development: {
         ...config.development,
         worker: `${slug}-dev`,
@@ -2593,8 +2617,8 @@ export function SetupPage() {
                   <div>
                     <h2>Development and Production</h2>
                     <p>
-                      Keep the two Workers, domains, databases, and Hyperdrive
-                      identities separate.
+                      Keep Local, Development and Production Workers, domains
+                      and databases separate. Local uses a direct Tunnel.
                     </p>
                   </div>
                   <Button variant="outline" onClick={applySafeDefaults}>
@@ -2602,6 +2626,94 @@ export function SetupPage() {
                   </Button>
                 </div>
                 <div className="environment-fields">
+                  <div>
+                    <h3>Local test</h3>
+                    <small>Vite + local Worker · Tunnel direct</small>
+                    <Field
+                      label="Worker"
+                      value={payload.config.local.worker}
+                      onChange={(value) =>
+                        updateConfig((config) => ({
+                          ...config,
+                          local: { ...config.local, worker: value },
+                        }))
+                      }
+                    />
+                    <Field
+                      label="Local URL"
+                      value={payload.config.local.domain}
+                      onChange={(value) =>
+                        updateConfig((config) => ({
+                          ...config,
+                          local: { ...config.local, domain: value },
+                        }))
+                      }
+                      helper="Local Vite + Worker runtime; use localhost only."
+                    />
+                    <Field
+                      label="Tunnel ID"
+                      value={payload.config.local.database.tunnelId}
+                      onChange={(value) =>
+                        updateConfig((config) => ({
+                          ...config,
+                          local: {
+                            ...config.local,
+                            database: {
+                              ...config.local.database,
+                              tunnelId: value,
+                            },
+                          },
+                        }))
+                      }
+                      helper="Direct Tunnel to the selected test database."
+                    />
+                    <Field
+                      label="Database"
+                      value={payload.config.local.database.database}
+                      onChange={(value) =>
+                        updateConfig((config) => ({
+                          ...config,
+                          local: {
+                            ...config.local,
+                            database: {
+                              ...config.local.database,
+                              database: value,
+                              user: value,
+                            },
+                          },
+                        }))
+                      }
+                    />
+                    <Field
+                      label="Tunnel host"
+                      value={payload.config.local.database.host}
+                      onChange={(value) =>
+                        updateConfig((config) => ({
+                          ...config,
+                          local: {
+                            ...config.local,
+                            database: { ...config.local.database, host: value },
+                          },
+                        }))
+                      }
+                    />
+                    <Field
+                      label="Tunnel port"
+                      value={String(payload.config.local.database.port)}
+                      onChange={(value) =>
+                        updateConfig((config) => ({
+                          ...config,
+                          local: {
+                            ...config.local,
+                            database: {
+                              ...config.local.database,
+                              port: Number(value) || config.local.database.port,
+                            },
+                          },
+                        }))
+                      }
+                    />
+                  </div>
                   <div>
                     <h3>Development</h3>
                     <Field
@@ -2683,6 +2795,12 @@ export function SetupPage() {
                     />
                   </div>
                 </div>
+                <p className="environment-mcp-note">
+                  Cloudflare MCP can execute this plan from
+                  <code>cloudflare/setup-plan.json</code>. It reads the three
+                  environment cards, configures Tunnel/Workers/VPC bindings,
+                  and records verified resource IDs without exposing secrets.
+                </p>
               </section>
             </div>
           ) : null}

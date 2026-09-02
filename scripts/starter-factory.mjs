@@ -124,6 +124,12 @@ async function writeIdentity(target, name, slug) {
   config.production.worker = slug;
   config.development.domain = `${slug}-dev.${config.cloudflare.zoneName}`;
   config.production.domain = `${slug}.${config.cloudflare.zoneName}`;
+  if (config.local) {
+    config.local.worker = `${slug}-local`;
+    config.local.domain = "http://localhost:15173";
+    config.local.database.database = `${slug.replaceAll("-", "_")}dev`;
+    config.local.database.user = config.local.database.database;
+  }
   blueprint.providers.storage.development.bucket = `${slug}-dev-objects`;
   blueprint.providers.storage.production.bucket = `${slug}-objects`;
   blueprint.providers.storage.development.publicDomain = "";
