@@ -1,5 +1,5 @@
 ---
-title: "Cloudflare AI Starter"
+title: "All2CF Starter"
 status: "local-verified"
 owner: "project owner"
 source: "starter"

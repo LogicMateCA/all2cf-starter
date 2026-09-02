@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/wrangler/config-schema.json",
-  "name": "starter-dev",
+  "name": "starter-all2cf-dev",
   "main": "../workers/app/index.ts",
   "compatibility_date": "2026-08-16",
   "compatibility_flags": [
@@ -12,9 +12,9 @@
   "vars": {
     "APP_ENV": "development",
     "SERVICE_NAME": "starter",
-    "APP_NAME": "Cloudflare AI Starter",
+    "APP_NAME": "All2CF Starter",
     "DATABASE_PROVIDER": "native-postgresql",
-    "AUTH_CANONICAL_ORIGIN": "https://dev.logicm8.com",
+    "AUTH_CANONICAL_ORIGIN": "https://starter-dev.all2cf.com",
     "AUTH_REQUIRE_EMAIL_VERIFICATION": "true",
     "AUTH_EMAIL_PROVIDER": "cfsend",
     "RESEND_API_URL": "https://api.resend.com",
@@ -68,7 +68,7 @@
   ],
   "routes": [
     {
-      "pattern": "dev.logicm8.com",
+      "pattern": "starter-dev.all2cf.com",
       "custom_domain": true
     }
   ],

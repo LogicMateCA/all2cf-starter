@@ -1607,6 +1607,8 @@ async function serveProductApplication(c: StarterContext) {
 }
 
 app.get("/login", serveProductApplication);
+app.get("/dashboard", serveProductApplication);
+app.get("/dashboard/*", serveProductApplication);
 app.get("/app", serveProductApplication);
 app.get("/app/*", serveProductApplication);
 app.get("/support", serveProductApplication);

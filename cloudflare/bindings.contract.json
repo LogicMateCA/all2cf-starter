@@ -4,11 +4,11 @@
   "description": "Reserved binding names and isolation rules. Provision concrete resources separately; this contract intentionally contains no account, database, bucket, queue, or secret IDs.",
   "environments": {
     "development": {
-      "worker": "starter-dev",
+      "worker": "starter-all2cf-dev",
       "resourceIsolation": "Development resources only; never point at production resources."
     },
     "production": {
-      "worker": "starter",
+      "worker": "starter-all2cf",
       "resourceIsolation": "Production resources only; never share mutable development resources."
     }
   },

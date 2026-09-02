@@ -1,7 +1,7 @@
 {
   "$schema": "./schemas/starter-config.schema.json",
   "project": {
-    "name": "Cloudflare AI Starter",
+    "name": "All2CF Starter",
     "slug": "starter"
   },
   "cloudflare": {
@@ -27,8 +27,8 @@
     }
   },
   "development": {
-    "worker": "starter-dev",
-    "domain": "dev.logicm8.com",
+    "worker": "starter-all2cf-dev",
+    "domain": "starter-dev.all2cf.com",
     "wranglerConfig": "cloudflare/wrangler.development.jsonc",
     "database": {
       "database": "starterdev",
@@ -43,8 +43,8 @@
     }
   },
   "production": {
-    "worker": "starter",
-    "domain": "starter.logicm8.com",
+    "worker": "starter-all2cf",
+    "domain": "starter.all2cf.com",
     "wranglerConfig": "cloudflare/wrangler.production.jsonc",
     "database": {
       "database": "starter",

@@ -7,7 +7,13 @@
     "tooling": "node-24",
     "deployment": "wrangler"
   },
-  "applications": ["marketing", "web", "worker", "mobile", "docs"],
+  "applications": [
+    "marketing",
+    "web",
+    "worker",
+    "mobile",
+    "docs"
+  ],
   "modules": [
     "assembler",
     "marketing",
@@ -264,14 +270,14 @@
   "environments": [
     {
       "id": "development",
-      "worker": "starter-dev",
-      "domain": "dev.logicm8.com",
+      "worker": "starter-all2cf-dev",
+      "domain": "starter-dev.all2cf.com",
       "releaseIntent": "发布"
     },
     {
       "id": "production",
-      "worker": "starter",
-      "domain": "starter.logicm8.com",
+      "worker": "starter-all2cf",
+      "domain": "starter.all2cf.com",
       "releaseIntent": "正式发布"
     }
   ],
@@ -282,7 +288,7 @@
     "doctorCommand": "npm run ai:doctor"
   },
   "project": {
-    "name": "Cloudflare AI Starter",
+    "name": "All2CF Starter",
     "slug": "starter"
   }
 }

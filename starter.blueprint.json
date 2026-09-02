@@ -57,7 +57,7 @@
     ]
   },
   "project": {
-    "name": "Cloudflare AI Starter",
+    "name": "All2CF Starter",
     "slug": "starter",
     "brief": "A reusable Cloudflare-first product assembler controlled through an AI-readable setup blueprint.",
     "productType": "web-saas",

@@ -22,6 +22,7 @@ export function App() {
       "/": "Workspace",
       "/login": "Sign in",
       "/app": "Workspace",
+      "/dashboard": "Dashboard",
       "/app/settings": "Settings",
       "/app/notifications": "Notifications",
       "/support": "Support",
@@ -45,7 +46,7 @@ export function App() {
   }
   let page;
   if (path === "/login") page = <AuthPage />;
-  else if (path === "/app" || path === "/app/settings" || path === "/app/notifications") page = <ProtectedApp />;
+  else if (path === "/app" || path === "/dashboard" || path === "/app/settings" || path === "/app/notifications") page = <ProtectedApp />;
   else if (path === "/support") page = <SupportPage />;
   else if (path === "/admin" || path.startsWith("/admin/")) page = <AdminPage />;
   else if (path === "/factory") {
