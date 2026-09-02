@@ -70,8 +70,8 @@
   ],
   "routes": [
     {
-      "pattern": "starter.all2cf.com",
-      "custom_domain": true
+      "pattern": "starter.all2cf.com/dashboard*",
+      "zone_name": "all2cf.com"
     }
   ],
   "queues": {
