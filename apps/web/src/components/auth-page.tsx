@@ -12,8 +12,8 @@ type SocialMethod = { key: "google" | "github" | "apple"; label: string; enabled
 type AntiAbuse = { provider: "none" | "turnstile"; siteKey: string };
 
 function safeReturnTo() {
-  const raw = new URLSearchParams(window.location.search).get("returnTo") || "/app";
-  return raw.startsWith("/") && !raw.startsWith("//") ? raw : "/app";
+  const raw = new URLSearchParams(window.location.search).get("returnTo") || "/dashboard";
+  return raw.startsWith("/") && !raw.startsWith("//") ? raw : "/dashboard";
 }
 
 function messageFrom(error: unknown, fallback: string) {
