@@ -17,6 +17,7 @@ Starter no longer owns or selects StyleKit snapshots, Design Profiles or visual 
 - Keep generated structural compatibility tokens so existing Web, Marketing, Docs and Mobile code remains operable before Visual materialization.
 - Keep `.visual/profile.json` and `.visual/receipt.json` as project-owned integration state.
 - Rebase Change Spec enforcement on the already released 2.3.1 self-host baseline so new commits are checked without re-auditing a different historical lineage.
+- Regenerate Development and Production Worker environment declarations after materialization normalized their generated binding configuration.
 
 # Verification
 
