@@ -8,7 +8,7 @@ source: "starter"
 
 ## Factory output
 
-- A generated source project must exclude `node_modules`, Git history, build/test output, credentials, and the complete reusable Catalog, Pack and StyleKit libraries.
+- A generated source project must exclude `node_modules`, Git history, build/test output, credentials, complete reusable Catalog/Pack libraries and all visual catalogs.
 - `factory:contract` creates a disposable Git project, requires a clean initial receipt/status/diff and caps the generated tree at 700 entries. The first verified default proof produced 447 entries; dependency installation is a later local-project step, not part of the portable source package.
 - Drizzle is absent from SQL-first output. When selected, it reuses the bounded pg pool factory and may not add an alternate CFPG runtime or generated client engine.
 
@@ -18,7 +18,7 @@ Authenticated request fan-out is a budget: shared Shell state must not issue dup
 
 Baseline rate-limit and recent-operations queries require matching composite/partial indexes. New product indexes need a real query shape and `EXPLAIN` evidence rather than speculative broad indexing.
 
-Local Setup payloads use task-ready projections. Reference-only StyleKit entries and full audit ledgers stay out of the initial configuration response unless the user opens their advanced surface.
+Local Setup payloads use task-ready projections. Visual catalogs never enter the payload; full functional audit ledgers stay out of the initial response unless the user opens their advanced surface.
 
 ## Budgets
 
@@ -60,7 +60,7 @@ Local Setup payloads use task-ready projections. Reference-only StyleKit entries
 - Treat compiler claims as unverified until the current supported TypeScript/Expo toolchain produces measurable optimized artifacts.
 - Keep the focused Better Auth Metro resolver regression-tested. Removing it currently adds server-only schema and Zod locale code to all Mobile bundles and exceeds the release budgets.
 - Every Catalog pack records its own bundle, query, asset, and runtime constraints before it can move from selected to locally verified.
-- `design:contract` compiles every profile in memory and must stay free of network, database, browser, and materialization side effects. Runtime builds contain only the selected generated adapters and no StyleKit or PowerAI donor dependency.
+- `design:contract` verifies the absence of Starter-owned visual data and donor runtime dependencies. Runtime builds contain structural compatibility output only until project-owned Visual materialization is accepted.
 - Playwright, axe-core and Lighthouse are development-only QA dependencies. Browser acceptance runs from the pinned `browser-acceptance` Compose profile and never enters Worker, Marketing, React, Docs or Expo production bundles.
 
 ## Change Spec

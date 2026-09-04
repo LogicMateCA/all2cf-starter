@@ -5,7 +5,7 @@ description: Generate an independent AI-ready product from canonical Starter loc
 
 # Starter Factory
 
-Create from the canonical source only. A generated product is a separate Git repository with `/setup`, a source receipt, selected materialization receipt, focused Agent Map and `/dp`. It retains compact Catalog and StyleKit reference snapshots for AI/docs, but never the reusable Pack templates or canonical source-release controller.
+Create from the canonical source only. A generated product is a separate Git repository with `/setup`, a source receipt, selected materialization receipt, focused Agent Map and `/dp`. It retains compact functional Catalog references for AI/docs, but never a visual catalog, reusable Pack templates or the canonical source-release controller.
 
 ## Create
 

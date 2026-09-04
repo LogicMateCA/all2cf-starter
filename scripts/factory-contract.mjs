@@ -52,12 +52,11 @@ try {
     if (!initialMaterialization.packs?.["foundation.core"]?.files?.[foundationFile]) failures.push(`Foundation update ownership is missing ${foundationFile}`);
   for (const productAiFile of ["AGENTS.md", "AGENT_MAP.md", "CODEX.md"])
     if (initialMaterialization.packs?.["foundation.core"]?.files?.[productAiFile]) failures.push(`Product AI file must not be foundation-owned: ${productAiFile}`);
-  for (const reference of ["catalog/catalog.json", "catalog/providers.json", "pages/catalog.json", "integrations/visual.json", ".ai/plugins.json", "design/stylekit/source-catalog.json"])
+  for (const reference of ["catalog/catalog.json", "catalog/providers.json", "pages/catalog.json", "integrations/visual.json", ".ai/plugins.json"])
     if (!(await exists(path.join(target, reference)))) failures.push(`Generated AI reference is missing ${reference}`);
-  if (await exists(path.join(target, "design/providers.json"))) failures.push("Universal Visual Provider Catalog leaked into the generated Starter project");
-  const generatedStyleCatalog = JSON.parse(await readFile(path.join(target, "design/stylekit/source-catalog.json"), "utf8"));
-  if (generatedStyleCatalog.count !== 1 || generatedStyleCatalog.styles?.[0]?.slug !== blueprint.stylekit.slug)
-    failures.push("Generated project did not retain exactly one Starter-owned visual fallback");
+  if (blueprint.designProfile || blueprint.stylekit || blueprint.selections?.design?.length)
+    failures.push("Generated project retained Starter-owned visual selection data");
+  if (await exists(path.join(target, "design"))) failures.push("Starter visual data layer leaked into the generated project");
   if (await exists(path.join(target, "apps/web/public/stylekit-previews"))) failures.push("Style library preview assets leaked into the generated project");
   if (await exists(path.join(target, "plugins")))
     failures.push("Global Codex plugin source leaked into the generated project");

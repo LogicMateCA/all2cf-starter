@@ -16,13 +16,6 @@ import {
 } from "./lib/assembly.mjs";
 import { validateVisualIntegration } from "./lib/visual-integration.mjs";
 import {
-  renderDesignCSS,
-  renderMobileDesign,
-  renderStyleKitAdapterCSS,
-  renderStyleKitCSS,
-  renderStyleKitMobile,
-} from "./lib/design-engine.mjs";
-import {
   CFPG_CONNECTOR_PACKAGE,
   CFPG_CONNECTOR_VERSION,
   configureDatabaseRuntime,
@@ -101,18 +94,6 @@ const docsDesignPath = path.join(
   root,
   "apps/docs/src/styles/generated-design-profile.css",
 );
-const webStyleAdapterPath = path.join(
-  root,
-  "apps/web/src/generated/stylekit-adapter.css",
-);
-const marketingStyleAdapterPath = path.join(
-  root,
-  "apps/marketing/src/styles/generated-stylekit-adapter.css",
-);
-const docsStyleAdapterPath = path.join(
-  root,
-  "apps/docs/src/styles/generated-stylekit-adapter.css",
-);
 const mobileDesignPath = path.join(
   root,
   "apps/mobile/generated/design-profile.ts",
@@ -129,6 +110,33 @@ const workerFirstConfigPaths = [
 
 const sha256 = (value) => createHash("sha256").update(value).digest("hex");
 const json = (value) => `${JSON.stringify(value, null, 2)}\n`;
+const structuralCSS = `/* Generated structural compatibility tokens. Visual styling belongs to the visual-design plugin. */
+:root {
+  --design-profile: "structural-only";
+  --design-font-ui: system-ui, sans-serif;
+  --design-font-display: system-ui, sans-serif;
+  --design-font-mono: ui-monospace, monospace;
+  --design-radius-sm: 0px; --design-radius-md: 0px; --design-radius-lg: 0px;
+  --design-motion-fast: 0ms; --design-motion-standard: 0ms;
+  --design-background: Canvas; --design-surface: Canvas; --design-surface-strong: ButtonFace;
+  --design-foreground: CanvasText; --design-muted: GrayText; --design-accent: AccentColor;
+  --design-on-accent: AccentColorText; --design-border: GrayText; --design-danger: Mark;
+  --design-highlight: Highlight; --design-shadow-color: transparent;
+  --design-shadow-raised: none; --design-shadow-raised-large: none; --design-shadow-recessed: none; --design-shadow-pressed: none;
+  --canvas: var(--design-background); --surface: var(--design-surface); --surface-soft: var(--design-surface-strong);
+  --text: var(--design-foreground); --muted: var(--design-muted); --subtle: var(--design-muted); --border: var(--design-border);
+  --strong: var(--design-foreground); --accent: var(--design-accent); --accent-soft: var(--design-surface-strong); --danger: var(--design-danger);
+  --sl-font: var(--design-font-ui); --radius-sm: 0px; --radius-md: 0px; --radius-lg: 0px;
+}
+`;
+const structuralMobile = `// Generated structural compatibility tokens. Visual styling belongs to the visual-design plugin.
+export const generatedMobileDesign = {
+  profileId: "structural-only", version: "1.0.0", sourceRevision: "visual-design-plugin", status: "unconfigured",
+  light: { background: "#ffffff", surface: "#ffffff", surfaceStrong: "#f2f2f2", foreground: "#000000", muted: "#666666", accent: "#0066cc", onAccent: "#ffffff", border: "#999999", danger: "#b00020", highlight: "#e6e6e6", shadow: "transparent" },
+  dark: { background: "#000000", surface: "#000000", surfaceStrong: "#1a1a1a", foreground: "#ffffff", muted: "#aaaaaa", accent: "#66aaff", onAccent: "#000000", border: "#777777", danger: "#ff6b7a", highlight: "#333333", shadow: "transparent" },
+  radius: { sm: 0, md: 0, lg: 0 }, motion: { fastMs: 0, standardMs: 0 }, fonts: { ui: "System", display: "System" }
+} as const;
+`;
 
 async function optionalRead(file) {
   try {
@@ -1164,8 +1172,7 @@ function renderMarketingProject(
     defaultLocale: blueprint.project.defaultLocale,
     locales: blueprint.project.locales,
     platforms: blueprint.project.platforms,
-    designProfile: blueprint.designProfile,
-    stylekit: blueprint.stylekit,
+    visualOwner: blueprint.visualIntegration.plugin.id,
     pages,
     publicPageCount: pages.filter(({ renderer }) => renderer === "astro-static")
       .length,
@@ -1217,34 +1224,12 @@ const starterManifest = JSON.parse(
 const catalog = JSON.parse(
   await readFile(path.join(sourceRoot, "catalog/catalog.json"), "utf8"),
 );
-const designCatalog = JSON.parse(
-  await readFile(path.join(sourceRoot, "design/catalog.json"), "utf8"),
-);
 const visualIntegration = JSON.parse(
   await readFile(path.join(sourceRoot, "integrations/visual.json"), "utf8"),
 );
 const pageCatalog = JSON.parse(
   await readFile(path.join(sourceRoot, "pages/catalog.json"), "utf8"),
 );
-const stylekitCatalog = JSON.parse(
-  await readFile(
-    path.join(sourceRoot, "design/stylekit/source-catalog.json"),
-    "utf8",
-  ),
-);
-if (!/^[a-z0-9][a-z0-9-]*$/u.test(blueprint.stylekit?.slug || ""))
-  throw new Error("Blueprint StyleKit slug is invalid");
-const stylekitSnapshotSource = await readFile(
-  path.join(
-    sourceRoot,
-    "design/stylekit",
-    blueprint.stylekit.slug,
-    "snapshot.json",
-  ),
-  "utf8",
-);
-const stylekitSnapshot = JSON.parse(stylekitSnapshotSource);
-const stylekitSnapshotHash = sha256(stylekitSnapshotSource);
 const catalogPacks = new Map(catalog.packs.map((pack) => [pack.id, pack]));
 const selected = new Set(
   Object.values(blueprint.selections)
@@ -1256,28 +1241,15 @@ const selectedPages = new Set(blueprint.pageSet.selected);
 const pageDefinitions = new Map(
   pageCatalog.pages.map((page) => [page.id, page]),
 );
-const selectedProfile = designCatalog.profiles.find(
-  ({ id }) => id === blueprint.designProfile.id,
-);
-const selectedDesignPackId = blueprint.stylekit?.slug
-  ? "design.stylekit-adapted"
-  : selectedProfile?.packId;
-if (!selectedDesignPackId)
-  throw new Error(
-    `Selected Design Profile ${blueprint.designProfile.id}@${blueprint.designProfile.version} is missing from the Design Catalog`,
-  );
+const selectedDesignPackId = "foundation.core";
 const manifests = await readPackManifests();
 const contractFailures = validateAssemblyContracts(
   starterManifest,
   blueprint,
   catalog,
-  designCatalog,
+  null,
   pageCatalog,
-  {
-    catalog: stylekitCatalog,
-    snapshot: stylekitSnapshot,
-    snapshotHash: stylekitSnapshotHash,
-  },
+  null,
 );
 contractFailures.push(
   ...validateVisualIntegration(visualIntegration, blueprint),
@@ -1649,21 +1621,8 @@ const desiredMobileConfigPluginSource = `${JSON.stringify([...desiredMobileConfi
 const desiredStorageAdapterSource = renderStorageAdapter(
   blueprint.providers.storage,
 );
-const desiredDesignCSS = blueprint.stylekit?.slug
-  ? renderStyleKitCSS(stylekitSnapshot)
-  : renderDesignCSS(selectedProfile);
-const desiredWebStyleAdapterCSS = blueprint.stylekit?.slug
-  ? renderStyleKitAdapterCSS(stylekitSnapshot, "web")
-  : "/* No StyleKit component adapter selected. */\n";
-const desiredMarketingStyleAdapterCSS = blueprint.stylekit?.slug
-  ? renderStyleKitAdapterCSS(stylekitSnapshot, "marketing")
-  : "/* No StyleKit component adapter selected. */\n";
-const desiredDocsStyleAdapterCSS = blueprint.stylekit?.slug
-  ? renderStyleKitAdapterCSS(stylekitSnapshot, "docs")
-  : "/* No StyleKit component adapter selected. */\n";
-const desiredMobileDesign = blueprint.stylekit?.slug
-  ? renderStyleKitMobile(stylekitSnapshot)
-  : renderMobileDesign(selectedProfile);
+const desiredDesignCSS = structuralCSS;
+const desiredMobileDesign = structuralMobile;
 const desiredMarketingProject = renderMarketingProject(
   blueprint,
   pageCatalog,
@@ -1997,27 +1956,6 @@ const generatedRegistries = [
     packId: selectedDesignPackId,
   },
   {
-    path: webStyleAdapterPath,
-    desired: desiredWebStyleAdapterCSS,
-    stateKey: "generatedStyleAdapterWebHash",
-    baseline: null,
-    packId: selectedDesignPackId,
-  },
-  {
-    path: marketingStyleAdapterPath,
-    desired: desiredMarketingStyleAdapterCSS,
-    stateKey: "generatedStyleAdapterMarketingHash",
-    baseline: null,
-    packId: selectedDesignPackId,
-  },
-  {
-    path: docsStyleAdapterPath,
-    desired: desiredDocsStyleAdapterCSS,
-    stateKey: "generatedStyleAdapterDocsHash",
-    baseline: null,
-    packId: selectedDesignPackId,
-  },
-  {
     path: mobileDesignPath,
     desired: desiredMobileDesign,
     stateKey: "generatedDesignMobileHash",
@@ -2104,12 +2042,7 @@ const desiredState = {
   generatedDesignWebHash: sha256(desiredDesignCSS),
   generatedDesignMarketingHash: sha256(desiredDesignCSS),
   generatedDesignDocsHash: sha256(desiredDesignCSS),
-  generatedStyleAdapterWebHash: sha256(desiredWebStyleAdapterCSS),
-  generatedStyleAdapterMarketingHash: sha256(desiredMarketingStyleAdapterCSS),
-  generatedStyleAdapterDocsHash: sha256(desiredDocsStyleAdapterCSS),
-  ...(materializeMobile
-    ? { generatedDesignMobileHash: sha256(desiredMobileDesign) }
-    : {}),
+  ...(materializeMobile ? { generatedDesignMobileHash: sha256(desiredMobileDesign) } : {}),
   generatedMarketingProjectHash: sha256(desiredMarketingProject),
   localOverrides: {},
 };

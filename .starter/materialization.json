@@ -10,18 +10,10 @@
         "db/migrations/1101_object_storage.sql": "34b97227383c14b2536971dfc9c770427d4788a053437be939f33de31c0e1225"
       }
     },
-    "design.owned-neutral": {
-      "version": "0.1.0",
-      "files": {}
-    },
-    "design.stylekit-adapted": {
-      "version": "0.1.0",
-      "files": {}
-    },
     "page.core-product-site": {
       "version": "0.1.0",
       "files": {
-        "apps/marketing/src/pages/index.astro": "2ba2ebb8bdb6ecbdcdeee1487b4a747288ee4a2e18e7da596c825569f245bad3",
+        "apps/marketing/src/pages/index.astro": "7d382c125c372d3f18d64ee7133c4fe036d059c4dd8952a11f2798b3bd793ebe",
         "apps/marketing/src/pages/features.astro": "0276ade3a0449f356c197690e30746f139553ab56bf3159f9ab699bd6213f13f",
         "apps/marketing/src/pages/pricing.astro": "8145e9148da1b64b27f031512bbb53b2524cc73477e4a2f74a1f39a68d3ac2a9",
         "apps/marketing/src/pages/about.astro": "9ea0650caadc969b26efc8ba270feb1a80d267ac339a5366f853c6e671d44959",
@@ -118,26 +110,26 @@
     "foundation.core": {
       "version": "1.0.0",
       "files": {
-        "apps/web/src/App.tsx": "7c04e6105749ab93202ab5e7a4bc211c9c645a90f1b7834f8fc275ffb75a7d23",
+        "apps/web/src/App.tsx": "fb28531e7f790dd0a113508270c3fd7f857368fedade7bcaee3a11d50220639e",
         "apps/web/src/components/admin-analytics.tsx": "84289c5cd7cad62db1f5a7e452cdc654610f521c6999611e6a56d041b5cdb6d1",
         "apps/web/src/components/admin-page.tsx": "67f1a19b83e87e40992efd72b50ef39a721d3f1586f706f0a0e7188e3f702df6",
         "apps/web/src/components/admin-platform-settings.tsx": "1ec85b8639d2614bdedc493990d2b96ffcc86986b64015affd1aa653ff60ea93",
         "apps/web/src/components/admin-saas-directory.tsx": "e22bf6a105373142ea202036d0a220f96e200067d127d70ec753a028587b6b1f",
         "apps/web/src/components/admin-users.tsx": "6524a56d1fc9199983817d720eab057891c11d63c4279108db4012d30d289777",
         "apps/web/src/components/update-page.tsx": "85ade2bee891102088e262d704d1f43eba45907e0d47d9a3cb4b000b9cb1fdd7",
-        "apps/web/src/index.css": "411ba433a03ea027bd8d4b081ebaa131ea644774335232adea90021f37c752c1",
+        "apps/web/src/index.css": "bf32112634b52f24db056f4b79e7e31f34ce8d6713101bb4dae0a9da24c563b8",
         "apps/web/src/lib/admin-modules.ts": "062a046912571bcbba406961146059869aa1d0c2c704f2db84686dc1853c8346",
         "apps/web/src/maintenance.css": "717fc86f6814d09f931cce00f1d820447b23017bee09b9d581b07f474018b819",
-        "apps/web/vite.config.ts": "d0bb32965649d5ff658f2dbc5264390b748d834b1a5cd465720aad9d87cd44a4",
+        "apps/web/vite.config.ts": "c3d59e15fbf122ecee5c89bece4b216c147d22522af81083ca6901a1b8006daa",
         "db/migrations/0010_platform_administrators.sql": "8de2d1f092bd772021cbf35f2439a618bc9eb3059c048563b8c09a9488da1f1d",
         "db/migrations/0012_platform_settings.sql": "524f03349188155dce817129401152cb5ae6399d1e6043610223d373c33d8a52",
         "db/migrations/1003_multi_product_subscriptions.sql": "96971a355cb14a815a6745b20e0759506248439275fb0254e9445e021365f9e9",
         "scripts/all2cf-project.mjs": "dabaae31585293e764846bf87fa40086be8510610940d021d6ba43c98784db61",
-        "scripts/materialize-blueprint.mjs": "a690d581dcc839bf200a7fae281748edd8b4ebab9a5a8997515c089aebc5a451",
+        "scripts/materialize-blueprint.mjs": "4d7b42370c3e46a22dcb387dea1d915cf7550d9f2354e2c89f8088d8907672c0",
         "scripts/admin-saas-database-contract.mjs": "1faeedf2a59a12c03d20113df772033f87e3cc1d66ac7c9876871eb6da2c87e6",
         "scripts/starter-link.mjs": "9b5ff7eccc44df2b7c917bcaeff00569b9a4c7255cb7b71caa78991a1c2b37ee",
         "skills/starter-maintenance/SKILL.md": "cc006c17c94c02c9aec79e09b86a6ca7302fc872ed5ba6aee91b539880fe54a4",
-        "workers/app/index.ts": "1c5e583abebff52cb4ce043234c8c58f22cc40fa6443cecf2b8c438198f7673d"
+        "workers/app/index.ts": "6ddc2a590938aa72f07a3fb772f9c190e6f1025129277509e8d45ba190deaf3b"
       }
     }
   },
@@ -193,7 +185,7 @@
       "queues": [
         {
           "binding": "OUTGOING_WEBHOOK_QUEUE",
-          "queue": "starter-dev-outgoing-webhooks"
+          "queue": "starter-all2cf-dev-outgoing-webhooks"
         }
       ],
       "requiredSecrets": [
@@ -239,7 +231,7 @@
       "queues": [
         {
           "binding": "OUTGOING_WEBHOOK_QUEUE",
-          "queue": "starter-outgoing-webhooks"
+          "queue": "starter-all2cf-outgoing-webhooks"
         }
       ],
       "requiredSecrets": [
@@ -282,12 +274,9 @@
       "cronVars": {}
     }
   },
-  "generatedDesignWebHash": "59c08ee8aec948cd506b25b26cd3c5f70000a236003b80fd5d405b161991a3de",
-  "generatedDesignMarketingHash": "59c08ee8aec948cd506b25b26cd3c5f70000a236003b80fd5d405b161991a3de",
-  "generatedDesignDocsHash": "59c08ee8aec948cd506b25b26cd3c5f70000a236003b80fd5d405b161991a3de",
-  "generatedStyleAdapterWebHash": "dcded3c84ec8f641510d5e981a1b532037c60784e0b048c6315b7a26b03e5a9c",
-  "generatedStyleAdapterMarketingHash": "e961c2786c60ad928d281de4f46be9dc5c3c4464e0bcfe122769816986dd3a0c",
-  "generatedStyleAdapterDocsHash": "1ba0db06e657c210171b2537575d6915490ef863dc533e079f90a32d520ef5bb",
-  "generatedMarketingProjectHash": "cb875447383fcaf8d7fff84cb416ef34b69bb38f4339f3c7cb0d1cfdfb00d377",
+  "generatedDesignWebHash": "5f4ef9d9c5cf621f88fda722b668b2bb66e43ee1ff8fd45be63c7e830e63ed6d",
+  "generatedDesignMarketingHash": "5f4ef9d9c5cf621f88fda722b668b2bb66e43ee1ff8fd45be63c7e830e63ed6d",
+  "generatedDesignDocsHash": "5f4ef9d9c5cf621f88fda722b668b2bb66e43ee1ff8fd45be63c7e830e63ed6d",
+  "generatedMarketingProjectHash": "d9523302680ddd7091d33e202f24619759833aca711f0f499ed21492f94a84db",
   "localOverrides": {}
 }

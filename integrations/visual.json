@@ -33,13 +33,13 @@
     "audits": ".visual/audits/"
   },
   "fallback": {
-    "required": true,
-    "behavior": "starter-owned-baseline",
+    "required": false,
+    "behavior": "structural-css-only",
     "blocksFactory": false
   },
   "ownership": {
     "visual": ["Visual protocol, plugin, MCP, profiles, recommendations, provider and recipe catalogs"],
-    "starter": ["Factory request, response validation, baseline style, source materialization and local verification"],
+    "starter": ["Factory request, response validation, structural CSS, accessibility and local verification"],
     "project": ["Source code, local .visual archive, accepted visual decisions and private references"]
   }
 }

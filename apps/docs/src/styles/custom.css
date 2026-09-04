@@ -1,5 +1,4 @@
 @import "./generated-design-profile.css";
-@import "./generated-stylekit-adapter.css";
 
 .hero h1 {
   font-family: var(--design-font-display);

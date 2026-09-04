@@ -58,7 +58,7 @@ authorization and update endpoint before `status`, `diff`, or `update` runs.
 
 The strict `factory-engine.json` remains the only manifest consumed by All2CF. `registration.json` describes the capsule and target paths plus required post-registration checks. `engine:register` defaults to a read-only plan, refuses dirty All2CF targets and requires an explicit `--apply` in an integration-owned clean worktree. Registration never commits, merges, deploys or removes a previous capsule.
 
-StyleKit is not an upstream auto-update channel. Engine candidates carry the current Starter-owned curated snapshots. A deliberate visual change must update the owned snapshot, adapters, contracts and visual evidence before the next source candidate.
+Starter has no visual update channel. Visual Design owns project visual changes and evidence; Engine candidates carry only structural compatibility output.
 
 ## Independent Visual integration
 

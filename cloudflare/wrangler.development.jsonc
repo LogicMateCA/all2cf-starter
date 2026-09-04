@@ -76,12 +76,12 @@
     "producers": [
       {
         "binding": "OUTGOING_WEBHOOK_QUEUE",
-        "queue": "starter-dev-outgoing-webhooks"
+        "queue": "starter-all2cf-dev-outgoing-webhooks"
       }
     ],
     "consumers": [
       {
-        "queue": "starter-dev-outgoing-webhooks",
+        "queue": "starter-all2cf-dev-outgoing-webhooks",
         "max_batch_size": 10,
         "max_batch_timeout": 2,
         "max_retries": 5,

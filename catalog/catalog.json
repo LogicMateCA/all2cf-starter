@@ -5,7 +5,7 @@
   "policies": {
     "betterAuth": "Better Auth core and every selected official plugin move as one stable-compatible version line with generated schema comparison and reviewed SQL migrations.",
     "databaseBaseline": "Every copied Starter project provisions new empty Development and Production PostgreSQL databases from the final selected-pack SQL baseline. Existing data, backfills, dual writes, and compatibility shims are out of scope.",
-    "ownedAdapters": "StyleKit is the pinned classified design-source library, PowerAI is the pinned page/content donor, Open SaaS and SaaSBoard are pinned product-shell donors, LastSaaS is the completeness checklist, and MapCN is a capability donor. Accepted output is licensed, tested, versioned, Starter-owned, and Cloudflare-native without donor runtime dependencies.",
+    "ownedAdapters": "Visual direction belongs to the independent Visual Design plugin. PowerAI is the pinned page/content donor, Open SaaS and SaaSBoard are pinned product-shell donors, LastSaaS is the completeness checklist, and MapCN is a capability donor. Accepted functional output is licensed, tested, versioned, Starter-owned, and Cloudflare-native without donor runtime dependencies.",
     "references": "Open Design and RunCopilot inform design research or extraction only. Donor Wasp, Prisma, Go, MongoDB, Next.js, Supabase, mock data, and hosted APIs never become generated runtime dependencies by default."
   },
   "presets": [
@@ -67,96 +67,6 @@
     }
   ],
   "packs": [
-    {
-      "id": "design.owned-neutral",
-      "kind": "design",
-      "name": "Owned neutral foundation",
-      "version": "0.1.0",
-      "status": "local-verified",
-      "delivery": "materializer",
-      "targets": [
-        "desktop-web",
-        "mobile-web",
-        "ios",
-        "android",
-        "admin",
-        "docs"
-      ],
-      "ownership": "starter-owned",
-      "source": [],
-      "updatePolicy": "internal-curated",
-      "provides": [
-        "semantic color tokens",
-        "light and dark modes",
-        "shadcn Web primitives",
-        "lean Tamagui mobile tokens"
-      ],
-      "requires": ["accessibility states", "bundle budgets"],
-      "conflicts": ["a second full component system on the same target"],
-      "performance": [
-        "route-level lazy loading",
-        "package-level Tamagui imports"
-      ],
-      "verification": [
-        "Web build",
-        "Web bundle budget",
-        "mobile export and bundle budget"
-      ],
-      "documentation": ["DESIGN.md", "features/mobile/MODULE.md"]
-    },
-    {
-      "id": "design.stylekit-adapted",
-      "kind": "design",
-      "name": "StyleKit-derived design profiles",
-      "version": "0.1.0",
-      "status": "local-verified",
-      "delivery": "materializer",
-      "targets": [
-        "desktop-web",
-        "mobile-web",
-        "ios",
-        "android",
-        "admin",
-        "docs"
-      ],
-      "ownership": "starter-owned",
-      "source": [
-        {
-          "name": "StyleKit",
-          "url": "https://github.com/AnxForever/stylekit",
-          "revision": "29141b684d5abb967558eb8083fbae91dbbc51b8",
-          "license": "MIT",
-          "relationship": "adapted-donor"
-        }
-      ],
-      "updatePolicy": "internal-curated",
-      "provides": [
-        "versioned design profiles",
-        "semantic tokens",
-        "component recipes",
-        "platform adapters"
-      ],
-      "requires": [
-        "Taste review",
-        "Astro, shadcn, Starlight, and Tamagui adapters"
-      ],
-      "conflicts": [
-        "direct StyleKit runtime calls",
-        "unadapted upstream theme import"
-      ],
-      "performance": [
-        "compile-time tokens",
-        "no StyleKit runtime dependency",
-        "per-target asset budgets"
-      ],
-      "verification": [
-        "reference screenshots",
-        "WCAG checks",
-        "Core Web Vitals",
-        "mobile bundle checks"
-      ],
-      "documentation": ["DESIGN.md", "features/assembler/MODULE.md"]
-    },
     {
       "id": "page.core-product-site",
       "kind": "page",
@@ -327,7 +237,7 @@
       "requires": [
         "identity core",
         "notifications core",
-        "selected StyleKit global system"
+        "project visual design"
       ],
       "conflicts": [
         "page-local authenticated shells",

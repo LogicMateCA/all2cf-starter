@@ -18,7 +18,7 @@ const run = (command, commandArgs, cwd = target) => {
   return result.stdout.trim();
 };
 const sha256 = async (file) => createHash("sha256").update(await readFile(file)).digest("hex");
-const permanent = new Set(["foundation.core", "design.owned-neutral", "design.stylekit-adapted", "page.core-product-site", "saas.product-shell", "saas.identity-core", "saas.notifications-core", "saas.product-operations-lite"]);
+const permanent = new Set(["foundation.core", "page.core-product-site", "saas.product-shell", "saas.identity-core", "saas.notifications-core", "saas.product-operations-lite"]);
 
 async function textFiles(directory) {
   const output = [];

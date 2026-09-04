@@ -26,8 +26,8 @@ Codex does not need the conversation that created Starter. Repository rules, Age
 - `AGENTS.md` — operating, safety, documentation, and release rules.
 - `PROJECT.md` — product purpose and current state.
 - `starter.blueprint.json` — selected product shape.
-- `catalog/catalog.json` — available Design, Page, SaaS, and Capability packs.
-- `design/catalog.json` — selected visual profile and adapter readiness.
+- `catalog/catalog.json` — available Page, SaaS, and Capability packs.
+- `integrations/visual.json` — the Visual Design ownership and receipt boundary; Starter itself has no visual catalog.
 - `pages/catalog.json` — route ownership, renderer, selection, and acceptance rules.
 - the current Change Spec and affected `features/*/MODULE.md` files.
 

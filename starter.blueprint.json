@@ -3,16 +3,6 @@
   "schemaVersion": "starter-blueprint/v1",
   "status": "ready",
   "preset": "custom",
-  "designProfile": {
-    "id": "stylekit-editorial",
-    "version": "2.2.0"
-  },
-  "stylekit": {
-    "slug": "editorial",
-    "sourceRevision": "29141b684d5abb967558eb8083fbae91dbbc51b8",
-    "snapshotVersion": "2.2.0",
-    "snapshotHash": "6c738963515a50730fd1b6313e5627bf8760a62f28dd8ccb4933278686cfd806"
-  },
   "visualIntegration": {
     "enabled": true,
     "contractVersion": "1.0.1",
@@ -24,13 +14,8 @@
     "environment": "development",
     "status": "unavailable",
     "profileReceipt": ".visual/receipt.json",
-    "fallbackProfile": {
-      "id": "stylekit-editorial",
-      "version": "2.2.0",
-      "sha256": "6c738963515a50730fd1b6313e5627bf8760a62f28dd8ccb4933278686cfd806"
-    },
     "warnings": [
-      "Visual plugin and service are optional; Starter baseline remains active until a compatible receipt is verified."
+      "Visual design is not owned by Starter. Run the visual-design plugin to create a project-owned .visual receipt."
     ]
   },
   "pageSet": {
@@ -100,30 +85,7 @@
     ]
   },
   "selections": {
-    "design": [
-      {
-        "id": "design.owned-neutral",
-        "lifecycle": {
-          "selected": true,
-          "materialized": true,
-          "localVerified": false,
-          "developmentVerified": false,
-          "productionReleased": false
-        },
-        "note": "Compatibility profile is derived from the selected StyleKit snapshot."
-      },
-      {
-        "id": "design.stylekit-adapted",
-        "lifecycle": {
-          "selected": true,
-          "materialized": true,
-          "localVerified": false,
-          "developmentVerified": false,
-          "productionReleased": false
-        },
-        "note": "The selected Editorial snapshot compiles one owned cross-surface adapter and passes deterministic contracts. Neumorphism remains the historical full-surface browser acceptance reference; Editorial still needs its own visual acceptance."
-      }
-    ],
+    "design": [],
     "pages": [
       {
         "id": "page.core-product-site",

@@ -11,7 +11,7 @@ This Skill owns the boundary from one clean canonical Starter commit to an immut
 
 1. Work only in `/opt/1panel/apps/starter` or an explicitly identified canonical Starter worktree.
 2. Run `npm run source:status` first. Stop release-candidate work when the source is dirty.
-3. StyleKit uses Starter-owned curated snapshots. Do not automatically fetch, merge or version-bump upstream StyleKit. Visual changes require an explicit owner-selected snapshot change and their own visual acceptance.
+3. Starter releases contain no visual catalog or visual profile. Visual changes belong to the independent Visual Design plugin and require their own project-level acceptance evidence.
 4. Better Auth/runtime dependency upgrades remain owned by `runtime-upgrade`; do not hide dependency changes inside an Engine release.
 
 ## Candidate

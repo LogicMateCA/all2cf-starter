@@ -29,10 +29,10 @@
   "secrets": {
     "required": [
       "BETTER_AUTH_SECRET",
-      "RESEND_API_KEY",
-      "RESEND_FROM",
       "GOOGLE_CLIENT_ID",
       "GOOGLE_CLIENT_SECRET",
+      "RESEND_API_KEY",
+      "RESEND_FROM",
       "STRIPE_PRICE_PRO",
       "STRIPE_SECRET_KEY",
       "STRIPE_WEBHOOK_SECRET",
@@ -77,12 +77,12 @@
     "producers": [
       {
         "binding": "OUTGOING_WEBHOOK_QUEUE",
-        "queue": "starter-outgoing-webhooks"
+        "queue": "starter-all2cf-outgoing-webhooks"
       }
     ],
     "consumers": [
       {
-        "queue": "starter-outgoing-webhooks",
+        "queue": "starter-all2cf-outgoing-webhooks",
         "max_batch_size": 10,
         "max_batch_timeout": 2,
         "max_retries": 5,

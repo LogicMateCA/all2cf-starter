@@ -2,7 +2,6 @@
 import { project, routeSelected } from "../generated/project";
 import "../styles/generated-design-profile.css";
 import "../styles/site.css";
-import "../styles/generated-stylekit-adapter.css";
 
 interface Props {
   title?: string;
@@ -21,7 +20,7 @@ const navigation = [
 ---
 
 <!doctype html>
-<html lang={project.defaultLocale} data-design-profile={project.designProfile.id}>
+<html lang={project.defaultLocale} data-visual-owner={project.visualOwner}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

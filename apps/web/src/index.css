@@ -1969,23 +1969,6 @@ dd {
   color: var(--subtle);
   font-size: 12px;
 }
-.stylekit-pinned {
-  display: grid;
-  gap: 5px;
-  margin-top: 16px;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface-soft);
-}
-.stylekit-pinned strong {
-  font-size: 12px;
-}
-.stylekit-pinned small {
-  color: var(--muted);
-  font-size: 12px;
-  overflow-wrap: anywhere;
-}
 .platform-options {
   display: flex;
   flex-wrap: wrap;
@@ -2145,8 +2128,7 @@ dd {
   object-fit: cover;
   object-position: center;
 }
-/* STYLEKIT_PREVIEW_END */
-.stylekit-materialization-note {
+.visual-boundary-note {
   margin: 14px 0 0;
   padding: 12px 14px;
   border: 1px solid var(--border);

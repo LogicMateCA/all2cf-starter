@@ -125,7 +125,6 @@ async function lightweightContext() {
     },
     selection: {
       preset: blueprint.preset,
-      stylekit: blueprint.stylekit,
       visualIntegration: blueprint.visualIntegration,
       selected,
       materializedPacks: Object.keys(materialization.packs || {}),
@@ -165,8 +164,6 @@ async function fullContext() {
     assembly: {
       setup: context.assembly.blueprint.setup,
       preset: context.assembly.blueprint.preset,
-      designProfile: context.assembly.blueprint.designProfile,
-      stylekitLock: context.assembly.blueprint.stylekit,
       visualIntegration: context.assembly.blueprint.visualIntegration,
       pageSet: context.assembly.blueprint.pageSet,
       selections: context.assembly.blueprint.selections,
@@ -175,9 +172,7 @@ async function fullContext() {
       catalogVersion: context.assembly.catalog.catalogVersion,
       catalogPresets: context.assembly.catalog.presets,
       catalogPacks: context.assembly.catalog.packs.map(({ id, kind, status, ownership, updatePolicy }) => ({ id, kind, status, ownership, updatePolicy })),
-      designProfiles: context.assembly.designCatalog.profiles.map(({ id, version, packId, status, targets, dials, adapters }) => ({ id, version, packId, status, targets, dials, adapters })),
       visualService: context.assembly.visualIntegration,
-      stylekit: context.assembly.stylekit,
       pages: context.assembly.pageCatalog.pages.map(({ id, packId, route, renderer, required, status }) => ({ id, packId, route, renderer, required, status, selected: context.assembly.blueprint.pageSet.selected.includes(id) })),
     },
     modules: context.modules.map(({ id, status, summary, path: modulePath }) => ({ id, status, summary, path: modulePath })),

@@ -1,5 +1,4 @@
 import { execFileSync } from "node:child_process";
-import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { validateAssemblyContracts } from "./assembly.mjs";
@@ -177,9 +176,7 @@ export async function collectKnowledge(root) {
     blueprint,
     catalog,
     providerCatalog,
-    designCatalog,
     visualIntegration,
-    stylekitSourceCatalog,
     saasSources,
     saasCapabilities,
     pageCatalog,
@@ -194,9 +191,7 @@ export async function collectKnowledge(root) {
     readJson(root, "starter.blueprint.json"),
     readJson(sourceRoot, "catalog/catalog.json"),
     readJson(sourceRoot, "catalog/providers.json"),
-    readJson(root, "design/catalog.json"),
     readJson(root, "integrations/visual.json"),
-    readJson(root, "design/stylekit/source-catalog.json"),
     readJson(sourceRoot, "catalog/saas-sources.json"),
     readJson(sourceRoot, "catalog/saas-capabilities.json"),
     readJson(sourceRoot, "pages/catalog.json"),
@@ -207,33 +202,6 @@ export async function collectKnowledge(root) {
     readOptionalJsonc(root, "cloudflare/wrangler.development.jsonc"),
     readOptionalJsonc(root, "cloudflare/wrangler.production.jsonc"),
   ]);
-  const eligibleStylekitSystems = stylekitSourceCatalog.styles.filter(
-    ({ classification, globalEligibility }) =>
-      classification === "base-visual" && globalEligibility === "eligible",
-  );
-  const stylekitSnapshots = await Promise.all(
-    eligibleStylekitSystems.map(async ({ slug }) => {
-      const snapshotPath = path.join(
-        root,
-        "design/stylekit",
-        slug,
-        "snapshot.json",
-      );
-      const source = await readFile(snapshotPath, "utf8");
-      const snapshot = JSON.parse(source);
-      return {
-        snapshot,
-        snapshotHash: createHash("sha256").update(source).digest("hex"),
-      };
-    }),
-  );
-  const selectedStylekit = stylekitSnapshots.find(
-    ({ snapshot }) => snapshot.style.slug === blueprint.stylekit.slug,
-  );
-  if (!selectedStylekit)
-    throw new Error(
-      `Selected StyleKit snapshot is missing: ${blueprint.stylekit.slug}`,
-    );
   const documents = await Promise.all(
     rootDocuments.map((file) => readMarkdown(root, file)),
   );
@@ -254,13 +222,9 @@ export async function collectKnowledge(root) {
     manifest,
     blueprint,
     catalog,
-    designCatalog,
+    null,
     pageCatalog,
-    {
-      catalog: stylekitSourceCatalog,
-      snapshot: selectedStylekit.snapshot,
-      snapshotHash: selectedStylekit.snapshotHash,
-    },
+    null,
   );
   if (assemblyFailures.length)
     throw new Error(
@@ -298,66 +262,7 @@ export async function collectKnowledge(root) {
         packs: catalog.packs,
       },
       providerCatalog,
-      designCatalog,
       visualIntegration,
-      stylekit: {
-        source: stylekitSourceCatalog.source,
-        styleCount: stylekitSourceCatalog.count,
-        catalogVersion: stylekitSourceCatalog.catalogVersion,
-        classification: Object.fromEntries(
-          [
-            ...new Set(
-              stylekitSourceCatalog.styles.map(
-                ({ classification }) => classification,
-              ),
-            ),
-          ]
-            .sort()
-            .map((classification) => [
-              classification,
-              stylekitSourceCatalog.styles.filter(
-                (style) => style.classification === classification,
-              ).length,
-            ]),
-        ),
-        globalEligibleCount: stylekitSourceCatalog.styles.filter(
-          ({ classification, globalEligibility }) =>
-            classification === "base-visual" &&
-            globalEligibility === "eligible",
-        ).length,
-        selected: blueprint.stylekit,
-        adapterFamilies: Object.fromEntries(
-          [
-            ...new Set(
-              eligibleStylekitSystems.map(({ adapterFamily }) => adapterFamily),
-            ),
-          ]
-            .sort()
-            .map((family) => [
-              family,
-              eligibleStylekitSystems.filter(
-                ({ adapterFamily }) => adapterFamily === family,
-              ).length,
-            ]),
-        ),
-        snapshots: stylekitSnapshots.map(({ snapshot, snapshotHash }) => ({
-          slug: snapshot.style.slug,
-          name: snapshot.style.name,
-          nameEn: snapshot.style.nameEn,
-          adapterFamily: snapshot.style.adapterFamily,
-          snapshotVersion: snapshot.snapshotVersion,
-          snapshotHash,
-          immutable: snapshot.immutable,
-          selected: snapshot.style.slug === blueprint.stylekit.slug,
-          classification: snapshot.style.classification,
-          globalEligibility: snapshot.style.globalEligibility,
-          targets: snapshot.targets,
-          sourceFiles: snapshot.provenance.sourceFiles.map(
-            ({ path: sourcePath, sha256 }) => ({ path: sourcePath, sha256 }),
-          ),
-          aiRules: `design/stylekit/${snapshot.style.slug}/snapshot.json`,
-        })),
-      },
       pageCatalog,
       saas: {
         sources: saasSources,

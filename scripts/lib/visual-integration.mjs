@@ -6,8 +6,8 @@ export function validateVisualIntegration(contract, blueprint) {
     failures.push("Visual integration must pin starter-integration@1.0.1");
   if (contract.plugin?.bundled !== false || contract.plugin?.installation !== "external-recommended")
     failures.push("Visual plugin must remain external and optional");
-  if (contract.fallback?.required !== true || contract.fallback?.blocksFactory !== false)
-    failures.push("Visual integration must preserve the non-blocking Starter baseline");
+  if (contract.fallback?.required !== false || contract.fallback?.behavior !== "structural-css-only" || contract.fallback?.blocksFactory !== false)
+    failures.push("Visual integration must leave Starter with structural CSS only and no visual fallback profile");
   const selection = blueprint.visualIntegration;
   if (!selection) return [...failures, "Blueprint visualIntegration is required"];
   if (selection.contractVersion !== contract.source.contractVersion)
@@ -28,12 +28,6 @@ export function validateVisualIntegration(contract, blueprint) {
     failures.push("Enabled Visual integration cannot use status disabled");
   if (selection.profileReceipt !== contract.projectArchive.receipt)
     failures.push(`Blueprint Visual receipt must use ${contract.projectArchive.receipt}`);
-  if (!/^[a-f0-9]{64}$/u.test(selection.fallbackProfile?.sha256 || ""))
-    failures.push("Blueprint Visual fallback must pin a SHA-256 profile");
-  if (selection.fallbackProfile?.id !== blueprint.designProfile?.id || selection.fallbackProfile?.version !== blueprint.designProfile?.version)
-    failures.push("Blueprint Visual fallback must match the active Starter Design Profile");
-  if (selection.fallbackProfile?.sha256 !== blueprint.stylekit?.snapshotHash)
-    failures.push("Blueprint Visual fallback hash must match the active Starter-owned style snapshot");
   return failures;
 }
 

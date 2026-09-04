@@ -4,7 +4,6 @@ import { App } from './App'
 import { PreferencesProvider } from './lib/preferences'
 import { loadSiteIntegrations } from './lib/site-integrations-loader'
 import './index.css'
-import './generated/stylekit-adapter.css'
 
 if (window.location.pathname.startsWith("/dashboard")) {
   const nativeFetch = window.fetch.bind(window);

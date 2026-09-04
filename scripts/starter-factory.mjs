@@ -363,7 +363,6 @@ async function pruneSourceLibrary(target) {
     "scripts/page-catalog-contract.mjs",
     "scripts/provider-catalog-contract.mjs",
     "scripts/saas-foundation-contract.mjs",
-    "scripts/stylekit-boundary.mjs",
     "scripts/typography-contract.mjs",
     ".starter/factory-draft.local.json",
     "ALL2CF_FACTORY.md",
@@ -374,18 +373,8 @@ async function pruneSourceLibrary(target) {
     "cloudflare/dist",
   ])
     await rm(path.join(target, relative), { recursive: true, force: true });
-  const blueprint = await readJson(target, "starter.blueprint.json");
-  const stylekitRoot = path.join(target, "design/stylekit");
-  const sourceCatalog = await readJson(target, "design/stylekit/source-catalog.json");
-  const selectedStyle = sourceCatalog.styles.find(({ slug }) => slug === blueprint.stylekit.slug);
-  if (!selectedStyle) throw new Error(`Selected fallback style ${blueprint.stylekit.slug} is missing from the source catalog`);
-  for (const entry of await readdir(stylekitRoot))
-    if (entry !== "source-catalog.json" && entry !== blueprint.stylekit.slug)
-      await rm(path.join(stylekitRoot, entry), { recursive: true, force: true });
-  await writeFile(path.join(stylekitRoot, "source-catalog.json"), json({ ...sourceCatalog, count: 1, styles: [selectedStyle] }));
-  await rm(path.join(target, "apps/web/public/stylekit-previews"), { recursive: true, force: true });
-  for (const relative of ["scripts/stylekit-bundle.mjs", "scripts/stylekit-preview-assets.mjs", "scripts/stylekit-snapshot.mjs", "scripts/stylekit-snapshots.mjs", "scripts/stylekit-source-catalog.mjs", "scripts/stylekit-contract.mjs"])
-    await rm(path.join(target, relative), { force: true });
+  for (const relative of ["design", "apps/web/public/stylekit-previews", "scripts/stylekit-bundle.mjs", "scripts/stylekit-preview-assets.mjs", "scripts/stylekit-snapshot.mjs", "scripts/stylekit-snapshots.mjs", "scripts/stylekit-source-catalog.mjs", "scripts/stylekit-contract.mjs"])
+    await rm(path.join(target, relative), { recursive: true, force: true });
 }
 
 async function writeProductHandoff(target, source) {
@@ -416,7 +405,7 @@ async function writeProductHandoff(target, source) {
   const project = await readFile(projectPath, "utf8");
   await writeFile(projectPath, project
     .replace(
-      "Blueprint-driven project creation for AI-led Cloudflare products. The reusable baseline owns the normal product platform, application shell, administration, account, notification, support, documentation and operations behavior. Canonical local `/setup` captures what a new product does and invokes the internal Factory command to generate an independent product; that product retains `/setup`, compact Catalog and StyleKit reference snapshots for later configuration and AI context, but not the reusable Pack template library.",
+      "Blueprint-driven project creation for AI-led Cloudflare products. The reusable baseline owns product behavior, application structure, administration, account, notification, support, documentation and operations. Canonical local `/setup` captures what a new product does and generates an independent product; that product retains `/setup` and compact functional Catalog references, while visual direction belongs to Visual Design and no Starter visual catalog is copied.",
       "An independent AI-ready Cloudflare product generated from a verified Starter source. This repository owns its selected SaaS platform, application shell, administration, account, notification, support, documentation and operations behavior; local `/setup` controls project configuration without depending on the canonical Factory at runtime.",
     )
     .replace(

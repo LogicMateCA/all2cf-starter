@@ -150,25 +150,13 @@ type Blueprint = {
   schemaVersion: string;
   status: string;
   preset: string;
-  designProfile: { id: string; version: string };
-  stylekit: {
-    slug: string;
-    sourceRevision: string;
-    snapshotVersion: string;
-    snapshotHash: string;
-  };
   visualIntegration: {
     enabled: boolean;
     contractVersion: "1.0.1";
-    plugin: {
-      id: "visual-design";
-      version: "0.1.0";
-      installation: "external-recommended";
-    };
+    plugin: { id: "visual-design"; version: string; installation: "external-recommended" | "installed" };
     environment: "development" | "production";
     status: "disabled" | "unavailable" | "configured" | "resolved";
     profileReceipt: ".visual/receipt.json";
-    fallbackProfile: { id: string; version: string; sha256: string };
     warnings: string[];
   };
   pageSet: { selected: string[] };
@@ -269,27 +257,6 @@ type Preset = {
   description: string;
   selections: string[];
 };
-type DesignProfile = {
-  id: string;
-  version: string;
-  packId: string;
-  name: string;
-  description: string;
-  status: string;
-  targets: string[];
-  direction: { tone: string; typography: string; shape: string; depth: string };
-  dials: {
-    designVariance: number;
-    motionIntensity: number;
-    visualDensity: number;
-  };
-  semanticColors: {
-    light: Record<string, string>;
-    dark: Record<string, string>;
-  };
-  rules: { do: string[]; dont: string[] };
-  adapters: Record<string, string>;
-};
 type PageDefinition = {
   id: string;
   packId: string;
@@ -301,35 +268,6 @@ type PageDefinition = {
   defaultSelected: boolean;
   status: string;
   sections: string[];
-};
-type StyleKitEntry = {
-  slug: string;
-  name: string;
-  nameEn: string;
-  description: string;
-  descriptionEn: string;
-  category: string;
-  styleType: string;
-  adapterFamily?: string;
-  classification:
-    | "base-visual"
-    | "layout-pattern"
-    | "density-pattern"
-    | "style-variant"
-    | "enhancement"
-    | "content-domain"
-    | "pending-review";
-  globalEligibility: "eligible" | "pending" | "ineligible";
-  classificationReason: string;
-  tags?: string[];
-  colors?: { primary?: string; secondary?: string; accent?: string[] };
-};
-type StyleKitSnapshotSummary = {
-  snapshotVersion: string;
-  snapshotHash: string;
-  immutable: boolean;
-  targets: Record<string, { status: string }>;
-  style: StyleKitEntry;
 };
 type ProviderCatalogOption = {
   id: string;
@@ -362,40 +300,19 @@ type ProviderCatalogCategory = {
 type SetupPayload = {
   blueprint: Blueprint;
   catalog: { catalogVersion: string; presets: Preset[]; packs: Pack[] };
-  designCatalog: {
-    catalogVersion: string;
-    sourcePolicy: string;
-    profiles: DesignProfile[];
-  };
   visualIntegrationContract: {
     integrationVersion: "1.0.1";
     status: string;
-    plugin: {
-      id: "visual-design";
-      version: "0.1.0";
-      installation: "external-recommended";
-      bundled: false;
-    };
-    service: {
-      developmentOrigin: string;
-      productionOrigin: string;
-      discoveryPath: string;
-      mcpPath: string;
-      requiredDiscoveryFields: string[];
-    };
+    plugin: { id: "visual-design"; version: string; installation: "external-recommended" | "installed"; bundled: false };
+    service: { developmentOrigin: string; productionOrigin: string; discoveryPath: string; mcpPath: string; requiredDiscoveryFields: string[] };
     projectArchive: { profile: string; receipt: string };
-    fallback: {
-      required: true;
-      behavior: "starter-owned-baseline";
-      blocksFactory: false;
-    };
+    fallback: { required: false; behavior: "structural-css-only"; blocksFactory: false };
   };
   pageCatalog: {
     catalogVersion: string;
     policy: string;
     pages: PageDefinition[];
   };
-  stylekitSnapshot: StyleKitSnapshotSummary;
   saasSources: {
     sources: Array<{ id: string; name: string; role: string }>;
   };
@@ -2179,21 +2096,6 @@ export function SetupPage() {
         ),
       },
     }));
-  const setDesignProfile = (profile: DesignProfile) =>
-    updateBlueprint((blueprint) => ({
-      ...blueprint,
-      designProfile: { id: profile.id, version: profile.version },
-      selections: {
-        ...blueprint.selections,
-        design: blueprint.selections.design.map((selection) => ({
-          ...selection,
-          lifecycle: selectLifecycle(
-            selection.lifecycle,
-            selection.id === profile.packId,
-          ),
-        })),
-      },
-    }));
   const setVisualIntegrationEnabled = (enabled: boolean) =>
     updateBlueprint((blueprint) => ({
       ...blueprint,
@@ -2808,37 +2710,11 @@ export function SetupPage() {
           {currentStep.id === "design" ? (
             <div className="setup-stack">
               <section className="setup-panel">
-                <div className="panel-title">
-                  <div>
-                    <h2>Starter baseline visual system</h2>
-                    <p>
-                      Functional visual fallback for Setup, authentication,
-                      product, Admin and Docs.
-                    </p>
-                  </div>
-                  <small>Available</small>
-                </div>
-                <p>
-                  Starter keeps one restrained fallback so every generated
-                  product remains usable before independent visual design is
-                  connected. Product behavior never depends on the external
-                  service.
-                </p>
-                <div className="stylekit-pinned">
-                  <strong>
-                    Locked choice: {payload.stylekitSnapshot.style.name} /{" "}
-                    {payload.blueprint.stylekit.slug}
-                  </strong>
-                  <small>
-                    Baseline {payload.stylekitSnapshot.snapshotVersion} ·{" "}
-                    {payload.blueprint.stylekit.snapshotHash.slice(0, 12)}…
-                  </small>
-                </div>
-                <p className="stylekit-materialization-note">
-                  This baseline is intentionally fixed and lightweight. It keeps
-                  Setup, authentication, product, Admin and Docs usable without
-                  an external visual service. Later visual direction belongs to
-                  the independent plugin.
+                <div className="panel-title"><div><h2>Visual ownership</h2><p>Starter does not choose, store or impose a visual system.</p></div><small>External</small></div>
+                <p className="visual-boundary-note">
+                  Starter emits structural, responsive and accessible layout CSS only.
+                  Typography, color, spacing rhythm, surfaces, imagery and motion belong
+                  exclusively to the visual-design plugin and the product repository.
                 </p>
               </section>
               <section className="setup-panel">
@@ -2846,37 +2722,23 @@ export function SetupPage() {
                   <div>
                     <h2>AI visual design</h2>
                     <p>
-                      The independent visual-design integration is still under
-                      development. Starter keeps its functional baseline until
-                      the plugin, receipt and local materialization workflow are
-                      production-ready.
+                      Connect the independent visual-design plugin after generation to create
+                      the project-owned visual profile and receipt.
                     </p>
                   </div>
-                  <small>Under development</small>
+                  <small>{payload.blueprint.visualIntegration.status}</small>
                 </div>
                 <label className="pack-choice unavailable" aria-disabled="true">
-                  <input type="checkbox" checked={false} disabled />
+                  <input type="checkbox" checked={payload.blueprint.visualIntegration.enabled} disabled />
                   <span className="pack-choice-main">
-                    <span>
-                      <strong>Independent visual intelligence</strong>
-                      <small>Not selectable yet</small>
-                    </span>
-                    <p>
-                      The future integration will record a compatible plugin and
-                      Visual Receipt without bundling an external catalog or
-                      runtime.
-                    </p>
-                    <small>
-                      {payload.blueprint.visualIntegration.contractVersion} /
-                      under development / Starter baseline remains active
-                    </small>
+                    <span><strong>Visual Design</strong><small>Sole visual owner</small></span>
+                    <p>Materializes bounded visual changes and records them in {payload.blueprint.visualIntegration.profileReceipt}.</p>
+                    <small>{payload.blueprint.visualIntegration.plugin.id} {payload.blueprint.visualIntegration.plugin.version} / contract {payload.blueprint.visualIntegration.contractVersion}</small>
                   </span>
                   <span className="status planned">planned</span>
                 </label>
-                <p className="stylekit-materialization-note">
-                  Project creation never waits for this integration. Continue
-                  with the fixed Starter baseline and customize product-owned
-                  design after Setup.
+                <p className="visual-boundary-note">
+                  Project creation does not wait for visual work. Run Visual Design before visual acceptance or release.
                 </p>
               </section>
             </div>
@@ -5800,22 +5662,7 @@ export function SetupPage() {
                       {payload.blueprint.productIntent.audiences.join(", ")}
                     </dd>
                   </div>
-                  <div>
-                    <dt>StyleKit</dt>
-                    <dd>
-                      {payload.blueprint.stylekit.slug} /{" "}
-                      {payload.blueprint.stylekit.sourceRevision.slice(0, 12)} /{" "}
-                      {payload.blueprint.stylekit.snapshotVersion} /{" "}
-                      {payload.blueprint.stylekit.snapshotHash.slice(0, 12)}…
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Design pointer</dt>
-                    <dd>
-                      {payload.blueprint.designProfile.id} /{" "}
-                      {payload.blueprint.designProfile.version}
-                    </dd>
-                  </div>
+                  <div><dt>Visual owner</dt><dd>{payload.blueprint.visualIntegration.plugin.id}</dd></div>
                   <div>
                     <dt>Pages</dt>
                     <dd>{selectedPages.length} selected routes</dd>

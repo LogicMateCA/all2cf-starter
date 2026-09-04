@@ -974,11 +974,9 @@ function localSetupApi(): Plugin {
               manifestSource,
               blueprintSource,
               catalogSource,
-              designCatalogSource,
               visualIntegrationContractSource,
               pageCatalogSource,
               configSource,
-              stylekitCatalogSource,
               saasSourcesSource,
               saasCapabilitiesSource,
               providerCatalogSource,
@@ -996,23 +994,12 @@ function localSetupApi(): Plugin {
                 "utf8",
               ),
               readFile(
-                path.join(starterSourceRoot, "design/catalog.json"),
-                "utf8",
-              ),
-              readFile(
                 path.join(starterSourceRoot, "integrations/visual.json"),
                 "utf8",
               ),
               readFile(path.join(starterSourceRoot, "pages/catalog.json"), "utf8"),
               readFile(
                 path.join(repositoryRoot, "starter.config.json"),
-                "utf8",
-              ),
-              readFile(
-                path.join(
-                  starterSourceRoot,
-                  "design/stylekit/source-catalog.json",
-                ),
                 "utf8",
               ),
               readFile(
@@ -1030,11 +1017,9 @@ function localSetupApi(): Plugin {
             ]);
             const manifest = JSON.parse(manifestSource);
             const catalog = JSON.parse(catalogSource);
-            const designCatalog = JSON.parse(designCatalogSource);
             const visualIntegrationContract = JSON.parse(visualIntegrationContractSource);
             const pageCatalog = JSON.parse(pageCatalogSource);
             let config = JSON.parse(configSource);
-            const stylekitCatalog = JSON.parse(stylekitCatalogSource);
             const saasSources = JSON.parse(saasSourcesSource);
             const saasCapabilities = JSON.parse(saasCapabilitiesSource);
             const providerCatalog = JSON.parse(providerCatalogSource);
@@ -1050,30 +1035,14 @@ function localSetupApi(): Plugin {
             }
             initialBlueprint.visualIntegration ||= JSON.parse(blueprintSource).visualIntegration;
             delete initialBlueprint.designExtensions;
-            const initialSnapshotPath = path.join(
-              starterSourceRoot,
-              "design/stylekit",
-              initialBlueprint.stylekit?.slug || "",
-              "snapshot.json",
-            );
-            const initialSnapshotSource = await readFile(
-              initialSnapshotPath,
-              "utf8",
-            );
-
             if (request.method === "GET") {
               response.statusCode = 200;
               response.end(
                 json({
                   blueprint: initialBlueprint,
                   catalog,
-                  designCatalog,
                   visualIntegrationContract,
                   pageCatalog,
-                  stylekitSnapshot: {
-                    ...JSON.parse(initialSnapshotSource),
-                    snapshotHash: sha256(initialSnapshotSource),
-                  },
                   saasSources,
                   saasCapabilities,
                   providerCatalog,
@@ -1129,24 +1098,13 @@ function localSetupApi(): Plugin {
                 slug: blueprint.project.slug,
               },
             };
-            const snapshotPath = path.join(
-              starterSourceRoot,
-              "design/stylekit",
-              blueprint.stylekit?.slug || "",
-              "snapshot.json",
-            );
-            const snapshotSource = await readFile(snapshotPath, "utf8");
             const failures = validateAssemblyContracts(
               nextManifest,
               blueprint,
               catalog,
-              designCatalog,
+              null,
               pageCatalog,
-              {
-                catalog: stylekitCatalog,
-                snapshot: JSON.parse(snapshotSource),
-                snapshotHash: sha256(snapshotSource),
-              },
+              null,
               { allowDeferredCfpg: true },
             );
             failures.push(...validateVisualIntegration(visualIntegrationContract, blueprint));
@@ -1173,10 +1131,8 @@ function localSetupApi(): Plugin {
               response.end(json({
                 blueprint,
                 catalog,
-                designCatalog,
                 visualIntegrationContract,
                 pageCatalog,
-                stylekitSnapshot: { ...JSON.parse(snapshotSource), snapshotHash: sha256(snapshotSource) },
                 saasSources,
                 saasCapabilities,
                 providerCatalog,
@@ -1255,13 +1211,8 @@ function localSetupApi(): Plugin {
               json({
                 blueprint,
                 catalog,
-                designCatalog,
                 visualIntegrationContract,
                 pageCatalog,
-                stylekitSnapshot: {
-                  ...JSON.parse(snapshotSource),
-                  snapshotHash: sha256(snapshotSource),
-                },
                 saasSources,
                 saasCapabilities,
                 providerCatalog,
