@@ -2,7 +2,7 @@
 id: visual-ownership-boundary
 title: Remove the Starter-owned visual data layer
 status: implemented
-affectedModules: [assembler, marketing, admin, product-shell, docs]
+affectedModules: [assembler, marketing, admin, product-shell, docs, ai]
 docsImpact: [DESIGN.md, ARCHITECTURE.md, features/assembler/MODULE.md]
 ---
 
