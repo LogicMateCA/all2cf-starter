@@ -1,45 +1,63 @@
 {
   "$schema": "./schemas/starter-config.schema.json",
   "project": {
-    "name": "My Cloudflare Product",
-    "slug": "my-cloudflare-product"
+    "name": "All2CF Starter",
+    "slug": "starter"
   },
   "cloudflare": {
-    "accountId": "",
-    "zoneId": "",
-    "zoneName": "example.com"
+    "accountId": "7cb5d7a44fde3f702b4757dbf6d4218d",
+    "zoneId": "f3df57513059be317d04a5009ab9e855",
+    "zoneName": "logicm8.com"
   },
   "email": {
-    "provider": "cfsend",
+    "provider": "resend",
     "resendApiUrl": "https://api.resend.com"
   },
+  "local": {
+    "worker": "starter-local",
+    "domain": "http://localhost:15173",
+    "runtime": "vite-and-workerd",
+    "database": {
+      "connection": "tunnel-direct",
+      "tunnelId": "56ac4c90-0bd4-440a-9690-23a92174a1e6",
+      "host": "127.0.0.1",
+      "port": 55435,
+      "database": "starterdev",
+      "user": "starterdev"
+    }
+  },
   "development": {
-    "worker": "my-cloudflare-product-dev",
-    "domain": "app-dev.example.com",
+    "worker": "starter-all2cf-dev",
+    "domain": "starter-dev.all2cf.com",
     "wranglerConfig": "cloudflare/wrangler.development.jsonc",
     "database": {
-      "database": "my_cloudflare_product_dev",
-      "user": "my_cloudflare_product_dev",
-      "container": "my-cloudflare-product-postgres-dev",
+      "database": "starterdev",
+      "user": "starterdev",
+      "container": "starter-postgres-dev",
       "image": "postgres:18.4-bookworm",
-      "host": "127.0.0.1",
-      "port": 5432,
-      "tunnelId": "",
-      "vpcServiceName": "my-cloudflare-product-postgres-dev",
-      "hyperdriveName": "my-cloudflare-product-dev-db"
+      "host": "192.168.0.125",
+      "port": 55435,
+      "tunnelId": "56ac4c90-0bd4-440a-9690-23a92174a1e6",
+      "vpcServiceName": "starter-postgres-dev",
+      "hyperdriveName": "starter-dev-db"
     }
   },
   "production": {
-    "worker": "my-cloudflare-product",
-    "domain": "app.example.com",
+    "worker": "starter-all2cf",
+    "domain": "starter.all2cf.com",
     "wranglerConfig": "cloudflare/wrangler.production.jsonc",
     "database": {
-      "database": "my_cloudflare_product",
-      "user": "my_cloudflare_product",
-      "host": "postgres.example.internal",
-      "port": 5432,
-      "container": "my-cloudflare-product-postgres",
-      "hyperdriveName": "my-cloudflare-product-prod-db"
+      "database": "starter",
+      "user": "starter",
+      "host": "192.168.0.91",
+      "port": 5433,
+      "sshHost": "root@192.168.0.91",
+      "sshKey": "/run/starter-secrets/production-ssh-key",
+      "sshKnownHosts": "/run/starter-secrets/known_hosts",
+      "container": "1Panel-postgresql-etUL",
+      "adminUser": "nc426",
+      "vpcServiceId": "019fe238-1588-7511-a946-404c24e9b103",
+      "hyperdriveName": "starter-prod-db"
     }
   }
 }

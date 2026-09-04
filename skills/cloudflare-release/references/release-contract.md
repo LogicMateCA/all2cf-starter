@@ -3,8 +3,8 @@
 | Intent | Target | Repository command | Remote mutation | Required result |
 | --- | --- | --- | --- | --- |
 | Build / verify | none | `npm run verify` | No | AI doctor, knowledge sync/check, types, build, and both Wrangler dry runs pass |
-| 发布 / deploy / release | Development | `npm run release:dev` | Yes | Clean commit, verified artifact, `starter-dev`, `app-dev.example.com`, bindings and five live checks |
-| 正式发布 / production | Production | `npm run release:production` | Yes | Exact Development artifact parity, `starter`, `app.example.com`, bindings and five live checks |
+| 发布 / deploy / release | Development | `npm run release:dev` | Yes | Clean commit, verified artifact, `starter-dev`, `dev.logicm8.com`, bindings and five live checks |
+| 正式发布 / production | Production | `npm run release:production` | Yes | Exact Development artifact parity, `starter`, `starter.logicm8.com`, bindings and five live checks |
 | Roll back Development | Development | `npm run rollback:dev -- <version-id>` | Yes | Exact known-good version at 100% traffic and all five live checks |
 | Provision / reconcile infrastructure | named environments | `npm run starter:provision` | Yes | Exact PostgreSQL, VPC service, Hyperdrive IDs, selected Queue identities, and generated Wrangler bindings |
 

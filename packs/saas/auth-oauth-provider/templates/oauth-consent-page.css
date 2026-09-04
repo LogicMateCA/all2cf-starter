@@ -1,0 +1,44 @@
+.oauth-consent {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background: var(--background);
+  color: var(--foreground);
+}
+.oauth-consent section {
+  width: min(100%, 40rem);
+  padding: 2rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--card);
+}
+.oauth-consent span {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.oauth-consent h1 {
+  margin: 0.75rem 0;
+  font-size: clamp(2rem, 6vw, 3.5rem);
+}
+.oauth-consent p,
+.oauth-consent li {
+  color: var(--muted-foreground);
+  line-height: 1.6;
+}
+.oauth-consent ul {
+  padding: 1rem 1rem 1rem 2rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+}
+.oauth-consent section > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+.oauth-consent [role="alert"] {
+  color: var(--destructive);
+}

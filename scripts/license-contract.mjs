@@ -13,8 +13,8 @@ assert.match(guide, /per independent product/iu);
 assert.match(commercial, /one Licensed Product/u);
 assert.match(commercial, /Third-party components/u);
 assert.match(readme, /npm run setup/u);
-assert.match(readme, /\/factory/u);
 assert.match(readme, /\/setup/u);
+assert.match(readme, /starter:factory/u);
 assert.match(readme, /release:production/u);
 
 console.log(JSON.stringify({ ok: true, openSource: "AGPL-3.0-or-later", commercialUsd: 199, unit: "independent-product" }, null, 2));

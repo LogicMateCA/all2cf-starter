@@ -14,7 +14,7 @@
     "catalog/catalog.json",
     "catalog/providers.json",
     "pages/catalog.json",
-    "design/stylekit/source-catalog.json",
+    "integrations/visual.json",
     "skills/starter-bootstrap/SKILL.md"
   ],
   "rules": {
@@ -136,13 +136,13 @@
       "skills": []
     },
     {
-      "id": "design-baseline",
-      "summary": "Starter-owned functional visual fallback, semantic tokens, typography, Visual Receipt integration and cross-surface baseline adapters.",
-      "triggers": ["visual receipt", "visual plugin", "design fallback", "stylekit", "design", "theme", "dark mode", "typography", "shadcn", "chart", "visual", "样式", "设计", "主题", "亮暗", "字体"],
+      "id": "visual-handoff",
+      "summary": "Structural accessibility boundary and independent Visual Design handoff, profile receipt and project-owned visual acceptance.",
+      "triggers": ["visual receipt", "visual plugin", "design", "theme", "dark mode", "typography", "shadcn", "chart", "visual", "样式", "设计", "主题", "亮暗", "字体"],
       "moduleIds": [],
-      "primaryFiles": ["DESIGN.md", "integrations/visual.json", ".ai/plugins.json", "design/stylekit/editorial/snapshot.json", "scripts/lib/design-engine.mjs", "apps/web/src/generated/design-profile.css"],
+      "primaryFiles": ["DESIGN.md", "integrations/visual.json", ".ai/plugins.json", "apps/web/src/generated/design-profile.css"],
       "docs": ["DESIGN.md", "features/assembler/MODULE.md"],
-      "checks": ["npm run design:contract", "npm run visual:integration:contract", "npm run typography:contract", "npm run stylekit:contract", "npm run stylekit:boundary"],
+      "checks": ["npm run design:contract", "npm run visual:integration:contract", "npm run typography:contract"],
       "skills": []
     },
     {

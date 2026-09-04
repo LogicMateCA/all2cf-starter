@@ -3,16 +3,6 @@
   "schemaVersion": "starter-blueprint/v1",
   "status": "ready",
   "preset": "custom",
-  "designProfile": {
-    "id": "stylekit-editorial",
-    "version": "2.2.0"
-  },
-  "stylekit": {
-    "slug": "editorial",
-    "sourceRevision": "29141b684d5abb967558eb8083fbae91dbbc51b8",
-    "snapshotVersion": "2.2.0",
-    "snapshotHash": "6c738963515a50730fd1b6313e5627bf8760a62f28dd8ccb4933278686cfd806"
-  },
   "visualIntegration": {
     "enabled": true,
     "contractVersion": "1.0.1",
@@ -24,13 +14,8 @@
     "environment": "development",
     "status": "unavailable",
     "profileReceipt": ".visual/receipt.json",
-    "fallbackProfile": {
-      "id": "stylekit-editorial",
-      "version": "2.2.0",
-      "sha256": "6c738963515a50730fd1b6313e5627bf8760a62f28dd8ccb4933278686cfd806"
-    },
     "warnings": [
-      "Visual plugin and service are optional; Starter baseline remains active until a compatible receipt is verified."
+      "Visual design is not owned by Starter. Run the visual-design plugin to create a project-owned .visual receipt."
     ]
   },
   "pageSet": {
@@ -49,13 +34,17 @@
       "docs.public",
       "system.not-found",
       "support.portal",
-      "admin.operations"
+      "admin.operations",
+      "growth.blog",
+      "growth.integrations",
+      "growth.case-studies",
+      "growth.careers"
     ]
   },
   "project": {
-    "name": "My Cloudflare Product",
-    "slug": "my-cloudflare-product",
-    "brief": "Configure this product locally through /setup.",
+    "name": "All2CF Starter",
+    "slug": "starter",
+    "brief": "A reusable Cloudflare-first product assembler controlled through an AI-readable setup blueprint.",
     "productType": "web-saas",
     "websiteType": "product",
     "companionSite": "full",
@@ -85,7 +74,7 @@
   "setup": {
     "entry": "/factory",
     "status": "ready",
-    "currentStep": "identity",
+    "currentStep": "review",
     "completedSteps": [
       "identity",
       "saas",
@@ -93,34 +82,10 @@
       "providers",
       "pages",
       "design"
-    ],
-    "completedAt": null
+    ]
   },
   "selections": {
-    "design": [
-      {
-        "id": "design.owned-neutral",
-        "lifecycle": {
-          "selected": true,
-          "materialized": true,
-          "localVerified": false,
-          "developmentVerified": false,
-          "productionReleased": false
-        },
-        "note": "Compatibility profile is derived from the selected StyleKit snapshot."
-      },
-      {
-        "id": "design.stylekit-adapted",
-        "lifecycle": {
-          "selected": true,
-          "materialized": true,
-          "localVerified": false,
-          "developmentVerified": false,
-          "productionReleased": false
-        },
-        "note": "The selected Editorial snapshot compiles one owned cross-surface adapter and passes deterministic contracts. Neumorphism remains the historical full-surface browser acceptance reference; Editorial still needs its own visual acceptance."
-      }
-    ],
+    "design": [],
     "pages": [
       {
         "id": "page.core-product-site",
@@ -136,10 +101,10 @@
       {
         "id": "page.optional-growth",
         "lifecycle": {
-          "selected": false,
-          "materialized": false,
-          "localVerified": false,
-          "developmentVerified": false,
+          "selected": true,
+          "materialized": true,
+          "localVerified": true,
+          "developmentVerified": true,
           "productionReleased": false
         },
         "note": "Optional Astro routes are generated only when their individual Page Catalog entries are selected."
@@ -150,8 +115,8 @@
         "id": "saas.product-shell",
         "lifecycle": {
           "selected": true,
-          "materialized": false,
-          "localVerified": false,
+          "materialized": true,
+          "localVerified": true,
           "developmentVerified": false,
           "productionReleased": false
         },
@@ -161,9 +126,9 @@
         "id": "saas.identity-core",
         "lifecycle": {
           "selected": true,
-          "materialized": false,
-          "localVerified": false,
-          "developmentVerified": false,
+          "materialized": true,
+          "localVerified": true,
+          "developmentVerified": true,
           "productionReleased": false
         }
       },
@@ -171,8 +136,8 @@
         "id": "saas.notifications-core",
         "lifecycle": {
           "selected": true,
-          "materialized": false,
-          "localVerified": false,
+          "materialized": true,
+          "localVerified": true,
           "developmentVerified": false,
           "productionReleased": false
         },
@@ -182,8 +147,8 @@
         "id": "saas.product-operations-lite",
         "lifecycle": {
           "selected": true,
-          "materialized": false,
-          "localVerified": false,
+          "materialized": true,
+          "localVerified": true,
           "developmentVerified": false,
           "productionReleased": false
         }
@@ -201,8 +166,8 @@
       {
         "id": "saas.team-organizations",
         "lifecycle": {
-          "selected": false,
-          "materialized": false,
+          "selected": true,
+          "materialized": true,
           "localVerified": false,
           "developmentVerified": false,
           "productionReleased": false
@@ -211,10 +176,10 @@
       {
         "id": "saas.billing-stripe",
         "lifecycle": {
-          "selected": false,
-          "materialized": false,
-          "localVerified": false,
-          "developmentVerified": false,
+          "selected": true,
+          "materialized": true,
+          "localVerified": true,
+          "developmentVerified": true,
           "productionReleased": false
         }
       },
@@ -241,8 +206,8 @@
       {
         "id": "saas.entitlements",
         "lifecycle": {
-          "selected": false,
-          "materialized": false,
+          "selected": true,
+          "materialized": true,
           "localVerified": false,
           "developmentVerified": false,
           "productionReleased": false
@@ -251,10 +216,10 @@
       {
         "id": "saas.usage",
         "lifecycle": {
-          "selected": false,
-          "materialized": false,
-          "localVerified": false,
-          "developmentVerified": false,
+          "selected": true,
+          "materialized": true,
+          "localVerified": true,
+          "developmentVerified": true,
           "productionReleased": false
         }
       },
@@ -281,6 +246,26 @@
       {
         "id": "saas.outgoing-webhooks",
         "lifecycle": {
+          "selected": true,
+          "materialized": true,
+          "localVerified": true,
+          "developmentVerified": true,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.onboarding",
+        "lifecycle": {
+          "selected": true,
+          "materialized": true,
+          "localVerified": true,
+          "developmentVerified": true,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-hibp",
+        "lifecycle": {
           "selected": false,
           "materialized": false,
           "localVerified": false,
@@ -289,7 +274,177 @@
         }
       },
       {
-        "id": "saas.onboarding",
+        "id": "saas.auth-last-login",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-multi-session",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-passkey",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-magic-link",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-i18n",
+        "lifecycle": {
+          "selected": true,
+          "materialized": true,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-openapi",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-jwt",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-bearer",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-anonymous",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-generic-oauth",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-sso",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-scim",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-oauth-provider",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-device-authorization",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-mcp",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-agent",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-phone",
+        "lifecycle": {
+          "selected": false,
+          "materialized": false,
+          "localVerified": false,
+          "developmentVerified": false,
+          "productionReleased": false
+        }
+      },
+      {
+        "id": "saas.auth-google-one-tap",
         "lifecycle": {
           "selected": false,
           "materialized": false,
@@ -325,10 +480,10 @@
       {
         "id": "capability.object-storage",
         "lifecycle": {
-          "selected": false,
-          "materialized": false,
-          "localVerified": false,
-          "developmentVerified": false,
+          "selected": true,
+          "materialized": true,
+          "localVerified": true,
+          "developmentVerified": true,
           "productionReleased": false
         },
         "note": "Cloudflare R2 is selected. Local authenticated private/public lifecycle evidence and the Development release-bound exact-byte adapter round trip both pass; Production remains unreleased."
@@ -447,7 +602,9 @@
   },
   "providers": {
     "auth": "better-auth",
-    "socialAuth": [],
+    "socialAuth": [
+      "google"
+    ],
     "database": {
       "engine": "postgresql",
       "provider": "native-postgresql",
@@ -474,7 +631,7 @@
       }
     },
     "storage": {
-      "provider": "none",
+      "provider": "cloudflare-r2",
       "access": "private",
       "uploadMode": "worker",
       "maxUploadBytes": 10485760,
@@ -555,16 +712,16 @@
         "provider": "none",
         "maxDurationSeconds": 600,
         "development": {
-          "accountId": "00000000000000000000000000000000",
+          "accountId": "7cb5d7a44fde3f702b4757dbf6d4218d",
           "allowedOrigins": [
-            "app-dev.example.com"
+            "dev.logicm8.com"
           ],
           "apiBaseUrl": "https://api.cloudflare.com/client/v4"
         },
         "production": {
-          "accountId": "00000000000000000000000000000000",
+          "accountId": "7cb5d7a44fde3f702b4757dbf6d4218d",
           "allowedOrigins": [
-            "app.example.com"
+            "starter.logicm8.com"
           ],
           "apiBaseUrl": "https://api.cloudflare.com/client/v4"
         }
@@ -601,7 +758,7 @@
         "cloudflare-email-service"
       ]
     },
-    "billing": "none",
+    "billing": "better-auth-stripe",
     "release": "cloudflare-workers"
   },
   "environments": [

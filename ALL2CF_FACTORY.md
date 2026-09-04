@@ -58,11 +58,11 @@ authorization and update endpoint before `status`, `diff`, or `update` runs.
 
 The strict `factory-engine.json` remains the only manifest consumed by All2CF. `registration.json` describes the capsule and target paths plus required post-registration checks. `engine:register` defaults to a read-only plan, refuses dirty All2CF targets and requires an explicit `--apply` in an integration-owned clean worktree. Registration never commits, merges, deploys or removes a previous capsule.
 
-StyleKit is not an upstream auto-update channel. Engine candidates carry the current Starter-owned curated snapshots. A deliberate visual change must update the owned snapshot, adapters, contracts and visual evidence before the next source candidate.
+Starter has no visual update channel. Visual Design owns project visual changes and evidence; Engine candidates carry only structural compatibility output.
 
 ## Independent Visual integration
 
-Factory pins the independently owned stable `starter-integration@1.0.1` contract from Visual commit `3184f80aa669f53c1c6401352d52682d93b7ce58`. It declares `visual-design@0.1.0` as an optional external plugin and can perform a read-only capability-discovery check against `visualapp-dev.example.com` or `visual.example.com`. Discovery never sends project source, installs a plugin, invokes MCP tools or proves materialization.
+Factory pins the independently owned stable `starter-integration@1.0.1` contract from Visual commit `3184f80aa669f53c1c6401352d52682d93b7ce58`. It declares `visual-design@0.1.0` as an optional external plugin and can perform a read-only capability-discovery check against `visualdev.logicm8.com` or `visual.logicm8.com`. Discovery never sends project source, installs a plugin, invokes MCP tools or proves materialization.
 
 When Visual is disabled, uninstalled, offline, unauthorized, missing a requested capability or contract-incompatible, Factory continues with the Starter-owned baseline. A Visual response can become project state only after response validation, license constraints, collision-safe materialization and local verification; the resulting evidence belongs under `.visual/` and never replaces `.starter/source.json`.
 

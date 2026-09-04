@@ -1,0 +1,92 @@
+.webhook-shell {
+  display: grid;
+  gap: 28px;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: clamp(24px, 5vw, 64px);
+}
+.webhook-heading,
+.webhook-section-title,
+.webhook-endpoint-top,
+.webhook-card footer,
+.webhook-secret {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+.webhook-heading > div,
+.webhook-section-title > div,
+.webhook-create > div {
+  display: grid;
+  gap: 6px;
+}
+.webhook-heading span,
+.webhook-section-title span,
+.webhook-create > div > span {
+  color: var(--muted-foreground);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.webhook-heading h1,
+.webhook-section-title h2,
+.webhook-create h2 { margin: 0; letter-spacing: -0.04em; }
+.webhook-heading h1 { font-size: clamp(2.5rem, 6vw, 4.8rem); }
+.webhook-heading p { max-width: 680px; margin: 8px 0 0; color: var(--muted-foreground); line-height: 1.65; }
+.webhook-card,
+.webhook-secret {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--design-shadow-raised);
+}
+.webhook-create { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; align-items: end; gap: 16px; padding: 22px; }
+.webhook-create > div { grid-column: 1 / -1; }
+.webhook-create label { display: grid; gap: 8px; }
+.webhook-create label > span { color: var(--muted-foreground); font-size: 0.78rem; font-weight: 700; }
+.webhook-create input {
+  min-width: 0;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--input);
+  border-radius: calc(var(--radius) * 0.72);
+  background: var(--background);
+  color: var(--foreground);
+}
+.webhook-secret { padding: 18px 20px; border-color: color-mix(in srgb, var(--primary) 50%, var(--border)); }
+.webhook-secret > div { display: grid; gap: 4px; }
+.webhook-secret span { color: var(--muted-foreground); font-size: 0.82rem; }
+.webhook-secret code { max-width: 50%; overflow: hidden; text-overflow: ellipsis; }
+.webhook-section { display: grid; gap: 16px; }
+.webhook-endpoints,
+.webhook-deliveries { display: grid; gap: 12px; }
+.webhook-endpoints > article { padding: 20px; }
+.webhook-endpoint-top > div { display: grid; gap: 7px; min-width: 0; }
+.webhook-endpoint-top code,
+.webhook-delivery > code { color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.webhook-status { width: fit-content; padding: 4px 8px; border-radius: 999px; background: var(--muted); color: var(--muted-foreground); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; }
+.webhook-status.succeeded { background: color-mix(in srgb, var(--primary) 14%, var(--card)); color: var(--primary); }
+.webhook-status.failed { background: color-mix(in srgb, var(--destructive) 12%, var(--card)); color: var(--destructive); }
+.webhook-status.retrying,
+.webhook-status.delivering { background: color-mix(in srgb, var(--accent) 46%, var(--card)); color: var(--accent-foreground); }
+.webhook-events { display: flex; flex-wrap: wrap; gap: 7px; margin: 18px 0; }
+.webhook-events span { padding: 5px 8px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted-foreground); font-family: var(--font-mono); font-size: 0.72rem; }
+.webhook-card footer small { color: var(--muted-foreground); }
+.webhook-card footer > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.webhook-delivery { display: grid; grid-template-columns: minmax(190px, 0.7fr) minmax(220px, 1fr) auto; align-items: center; gap: 18px; padding: 16px 18px; }
+.webhook-delivery > div:first-child { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.webhook-delivery-meta { display: flex; gap: 12px; color: var(--muted-foreground); font-size: 0.78rem; }
+.webhook-last-error { grid-column: 1 / -1; color: var(--destructive); }
+.webhook-empty { padding: 30px; border: 1px dashed var(--border); border-radius: var(--radius); color: var(--muted-foreground); text-align: center; }
+.webhook-error { padding: 12px 14px; border-radius: var(--radius); background: color-mix(in srgb, var(--destructive) 10%, var(--card)); color: var(--destructive); }
+.webhook-denied { display: grid; place-content: center; min-height: 100vh; text-align: center; }
+@media (max-width: 900px) {
+  .webhook-create { grid-template-columns: 1fr; }
+  .webhook-delivery { grid-template-columns: 1fr; }
+  .webhook-heading,
+  .webhook-section-title,
+  .webhook-secret { align-items: flex-start; flex-direction: column; }
+  .webhook-secret code { max-width: 100%; }
+}

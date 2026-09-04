@@ -3,11 +3,19 @@ import { expo } from "@better-auth/expo";
 import { createAuthMiddleware, isAPIError } from "better-auth/api";
 import { admin, emailOTP } from "better-auth/plugins";
 import type { Pool } from "pg";
-import { createSelectedAuthPlugins } from "./generated/auth-plugins";
+import {
+  createSelectedAuthPlugins,
+  createSelectedAuthSecondaryStorage,
+} from "./generated/auth-plugins";
 import { generateAppleClientSecret } from "../../scripts/lib/apple-oauth.mjs";
 
 export type AuthEmail = {
-  kind: "email-verification" | "password-reset" | "email-otp" | "organization-invitation";
+  kind:
+    | "email-verification"
+    | "password-reset"
+    | "email-otp"
+    | "organization-invitation"
+    | "magic-link";
   to: string;
   subject: string;
   text: string;
@@ -50,6 +58,16 @@ type StarterAuthInput = {
   polarProductPro?: string;
   autumnSecretKey?: string;
   turnstileSecretKey?: string;
+  genericOAuthProvidersJson?: string;
+  ssoProvidersJson?: string;
+  scimConnectionsJson?: string;
+  scimCredentialHashSecret?: string;
+  googleOneTapClientId?: string;
+  twilioApiBaseUrl?: string;
+  twilioAccountSid?: string;
+  twilioApiKey?: string;
+  twilioApiSecret?: string;
+  twilioFrom?: string;
 };
 
 function escapeHtml(value: string) {
@@ -78,8 +96,14 @@ function authOtpHtml(appName: string, otp: string) {
 export function createStarterAuth(input: StarterAuthInput) {
   const secure = input.baseURL.startsWith("https://");
   const selectedSocialProviders = new Set(input.socialProviders);
-  const googleReady = selectedSocialProviders.has("google") && input.googleClientId && input.googleClientSecret;
-  const githubReady = selectedSocialProviders.has("github") && input.githubClientId && input.githubClientSecret;
+  const googleReady =
+    selectedSocialProviders.has("google") &&
+    input.googleClientId &&
+    input.googleClientSecret;
+  const githubReady =
+    selectedSocialProviders.has("github") &&
+    input.githubClientId &&
+    input.githubClientSecret;
   const appleReady =
     selectedSocialProviders.has("apple") &&
     input.appleClientId &&
@@ -87,10 +111,22 @@ export function createStarterAuth(input: StarterAuthInput) {
     input.appleKeyId &&
     input.applePrivateKeyBase64 &&
     input.appleAppBundleIdentifier;
-  const microsoftReady = selectedSocialProviders.has("microsoft") && input.microsoftClientId && input.microsoftClientSecret;
-  const discordReady = selectedSocialProviders.has("discord") && input.discordClientId && input.discordClientSecret;
-  const facebookReady = selectedSocialProviders.has("facebook") && input.facebookClientId && input.facebookClientSecret;
-  const linkedinReady = selectedSocialProviders.has("linkedin") && input.linkedinClientId && input.linkedinClientSecret;
+  const microsoftReady =
+    selectedSocialProviders.has("microsoft") &&
+    input.microsoftClientId &&
+    input.microsoftClientSecret;
+  const discordReady =
+    selectedSocialProviders.has("discord") &&
+    input.discordClientId &&
+    input.discordClientSecret;
+  const facebookReady =
+    selectedSocialProviders.has("facebook") &&
+    input.facebookClientId &&
+    input.facebookClientSecret;
+  const linkedinReady =
+    selectedSocialProviders.has("linkedin") &&
+    input.linkedinClientId &&
+    input.linkedinClientSecret;
   const cookiePrefix =
     input.appName
       .toLowerCase()
@@ -105,7 +141,9 @@ export function createStarterAuth(input: StarterAuthInput) {
     trustedOrigins: [
       input.baseURL,
       ...input.mobileSchemes,
-      ...(selectedSocialProviders.has("apple") ? ["https://appleid.apple.com"] : []),
+      ...(selectedSocialProviders.has("apple")
+        ? ["https://appleid.apple.com"]
+        : []),
     ],
     hooks: {
       after: createAuthMiddleware(async (context) => {
@@ -252,10 +290,21 @@ export function createStarterAuth(input: StarterAuthInput) {
         polarProductPro: input.polarProductPro,
         autumnSecretKey: input.autumnSecretKey,
         turnstileSecretKey: input.turnstileSecretKey,
+        genericOAuthProvidersJson: input.genericOAuthProvidersJson,
+        ssoProvidersJson: input.ssoProvidersJson,
+        scimConnectionsJson: input.scimConnectionsJson,
+        scimCredentialHashSecret: input.scimCredentialHashSecret,
+        googleOneTapClientId: input.googleOneTapClientId,
+        twilioApiBaseUrl: input.twilioApiBaseUrl,
+        twilioAccountSid: input.twilioAccountSid,
+        twilioApiKey: input.twilioApiKey,
+        twilioApiSecret: input.twilioApiSecret,
+        twilioFrom: input.twilioFrom,
       }),
     ],
     trustHost: false,
     database: input.database,
+    secondaryStorage: createSelectedAuthSecondaryStorage(input),
     user: {
       modelName: "app_user",
       fields: {
@@ -320,10 +369,21 @@ export function createStarterAuth(input: StarterAuthInput) {
     },
     socialProviders: {
       ...(googleReady
-        ? { google: { clientId: input.googleClientId!, clientSecret: input.googleClientSecret! } }
+        ? {
+            google: {
+              clientId: input.googleClientId!,
+              clientSecret: input.googleClientSecret!,
+            },
+          }
         : {}),
       ...(githubReady
-        ? { github: { clientId: input.githubClientId!, clientSecret: input.githubClientSecret!, scope: ["user:email"] } }
+        ? {
+            github: {
+              clientId: input.githubClientId!,
+              clientSecret: input.githubClientSecret!,
+              scope: ["user:email"],
+            },
+          }
         : {}),
       ...(appleReady
         ? {
@@ -339,10 +399,38 @@ export function createStarterAuth(input: StarterAuthInput) {
             }),
           }
         : {}),
-      ...(microsoftReady ? { microsoft: { clientId: input.microsoftClientId!, clientSecret: input.microsoftClientSecret! } } : {}),
-      ...(discordReady ? { discord: { clientId: input.discordClientId!, clientSecret: input.discordClientSecret! } } : {}),
-      ...(facebookReady ? { facebook: { clientId: input.facebookClientId!, clientSecret: input.facebookClientSecret! } } : {}),
-      ...(linkedinReady ? { linkedin: { clientId: input.linkedinClientId!, clientSecret: input.linkedinClientSecret! } } : {}),
+      ...(microsoftReady
+        ? {
+            microsoft: {
+              clientId: input.microsoftClientId!,
+              clientSecret: input.microsoftClientSecret!,
+            },
+          }
+        : {}),
+      ...(discordReady
+        ? {
+            discord: {
+              clientId: input.discordClientId!,
+              clientSecret: input.discordClientSecret!,
+            },
+          }
+        : {}),
+      ...(facebookReady
+        ? {
+            facebook: {
+              clientId: input.facebookClientId!,
+              clientSecret: input.facebookClientSecret!,
+            },
+          }
+        : {}),
+      ...(linkedinReady
+        ? {
+            linkedin: {
+              clientId: input.linkedinClientId!,
+              clientSecret: input.linkedinClientSecret!,
+            },
+          }
+        : {}),
     },
     emailAndPassword: {
       enabled: true,

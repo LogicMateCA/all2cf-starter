@@ -58,8 +58,6 @@ type CatalogPack = {
   updatePolicy: string;
   source?: Array<{ name: string; relationship: string }>;
 };
-type DesignProfile = { id: string; version: string; packId: string; name: string; description: string; status: string; targets: string[]; dials: { designVariance: number; motionIntensity: number; visualDensity: number }; adapters: Record<string, string> };
-type StyleKitSnapshot = { slug: string; name: string; nameEn: string; snapshotVersion: string; snapshotHash: string; immutable: boolean; classification: string; globalEligibility: string; targets: Record<string, { status: string }>; sourceFiles: Array<{ path: string; sha256: string }>; aiRules: string };
 type PageDefinition = { id: string; packId: string; name: string; route: string; group: string; renderer: string; required: boolean; defaultSelected: boolean; status: string };
 type ProviderCatalogCategory = {
   id: string;
@@ -88,9 +86,7 @@ type Snapshot = {
     blueprint: {
       status: string;
       preset: string;
-      designProfile: { id: string; version: string };
-      stylekit: { slug: string; sourceRevision: string; snapshotVersion: string; snapshotHash: string };
-      visualIntegration: { enabled: boolean; contractVersion: string; plugin: { id: string; version: string; installation: string }; environment: string; status: string; profileReceipt: string; fallbackProfile: { id: string; version: string; sha256: string }; warnings: string[] };
+      visualIntegration: { enabled: boolean; contractVersion: string; plugin: { id: string; version: string; installation: string }; environment: string; status: string; profileReceipt: string; warnings: string[] };
       pageSet: { selected: string[] };
       setup: { entry: string; status: string; currentStep: string; completedSteps: string[] };
       selections: Record<"design" | "pages" | "saas" | "capabilities", BlueprintSelection[]>;
@@ -98,9 +94,7 @@ type Snapshot = {
     };
     catalog: { schemaVersion: string; catalogVersion: string; policies: Record<string, string>; presets: Array<{ id: string; name: string; description: string; selections: string[] }>; packs: CatalogPack[] };
     providerCatalog: { schemaVersion: string; catalogVersion: string; categories: ProviderCatalogCategory[] };
-    designCatalog: { schemaVersion: string; catalogVersion: string; sourcePolicy: string; profiles: DesignProfile[] };
     visualIntegration: { integrationVersion: string; status: string; source: { contractId: string; contractVersion: string; contractStatus: string; sourceCommit: string }; plugin: { id: string; version: string; installation: string; bundled: boolean }; service: { developmentOrigin: string; productionOrigin: string; discoveryPath: string }; fallback: { behavior: string; blocksFactory: boolean } };
-    stylekit: { source: { revision: string; license: string }; styleCount: number; catalogVersion: string; classification: Record<string, number>; globalEligibleCount: number; selected: { slug: string; sourceRevision: string; snapshotVersion: string; snapshotHash: string }; snapshots: StyleKitSnapshot[] };
     pageCatalog: { schemaVersion: string; catalogVersion: string; policy: string; pages: PageDefinition[] };
     materialization: { schemaVersion: string; packs: Array<{ id: string; version: string; files: number }>; dependencyCount: number; generatedRoutesHash: string | null; generatedAuthServerHash: string | null; generatedAuthClientHash: string | null; generatedStorageAdapterHash?: string | null; generatedMobileConfigPluginsHash?: string | null; generatedWorkflowExportsHash?: string | null; generatedDurableObjectExportsHash?: string | null; generatedDesignWebHash?: string | null; generatedDesignMarketingHash?: string | null; generatedDesignDocsHash?: string | null; generatedDesignMobileHash?: string | null; generatedMarketingProjectHash?: string | null };
   };
@@ -141,9 +135,7 @@ const fallback: Snapshot = {
     blueprint: {
       status: "draft",
       preset: "basic-product",
-      designProfile: { id: "owned-neutral", version: "0.1.0" },
-      stylekit: { slug: "unavailable", sourceRevision: "unavailable", snapshotVersion: "0.0.0", snapshotHash: "unavailable" },
-      visualIntegration: { enabled: true, contractVersion: "1.0.1", plugin: { id: "visual-design", version: "0.1.0", installation: "external-recommended" }, environment: "development", status: "unavailable", profileReceipt: ".visual/receipt.json", fallbackProfile: { id: "owned-neutral", version: "0.1.0", sha256: "0".repeat(64) }, warnings: [] },
+      visualIntegration: { enabled: true, contractVersion: "1.0.1", plugin: { id: "visual-design", version: "0.1.0", installation: "external-recommended" }, environment: "development", status: "unavailable", profileReceipt: ".visual/receipt.json", warnings: [] },
       pageSet: { selected: [] },
       setup: { entry: "/setup", status: "not-started", currentStep: "identity", completedSteps: [] },
       selections: { design: [], pages: [], saas: [], capabilities: [] },
@@ -151,9 +143,7 @@ const fallback: Snapshot = {
     },
     catalog: { schemaVersion: "starter-catalog/v1", catalogVersion: "0.3.0", policies: {}, presets: [], packs: [] },
     providerCatalog: { schemaVersion: "starter-provider-catalog/v1", catalogVersion: "1.0.0", categories: [] },
-    designCatalog: { schemaVersion: "starter-design-catalog/v1", catalogVersion: "0.1.0", sourcePolicy: "Starter-owned profiles", profiles: [] },
-    visualIntegration: { integrationVersion: "1.0.1", status: "implemented", source: { contractId: "starter-integration", contractVersion: "1.0.1", contractStatus: "stable", sourceCommit: "3184f80aa669f53c1c6401352d52682d93b7ce58" }, plugin: { id: "visual-design", version: "0.1.0", installation: "external-recommended", bundled: false }, service: { developmentOrigin: "https://visualapp-dev.example.com", productionOrigin: "https://visual.example.com", discoveryPath: "/.well-known/visual-capabilities.json" }, fallback: { behavior: "starter-owned-baseline", blocksFactory: false } },
-    stylekit: { source: { revision: "unavailable", license: "unknown" }, styleCount: 0, catalogVersion: "0.0.0", classification: {}, globalEligibleCount: 0, selected: { slug: "unavailable", sourceRevision: "unavailable", snapshotVersion: "0.0.0", snapshotHash: "unavailable" }, snapshots: [] },
+    visualIntegration: { integrationVersion: "1.0.1", status: "implemented", source: { contractId: "starter-integration", contractVersion: "1.0.1", contractStatus: "stable", sourceCommit: "3184f80aa669f53c1c6401352d52682d93b7ce58" }, plugin: { id: "visual-design", version: "0.1.0", installation: "external-recommended", bundled: false }, service: { developmentOrigin: "https://visualdev.logicm8.com", productionOrigin: "https://visual.logicm8.com", discoveryPath: "/.well-known/visual-capabilities.json" }, fallback: { behavior: "structural-css-only", blocksFactory: false } },
     pageCatalog: { schemaVersion: "starter-page-catalog/v1", catalogVersion: "0.1.0", policy: "Starter-owned routes", pages: [] },
     materialization: { schemaVersion: "starter-materialization/v1", packs: [], dependencyCount: 0, generatedRoutesHash: null, generatedAuthServerHash: null, generatedAuthClientHash: null, generatedStorageAdapterHash: null, generatedMobileConfigPluginsHash: null, generatedWorkflowExportsHash: null, generatedDurableObjectExportsHash: null, generatedDesignWebHash: null, generatedDesignMarketingHash: null, generatedDesignDocsHash: null, generatedDesignMobileHash: null, generatedMarketingProjectHash: null },
   },
@@ -263,9 +253,6 @@ export function DevelopmentPlanPage() {
     selection,
     pack: data.assembly.catalog.packs.find(({ id }) => id === selection.id),
   })));
-  const selectedStyleLifecycle = data.assembly.blueprint.selections.design.find(
-    ({ id }) => id === "design.stylekit-adapted",
-  )?.lifecycle;
 
   return <div className="plan-shell">
     <aside className={menuOpen ? "plan-nav open" : "plan-nav"}>
@@ -296,7 +283,7 @@ export function DevelopmentPlanPage() {
 
         <Section id="blueprint" title="Project Blueprint" description="The canonical selection record behind /setup, with realization tracked separately from intent." icon={Settings2}>
           <div className="assembly-summary">
-            <Surface><span className="role-label">Setup workspace</span><h3>{data.assembly.blueprint.setup.entry}</h3><dl className="compact-facts"><div><dt>Status</dt><dd>{data.assembly.blueprint.setup.status}</dd></div><div><dt>Preset</dt><dd>{data.assembly.blueprint.preset}</dd></div><div><dt>Style</dt><dd>{data.assembly.blueprint.stylekit.slug} / {data.assembly.blueprint.stylekit.snapshotVersion}</dd></div><div><dt>Style hash</dt><dd>{data.assembly.blueprint.stylekit.snapshotHash.slice(0, 12)}</dd></div><div><dt>Pages</dt><dd>{data.assembly.blueprint.pageSet.selected.length}</dd></div><div><dt>Blueprint</dt><dd>{data.assembly.blueprint.status}</dd></div></dl></Surface>
+            <Surface><span className="role-label">Setup workspace</span><h3>{data.assembly.blueprint.setup.entry}</h3><dl className="compact-facts"><div><dt>Status</dt><dd>{data.assembly.blueprint.setup.status}</dd></div><div><dt>Preset</dt><dd>{data.assembly.blueprint.preset}</dd></div><div><dt>Visual owner</dt><dd>{data.assembly.blueprint.visualIntegration.plugin.id}</dd></div><div><dt>Visual receipt</dt><dd>{data.assembly.blueprint.visualIntegration.profileReceipt}</dd></div><div><dt>Pages</dt><dd>{data.assembly.blueprint.pageSet.selected.length}</dd></div><div><dt>Blueprint</dt><dd>{data.assembly.blueprint.status}</dd></div></dl></Surface>
             <Surface><span className="role-label">Provider defaults</span><h3>{data.assembly.blueprint.providers.auth}</h3><dl className="compact-facts"><div><dt>Social</dt><dd>{data.assembly.blueprint.providers.socialAuth.join(", ") || "none"}</dd></div><div><dt>Database</dt><dd>Dev {data.assembly.blueprint.providers.database.transports?.development || data.assembly.blueprint.providers.database.provider} / Prod {data.assembly.blueprint.providers.database.transports?.production || data.assembly.blueprint.providers.database.provider}</dd></div><div><dt>Storage</dt><dd>{data.assembly.blueprint.providers.storage.provider} / {data.assembly.blueprint.providers.storage.access}</dd></div><div><dt>Anti-abuse</dt><dd>{data.assembly.blueprint.providers.antiAbuse.provider}</dd></div><div><dt>AI</dt><dd>{data.assembly.blueprint.providers.ai.provider}</dd></div><div><dt>Search</dt><dd>{data.assembly.blueprint.providers.search.provider}</dd></div><div><dt>Push</dt><dd>{data.assembly.blueprint.providers.push.provider}</dd></div><div><dt>SMS</dt><dd>{data.assembly.blueprint.providers.sms.provider}</dd></div><div><dt>Images</dt><dd>{data.assembly.blueprint.providers.media.images.provider}</dd></div><div><dt>Video</dt><dd>{data.assembly.blueprint.providers.media.stream.provider}</dd></div><div><dt>Cron</dt><dd>{data.assembly.blueprint.providers.background.cron.enabled ? data.assembly.blueprint.providers.background.cron.development.expression : "none"}</dd></div><div><dt>Workflows</dt><dd>{data.assembly.blueprint.providers.background.workflow.enabled ? "enabled" : "none"}</dd></div><div><dt>Realtime</dt><dd>{data.assembly.blueprint.providers.background.realtime.enabled ? "Durable Objects" : "none"}</dd></div><div><dt>Email</dt><dd>{data.assembly.blueprint.providers.email.default}</dd></div><div><dt>Billing</dt><dd>{data.assembly.blueprint.providers.billing}</dd></div></dl></Surface>
             <Surface><span className="role-label">Materialization receipt</span><h3>{data.assembly.materialization.packs.length} materialized packs</h3><dl className="compact-facts"><div><dt>Files</dt><dd>{data.assembly.materialization.packs.reduce((total, pack) => total + pack.files, 0)}</dd></div><div><dt>Dependencies</dt><dd>{data.assembly.materialization.dependencyCount}</dd></div><div><dt>Auth</dt><dd>{data.assembly.materialization.generatedAuthServerHash && data.assembly.materialization.generatedAuthClientHash ? "tracked" : "missing"}</dd></div><div><dt>Storage</dt><dd>{data.assembly.materialization.generatedStorageAdapterHash ? "adapter tracked" : "missing"}</dd></div><div><dt>Mobile plugins</dt><dd>{data.assembly.materialization.generatedMobileConfigPluginsHash ? "tracked" : "missing"}</dd></div><div><dt>Workflow exports</dt><dd>{data.assembly.materialization.generatedWorkflowExportsHash ? "tracked" : "missing"}</dd></div><div><dt>Durable Object exports</dt><dd>{data.assembly.materialization.generatedDurableObjectExportsHash ? "tracked" : "missing"}</dd></div><div><dt>Design</dt><dd>{data.assembly.materialization.generatedDesignWebHash && data.assembly.materialization.generatedDesignMarketingHash && data.assembly.materialization.generatedDesignDocsHash && data.assembly.materialization.generatedDesignMobileHash ? "all targets tracked" : "missing"}</dd></div><div><dt>Pages</dt><dd>{data.assembly.materialization.generatedMarketingProjectHash ? "project output tracked" : "missing"}</dd></div><div><dt>Check</dt><dd>starter:materialize:check</dd></div></dl></Surface>
           </div>
@@ -318,20 +305,7 @@ export function DevelopmentPlanPage() {
             const planned = category.options.filter((option) => !option.selectable);
             return <div className="catalog-row" key={category.id}><div><strong>{category.name}</strong><small>{category.id} / {category.kind}</small></div><div><p>{category.defaultOptionIds.join(", ")}</p><small>{category.required ? "required" : "optional with None"} / {category.selection}</small></div><div><strong>{selectable.map((option) => option.name).join(", ") || "None only"}</strong><small>{planned.length ? `Planned: ${planned.map((option) => option.name).join(", ")}` : "No planned options"}</small></div><span className={`status ${planned.length ? "implemented" : "local-verified"}`}>{selectable.length} ready / {planned.length} planned</span></div>;
           })}</Surface>
-          <div className="preset-grid">{data.assembly.designCatalog.profiles.map((profile) => <Surface key={profile.id}><span className={`status ${profile.status}`}>{profile.status}</span><h3>{profile.name}</h3><p>{profile.description}</p><small>{profile.id} / v{profile.version} / variance {profile.dials.designVariance} / motion {profile.dials.motionIntensity} / density {profile.dials.visualDensity}</small></Surface>)}</div>
-          <div className="preset-grid"><Surface><span className={`status ${data.assembly.blueprint.visualIntegration.status}`}>independent / {data.assembly.blueprint.visualIntegration.status}</span><h3>AI visual design integration</h3><p>Visual remains optional and independently owned. Starter uses its verified baseline whenever the external plugin, discovery endpoint, authorization or contract is unavailable.</p><small>{data.assembly.visualIntegration.source.contractId}@{data.assembly.visualIntegration.source.contractVersion} / {data.assembly.visualIntegration.source.contractStatus} / source {data.assembly.visualIntegration.source.sourceCommit} / {data.assembly.visualIntegration.plugin.id}@{data.assembly.visualIntegration.plugin.version} / {data.assembly.visualIntegration.plugin.installation}</small></Surface></div>
-          <div className="preset-grid">{data.assembly.stylekit.snapshots.map((snapshot) => {
-            const selected = snapshot.slug === data.assembly.blueprint.stylekit.slug;
-            const adaptersReady = Object.values(snapshot.targets).every(({ status }) => ["implemented", "local-verified", "development-verified", "production-released"].includes(status));
-            const lifecycle = selected && selectedStyleLifecycle?.localVerified
-              ? { className: "local-verified", label: "selected / local verified" }
-              : selected && selectedStyleLifecycle?.materialized
-                ? { className: "selected", label: "selected / browser evidence pending" }
-                : adaptersReady
-                  ? { className: "implemented", label: "catalog ready / not selected" }
-                  : { className: "planned", label: "adapter gaps" };
-            return <Surface key={snapshot.slug}><span className={`status ${lifecycle.className}`}>{snapshot.classification} / {lifecycle.label}</span><h3>{snapshot.name} / {snapshot.nameEn}</h3><p>StyleKit has {data.assembly.stylekit.styleCount} audited entries and {data.assembly.stylekit.globalEligibleCount} reviewed global systems. This immutable v{snapshot.snapshotVersion} snapshot is locked at {snapshot.snapshotHash.slice(0, 12)} and ships no donor runtime.</p><small>{snapshot.aiRules} / {Object.entries(data.assembly.stylekit.classification).map(([classification, count]) => `${classification}: ${count}`).join(" / ")} / {Object.entries(snapshot.targets).map(([target, state]) => `${target}: ${state.status}`).join(" / ")}</small></Surface>;
-          })}</div>
+          <div className="preset-grid"><Surface><span className={`status ${data.assembly.blueprint.visualIntegration.status}`}>independent / {data.assembly.blueprint.visualIntegration.status}</span><h3>Visual Design owns the visual layer</h3><p>Starter ships no palette, typography, motion, StyleKit catalog or global visual fallback. It retains structural CSS only so Setup and generated routes remain operable before visual materialization.</p><small>{data.assembly.visualIntegration.source.contractId}@{data.assembly.visualIntegration.source.contractVersion} / {data.assembly.visualIntegration.plugin.id}@{data.assembly.visualIntegration.plugin.version} / {data.assembly.visualIntegration.plugin.installation}</small></Surface></div>
           <Surface className="catalog-table"><div className="catalog-row catalog-header"><span>Page</span><span>Route and renderer</span><span>Pack</span><span>Reusable template</span></div>{data.assembly.pageCatalog.pages.map((page) => {
             const selected = data.assembly.blueprint.pageSet.selected.includes(page.id);
             const packLifecycle = data.assembly.blueprint.selections.pages.find(({ id }) => id === page.packId)?.lifecycle;

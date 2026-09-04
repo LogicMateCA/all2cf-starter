@@ -15,7 +15,7 @@ docsImpact: [PROJECT.md, ARCHITECTURE.md, features/assembler/MODULE.md, compose.
 - Run `npm run setup` as the `starter-dev` Compose service's supervised main process.
 - Restart the local service unless the owner explicitly stops it.
 - Keep port `15173` responsible for local Setup and the current worktree Development Plan.
-- Preserve `app-dev.example.com/dp` as the read-only view of the exact Development release; it does not replace the local planning view.
+- Preserve `dev.logicm8.com/dp` as the read-only view of the exact Development release; it does not replace the local planning view.
 - Keep Setup-triggered Wrangler secret requirements deterministically sorted so ordinary draft saves do not create meaningless Git ordering churn.
 
 # Verification

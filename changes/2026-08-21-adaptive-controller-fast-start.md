@@ -26,7 +26,7 @@ Sol remains the sole controller without wasting high reasoning on every task, an
 
 # Verification
 
-Baseline against `https://app-dev.example.com` with Lighthouse 13.4.1 and pinned Chromium 1234: Marketing Desktop scored 100 with 0.5s LCP; Marketing Mobile scored 99 with 1.6s LCP; Login Desktop scored 97 with 1.1s LCP; Login Mobile scored 87 with 3.4s LCP and about 30KB unused JavaScript; Docs Desktop scored 99 with 0.7s LCP; `/dp` Mobile scored 87 with 2.3s LCP, 0.198 CLS, 360KB transferred, a 104KB below-fold chart chunk, and a 98KB project snapshot.
+Baseline against `https://dev.logicm8.com` with Lighthouse 13.4.1 and pinned Chromium 1234: Marketing Desktop scored 100 with 0.5s LCP; Marketing Mobile scored 99 with 1.6s LCP; Login Desktop scored 97 with 1.1s LCP; Login Mobile scored 87 with 3.4s LCP and about 30KB unused JavaScript; Docs Desktop scored 99 with 0.7s LCP; `/dp` Mobile scored 87 with 2.3s LCP, 0.198 CLS, 360KB transferred, a 104KB below-fold chart chunk, and a 98KB project snapshot.
 
 Post-change verification must record the same Lighthouse workloads, route chunk sizes, typecheck, Web build, bundle budgets, knowledge synchronization, and browser behavior. Chrome DevTools MCP was configured but its browser target was closed, so raw DevTools trace evidence remains unavailable in this run.
 
@@ -36,6 +36,6 @@ The full repository verification passed. Public merged-Worker acceptance passed 
 
 # Release
 
-Functional commit `9a27313db7bba33e6a52b2d9ee17c676b9b8c85c` and artifact `acfa665b2c090a6beecc3d4f34dead9a6971337d29fb70dfacd24c092ff345cd` are Development verified on Worker `starter-dev` and `app-dev.example.com`. Cloudflare deployment `2b3ea693-04b2-49bf-ab23-7ddb539b9546` serves version `54277d80-236e-4bdd-9cb2-bdcdf32eaf1e` at 100% traffic. Official MCP read-back confirmed the exact commit annotation, custom domain, required secrets, Development variables, Hyperdrive `d665e59cdc9741c1898ba7c472c22abf`, database `starterdev`, and user `starterdev`. Live `/dp` exposed the exact clean commit, compact-index preload, and generated snapshot.
+Functional commit `9a27313db7bba33e6a52b2d9ee17c676b9b8c85c` and artifact `acfa665b2c090a6beecc3d4f34dead9a6971337d29fb70dfacd24c092ff345cd` are Development verified on Worker `starter-dev` and `dev.logicm8.com`. Cloudflare deployment `2b3ea693-04b2-49bf-ab23-7ddb539b9546` serves version `54277d80-236e-4bdd-9cb2-bdcdf32eaf1e` at 100% traffic. Official MCP read-back confirmed the exact commit annotation, custom domain, required secrets, Development variables, Hyperdrive `d665e59cdc9741c1898ba7c472c22abf`, database `starterdev`, and user `starterdev`. Live `/dp` exposed the exact clean commit, compact-index preload, and generated snapshot.
 
 Post-release Lighthouse measured Login Mobile score 93 with `2.78s` LCP, `/dp` Mobile score 91 with `3.08s` LCP and zero CLS, and `/dp` Desktop score 99 with `0.69s` LCP and `0.048` CLS. These network-bound Development results are intentionally recorded separately from the faster local production-build measurements. Production remains unchanged.

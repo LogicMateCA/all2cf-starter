@@ -18,7 +18,7 @@ const run = (command, commandArgs, cwd = target) => {
   return result.stdout.trim();
 };
 const sha256 = async (file) => createHash("sha256").update(await readFile(file)).digest("hex");
-const permanent = new Set(["foundation.core", "design.owned-neutral", "design.stylekit-adapted", "page.core-product-site", "saas.product-shell", "saas.identity-core", "saas.notifications-core", "saas.product-operations-lite"]);
+const permanent = new Set(["foundation.core", "page.core-product-site", "saas.product-shell", "saas.identity-core", "saas.notifications-core", "saas.product-operations-lite"]);
 
 async function textFiles(directory) {
   const output = [];
@@ -71,9 +71,9 @@ async function neutralize() {
   await Promise.all([writeFile(blueprintPath, json(blueprint)), writeFile(configPath, json(config)), writeFile(starterManifestPath, json(starterManifest))]);
 
   const replacements = new Map([
-    ["app-dev.example.com", "app-dev.example.com"], ["app.example.com", "app.example.com"], ["visual.example.com", "visual.example.com"], ["visualapp-dev.example.com", "visual-dev.example.com"],
-    ["00000000000000000000000000000000", "00000000000000000000000000000000"], ["00000000000000000000000000000000", "00000000000000000000000000000000"],
-    ["127.0.0.1", "127.0.0.1"], ["postgres.example.internal", "postgres.example.internal"], ["root@postgres.example.internal", "deploy@host.example"], ["/path/to/production-ssh-key", "/path/to/production-ssh-key"], ["/path/to/known_hosts", "/path/to/known_hosts"], ["/path/to/", "/path/to/"],
+    ["dev.logicm8.com", "app-dev.example.com"], ["starter.logicm8.com", "app.example.com"], ["visual.logicm8.com", "visual.example.com"], ["visualdev.logicm8.com", "visual-dev.example.com"],
+    ["7cb5d7a44fde3f702b4757dbf6d4218d", "00000000000000000000000000000000"], ["f3df57513059be317d04a5009ab9e855", "00000000000000000000000000000000"],
+    ["192.168.0.125", "127.0.0.1"], ["192.168.0.91", "postgres.example.internal"], ["root@192.168.0.91", "deploy@host.example"], ["/run/starter-secrets/production-ssh-key", "/path/to/production-ssh-key"], ["/run/starter-secrets/known_hosts", "/path/to/known_hosts"], ["/run/starter-secrets/", "/path/to/"],
   ]);
   for (const file of await textFiles(target)) {
     let source = await readFile(file, "utf8");
@@ -109,7 +109,7 @@ async function main() {
   await mkdir(path.join(target, ".starter"), { recursive: true });
   const publicReceipt = { schemaVersion: "all2cf-public-source/v1", version, canonicalSourceCommit: manifest.sourceCommit, engineArtifactSha256: manifest.artifactSha256, optionalPackCount: 0, permanentPackIds: Object.keys(receipt.packs || {}), bootstrap: "npm ci && npm run setup", github: "https://github.com/LogicMateCA/all2cf-starter" };
   await writeFile(path.join(target, ".starter", "public-release.json"), json(publicReceipt));
-  const forbidden = ["app-dev.example.com", "app.example.com", "127.0.0.1", "postgres.example.internal", "00000000000000000000000000000000", "00000000000000000000000000000000", "/path/to/"];
+  const forbidden = ["dev.logicm8.com", "starter.logicm8.com", "192.168.0.125", "192.168.0.91", "7cb5d7a44fde3f702b4757dbf6d4218d", "f3df57513059be317d04a5009ab9e855", "/run/starter-secrets/"];
   const leaks = [];
   for (const file of await textFiles(target)) {
     const source = await readFile(file, "utf8");

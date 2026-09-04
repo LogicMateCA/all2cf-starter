@@ -1,0 +1,51 @@
+import { phoneNumber } from "better-auth/plugins";
+import type { SelectedAuthPluginInput } from "../generated/auth-plugins";
+import { sendTwilioSms, type TwilioSmsEnv } from "./twilio-sms-worker";
+const e164 = /^\+[1-9][0-9]{7,14}$/u;
+async function digest(value: string) {
+  const bytes = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(value),
+  );
+  return [...new Uint8Array(bytes)]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+export function createPhoneAuthPlugin(
+  input: SelectedAuthPluginInput,
+  _features: Record<string, boolean>,
+) {
+  const env = {
+    TWILIO_API_BASE_URL: input.twilioApiBaseUrl || "https://api.twilio.com",
+    TWILIO_ACCOUNT_SID: input.twilioAccountSid || "",
+    TWILIO_API_KEY: input.twilioApiKey || "",
+    TWILIO_API_SECRET: input.twilioApiSecret || "",
+    TWILIO_FROM: input.twilioFrom || "",
+  } satisfies TwilioSmsEnv;
+  const send = async (phone: string, code: string, kind: string) =>
+    sendTwilioSms(input.database, env, {
+      to: phone,
+      body: `Your ${input.appName} verification code is ${code}. It expires in 5 minutes.`,
+      kind,
+      idempotencyKey: `phone-otp-${await digest(`${kind}:${phone}:${code}`)}`,
+    });
+  return phoneNumber({
+    otpLength: 6,
+    expiresIn: 300,
+    allowedAttempts: 5,
+    requireVerification: true,
+    phoneNumberValidator: (value) => e164.test(value),
+    sendOTP: ({ phoneNumber: phone, code }) =>
+      send(phone, code, "phone-verification"),
+    sendPasswordResetOTP: ({ phoneNumber: phone, code }) =>
+      send(phone, code, "phone-password-reset"),
+    schema: {
+      user: {
+        fields: {
+          phoneNumber: "phone_number",
+          phoneNumberVerified: "phone_number_verified",
+        },
+      },
+    },
+  });
+}

@@ -1607,6 +1607,8 @@ async function serveProductApplication(c: StarterContext) {
 }
 
 app.get("/login", serveProductApplication);
+app.get("/dashboard", serveProductApplication);
+app.get("/dashboard/*", serveProductApplication);
 app.get("/app", serveProductApplication);
 app.get("/app/*", serveProductApplication);
 app.get("/support", serveProductApplication);
@@ -1704,8 +1706,17 @@ app.onError((error, c) => {
   );
 });
 
+const fetchHandler: ExportedHandler<AppBindings>["fetch"] = (request, env, ctx) => {
+  const url = new URL(request.url);
+  if (url.pathname.startsWith("/dashboard/api/")) {
+    url.pathname = url.pathname.slice("/dashboard".length);
+    return app.fetch(new Request(url, request), env, ctx);
+  }
+  return app.fetch(request, env, ctx);
+};
+
 export default {
-  fetch: app.fetch,
+  fetch: fetchHandler,
   async queue(
     batch: MessageBatch<unknown>,
     env: AppBindings,

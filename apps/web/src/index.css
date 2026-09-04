@@ -1928,7 +1928,7 @@ dd {
 .setup-fields,
 .environment-fields {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
   margin-top: 20px;
 }
@@ -1969,23 +1969,6 @@ dd {
   color: var(--subtle);
   font-size: 12px;
 }
-.stylekit-pinned {
-  display: grid;
-  gap: 5px;
-  margin-top: 16px;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface-soft);
-}
-.stylekit-pinned strong {
-  font-size: 12px;
-}
-.stylekit-pinned small {
-  color: var(--muted);
-  font-size: 12px;
-  overflow-wrap: anywhere;
-}
 .platform-options {
   display: flex;
   flex-wrap: wrap;
@@ -2018,6 +2001,20 @@ dd {
 .environment-fields h3 {
   margin: 0 0 3px;
   font-size: 12px;
+}
+.environment-mcp-note {
+  margin-top: 14px !important;
+  padding: 11px 12px;
+  border: 1px dashed var(--border);
+  border-radius: 9px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.environment-mcp-note code {
+  margin: 0 4px;
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 .pack-grid {
   display: grid;
@@ -2131,8 +2128,7 @@ dd {
   object-fit: cover;
   object-position: center;
 }
-/* STYLEKIT_PREVIEW_END */
-.stylekit-materialization-note {
+.visual-boundary-note {
   margin: 14px 0 0;
   padding: 12px 14px;
   border: 1px solid var(--border);

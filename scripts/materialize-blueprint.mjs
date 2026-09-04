@@ -1,6 +1,13 @@
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
-import { lstat, mkdir, readFile, readdir, unlink, writeFile } from "node:fs/promises";
+import {
+  lstat,
+  mkdir,
+  readFile,
+  readdir,
+  unlink,
+  writeFile,
+} from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -9,22 +16,22 @@ import {
 } from "./lib/assembly.mjs";
 import { validateVisualIntegration } from "./lib/visual-integration.mjs";
 import {
-  renderDesignCSS,
-  renderMobileDesign,
-  renderStyleKitAdapterCSS,
-  renderStyleKitCSS,
-  renderStyleKitMobile,
-} from "./lib/design-engine.mjs";
-import {
   CFPG_CONNECTOR_PACKAGE,
   CFPG_CONNECTOR_VERSION,
   configureDatabaseRuntime,
   databaseProviderForEnvironment,
 } from "./lib/cfpg.mjs";
 
-const scriptRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const projectRootArgument = process.argv.find((value) => value.startsWith("--project-root="));
-const sourceRootArgument = process.argv.find((value) => value.startsWith("--source-root="));
+const scriptRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+);
+const projectRootArgument = process.argv.find((value) =>
+  value.startsWith("--project-root="),
+);
+const sourceRootArgument = process.argv.find((value) =>
+  value.startsWith("--source-root="),
+);
 const root = projectRootArgument
   ? path.resolve(projectRootArgument.slice("--project-root=".length))
   : scriptRoot;
@@ -87,18 +94,6 @@ const docsDesignPath = path.join(
   root,
   "apps/docs/src/styles/generated-design-profile.css",
 );
-const webStyleAdapterPath = path.join(
-  root,
-  "apps/web/src/generated/stylekit-adapter.css",
-);
-const marketingStyleAdapterPath = path.join(
-  root,
-  "apps/marketing/src/styles/generated-stylekit-adapter.css",
-);
-const docsStyleAdapterPath = path.join(
-  root,
-  "apps/docs/src/styles/generated-stylekit-adapter.css",
-);
 const mobileDesignPath = path.join(
   root,
   "apps/mobile/generated/design-profile.ts",
@@ -115,6 +110,33 @@ const workerFirstConfigPaths = [
 
 const sha256 = (value) => createHash("sha256").update(value).digest("hex");
 const json = (value) => `${JSON.stringify(value, null, 2)}\n`;
+const structuralCSS = `/* Generated structural compatibility tokens. Visual styling belongs to the visual-design plugin. */
+:root {
+  --design-profile: "structural-only";
+  --design-font-ui: system-ui, sans-serif;
+  --design-font-display: system-ui, sans-serif;
+  --design-font-mono: ui-monospace, monospace;
+  --design-radius-sm: 0px; --design-radius-md: 0px; --design-radius-lg: 0px;
+  --design-motion-fast: 0ms; --design-motion-standard: 0ms;
+  --design-background: Canvas; --design-surface: Canvas; --design-surface-strong: ButtonFace;
+  --design-foreground: CanvasText; --design-muted: GrayText; --design-accent: AccentColor;
+  --design-on-accent: AccentColorText; --design-border: GrayText; --design-danger: Mark;
+  --design-highlight: Highlight; --design-shadow-color: transparent;
+  --design-shadow-raised: none; --design-shadow-raised-large: none; --design-shadow-recessed: none; --design-shadow-pressed: none;
+  --canvas: var(--design-background); --surface: var(--design-surface); --surface-soft: var(--design-surface-strong);
+  --text: var(--design-foreground); --muted: var(--design-muted); --subtle: var(--design-muted); --border: var(--design-border);
+  --strong: var(--design-foreground); --accent: var(--design-accent); --accent-soft: var(--design-surface-strong); --danger: var(--design-danger);
+  --sl-font: var(--design-font-ui); --radius-sm: 0px; --radius-md: 0px; --radius-lg: 0px;
+}
+`;
+const structuralMobile = `// Generated structural compatibility tokens. Visual styling belongs to the visual-design plugin.
+export const generatedMobileDesign = {
+  profileId: "structural-only", version: "1.0.0", sourceRevision: "visual-design-plugin", status: "unconfigured",
+  light: { background: "#ffffff", surface: "#ffffff", surfaceStrong: "#f2f2f2", foreground: "#000000", muted: "#666666", accent: "#0066cc", onAccent: "#ffffff", border: "#999999", danger: "#b00020", highlight: "#e6e6e6", shadow: "transparent" },
+  dark: { background: "#000000", surface: "#000000", surfaceStrong: "#1a1a1a", foreground: "#ffffff", muted: "#aaaaaa", accent: "#66aaff", onAccent: "#000000", border: "#777777", danger: "#ff6b7a", highlight: "#333333", shadow: "transparent" },
+  radius: { sm: 0, md: 0, lg: 0 }, motion: { fastMs: 0, standardMs: 0 }, fonts: { ui: "System", display: "System" }
+} as const;
+`;
 
 async function optionalRead(file) {
   try {
@@ -141,16 +163,28 @@ function safeProjectPath(relativePath, label) {
 async function assertNoSymlinkTraversal(file, label) {
   let cursor = file;
   while (cursor !== root && cursor.startsWith(`${root}${path.sep}`)) {
-    const info = await lstat(cursor).catch((error) => error?.code === "ENOENT" ? null : Promise.reject(error));
-    if (info?.isSymbolicLink()) throw new Error(`${label} traverses symbolic link ${path.relative(root, cursor)}`);
+    const info = await lstat(cursor).catch((error) =>
+      error?.code === "ENOENT" ? null : Promise.reject(error),
+    );
+    if (info?.isSymbolicLink())
+      throw new Error(
+        `${label} traverses symbolic link ${path.relative(root, cursor)}`,
+      );
     cursor = path.dirname(cursor);
   }
 }
 
 async function caseInsensitiveCollision(file) {
-  const entries = await readdir(path.dirname(file)).catch((error) => error?.code === "ENOENT" ? [] : Promise.reject(error));
+  const entries = await readdir(path.dirname(file)).catch((error) =>
+    error?.code === "ENOENT" ? [] : Promise.reject(error),
+  );
   const expected = path.basename(file);
-  return entries.find((entry) => entry.toLowerCase() === expected.toLowerCase() && entry !== expected) || null;
+  return (
+    entries.find(
+      (entry) =>
+        entry.toLowerCase() === expected.toLowerCase() && entry !== expected,
+    ) || null
+  );
 }
 
 function safePackPath(packRoot, relativePath, label) {
@@ -232,26 +266,33 @@ async function readPackManifests() {
     if (
       manifest.mobileConfigPlugins &&
       (!Array.isArray(manifest.mobileConfigPlugins) ||
-        manifest.mobileConfigPlugins.some((plugin) => typeof plugin !== "string" || !plugin.trim()))
+        manifest.mobileConfigPlugins.some(
+          (plugin) => typeof plugin !== "string" || !plugin.trim(),
+        ))
     )
-      throw new Error(`${path.relative(root, file)} has invalid mobile config plugins`);
+      throw new Error(
+        `${path.relative(root, file)} has invalid mobile config plugins`,
+      );
     for (const secret of manifest.cloudflare?.requiredSecrets || [])
       if (!/^[A-Z][A-Z0-9_]*$/u.test(secret))
-        throw new Error(`${manifest.id} has an invalid required secret ${secret}`);
+        throw new Error(
+          `${manifest.id} has an invalid required secret ${secret}`,
+        );
     for (const queue of manifest.cloudflare?.queues || [])
       if (
         !/^[A-Z][A-Z0-9_]*$/u.test(queue.binding || "") ||
         !/^[a-z0-9][a-z0-9-]*$/u.test(queue.suffix || "")
       )
-        throw new Error(`${manifest.id} has an invalid Cloudflare Queue declaration`);
-    if (
-      manifest.requiresPacks &&
-      (!Array.isArray(manifest.requiresPacks) ||
-        manifest.requiresPacks.some((id) => typeof id !== "string"))
-    )
-      throw new Error(
-        `${path.relative(root, file)} has invalid required packs`,
-      );
+        throw new Error(
+          `${manifest.id} has an invalid Cloudflare Queue declaration`,
+        );
+    for (const field of ["requiresPacks", "conflictsPacks"])
+      if (
+        manifest[field] &&
+        (!Array.isArray(manifest[field]) ||
+          manifest[field].some((id) => typeof id !== "string"))
+      )
+        throw new Error(`${path.relative(root, file)} has invalid ${field}`);
     for (const route of manifest.routes) {
       if (typeof route.workerFirst !== "boolean")
         throw new Error(
@@ -347,7 +388,8 @@ function renderWorkerEvents(entries) {
 }
 
 function renderStorageAdapter(storage) {
-  const header = "// Generated by scripts/materialize-blueprint.mjs. Do not edit by hand.";
+  const header =
+    "// Generated by scripts/materialize-blueprint.mjs. Do not edit by hand.";
   const shared = [
     "export type StorageObject = { body: ReadableStream<Uint8Array>; contentType: string; size: number; etag: string | null };",
     "export type StorageAdapter = {",
@@ -388,7 +430,7 @@ function renderStorageAdapter(storage) {
       'export type StorageRuntimeEnv = { STORAGE_PROVIDER: "s3-compatible"; STORAGE_BUCKET: string; STORAGE_ACCESS: string; STORAGE_MAX_UPLOAD_BYTES: string; S3_ENDPOINT: string; S3_REGION: string; S3_FORCE_PATH_STYLE: string; S3_ACCESS_KEY_ID: string; S3_SECRET_ACCESS_KEY: string };',
       ...shared,
       "export function createStorageAdapter(env: StorageRuntimeEnv): StorageAdapter {",
-      "  const client = new S3Client({ endpoint: env.S3_ENDPOINT, region: env.S3_REGION, forcePathStyle: env.S3_FORCE_PATH_STYLE === \"true\", credentials: { accessKeyId: env.S3_ACCESS_KEY_ID, secretAccessKey: env.S3_SECRET_ACCESS_KEY } });",
+      '  const client = new S3Client({ endpoint: env.S3_ENDPOINT, region: env.S3_REGION, forcePathStyle: env.S3_FORCE_PATH_STYLE === "true", credentials: { accessKeyId: env.S3_ACCESS_KEY_ID, secretAccessKey: env.S3_SECRET_ACCESS_KEY } });',
       "  return {",
       '    provider: "s3-compatible",',
       "    bucket: env.STORAGE_BUCKET,",
@@ -455,113 +497,197 @@ function renderWorkerFirstConfig(source, routes) {
 
 function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
   const model = JSON.parse(source);
-  const environment = configPath.includes(".development.") ? "development" : "production";
+  const environment = configPath.includes(".development.")
+    ? "development"
+    : "production";
   const receiptDatabase = configureDatabaseRuntime(model, {
-    provider: databaseProviderForEnvironment(blueprint.providers.database, environment),
+    provider: databaseProviderForEnvironment(
+      blueprint.providers.database,
+      environment,
+    ),
     environment,
     connection: blueprint.providers.database.cfpg[environment],
     previous: previousRuntime?.database,
     label: path.relative(root, configPath),
   });
-  const r2Buckets = Array.isArray(model.r2_buckets) ? structuredClone(model.r2_buckets) : [];
+  const r2Buckets = Array.isArray(model.r2_buckets)
+    ? structuredClone(model.r2_buckets)
+    : [];
   for (const previous of previousRuntime?.r2Buckets || []) {
     const index = r2Buckets.findIndex(
-      (entry) => entry.binding === previous.binding && entry.bucket_name === previous.bucket,
+      (entry) =>
+        entry.binding === previous.binding &&
+        entry.bucket_name === previous.bucket,
     );
     if (index < 0)
-      throw new Error(`${path.relative(root, configPath)} changed materializer-owned R2 binding ${previous.binding}`);
+      throw new Error(
+        `${path.relative(root, configPath)} changed materializer-owned R2 binding ${previous.binding}`,
+      );
     r2Buckets.splice(index, 1);
   }
   model.vars ||= {};
-  for (const [name, value] of Object.entries(previousRuntime?.storageVars || {})) {
+  for (const [name, value] of Object.entries(
+    previousRuntime?.storageVars || {},
+  )) {
     if (model.vars[name] !== value)
-      throw new Error(`${path.relative(root, configPath)} changed materializer-owned storage variable ${name}`);
+      throw new Error(
+        `${path.relative(root, configPath)} changed materializer-owned storage variable ${name}`,
+      );
     delete model.vars[name];
   }
-  for (const [name, value] of Object.entries(previousRuntime?.antiAbuseVars || {})) {
+  for (const [name, value] of Object.entries(
+    previousRuntime?.antiAbuseVars || {},
+  )) {
     if (model.vars[name] !== value)
-      throw new Error(`${path.relative(root, configPath)} changed materializer-owned anti-abuse variable ${name}`);
+      throw new Error(
+        `${path.relative(root, configPath)} changed materializer-owned anti-abuse variable ${name}`,
+      );
     delete model.vars[name];
   }
   for (const [name, value] of Object.entries(previousRuntime?.aiVars || {})) {
     if (model.vars[name] !== value)
-      throw new Error(`${path.relative(root, configPath)} changed materializer-owned AI variable ${name}`);
+      throw new Error(
+        `${path.relative(root, configPath)} changed materializer-owned AI variable ${name}`,
+      );
     delete model.vars[name];
   }
   if (previousRuntime?.aiBinding) {
     if (model.ai?.binding !== previousRuntime.aiBinding.binding)
-      throw new Error(`${path.relative(root, configPath)} changed materializer-owned AI binding`);
+      throw new Error(
+        `${path.relative(root, configPath)} changed materializer-owned AI binding`,
+      );
     delete model.ai;
   }
-  for (const [name, value] of Object.entries(previousRuntime?.vectorizeVars || {})) {
+  for (const [name, value] of Object.entries(
+    previousRuntime?.vectorizeVars || {},
+  )) {
     if (model.vars[name] !== value)
-      throw new Error(`${path.relative(root, configPath)} changed materializer-owned Vectorize variable ${name}`);
+      throw new Error(
+        `${path.relative(root, configPath)} changed materializer-owned Vectorize variable ${name}`,
+      );
     delete model.vars[name];
   }
   for (const [name, value] of Object.entries(previousRuntime?.pushVars || {})) {
     if (model.vars[name] !== value)
-      throw new Error(`${path.relative(root, configPath)} changed materializer-owned push variable ${name}`);
+      throw new Error(
+        `${path.relative(root, configPath)} changed materializer-owned push variable ${name}`,
+      );
     delete model.vars[name];
   }
   for (const [name, value] of Object.entries(previousRuntime?.smsVars || {})) {
     if (model.vars[name] !== value)
-      throw new Error(`${path.relative(root, configPath)} changed materializer-owned SMS variable ${name}`);
+      throw new Error(
+        `${path.relative(root, configPath)} changed materializer-owned SMS variable ${name}`,
+      );
     delete model.vars[name];
   }
-  for (const [name, value] of Object.entries(previousRuntime?.imagesVars || {})) {
+  for (const [name, value] of Object.entries(
+    previousRuntime?.imagesVars || {},
+  )) {
     if (model.vars[name] !== value)
-      throw new Error(`${path.relative(root, configPath)} changed materializer-owned Images variable ${name}`);
+      throw new Error(
+        `${path.relative(root, configPath)} changed materializer-owned Images variable ${name}`,
+      );
     delete model.vars[name];
   }
-  for (const [name, value] of Object.entries(previousRuntime?.streamVars || {})) {
+  for (const [name, value] of Object.entries(
+    previousRuntime?.streamVars || {},
+  )) {
     if (model.vars[name] !== value)
-      throw new Error(`${path.relative(root, configPath)} changed materializer-owned Stream variable ${name}`);
+      throw new Error(
+        `${path.relative(root, configPath)} changed materializer-owned Stream variable ${name}`,
+      );
     delete model.vars[name];
   }
   for (const [name, value] of Object.entries(previousRuntime?.cronVars || {})) {
     if (model.vars[name] !== value)
-      throw new Error(`${path.relative(root, configPath)} changed materializer-owned Cron variable ${name}`);
+      throw new Error(
+        `${path.relative(root, configPath)} changed materializer-owned Cron variable ${name}`,
+      );
     delete model.vars[name];
   }
-  for (const [name, value] of Object.entries(previousRuntime?.workflowVars || {})) {
+  for (const [name, value] of Object.entries(
+    previousRuntime?.workflowVars || {},
+  )) {
     if (model.vars[name] !== value)
-      throw new Error(`${path.relative(root, configPath)} changed materializer-owned Workflow variable ${name}`);
+      throw new Error(
+        `${path.relative(root, configPath)} changed materializer-owned Workflow variable ${name}`,
+      );
     delete model.vars[name];
   }
-  for (const [name, value] of Object.entries(previousRuntime?.durableObjectVars || {})) {
+  for (const [name, value] of Object.entries(
+    previousRuntime?.durableObjectVars || {},
+  )) {
     if (model.vars[name] !== value)
-      throw new Error(`${path.relative(root, configPath)} changed materializer-owned Durable Object variable ${name}`);
+      throw new Error(
+        `${path.relative(root, configPath)} changed materializer-owned Durable Object variable ${name}`,
+      );
     delete model.vars[name];
   }
   if (previousRuntime?.imagesBinding) {
     if (model.images?.binding !== previousRuntime.imagesBinding.binding)
-      throw new Error(`${path.relative(root, configPath)} changed materializer-owned Images binding`);
+      throw new Error(
+        `${path.relative(root, configPath)} changed materializer-owned Images binding`,
+      );
     delete model.images;
   }
-  const vectorize = Array.isArray(model.vectorize) ? structuredClone(model.vectorize) : [];
+  const vectorize = Array.isArray(model.vectorize)
+    ? structuredClone(model.vectorize)
+    : [];
   if (previousRuntime?.vectorizeBinding) {
     const index = vectorize.findIndex(
-      (entry) => entry.binding === previousRuntime.vectorizeBinding.binding && entry.index_name === previousRuntime.vectorizeBinding.indexName,
+      (entry) =>
+        entry.binding === previousRuntime.vectorizeBinding.binding &&
+        entry.index_name === previousRuntime.vectorizeBinding.indexName,
     );
     if (index < 0)
-      throw new Error(`${path.relative(root, configPath)} changed materializer-owned Vectorize binding`);
+      throw new Error(
+        `${path.relative(root, configPath)} changed materializer-owned Vectorize binding`,
+      );
     vectorize.splice(index, 1);
   }
-  const workflows = Array.isArray(model.workflows) ? structuredClone(model.workflows) : [];
+  const workflows = Array.isArray(model.workflows)
+    ? structuredClone(model.workflows)
+    : [];
   if (previousRuntime?.workflow) {
-    const index = workflows.findIndex((entry) => entry.binding === previousRuntime.workflow.binding && entry.name === previousRuntime.workflow.name && entry.class_name === previousRuntime.workflow.className);
-    if (index < 0) throw new Error(`${path.relative(root, configPath)} changed materializer-owned Workflow binding`);
+    const index = workflows.findIndex(
+      (entry) =>
+        entry.binding === previousRuntime.workflow.binding &&
+        entry.name === previousRuntime.workflow.name &&
+        entry.class_name === previousRuntime.workflow.className,
+    );
+    if (index < 0)
+      throw new Error(
+        `${path.relative(root, configPath)} changed materializer-owned Workflow binding`,
+      );
     workflows.splice(index, 1);
   }
-  const durableObjectBindings = Array.isArray(model.durable_objects?.bindings) ? structuredClone(model.durable_objects.bindings) : [];
-  const durableObjectExports = model.exports ? structuredClone(model.exports) : {};
+  const durableObjectBindings = Array.isArray(model.durable_objects?.bindings)
+    ? structuredClone(model.durable_objects.bindings)
+    : [];
+  const durableObjectExports = model.exports
+    ? structuredClone(model.exports)
+    : {};
   if (previousRuntime?.durableObject) {
-    const index = durableObjectBindings.findIndex((entry) => entry.name === previousRuntime.durableObject.binding && entry.class_name === previousRuntime.durableObject.className);
-    if (index < 0) throw new Error(`${path.relative(root, configPath)} changed materializer-owned Durable Object binding`);
+    const index = durableObjectBindings.findIndex(
+      (entry) =>
+        entry.name === previousRuntime.durableObject.binding &&
+        entry.class_name === previousRuntime.durableObject.className,
+    );
+    if (index < 0)
+      throw new Error(
+        `${path.relative(root, configPath)} changed materializer-owned Durable Object binding`,
+      );
     durableObjectBindings.splice(index, 1);
-    const declaration = durableObjectExports[previousRuntime.durableObject.className];
-    if (declaration?.type !== "durable-object" || declaration?.storage !== previousRuntime.durableObject.storage)
-      throw new Error(`${path.relative(root, configPath)} changed materializer-owned Durable Object export`);
+    const declaration =
+      durableObjectExports[previousRuntime.durableObject.className];
+    if (
+      declaration?.type !== "durable-object" ||
+      declaration?.storage !== previousRuntime.durableObject.storage
+    )
+      throw new Error(
+        `${path.relative(root, configPath)} changed materializer-owned Durable Object export`,
+      );
     delete durableObjectExports[previousRuntime.durableObject.className];
   }
   const storage = blueprint.providers.storage;
@@ -577,12 +703,23 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
     setStorageVar("STORAGE_BUCKET", storageEnvironment.bucket);
     setStorageVar("STORAGE_ACCESS", storage.access);
     setStorageVar("STORAGE_MAX_UPLOAD_BYTES", storage.maxUploadBytes);
-    setStorageVar("STORAGE_PUBLIC_DOMAIN", storageEnvironment.publicDomain || "");
+    setStorageVar(
+      "STORAGE_PUBLIC_DOMAIN",
+      storageEnvironment.publicDomain || "",
+    );
     if (storage.provider === "cloudflare-r2") {
       if (r2Buckets.some((entry) => entry.binding === "OBJECTS"))
-        throw new Error(`${path.relative(root, configPath)} already owns R2 binding OBJECTS`);
-      r2Buckets.push({ binding: "OBJECTS", bucket_name: storageEnvironment.bucket });
-      receiptR2Buckets.push({ binding: "OBJECTS", bucket: storageEnvironment.bucket });
+        throw new Error(
+          `${path.relative(root, configPath)} already owns R2 binding OBJECTS`,
+        );
+      r2Buckets.push({
+        binding: "OBJECTS",
+        bucket_name: storageEnvironment.bucket,
+      });
+      receiptR2Buckets.push({
+        binding: "OBJECTS",
+        bucket: storageEnvironment.bucket,
+      });
     } else {
       setStorageVar("S3_ENDPOINT", storageEnvironment.s3Endpoint);
       setStorageVar("S3_REGION", storageEnvironment.s3Region);
@@ -594,15 +731,19 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
   const antiAbuseVars = {};
   if (blueprint.providers.antiAbuse.provider === "turnstile") {
     model.vars.TURNSTILE_PROVIDER = "turnstile";
-    model.vars.TURNSTILE_SITE_KEY = blueprint.providers.antiAbuse[environment].siteKey;
+    model.vars.TURNSTILE_SITE_KEY =
+      blueprint.providers.antiAbuse[environment].siteKey;
     antiAbuseVars.TURNSTILE_PROVIDER = "turnstile";
-    antiAbuseVars.TURNSTILE_SITE_KEY = blueprint.providers.antiAbuse[environment].siteKey;
+    antiAbuseVars.TURNSTILE_SITE_KEY =
+      blueprint.providers.antiAbuse[environment].siteKey;
   }
   const aiVars = {};
   let aiBinding = null;
   if (blueprint.providers.ai.provider === "workers-ai") {
     if (model.ai)
-      throw new Error(`${path.relative(root, configPath)} already owns an AI binding`);
+      throw new Error(
+        `${path.relative(root, configPath)} already owns an AI binding`,
+      );
     model.ai = { binding: "AI" };
     aiBinding = { binding: "AI" };
     model.vars.AI_PROVIDER = "workers-ai";
@@ -617,7 +758,9 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
   if (blueprint.providers.search.provider === "vectorize") {
     const search = blueprint.providers.search[environment];
     if (vectorize.some((entry) => entry.binding === "VECTOR_INDEX"))
-      throw new Error(`${path.relative(root, configPath)} already owns Vectorize binding VECTOR_INDEX`);
+      throw new Error(
+        `${path.relative(root, configPath)} already owns Vectorize binding VECTOR_INDEX`,
+      );
     vectorize.push({ binding: "VECTOR_INDEX", index_name: search.indexName });
     vectorizeBinding = { binding: "VECTOR_INDEX", indexName: search.indexName };
     model.vars.SEARCH_PROVIDER = "vectorize";
@@ -634,11 +777,30 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
   let workflow = null;
   const workflowVars = {};
   if (blueprint.providers.background.workflow.enabled) {
-    if (workflows.some((entry) => entry.binding === "STARTER_WORKFLOW")) throw new Error(`${path.relative(root, configPath)} already owns Workflow binding STARTER_WORKFLOW`);
+    if (workflows.some((entry) => entry.binding === "STARTER_WORKFLOW"))
+      throw new Error(
+        `${path.relative(root, configPath)} already owns Workflow binding STARTER_WORKFLOW`,
+      );
     const workflowName = `${model.name}-workflow`;
-    const declaration = { binding: "STARTER_WORKFLOW", name: workflowName, class_name: "StarterWorkflow", ...(blueprint.providers.background.workflow.scheduleEnabled ? { schedules: [blueprint.providers.background.workflow[environment].expression] } : {}) };
+    const declaration = {
+      binding: "STARTER_WORKFLOW",
+      name: workflowName,
+      class_name: "StarterWorkflow",
+      ...(blueprint.providers.background.workflow.scheduleEnabled
+        ? {
+            schedules: [
+              blueprint.providers.background.workflow[environment].expression,
+            ],
+          }
+        : {}),
+    };
     workflows.push(declaration);
-    workflow = { binding: declaration.binding, name: declaration.name, className: declaration.class_name, schedules: declaration.schedules || [] };
+    workflow = {
+      binding: declaration.binding,
+      name: declaration.name,
+      className: declaration.class_name,
+      schedules: declaration.schedules || [],
+    };
     model.vars.WORKFLOW_PROVIDER = "cloudflare-workflows";
     model.vars.WORKFLOW_NAME = workflowName;
     workflowVars.WORKFLOW_PROVIDER = "cloudflare-workflows";
@@ -649,51 +811,88 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
   let durableObject = null;
   const durableObjectVars = {};
   if (blueprint.providers.background.realtime.enabled) {
-    if (durableObjectBindings.some((entry) => entry.name === "STARTER_REALTIME"))
-      throw new Error(`${path.relative(root, configPath)} already owns Durable Object binding STARTER_REALTIME`);
+    if (
+      durableObjectBindings.some((entry) => entry.name === "STARTER_REALTIME")
+    )
+      throw new Error(
+        `${path.relative(root, configPath)} already owns Durable Object binding STARTER_REALTIME`,
+      );
     if (durableObjectExports.StarterRealtimeRoom)
-      throw new Error(`${path.relative(root, configPath)} already owns Durable Object export StarterRealtimeRoom`);
-    durableObjectBindings.push({ name: "STARTER_REALTIME", class_name: "StarterRealtimeRoom" });
-    durableObjectExports.StarterRealtimeRoom = { type: "durable-object", storage: "sqlite" };
-    durableObject = { binding: "STARTER_REALTIME", className: "StarterRealtimeRoom", storage: "sqlite" };
+      throw new Error(
+        `${path.relative(root, configPath)} already owns Durable Object export StarterRealtimeRoom`,
+      );
+    durableObjectBindings.push({
+      name: "STARTER_REALTIME",
+      class_name: "StarterRealtimeRoom",
+    });
+    durableObjectExports.StarterRealtimeRoom = {
+      type: "durable-object",
+      storage: "sqlite",
+    };
+    durableObject = {
+      binding: "STARTER_REALTIME",
+      className: "StarterRealtimeRoom",
+      storage: "sqlite",
+    };
     model.vars.REALTIME_PROVIDER = "cloudflare-durable-objects";
     model.vars.REALTIME_CLASS = "StarterRealtimeRoom";
     durableObjectVars.REALTIME_PROVIDER = "cloudflare-durable-objects";
     durableObjectVars.REALTIME_CLASS = "StarterRealtimeRoom";
   }
-  if (durableObjectBindings.length) model.durable_objects = { ...(model.durable_objects || {}), bindings: durableObjectBindings };
+  if (durableObjectBindings.length)
+    model.durable_objects = {
+      ...(model.durable_objects || {}),
+      bindings: durableObjectBindings,
+    };
   else delete model.durable_objects;
-  if (Object.keys(durableObjectExports).length) model.exports = durableObjectExports;
+  if (Object.keys(durableObjectExports).length)
+    model.exports = durableObjectExports;
   else delete model.exports;
   const pushVars = {};
   if (blueprint.providers.push.provider === "expo-push") {
     model.vars.PUSH_PROVIDER = "expo-push";
-    model.vars.EXPO_PUSH_PROJECT_ID = blueprint.providers.push[environment].projectId;
-    model.vars.EXPO_PUSH_ACCESS_TOKEN_REQUIRED = String(blueprint.providers.push.accessTokenRequired);
+    model.vars.EXPO_PUSH_PROJECT_ID =
+      blueprint.providers.push[environment].projectId;
+    model.vars.EXPO_PUSH_ACCESS_TOKEN_REQUIRED = String(
+      blueprint.providers.push.accessTokenRequired,
+    );
     pushVars.PUSH_PROVIDER = "expo-push";
-    pushVars.EXPO_PUSH_PROJECT_ID = blueprint.providers.push[environment].projectId;
-    pushVars.EXPO_PUSH_ACCESS_TOKEN_REQUIRED = String(blueprint.providers.push.accessTokenRequired);
+    pushVars.EXPO_PUSH_PROJECT_ID =
+      blueprint.providers.push[environment].projectId;
+    pushVars.EXPO_PUSH_ACCESS_TOKEN_REQUIRED = String(
+      blueprint.providers.push.accessTokenRequired,
+    );
   }
   const smsVars = {};
   if (blueprint.providers.sms.provider === "twilio") {
     model.vars.SMS_PROVIDER = "twilio";
-    model.vars.TWILIO_API_BASE_URL = blueprint.providers.sms[environment].apiBaseUrl;
+    model.vars.TWILIO_API_BASE_URL =
+      blueprint.providers.sms[environment].apiBaseUrl;
     smsVars.SMS_PROVIDER = "twilio";
-    smsVars.TWILIO_API_BASE_URL = blueprint.providers.sms[environment].apiBaseUrl;
+    smsVars.TWILIO_API_BASE_URL =
+      blueprint.providers.sms[environment].apiBaseUrl;
   }
   const imagesVars = {};
   let imagesBinding = null;
   if (blueprint.providers.media.images.provider === "cloudflare-images") {
     if (model.images)
-      throw new Error(`${path.relative(root, configPath)} already owns an Images binding`);
+      throw new Error(
+        `${path.relative(root, configPath)} already owns an Images binding`,
+      );
     model.images = { binding: "IMAGES" };
     imagesBinding = { binding: "IMAGES" };
     model.vars.IMAGES_PROVIDER = "cloudflare-images";
-    model.vars.IMAGES_MAX_INPUT_BYTES = String(blueprint.providers.media.images.maxInputBytes);
-    model.vars.IMAGES_DEFAULT_FORMAT = blueprint.providers.media.images.defaultFormat;
+    model.vars.IMAGES_MAX_INPUT_BYTES = String(
+      blueprint.providers.media.images.maxInputBytes,
+    );
+    model.vars.IMAGES_DEFAULT_FORMAT =
+      blueprint.providers.media.images.defaultFormat;
     imagesVars.IMAGES_PROVIDER = "cloudflare-images";
-    imagesVars.IMAGES_MAX_INPUT_BYTES = String(blueprint.providers.media.images.maxInputBytes);
-    imagesVars.IMAGES_DEFAULT_FORMAT = blueprint.providers.media.images.defaultFormat;
+    imagesVars.IMAGES_MAX_INPUT_BYTES = String(
+      blueprint.providers.media.images.maxInputBytes,
+    );
+    imagesVars.IMAGES_DEFAULT_FORMAT =
+      blueprint.providers.media.images.defaultFormat;
   }
   const streamVars = {};
   if (blueprint.providers.media.stream.provider === "cloudflare-stream") {
@@ -701,28 +900,41 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
     model.vars.STREAM_PROVIDER = "cloudflare-stream";
     model.vars.STREAM_API_BASE_URL = stream.apiBaseUrl;
     model.vars.STREAM_ACCOUNT_ID = stream.accountId;
-    model.vars.STREAM_MAX_DURATION_SECONDS = String(blueprint.providers.media.stream.maxDurationSeconds);
+    model.vars.STREAM_MAX_DURATION_SECONDS = String(
+      blueprint.providers.media.stream.maxDurationSeconds,
+    );
     model.vars.STREAM_ALLOWED_ORIGINS = JSON.stringify(stream.allowedOrigins);
     streamVars.STREAM_PROVIDER = "cloudflare-stream";
     streamVars.STREAM_API_BASE_URL = stream.apiBaseUrl;
     streamVars.STREAM_ACCOUNT_ID = stream.accountId;
-    streamVars.STREAM_MAX_DURATION_SECONDS = String(blueprint.providers.media.stream.maxDurationSeconds);
+    streamVars.STREAM_MAX_DURATION_SECONDS = String(
+      blueprint.providers.media.stream.maxDurationSeconds,
+    );
     streamVars.STREAM_ALLOWED_ORIGINS = JSON.stringify(stream.allowedOrigins);
   }
   const queues = model.queues || { producers: [], consumers: [] };
   queues.producers ||= [];
   queues.consumers ||= [];
-  const crons = Array.isArray(model.triggers?.crons) ? [...model.triggers.crons] : [];
+  const crons = Array.isArray(model.triggers?.crons)
+    ? [...model.triggers.crons]
+    : [];
   for (const previous of previousRuntime?.crons || []) {
     const index = crons.indexOf(previous);
-    if (index < 0) throw new Error(`${path.relative(root, configPath)} changed materializer-owned Cron Trigger ${previous}`);
+    if (index < 0)
+      throw new Error(
+        `${path.relative(root, configPath)} changed materializer-owned Cron Trigger ${previous}`,
+      );
     crons.splice(index, 1);
   }
   const receiptCrons = [];
   const cronVars = {};
   if (blueprint.providers.background.cron.enabled) {
-    const expression = blueprint.providers.background.cron[environment].expression;
-    if (crons.includes(expression)) throw new Error(`${path.relative(root, configPath)} already owns Cron Trigger ${expression}`);
+    const expression =
+      blueprint.providers.background.cron[environment].expression;
+    if (crons.includes(expression))
+      throw new Error(
+        `${path.relative(root, configPath)} already owns Cron Trigger ${expression}`,
+      );
     crons.push(expression);
     receiptCrons.push(expression);
     model.vars.CRON_PROVIDER = "cloudflare-cron";
@@ -730,7 +942,11 @@ function renderCloudflareRuntimeConfig(source, configPath, previousRuntime) {
     cronVars.CRON_PROVIDER = "cloudflare-cron";
     cronVars.CRON_EXPRESSION = expression;
   }
-  if (crons.length || model.triggers?.crons || (previousRuntime?.crons || []).length) {
+  if (
+    crons.length ||
+    model.triggers?.crons ||
+    (previousRuntime?.crons || []).length
+  ) {
     model.triggers ||= {};
     model.triggers.crons = crons;
   }
@@ -861,10 +1077,54 @@ function renderServerAuthPlugins(entries, features) {
     "  polarProductPro?: string;",
     "  autumnSecretKey?: string;",
     "  turnstileSecretKey?: string;",
+    "  genericOAuthProvidersJson?: string;",
+    "  ssoProvidersJson?: string;",
+    "  scimConnectionsJson?: string;",
+    "  scimCredentialHashSecret?: string;",
+    "  googleOneTapClientId?: string;",
+    "  twilioApiBaseUrl?: string;",
+    "  twilioAccountSid?: string;",
+    "  twilioApiKey?: string;",
+    "  twilioApiSecret?: string;",
+    "  twilioFrom?: string;",
     "};",
     "",
     `export const selectedAuthFeatures = ${JSON.stringify(features)} as const;`,
     "",
+  );
+  if (features.agentAuth)
+    lines.push(
+      "export function createSelectedAuthSecondaryStorage(input: SelectedAuthPluginInput) {",
+      "  const database = input.database;",
+      "  return {",
+      "    async get(key: string) {",
+      '      const result = await database.query<{ value: string }>("select value from app_auth_secondary_store where key = $1 and (expires_at is null or expires_at > current_timestamp)", [key]);',
+      '      if (!result.rows[0]) await database.query("delete from app_auth_secondary_store where key = $1 and expires_at <= current_timestamp", [key]);',
+      "      return result.rows[0]?.value ?? null;",
+      "    },",
+      "    async getAndDelete(key: string) {",
+      '      const result = await database.query<{ value: string; expires_at: Date | null }>("delete from app_auth_secondary_store where key = $1 returning value, expires_at", [key]);',
+      "      const row = result.rows[0];",
+      "      return row && (!row.expires_at || row.expires_at > new Date()) ? row.value : null;",
+      "    },",
+      "    async increment(key: string, ttl: number) {",
+      "      const result = await database.query<{ value: string }>(`insert into app_auth_secondary_store (key, value, expires_at, updated_at) values ($1, '1', current_timestamp + make_interval(secs => $2::int), current_timestamp) on conflict (key) do update set value = case when app_auth_secondary_store.expires_at <= current_timestamp then '1' else (app_auth_secondary_store.value::bigint + 1)::text end, expires_at = case when app_auth_secondary_store.expires_at <= current_timestamp then excluded.expires_at else app_auth_secondary_store.expires_at end, updated_at = current_timestamp returning value`, [key, ttl]);",
+      "      return Number(result.rows[0]?.value || 1);",
+      "    },",
+      "    async set(key: string, value: string, ttl?: number) {",
+      '      await database.query("insert into app_auth_secondary_store (key, value, expires_at, updated_at) values ($1, $2, case when $3::int is null then null else current_timestamp + make_interval(secs => $3::int) end, current_timestamp) on conflict (key) do update set value = excluded.value, expires_at = excluded.expires_at, updated_at = current_timestamp", [key, value, ttl ?? null]);',
+      "    },",
+      '    async delete(key: string) { await database.query("delete from app_auth_secondary_store where key = $1", [key]); },',
+      "  };",
+      "}",
+      "",
+    );
+  else
+    lines.push(
+      "export function createSelectedAuthSecondaryStorage(_input: SelectedAuthPluginInput) { return undefined; }",
+      "",
+    );
+  lines.push(
     "export function createSelectedAuthPlugins(input: SelectedAuthPluginInput) {",
     "  return [",
   );
@@ -912,8 +1172,7 @@ function renderMarketingProject(
     defaultLocale: blueprint.project.defaultLocale,
     locales: blueprint.project.locales,
     platforms: blueprint.project.platforms,
-    designProfile: blueprint.designProfile,
-    stylekit: blueprint.stylekit,
+    visualOwner: blueprint.visualIntegration.plugin.id,
     pages,
     publicPageCount: pages.filter(({ renderer }) => renderer === "astro-static")
       .length,
@@ -932,16 +1191,30 @@ function renderMarketingProject(
 const blueprint = JSON.parse(await readFile(blueprintPath, "utf8"));
 const requestedPlatforms = new Set(blueprint.project?.platforms || []);
 const materializeWorker = blueprint.project?.productType !== "website";
-const materializeMobile = blueprint.project?.productType === "mobile-app" || (
-  blueprint.project?.productType === "web-saas" &&
-  ["mobile-web", "ios", "android"].some((platform) => requestedPlatforms.has(platform))
-);
+const materializeMobile =
+  blueprint.project?.productType === "mobile-app" ||
+  (blueprint.project?.productType === "web-saas" &&
+    ["mobile-web", "ios", "android"].some((platform) =>
+      requestedPlatforms.has(platform),
+    ));
 const functionalUpdateOnly = process.env.STARTER_UPDATE_SCOPE === "functional";
 function outputEnabled(relativePath) {
   const relative = String(relativePath).replaceAll("\\", "/");
-  if (!materializeWorker && ["workers/", "db/", "apps/docs/", "apps/mobile/"].some((prefix) => relative.startsWith(prefix))) return false;
+  if (
+    !materializeWorker &&
+    ["workers/", "db/", "apps/docs/", "apps/mobile/"].some((prefix) =>
+      relative.startsWith(prefix),
+    )
+  )
+    return false;
   if (!materializeMobile && relative.startsWith("apps/mobile/")) return false;
-  if (blueprint.project?.productType === "mobile-app" && ["apps/marketing/", "apps/docs/"].some((prefix) => relative.startsWith(prefix))) return false;
+  if (
+    blueprint.project?.productType === "mobile-app" &&
+    ["apps/marketing/", "apps/docs/"].some((prefix) =>
+      relative.startsWith(prefix),
+    )
+  )
+    return false;
   return true;
 }
 const state = await readState();
@@ -951,29 +1224,12 @@ const starterManifest = JSON.parse(
 const catalog = JSON.parse(
   await readFile(path.join(sourceRoot, "catalog/catalog.json"), "utf8"),
 );
-const designCatalog = JSON.parse(
-  await readFile(path.join(sourceRoot, "design/catalog.json"), "utf8"),
-);
 const visualIntegration = JSON.parse(
   await readFile(path.join(sourceRoot, "integrations/visual.json"), "utf8"),
 );
 const pageCatalog = JSON.parse(
   await readFile(path.join(sourceRoot, "pages/catalog.json"), "utf8"),
 );
-const stylekitCatalog = JSON.parse(
-  await readFile(
-    path.join(sourceRoot, "design/stylekit/source-catalog.json"),
-    "utf8",
-  ),
-);
-if (!/^[a-z0-9][a-z0-9-]*$/u.test(blueprint.stylekit?.slug || ""))
-  throw new Error("Blueprint StyleKit slug is invalid");
-const stylekitSnapshotSource = await readFile(
-  path.join(sourceRoot, "design/stylekit", blueprint.stylekit.slug, "snapshot.json"),
-  "utf8",
-);
-const stylekitSnapshot = JSON.parse(stylekitSnapshotSource);
-const stylekitSnapshotHash = sha256(stylekitSnapshotSource);
 const catalogPacks = new Map(catalog.packs.map((pack) => [pack.id, pack]));
 const selected = new Set(
   Object.values(blueprint.selections)
@@ -985,30 +1241,19 @@ const selectedPages = new Set(blueprint.pageSet.selected);
 const pageDefinitions = new Map(
   pageCatalog.pages.map((page) => [page.id, page]),
 );
-const selectedProfile = designCatalog.profiles.find(
-  ({ id }) => id === blueprint.designProfile.id,
-);
-const selectedDesignPackId = blueprint.stylekit?.slug
-  ? "design.stylekit-adapted"
-  : selectedProfile?.packId;
-if (!selectedDesignPackId)
-  throw new Error(
-    `Selected Design Profile ${blueprint.designProfile.id}@${blueprint.designProfile.version} is missing from the Design Catalog`,
-  );
+const selectedDesignPackId = "foundation.core";
 const manifests = await readPackManifests();
 const contractFailures = validateAssemblyContracts(
   starterManifest,
   blueprint,
   catalog,
-  designCatalog,
+  null,
   pageCatalog,
-  {
-    catalog: stylekitCatalog,
-    snapshot: stylekitSnapshot,
-    snapshotHash: stylekitSnapshotHash,
-  },
+  null,
 );
-contractFailures.push(...validateVisualIntegration(visualIntegration, blueprint));
+contractFailures.push(
+  ...validateVisualIntegration(visualIntegration, blueprint),
+);
 if (contractFailures.length)
   throw new Error(
     `Assembly contract failed:\n- ${contractFailures.join("\n- ")}`,
@@ -1035,19 +1280,46 @@ const desiredWorkerEvents = [];
 const desiredMobileConfigPlugins = new Set();
 const desiredCloudflareSecrets = new Map();
 const desiredCloudflareQueues = new Map();
-const foundation = JSON.parse(await readFile(path.join(sourceRoot, "foundation/managed-files.json"), "utf8"));
-if (foundation.schemaVersion !== "starter-foundation-files/v1" || foundation.id !== "foundation.core" || !Array.isArray(foundation.files))
+const foundation = JSON.parse(
+  await readFile(
+    path.join(sourceRoot, "foundation/managed-files.json"),
+    "utf8",
+  ),
+);
+if (
+  foundation.schemaVersion !== "starter-foundation-files/v1" ||
+  foundation.id !== "foundation.core" ||
+  !Array.isArray(foundation.files)
+)
   throw new Error("Starter managed foundation file contract is invalid");
 const releasedFoundationOwnership = new Set(foundation.releaseOwnership || []);
 for (const target of foundation.files) {
   safeProjectPath(target, "foundation managed file");
   if (!outputEnabled(target)) continue;
-  desiredFiles.set(target, { packId: foundation.id, content: await readFile(path.join(sourceRoot, target), "utf8") });
+  desiredFiles.set(target, {
+    packId: foundation.id,
+    content: await readFile(path.join(sourceRoot, target), "utf8"),
+  });
 }
 
-if (materializeWorker && ["development", "production"].some((environment) => databaseProviderForEnvironment(blueprint.providers.database, environment) === "cfpg")) {
+if (
+  materializeWorker &&
+  ["development", "production"].some(
+    (environment) =>
+      databaseProviderForEnvironment(
+        blueprint.providers.database,
+        environment,
+      ) === "cfpg",
+  )
+) {
   for (const environment of ["development", "production"])
-    if (databaseProviderForEnvironment(blueprint.providers.database, environment) === "cfpg" && !blueprint.providers.database.cfpg?.[environment])
+    if (
+      databaseProviderForEnvironment(
+        blueprint.providers.database,
+        environment,
+      ) === "cfpg" &&
+      !blueprint.providers.database.cfpg?.[environment]
+    )
       throw new Error(
         `CFPG ${environment} connection command must be saved before materialization.`,
       );
@@ -1062,7 +1334,10 @@ if (materializeWorker && ["development", "production"].some((environment) => dat
     },
   );
 }
-if (materializeWorker && blueprint.providers.storage.provider === "s3-compatible") {
+if (
+  materializeWorker &&
+  blueprint.providers.storage.provider === "s3-compatible"
+) {
   desiredDependencies.set(
     "workers/app/package.json|dependencies|@aws-sdk/client-s3",
     {
@@ -1116,7 +1391,10 @@ async function addDesiredFile(packRoot, manifest, entry) {
 
 function recordFrozenPageTarget(entry, manifest) {
   if (!functionalUpdateOnly) return;
-  const target = path.relative(root, safeProjectPath(entry.target, `${manifest.id} page target`));
+  const target = path.relative(
+    root,
+    safeProjectPath(entry.target, `${manifest.id} page target`),
+  );
   frozenPageTargets.add(target);
 }
 
@@ -1124,13 +1402,19 @@ for (const { packRoot, manifest } of selectedManifests) {
   for (const requiredPack of manifest.requiresPacks || [])
     if (!selected.has(requiredPack))
       throw new Error(`${manifest.id} requires selected pack ${requiredPack}`);
+  for (const conflictingPack of manifest.conflictsPacks || [])
+    if (selected.has(conflictingPack))
+      throw new Error(
+        `${manifest.id} conflicts with selected pack ${conflictingPack}`,
+      );
   for (const entry of manifest.files)
     await addDesiredFile(packRoot, manifest, entry);
   for (const [pageId, entries] of Object.entries(manifest.pageFiles || {}))
     if (selectedPages.has(pageId))
       for (const entry of entries) {
         recordFrozenPageTarget(entry, manifest);
-        if (!functionalUpdateOnly) await addDesiredFile(packRoot, manifest, entry);
+        if (!functionalUpdateOnly)
+          await addDesiredFile(packRoot, manifest, entry);
       }
   for (const dependency of manifest.dependencies) {
     safeProjectPath(dependency.packageFile, `${manifest.id} packageFile`);
@@ -1172,13 +1456,17 @@ for (const { packRoot, manifest } of selectedManifests) {
     });
   for (const plugin of manifest.mobileConfigPlugins || [])
     desiredMobileConfigPlugins.add(plugin);
-  for (const secret of materializeWorker ? manifest.cloudflare?.requiredSecrets || [] : []) {
+  for (const secret of materializeWorker
+    ? manifest.cloudflare?.requiredSecrets || []
+    : []) {
     const owner = desiredCloudflareSecrets.get(secret);
     if (owner && owner !== manifest.id)
       throw new Error(`Cloudflare secret ${secret} is owned by multiple packs`);
     desiredCloudflareSecrets.set(secret, manifest.id);
   }
-  for (const queue of materializeWorker ? manifest.cloudflare?.queues || [] : []) {
+  for (const queue of materializeWorker
+    ? manifest.cloudflare?.queues || []
+    : []) {
     if (desiredCloudflareQueues.has(queue.binding))
       throw new Error(`Cloudflare Queue binding collision at ${queue.binding}`);
     desiredCloudflareQueues.set(queue.binding, {
@@ -1203,49 +1491,88 @@ if (blueprint.providers.storage.provider === "s3-compatible") {
     desiredCloudflareSecrets.set(secret, "capability.object-storage");
 }
 const turnstilePackSelected = selected.has("capability.turnstile");
-if (turnstilePackSelected !== (blueprint.providers.antiAbuse.provider === "turnstile"))
+if (
+  turnstilePackSelected !==
+  (blueprint.providers.antiAbuse.provider === "turnstile")
+)
   throw new Error(
     "Turnstile Pack selection must match the Blueprint anti-abuse Provider.",
   );
 const workersAiPackSelected = selected.has("capability.workers-ai");
-if (workersAiPackSelected !== (blueprint.providers.ai.provider === "workers-ai"))
+if (
+  workersAiPackSelected !==
+  (blueprint.providers.ai.provider === "workers-ai")
+)
   throw new Error(
     "Workers AI Pack selection must match the Blueprint AI Provider.",
   );
 const vectorizePackSelected = selected.has("capability.vectorize");
-if (vectorizePackSelected !== (blueprint.providers.search.provider === "vectorize"))
+if (
+  vectorizePackSelected !==
+  (blueprint.providers.search.provider === "vectorize")
+)
   throw new Error(
     "Vectorize Pack selection must match the Blueprint search Provider.",
   );
 const expoPushPackSelected = selected.has("capability.expo-push");
-if (expoPushPackSelected !== (blueprint.providers.push.provider === "expo-push"))
+if (
+  expoPushPackSelected !==
+  (blueprint.providers.push.provider === "expo-push")
+)
   throw new Error(
     "Expo Push Pack selection must match the Blueprint push Provider.",
   );
 if (expoPushPackSelected && blueprint.providers.push.accessTokenRequired)
-  desiredCloudflareSecrets.set("EXPO_PUSH_ACCESS_TOKEN", "capability.expo-push");
+  desiredCloudflareSecrets.set(
+    "EXPO_PUSH_ACCESS_TOKEN",
+    "capability.expo-push",
+  );
 const twilioSmsPackSelected = selected.has("capability.twilio-sms");
 if (twilioSmsPackSelected !== (blueprint.providers.sms.provider === "twilio"))
   throw new Error(
     "Twilio SMS Pack selection must match the Blueprint SMS Provider.",
   );
-const cloudflareImagesPackSelected = selected.has("capability.cloudflare-images");
-if (cloudflareImagesPackSelected !== (blueprint.providers.media.images.provider === "cloudflare-images"))
+const cloudflareImagesPackSelected = selected.has(
+  "capability.cloudflare-images",
+);
+if (
+  cloudflareImagesPackSelected !==
+  (blueprint.providers.media.images.provider === "cloudflare-images")
+)
   throw new Error(
     "Cloudflare Images Pack selection must match the Blueprint image Provider.",
   );
-const cloudflareStreamPackSelected = selected.has("capability.cloudflare-stream");
-if (cloudflareStreamPackSelected !== (blueprint.providers.media.stream.provider === "cloudflare-stream"))
-  throw new Error("Cloudflare Stream Pack selection must match the Blueprint video Provider.");
+const cloudflareStreamPackSelected = selected.has(
+  "capability.cloudflare-stream",
+);
+if (
+  cloudflareStreamPackSelected !==
+  (blueprint.providers.media.stream.provider === "cloudflare-stream")
+)
+  throw new Error(
+    "Cloudflare Stream Pack selection must match the Blueprint video Provider.",
+  );
 const cronPackSelected = selected.has("capability.cron");
 if (cronPackSelected !== Boolean(blueprint.providers.background.cron.enabled))
-  throw new Error("Cron Pack selection must match the Blueprint background Cron setting.");
+  throw new Error(
+    "Cron Pack selection must match the Blueprint background Cron setting.",
+  );
 const workflowsPackSelected = selected.has("capability.workflows");
-if (workflowsPackSelected !== Boolean(blueprint.providers.background.workflow.enabled))
-  throw new Error("Workflows Pack selection must match the Blueprint background Workflow setting.");
+if (
+  workflowsPackSelected !==
+  Boolean(blueprint.providers.background.workflow.enabled)
+)
+  throw new Error(
+    "Workflows Pack selection must match the Blueprint background Workflow setting.",
+  );
 const durableObjectsPackSelected = selected.has("capability.durable-objects");
-if (durableObjectsPackSelected !== Boolean(blueprint.providers.background.realtime.enabled))
-  throw new Error("Durable Objects Pack selection must match the Blueprint realtime setting.");
+if (
+  durableObjectsPackSelected !==
+  Boolean(blueprint.providers.background.realtime.enabled)
+)
+  throw new Error(
+    "Durable Objects Pack selection must match the Blueprint realtime setting.",
+  );
 
 desiredRoutes.sort((left, right) => left.path.localeCompare(right.path));
 const desiredWorkerFirstRoutes = desiredRoutes
@@ -1261,6 +1588,7 @@ const desiredAuthFeatures = {
   apiKeys: selected.has("saas.api-keys"),
   twoFactor: selected.has("saas.account-security-2fa"),
   turnstile: selected.has("capability.turnstile"),
+  agentAuth: selected.has("saas.auth-agent"),
 };
 const desiredServerAuthSource = renderServerAuthPlugins(
   desiredServerAuthPlugins,
@@ -1274,34 +1602,27 @@ const desiredWorkerEventSource = renderWorkerEvents(desiredWorkerEvents);
 const desiredWorkflowExportsSource = [
   "// Generated by scripts/materialize-blueprint.mjs. Do not edit by hand.",
   "export {};",
-  ...(workflowsPackSelected ? ['export { StarterWorkflow } from "../features/workflows-worker";'] : []),
+  ...(workflowsPackSelected
+    ? ['export { StarterWorkflow } from "../features/workflows-worker";']
+    : []),
   "",
 ].join("\n");
 const desiredDurableObjectExportsSource = [
   "// Generated by scripts/materialize-blueprint.mjs. Do not edit by hand.",
   "export {};",
-  ...(durableObjectsPackSelected ? ['export { StarterRealtimeRoom } from "../features/realtime-room-worker";'] : []),
+  ...(durableObjectsPackSelected
+    ? [
+        'export { StarterRealtimeRoom } from "../features/realtime-room-worker";',
+      ]
+    : []),
   "",
 ].join("\n");
 const desiredMobileConfigPluginSource = `${JSON.stringify([...desiredMobileConfigPlugins].sort(), null, 2)}\n`;
 const desiredStorageAdapterSource = renderStorageAdapter(
   blueprint.providers.storage,
 );
-const desiredDesignCSS = blueprint.stylekit?.slug
-  ? renderStyleKitCSS(stylekitSnapshot)
-  : renderDesignCSS(selectedProfile);
-const desiredWebStyleAdapterCSS = blueprint.stylekit?.slug
-  ? renderStyleKitAdapterCSS(stylekitSnapshot, "web")
-  : "/* No StyleKit component adapter selected. */\n";
-const desiredMarketingStyleAdapterCSS = blueprint.stylekit?.slug
-  ? renderStyleKitAdapterCSS(stylekitSnapshot, "marketing")
-  : "/* No StyleKit component adapter selected. */\n";
-const desiredDocsStyleAdapterCSS = blueprint.stylekit?.slug
-  ? renderStyleKitAdapterCSS(stylekitSnapshot, "docs")
-  : "/* No StyleKit component adapter selected. */\n";
-const desiredMobileDesign = blueprint.stylekit?.slug
-  ? renderStyleKitMobile(stylekitSnapshot)
-  : renderMobileDesign(selectedProfile);
+const desiredDesignCSS = structuralCSS;
+const desiredMobileDesign = structuralMobile;
 const desiredMarketingProject = renderMarketingProject(
   blueprint,
   pageCatalog,
@@ -1326,9 +1647,12 @@ for (const [target, desired] of desiredFiles) {
   const current = await optionalRead(targetPath);
   if (current === desired.content) continue;
   const previous = previousFiles.get(target);
-  const caseCollision = current === null ? await caseInsensitiveCollision(targetPath) : null;
+  const caseCollision =
+    current === null ? await caseInsensitiveCollision(targetPath) : null;
   if (caseCollision)
-    failures.push(`${target} collides by case with existing product path ${path.join(path.dirname(target), caseCollision)}`);
+    failures.push(
+      `${target} collides by case with existing product path ${path.join(path.dirname(target), caseCollision)}`,
+    );
   else if (current === null)
     changes.push({
       kind: "add-file",
@@ -1336,25 +1660,35 @@ for (const [target, desired] of desiredFiles) {
       packId: desired.packId,
     });
   else if (!previous)
-    failures.push(`${target} collides with a product-owned file outside the materialization receipt`);
+    failures.push(
+      `${target} collides with a product-owned file outside the materialization receipt`,
+    );
   else {
     const localHash = sha256(current);
     const targetHash = sha256(desired.content);
     if (localHash === previous.hash)
       changes.push({ kind: "update-file", target, packId: desired.packId });
     else if (targetHash === previous.hash)
-      preserved.push({ kind: "keep-local-file", target, packId: desired.packId, baseHash: previous.hash, localHash });
+      preserved.push({
+        kind: "keep-local-file",
+        target,
+        packId: desired.packId,
+        baseHash: previous.hash,
+        localHash,
+      });
     else
-      failures.push(`${target} has both product and Starter changes; automatic update is blocked`);
+      failures.push(
+        `${target} has both product and Starter changes; automatic update is blocked`,
+      );
   }
 }
 
 for (const [target, previous] of previousFiles) {
   const normalizedTarget = target.replaceAll("\\", "/");
-  const legacyProductPageTarget = functionalUpdateOnly && (
-    previous.packId.startsWith("page.") ||
-    normalizedTarget.startsWith("apps/marketing/")
-  );
+  const legacyProductPageTarget =
+    functionalUpdateOnly &&
+    (previous.packId.startsWith("page.") ||
+      normalizedTarget.startsWith("apps/marketing/"));
   if (frozenPageTargets.has(target) || legacyProductPageTarget) {
     frozenPageTargets.add(target);
     continue;
@@ -1364,8 +1698,15 @@ for (const [target, previous] of previousFiles) {
   await assertNoSymlinkTraversal(ownedPath, target);
   const current = await optionalRead(ownedPath);
   if (current === null) continue;
-  if (previous.packId === foundation.id && releasedFoundationOwnership.has(target)) {
-    changes.push({ kind: "release-file-ownership", target, packId: previous.packId });
+  if (
+    previous.packId === foundation.id &&
+    releasedFoundationOwnership.has(target)
+  ) {
+    changes.push({
+      kind: "release-file-ownership",
+      target,
+      packId: previous.packId,
+    });
     continue;
   }
   if (sha256(current) !== previous.hash)
@@ -1403,13 +1744,27 @@ for (const [key, desired] of desiredDependencies) {
       packId: desired.packId,
     });
   else if (!previous)
-    failures.push(`${desired.packageFile} already product-owns ${desired.name}@${current}`);
+    failures.push(
+      `${desired.packageFile} already product-owns ${desired.name}@${current}`,
+    );
   else if (current === previous.version)
-    changes.push({ kind: "update-dependency", target: `${desired.packageFile}:${desired.name}`, packId: desired.packId });
+    changes.push({
+      kind: "update-dependency",
+      target: `${desired.packageFile}:${desired.name}`,
+      packId: desired.packId,
+    });
   else if (desired.version === previous.version)
-    preserved.push({ kind: "keep-local-dependency", target: `${desired.packageFile}:${desired.name}`, packId: desired.packId, baseVersion: previous.version, localVersion: current });
+    preserved.push({
+      kind: "keep-local-dependency",
+      target: `${desired.packageFile}:${desired.name}`,
+      packId: desired.packId,
+      baseVersion: previous.version,
+      localVersion: current,
+    });
   else
-    failures.push(`${desired.packageFile}:${desired.name} has both product and Starter version changes; automatic update is blocked`);
+    failures.push(
+      `${desired.packageFile}:${desired.name} has both product and Starter version changes; automatic update is blocked`,
+    );
 }
 for (const [key, previous] of Object.entries(state.dependencies || {})) {
   if (desiredDependencies.has(key)) continue;
@@ -1434,10 +1789,25 @@ if (currentRouteSource !== desiredRouteSource) {
   const target = path.relative(root, routeRegistryPath);
   const localHash = sha256(currentRouteSource || "");
   const targetHash = sha256(desiredRouteSource);
-  if (state.generatedRoutesHash && localHash !== state.generatedRoutesHash && targetHash === state.generatedRoutesHash)
-    preserved.push({ kind: "keep-local-generated", target, baseHash: state.generatedRoutesHash, localHash });
-  else if (state.generatedRoutesHash && localHash !== state.generatedRoutesHash && targetHash !== state.generatedRoutesHash)
-    failures.push(`${target} has both product and Starter route changes; automatic update is blocked`);
+  if (
+    state.generatedRoutesHash &&
+    localHash !== state.generatedRoutesHash &&
+    targetHash === state.generatedRoutesHash
+  )
+    preserved.push({
+      kind: "keep-local-generated",
+      target,
+      baseHash: state.generatedRoutesHash,
+      localHash,
+    });
+  else if (
+    state.generatedRoutesHash &&
+    localHash !== state.generatedRoutesHash &&
+    targetHash !== state.generatedRoutesHash
+  )
+    failures.push(
+      `${target} has both product and Starter route changes; automatic update is blocked`,
+    );
   else if (!state.generatedRoutesHash && currentRouteSource !== baseline)
     failures.push(`${target} exists outside the generated route receipt`);
   else
@@ -1455,7 +1825,10 @@ const desiredCloudflareConfigReceipts = {};
 for (const configPath of workerFirstConfigPaths) {
   const current = await optionalRead(configPath);
   if (current === null) {
-    if (materializeWorker) failures.push(`${path.relative(root, configPath)} is required for ${blueprint.project?.productType || "this product"}`);
+    if (materializeWorker)
+      failures.push(
+        `${path.relative(root, configPath)} is required for ${blueprint.project?.productType || "this product"}`,
+      );
     continue;
   }
   let currentRoutes;
@@ -1513,6 +1886,7 @@ const generatedRegistries = [
       apiKeys: false,
       twoFactor: false,
       turnstile: false,
+      agentAuth: false,
     }),
   },
   {
@@ -1537,13 +1911,15 @@ const generatedRegistries = [
     path: workflowExportsPath,
     desired: desiredWorkflowExportsSource,
     stateKey: "generatedWorkflowExportsHash",
-    baseline: "// Generated by scripts/materialize-blueprint.mjs. Do not edit by hand.\nexport {};\n",
+    baseline:
+      "// Generated by scripts/materialize-blueprint.mjs. Do not edit by hand.\nexport {};\n",
   },
   {
     path: durableObjectExportsPath,
     desired: desiredDurableObjectExportsSource,
     stateKey: "generatedDurableObjectExportsHash",
-    baseline: "// Generated by scripts/materialize-blueprint.mjs. Do not edit by hand.\nexport {};\n",
+    baseline:
+      "// Generated by scripts/materialize-blueprint.mjs. Do not edit by hand.\nexport {};\n",
   },
   {
     path: storageAdapterPath,
@@ -1580,27 +1956,6 @@ const generatedRegistries = [
     packId: selectedDesignPackId,
   },
   {
-    path: webStyleAdapterPath,
-    desired: desiredWebStyleAdapterCSS,
-    stateKey: "generatedStyleAdapterWebHash",
-    baseline: null,
-    packId: selectedDesignPackId,
-  },
-  {
-    path: marketingStyleAdapterPath,
-    desired: desiredMarketingStyleAdapterCSS,
-    stateKey: "generatedStyleAdapterMarketingHash",
-    baseline: null,
-    packId: selectedDesignPackId,
-  },
-  {
-    path: docsStyleAdapterPath,
-    desired: desiredDocsStyleAdapterCSS,
-    stateKey: "generatedStyleAdapterDocsHash",
-    baseline: null,
-    packId: selectedDesignPackId,
-  },
-  {
     path: mobileDesignPath,
     desired: desiredMobileDesign,
     stateKey: "generatedDesignMobileHash",
@@ -1614,17 +1969,20 @@ const generatedRegistries = [
     baseline: null,
     packId: "page.core-product-site",
   },
-].filter((registry) =>
-  (materializeMobile || !registry.path.startsWith(path.join(root, "apps/mobile/"))) &&
-  (materializeWorker || !registry.path.startsWith(path.join(root, "workers/")))
+].filter(
+  (registry) =>
+    (materializeMobile ||
+      !registry.path.startsWith(path.join(root, "apps/mobile/"))) &&
+    (materializeWorker ||
+      !registry.path.startsWith(path.join(root, "workers/"))),
 );
 for (const registry of generatedRegistries) {
   const target = path.relative(root, registry.path);
-  const frozenGenerated = functionalUpdateOnly && (
-    registry.stateKey.startsWith("generatedDesign") ||
-    registry.stateKey.startsWith("generatedStyleAdapter") ||
-    registry.stateKey === "generatedMarketingProjectHash"
-  );
+  const frozenGenerated =
+    functionalUpdateOnly &&
+    (registry.stateKey.startsWith("generatedDesign") ||
+      registry.stateKey.startsWith("generatedStyleAdapter") ||
+      registry.stateKey === "generatedMarketingProjectHash");
   if (frozenGenerated) continue;
   const current = await optionalRead(registry.path);
   if (current === registry.desired) continue;
@@ -1632,9 +1990,21 @@ for (const registry of generatedRegistries) {
   const localHash = sha256(current || "");
   const targetHash = sha256(registry.desired);
   if (previousHash && localHash !== previousHash && targetHash === previousHash)
-    preserved.push({ kind: "keep-local-generated", target, ...(registry.packId ? { packId: registry.packId } : {}), baseHash: previousHash, localHash });
-  else if (previousHash && localHash !== previousHash && targetHash !== previousHash)
-    failures.push(`${target} has both product and Starter generated changes; automatic update is blocked`);
+    preserved.push({
+      kind: "keep-local-generated",
+      target,
+      ...(registry.packId ? { packId: registry.packId } : {}),
+      baseHash: previousHash,
+      localHash,
+    });
+  else if (
+    previousHash &&
+    localHash !== previousHash &&
+    targetHash !== previousHash
+  )
+    failures.push(
+      `${target} has both product and Starter generated changes; automatic update is blocked`,
+    );
   else if (!previousHash && current !== registry.baseline)
     failures.push(`${target} exists outside the generated artifact receipt`);
   else
@@ -1661,14 +2031,17 @@ const desiredState = {
   generatedWorkflowExportsHash: sha256(desiredWorkflowExportsSource),
   generatedDurableObjectExportsHash: sha256(desiredDurableObjectExportsSource),
   generatedStorageAdapterHash: sha256(desiredStorageAdapterSource),
-  ...(materializeMobile ? { generatedMobileConfigPluginsHash: sha256(desiredMobileConfigPluginSource) } : {}),
+  ...(materializeMobile
+    ? {
+        generatedMobileConfigPluginsHash: sha256(
+          desiredMobileConfigPluginSource,
+        ),
+      }
+    : {}),
   generatedCloudflareConfigs: desiredCloudflareConfigReceipts,
   generatedDesignWebHash: sha256(desiredDesignCSS),
   generatedDesignMarketingHash: sha256(desiredDesignCSS),
   generatedDesignDocsHash: sha256(desiredDesignCSS),
-  generatedStyleAdapterWebHash: sha256(desiredWebStyleAdapterCSS),
-  generatedStyleAdapterMarketingHash: sha256(desiredMarketingStyleAdapterCSS),
-  generatedStyleAdapterDocsHash: sha256(desiredDocsStyleAdapterCSS),
   ...(materializeMobile ? { generatedDesignMobileHash: sha256(desiredMobileDesign) } : {}),
   generatedMarketingProjectHash: sha256(desiredMarketingProject),
   localOverrides: {},
@@ -1685,8 +2058,14 @@ if (functionalUpdateOnly) {
       desiredState.packs[previous.packId].files[target] = previous.hash;
   }
   for (const registry of generatedRegistries) {
-    if (!(registry.stateKey.startsWith("generatedDesign") || registry.stateKey.startsWith("generatedStyleAdapter") || registry.stateKey === "generatedMarketingProjectHash")) continue;
-    if (state[registry.stateKey]) desiredState[registry.stateKey] = state[registry.stateKey];
+    if (!(
+      registry.stateKey.startsWith("generatedDesign") ||
+      registry.stateKey.startsWith("generatedStyleAdapter") ||
+      registry.stateKey === "generatedMarketingProjectHash"
+    ))
+      continue;
+    if (state[registry.stateKey])
+      desiredState[registry.stateKey] = state[registry.stateKey];
   }
 }
 for (const entry of preserved)
@@ -1716,7 +2095,19 @@ for (const { manifest } of manifests) {
 }
 
 if (failures.length) {
-  console.error(json({ ok: false, summary: { safe: changes.length, preserved: preserved.length, conflicts: failures.length }, failures, preserved, changes }));
+  console.error(
+    json({
+      ok: false,
+      summary: {
+        safe: changes.length,
+        preserved: preserved.length,
+        conflicts: failures.length,
+      },
+      failures,
+      preserved,
+      changes,
+    }),
+  );
   process.exit(1);
 }
 if (check && changes.length) {
@@ -1728,8 +2119,15 @@ if (!apply) {
     json({
       ok: true,
       mode: check ? "check" : "plan",
-      selectedPacks: [foundation.id, ...selectedManifests.map(({ manifest }) => manifest.id)],
-      summary: { safe: changes.length, preserved: preserved.length, conflicts: 0 },
+      selectedPacks: [
+        foundation.id,
+        ...selectedManifests.map(({ manifest }) => manifest.id),
+      ],
+      summary: {
+        safe: changes.length,
+        preserved: preserved.length,
+        conflicts: 0,
+      },
       preserved,
       changes,
     }),
@@ -1741,7 +2139,10 @@ if (!changes.length) {
     json({
       ok: true,
       mode: "apply",
-      selectedPacks: [foundation.id, ...selectedManifests.map(({ manifest }) => manifest.id)],
+      selectedPacks: [
+        foundation.id,
+        ...selectedManifests.map(({ manifest }) => manifest.id),
+      ],
       summary: { safe: 0, preserved: preserved.length, conflicts: 0 },
       preserved,
       changes,
@@ -1791,7 +2192,9 @@ try {
   }
   for (const target of previousFiles.keys()) {
     if (functionalUpdateOnly && frozenPageTargets.has(target)) continue;
-    const released = previousFiles.get(target)?.packId === foundation.id && releasedFoundationOwnership.has(target);
+    const released =
+      previousFiles.get(target)?.packId === foundation.id &&
+      releasedFoundationOwnership.has(target);
     if (!desiredFiles.has(target) && !released)
       await unlink(safeProjectPath(target, "owned target")).catch((error) => {
         if (error?.code !== "ENOENT") throw error;
@@ -1799,7 +2202,8 @@ try {
   }
 
   for (const [key, desired] of desiredDependencies) {
-    if (preservedTargets.has(`${desired.packageFile}:${desired.name}`)) continue;
+    if (preservedTargets.has(`${desired.packageFile}:${desired.name}`))
+      continue;
     const model = packageModels.get(desired.packageFile);
     model[desired.section] ||= {};
     model[desired.section][desired.name] = desired.version;
@@ -1820,7 +2224,8 @@ try {
         );
     await writeFile(safeProjectPath(packageFile, "packageFile"), json(model));
   }
-  if (!preservedTargets.has(path.relative(root, routeRegistryPath))) await writeFile(routeRegistryPath, desiredRouteSource);
+  if (!preservedTargets.has(path.relative(root, routeRegistryPath)))
+    await writeFile(routeRegistryPath, desiredRouteSource);
   for (const registry of workerFirstRegistries)
     await writeFile(registry.path, registry.desired);
   for (const registry of generatedRegistries) {
@@ -1861,13 +2266,22 @@ try {
   await writeFile(blueprintPath, json(blueprint));
 
   const dependencyChanged = changes.some(({ kind }) =>
-    new Set(["add-dependency", "update-dependency", "remove-dependency"]).has(kind),
+    new Set(["add-dependency", "update-dependency", "remove-dependency"]).has(
+      kind,
+    ),
   );
   if (dependencyChanged) {
-    const packageLockOnly = process.env.STARTER_FACTORY_PACKAGE_LOCK_ONLY === "true";
+    const packageLockOnly =
+      process.env.STARTER_FACTORY_PACKAGE_LOCK_ONLY === "true";
     const install = spawnSync(
       "npm",
-      ["install", ...(packageLockOnly ? ["--package-lock-only"] : []), "--ignore-scripts", "--no-audit", "--no-fund"],
+      [
+        "install",
+        ...(packageLockOnly ? ["--package-lock-only"] : []),
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund",
+      ],
       { cwd: root, encoding: "utf8" },
     );
     if (install.status !== 0)
@@ -1891,8 +2305,15 @@ try {
     json({
       ok: true,
       mode: "apply",
-      selectedPacks: [foundation.id, ...selectedManifests.map(({ manifest }) => manifest.id)],
-      summary: { safe: changes.length, preserved: preserved.length, conflicts: 0 },
+      selectedPacks: [
+        foundation.id,
+        ...selectedManifests.map(({ manifest }) => manifest.id),
+      ],
+      summary: {
+        safe: changes.length,
+        preserved: preserved.length,
+        conflicts: 0,
+      },
       preserved,
       changes,
     }),

@@ -1,0 +1,114 @@
+import { useEffect, useState } from "react";
+import { MonitorSmartphone, RefreshCw, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { authClient } from "@/lib/auth-client";
+import "./multi-session-page.css";
+type DeviceSession = {
+  session: {
+    id: string;
+    token: string;
+    createdAt: string | Date;
+    expiresAt: string | Date;
+    userAgent?: string | null;
+    ipAddress?: string | null;
+  };
+  user: { id: string; name: string; email: string; image?: string | null };
+};
+export function MultiSessionPage() {
+  const { data: current, isPending } = authClient.useSession();
+  const [sessions, setSessions] = useState<DeviceSession[]>([]);
+  const [busy, setBusy] = useState("");
+  const [message, setMessage] = useState("");
+  async function refresh() {
+    const result = await authClient.multiSession.listDeviceSessions();
+    if (result.error) setMessage("Device sessions could not be loaded.");
+    else setSessions((result.data || []) as DeviceSession[]);
+  }
+  useEffect(() => {
+    if (!isPending && !current?.user)
+      window.location.replace(
+        `/login?returnTo=${encodeURIComponent(window.location.pathname)}`,
+      );
+    if (current?.user) void refresh();
+  }, [isPending, current?.user?.id]);
+  async function activate(token: string) {
+    setBusy(token);
+    const result = await authClient.multiSession.setActive({
+      sessionToken: token,
+    });
+    setBusy("");
+    if (result.error)
+      setMessage("This account session could not be activated.");
+    else window.location.assign("/app");
+  }
+  async function revoke(token: string) {
+    if (!window.confirm("Remove this account session from this browser?"))
+      return;
+    setBusy(token);
+    const result = await authClient.multiSession.revoke({
+      sessionToken: token,
+    });
+    setBusy("");
+    if (result.error) setMessage("This account session could not be removed.");
+    else await refresh();
+  }
+  if (isPending || !current?.user)
+    return (
+      <main className="multi-session-loading">Loading account sessions…</main>
+    );
+  return (
+    <main className="multi-session">
+      <header>
+        <span>Account switching</span>
+        <h1>Sessions on this browser</h1>
+        <p>
+          Keep up to five signed-in accounts and switch without sharing sessions
+          between users.
+        </p>
+        <Button variant="outline" onClick={() => void refresh()}>
+          <RefreshCw size={15} /> Refresh
+        </Button>
+      </header>
+      {message ? <p role="alert">{message}</p> : null}
+      <section>
+        {sessions.map((item) => {
+          const active = item.session.id === current.session.id;
+          return (
+            <article key={item.session.id}>
+              <MonitorSmartphone size={22} />
+              <div>
+                <strong>{item.user.name || item.user.email}</strong>
+                <span>{item.user.email}</span>
+                <small>
+                  {item.session.userAgent || "Browser session"} · expires{" "}
+                  {new Date(item.session.expiresAt).toLocaleString()}
+                </small>
+              </div>
+              <div>
+                {active ? (
+                  <span className="active">Current</span>
+                ) : (
+                  <Button
+                    disabled={busy === item.session.token}
+                    onClick={() => void activate(item.session.token)}
+                  >
+                    Switch
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  disabled={busy === item.session.token}
+                  aria-label={`Remove ${item.user.email}`}
+                  onClick={() => void revoke(item.session.token)}
+                >
+                  <Trash2 size={15} />
+                </Button>
+              </div>
+            </article>
+          );
+        })}
+        {sessions.length === 0 ? <p>No device sessions found.</p> : null}
+      </section>
+    </main>
+  );
+}

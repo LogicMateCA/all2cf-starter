@@ -1,18 +1,19 @@
 {
   "schemaVersion": "starter-materialization/v1",
   "packs": {
-    "design.owned-neutral": {
+    "capability.object-storage": {
       "version": "0.1.0",
-      "files": {}
-    },
-    "design.stylekit-adapted": {
-      "version": "0.1.0",
-      "files": {}
+      "files": {
+        "workers/app/features/object-storage-worker.ts": "af371b5eaf409b0a034e917ae65e21ea632a4627f95893326bb3fb0cd795a233",
+        "apps/web/src/components/features/object-storage-page.tsx": "67f1480cec7e52ea305aa8c7f8b2d829ec9052bd1f37a02afc6ce9d552933f87",
+        "apps/web/src/components/features/object-storage-page.css": "d1a80e2a323f6f69a6a2edbaa75e8e4deac50d248dcf2df353ac7efbcb911bcc",
+        "db/migrations/1101_object_storage.sql": "34b97227383c14b2536971dfc9c770427d4788a053437be939f33de31c0e1225"
+      }
     },
     "page.core-product-site": {
       "version": "0.1.0",
       "files": {
-        "apps/marketing/src/pages/index.astro": "2ba2ebb8bdb6ecbdcdeee1487b4a747288ee4a2e18e7da596c825569f245bad3",
+        "apps/marketing/src/pages/index.astro": "7d382c125c372d3f18d64ee7133c4fe036d059c4dd8952a11f2798b3bd793ebe",
         "apps/marketing/src/pages/features.astro": "0276ade3a0449f356c197690e30746f139553ab56bf3159f9ab699bd6213f13f",
         "apps/marketing/src/pages/pricing.astro": "8145e9148da1b64b27f031512bbb53b2524cc73477e4a2f74a1f39a68d3ac2a9",
         "apps/marketing/src/pages/about.astro": "9ea0650caadc969b26efc8ba270feb1a80d267ac339a5366f853c6e671d44959",
@@ -23,47 +24,176 @@
         "apps/marketing/src/pages/404.astro": "a51150aee0b9c0e5a09550ca6c16d87b19151d7664dcf1208a01787ea0a78648"
       }
     },
+    "page.optional-growth": {
+      "version": "0.2.0",
+      "files": {
+        "apps/marketing/src/content.config.ts": "09dbea02f091016e3cc778d4eaa340468a8e127272bf6568e156c8699f0cbfe2",
+        "apps/marketing/src/pages/blog/index.astro": "0403f73e315c76b568e81fe621bbcf92438d43bf41bba292ac1e85caa336cb94",
+        "apps/marketing/src/pages/blog/[slug].astro": "c1a1e4e485f9a0d71e818da7b2de1964883b26d16ba2f0c8b3c9ffb3bb9297dc",
+        "apps/marketing/src/pages/blog/page/[page].astro": "a5a99aae5f2cb35a9e9a230345a5bfb589824776f1ad29f6bab7ac7c47c87ed1",
+        "apps/marketing/src/pages/rss.xml.ts": "30abdacf64e70590d9895614889fea4db95553ec53d4bb0622309ad08729d134",
+        "apps/marketing/src/content/blog/starter-content-system.md": "86d649dbec68583c4440f6ca7b6a1dd2cc6f559772b5748fce7e575fbb6e3ebf",
+        "apps/marketing/src/pages/case-studies/index.astro": "5440ca067156b9dde5ed642648e150e27fbbcc75104462f98bbea2adb10e3440",
+        "apps/marketing/src/pages/case-studies/[slug].astro": "0c1582f152954f7b1787a0030ed7a87ef807a44e27b3e7baaf81e63826105413",
+        "apps/marketing/src/pages/case-studies/page/[page].astro": "fb556b0fdf00e1d220a7efd77576e74b922f43490f7f34d3e1260e6599f353c0",
+        "apps/marketing/src/content/case-studies/starter-evidence-model.md": "8b4db6fedd6c84c9f44fee2ccc7a9ced1bcaab01c63a30d831466bb3b72c58d3",
+        "apps/marketing/src/pages/integrations/index.astro": "39014dc10e75d9d53480cdec3839200851a2472ef30f3a5354f98eaeacc0b0e3",
+        "apps/marketing/src/pages/integrations/[slug].astro": "6075efa6beaf4b158e71c4976c92de1b05003b370044e783999ec05d50c5beba",
+        "apps/marketing/src/content/integrations/starter-provider.md": "006cfb4bc985f2f9570b1d17cce3fd5e7bdc34cced2ef980d3c168bcd532f301",
+        "apps/marketing/src/pages/careers/index.astro": "b6ac7929b0fa7fb26ee8af47951d3b6e02a22c292dc1a55410e9117deab3e32a",
+        "apps/marketing/src/pages/careers/[slug].astro": "8f3528390bb8c6a67ee6831b98fe9a82604ce9062c0a30335ac6b7f25e5dc852",
+        "apps/marketing/src/content/careers/starter-role.md": "e02552f5375420adfa2700ada942e40fe8728bec7dec77237dc4296e45ddd3dc"
+      }
+    },
+    "saas.auth-i18n": {
+      "version": "0.1.0",
+      "files": {
+        "workers/app/features/i18n-auth-plugin.ts": "998c17166db7309872334914e43d6dd9ac6926fd46514913ea6cf2f47f6698ac"
+      }
+    },
+    "saas.billing-stripe": {
+      "version": "0.2.0",
+      "files": {
+        "workers/app/features/stripe-auth-plugin.ts": "6b51a1be82056fae78ab7a063750cfd3779e5c506c70fed5c93bd887a09af210",
+        "apps/web/src/features/stripe-auth-client-plugin.ts": "474a93f2aa02ef99753bcf63d1eff2c61f6ec14759d0e49688a3c8216d0aed82",
+        "apps/web/src/components/features/billing-page.tsx": "13bd4ed0bafff218f20e87c306fdc2e9fcb5b82fda4cd88ebeb74b3f2e6341de",
+        "apps/web/src/components/features/billing-page.css": "714f9c33484dd93b0b4ae4c6d02affe7a81d2498f31a612e4891abdeef8c48a6",
+        "db/migrations/1002_stripe_billing.sql": "254209de7ac4e1274d1801d99e56826bc02a80d8fa00cd6e23938876e5a1ac9d"
+      }
+    },
+    "saas.entitlements": {
+      "version": "0.2.0",
+      "files": {
+        "workers/app/features/entitlements-worker.ts": "7d0d8ed089163a8b2ff8ac58fce01a1d772654114e8e57c59fab0d763879032a",
+        "apps/web/src/components/features/entitlements-page.tsx": "773748d982159f244cf09c1eedf5e74e54452d7add1db7645ba7ec6eef0a3879",
+        "apps/web/src/components/features/entitlements-page.css": "d3bc08ebf949d9b171ddc205d808f547f0047fd5654bffaa1bbfb468a123f089",
+        "db/migrations/1005_entitlements.sql": "a2e660b8a414c9f0ed586bd4d0f8b4a5e9ffa1ae922d1dc4d7f8b2cb9c434e98"
+      }
+    },
+    "saas.onboarding": {
+      "version": "0.1.0",
+      "files": {
+        "workers/app/features/onboarding-worker.ts": "f39d91e6624a5422eee9cdb2dc9eebac1d2565976d99684565494c29cac7493f",
+        "apps/web/src/components/features/onboarding-page.tsx": "7b0803bedf57f4df42ca5a2d1fceab1abe38df223812b6d150f0d2f37d3f1da9",
+        "apps/web/src/components/features/onboarding-page.css": "5af91a9d35f318923f599910fc4eb44428f579c026184db35c2ac859f84f2563",
+        "db/migrations/1008_onboarding.sql": "c309e9224bbd7308f6f901223d80202e40655326dab0dea964c86e10c639a31e"
+      }
+    },
+    "saas.outgoing-webhooks": {
+      "version": "0.1.0",
+      "files": {
+        "workers/app/features/outgoing-webhooks-worker.ts": "173e5d6938f90bf69ee67d339c88ebe3a69c7df22b8d3661d52cc174bc4fb469",
+        "apps/web/src/components/features/outgoing-webhooks-page.tsx": "dc722a48c3f5632cdf8a6a60891dad1491919c94fdc70dd48c8fe6a762bf2e9d",
+        "apps/web/src/components/features/outgoing-webhooks-page.css": "ffee17c3597ef388f789862c402248ab0c0801d2f7c428e3c9afced13df452a7",
+        "db/migrations/1007_outgoing_webhooks.sql": "4fa2a6e5e320909ce1750d29f1a2adbb77de131cae3809ab5bef5c23a719fc30"
+      }
+    },
+    "saas.team-organizations": {
+      "version": "0.3.0",
+      "files": {
+        "workers/app/features/organization-auth-plugin.ts": "7593425631a4b09ec3fc762199c69c1d278e77643ca943f5fe2cf9bf16503461",
+        "apps/web/src/features/organization-auth-client-plugin.ts": "cfed60d60f79f4674cb47416b2c22f1378b3dfd9c805dda5e594d5dc59d9b5ac",
+        "apps/web/src/components/features/organization-page.tsx": "a30da04edae7b2813864b3a1ab5d93e6e903ed03bcce17dd13927f179c1dc689",
+        "apps/web/src/components/features/organization-page.css": "01a81b46da9e5109dcd0893f5615ec25a05b9e74876d0f6ae3492dda1aed0ea5",
+        "db/migrations/1001_organization.sql": "9dfb77d4a00ec8f7053932f4b7942d417a84d66ec134cdcf40c5103a9c93cf6b"
+      }
+    },
+    "saas.usage": {
+      "version": "0.1.0",
+      "files": {
+        "workers/app/features/usage-worker.ts": "4182039f3d32504392da336bf4b237fce5211a95601ed81af4c9f8ad5cb5c7e9",
+        "apps/web/src/components/features/usage-page.tsx": "a41f4ee68ded6f1929946b6d55335305eb758731b752f8220b08401fea86a931",
+        "apps/web/src/components/features/usage-page.css": "10a0c9984d25c8228400a8bc58387e36295aa0d3111fb177cb2c0a39ad319fcb",
+        "db/migrations/1006_usage.sql": "879735f83c84a6cc8bbcd3634e1f65b33448ced82f3f613178ab79030a77d3ef"
+      }
+    },
     "foundation.core": {
       "version": "1.0.0",
       "files": {
-        "apps/web/src/App.tsx": "98a1ecea5999a5c76ddee1131f6f22d7f9d32f37f28f003f0f27563542362df9",
+        "apps/web/src/App.tsx": "fb28531e7f790dd0a113508270c3fd7f857368fedade7bcaee3a11d50220639e",
         "apps/web/src/components/admin-analytics.tsx": "84289c5cd7cad62db1f5a7e452cdc654610f521c6999611e6a56d041b5cdb6d1",
         "apps/web/src/components/admin-page.tsx": "67f1a19b83e87e40992efd72b50ef39a721d3f1586f706f0a0e7188e3f702df6",
         "apps/web/src/components/admin-platform-settings.tsx": "1ec85b8639d2614bdedc493990d2b96ffcc86986b64015affd1aa653ff60ea93",
         "apps/web/src/components/admin-saas-directory.tsx": "e22bf6a105373142ea202036d0a220f96e200067d127d70ec753a028587b6b1f",
         "apps/web/src/components/admin-users.tsx": "6524a56d1fc9199983817d720eab057891c11d63c4279108db4012d30d289777",
         "apps/web/src/components/update-page.tsx": "85ade2bee891102088e262d704d1f43eba45907e0d47d9a3cb4b000b9cb1fdd7",
-        "apps/web/src/index.css": "411ba433a03ea027bd8d4b081ebaa131ea644774335232adea90021f37c752c1",
+        "apps/web/src/index.css": "bf32112634b52f24db056f4b79e7e31f34ce8d6713101bb4dae0a9da24c563b8",
         "apps/web/src/lib/admin-modules.ts": "062a046912571bcbba406961146059869aa1d0c2c704f2db84686dc1853c8346",
         "apps/web/src/maintenance.css": "717fc86f6814d09f931cce00f1d820447b23017bee09b9d581b07f474018b819",
-        "apps/web/vite.config.ts": "b7e86c1ee0ef4d7a88f8b5c43900f74b1d948ecb81fc1156e7c5ca2a8bda0f5e",
+        "apps/web/vite.config.ts": "c3d59e15fbf122ecee5c89bece4b216c147d22522af81083ca6901a1b8006daa",
         "db/migrations/0010_platform_administrators.sql": "8de2d1f092bd772021cbf35f2439a618bc9eb3059c048563b8c09a9488da1f1d",
         "db/migrations/0012_platform_settings.sql": "524f03349188155dce817129401152cb5ae6399d1e6043610223d373c33d8a52",
         "db/migrations/1003_multi_product_subscriptions.sql": "96971a355cb14a815a6745b20e0759506248439275fb0254e9445e021365f9e9",
         "scripts/all2cf-project.mjs": "dabaae31585293e764846bf87fa40086be8510610940d021d6ba43c98784db61",
-        "scripts/materialize-blueprint.mjs": "fc13de78f7a722f04acd6bfb1f55b51344608ce3a5f314d98e9a7f541307d02c",
+        "scripts/materialize-blueprint.mjs": "4d7b42370c3e46a22dcb387dea1d915cf7550d9f2354e2c89f8088d8907672c0",
         "scripts/admin-saas-database-contract.mjs": "1faeedf2a59a12c03d20113df772033f87e3cc1d66ac7c9876871eb6da2c87e6",
         "scripts/starter-link.mjs": "9b5ff7eccc44df2b7c917bcaeff00569b9a4c7255cb7b71caa78991a1c2b37ee",
         "skills/starter-maintenance/SKILL.md": "cc006c17c94c02c9aec79e09b86a6ca7302fc872ed5ba6aee91b539880fe54a4",
-        "workers/app/index.ts": "1c5e583abebff52cb4ce043234c8c58f22cc40fa6443cecf2b8c438198f7673d"
+        "workers/app/index.ts": "6ddc2a590938aa72f07a3fb772f9c190e6f1025129277509e8d45ba190deaf3b"
       }
     }
   },
-  "dependencies": {},
-  "generatedRoutesHash": "b1612aea88c167b888cb954f7e856f95d608c369634aad6380f23977ee21de7a",
+  "dependencies": {
+    "apps/marketing/package.json|dependencies|@astrojs/rss": {
+      "packageFile": "apps/marketing/package.json",
+      "section": "dependencies",
+      "name": "@astrojs/rss",
+      "version": "4.0.19",
+      "packId": "page.optional-growth"
+    },
+    "workers/app/package.json|dependencies|@better-auth/i18n": {
+      "packageFile": "workers/app/package.json",
+      "section": "dependencies",
+      "name": "@better-auth/i18n",
+      "version": "1.7.2",
+      "packId": "saas.auth-i18n"
+    },
+    "workers/app/package.json|dependencies|@better-auth/stripe": {
+      "packageFile": "workers/app/package.json",
+      "section": "dependencies",
+      "name": "@better-auth/stripe",
+      "version": "1.7.2",
+      "packId": "saas.billing-stripe"
+    },
+    "workers/app/package.json|dependencies|stripe": {
+      "packageFile": "workers/app/package.json",
+      "section": "dependencies",
+      "name": "stripe",
+      "version": "22.5.0",
+      "packId": "saas.billing-stripe"
+    },
+    "apps/web/package.json|dependencies|@better-auth/stripe": {
+      "packageFile": "apps/web/package.json",
+      "section": "dependencies",
+      "name": "@better-auth/stripe",
+      "version": "1.7.2",
+      "packId": "saas.billing-stripe"
+    }
+  },
+  "generatedRoutesHash": "564dcb025815d9e111bf28c8607dcb120eb9b5e0eaa7a4ff65018688dbc1a728",
   "generatedWorkerFirstRoutes": [],
   "generatedWorkerCapabilityRoutesHash": "28fba3e03c7b1388b7c7efe374c3b4fa7be6b1217d987d7c33dd32b7276f3e2c",
-  "generatedAuthServerHash": "51ae50d08c72a054be0b0a11e2b5f86b82147417757efce68e341cf241ab1c89",
-  "generatedAuthClientHash": "c3c373c7264baedfe7822e00cb4b2b622e997bb94532134d333171e1d00c5919",
-  "generatedWorkerFeaturesHash": "60db8de9b330354d9576ff1bdd69bfd8b33fe3bc8b8ffc8296f098e7fa2412cc",
-  "generatedWorkerEventsHash": "053421ce0358db27dda626bb0acfafd42e8cb3ceb8a0166a2524ed10b390d562",
+  "generatedAuthServerHash": "93c8f7a95c88fac7dca5ddb1952d9aca246d3a4c4a9e9c912a6306cc61b75cc3",
+  "generatedAuthClientHash": "86d1309af948e4f853a14cda593c04b2ba16a6fd92407fd67861051fef873cd9",
+  "generatedWorkerFeaturesHash": "8ce3eaf9ac612f33faf693013bdbf40e1e6b1bd6e7a380723ea0b6eb1aa5dfc5",
+  "generatedWorkerEventsHash": "6f2abb47f75f18333e4b93bc5ff0a2a207a434246041ba2c8dd82f9013828123",
   "generatedWorkflowExportsHash": "5ef77fcb4dce679d3af8b545ae0b24ddcf257cab2b5fc8502fe1381f29e8fb4a",
   "generatedDurableObjectExportsHash": "5ef77fcb4dce679d3af8b545ae0b24ddcf257cab2b5fc8502fe1381f29e8fb4a",
-  "generatedStorageAdapterHash": "bb39d17f9fbd88e61dca21c98720d95e69bee93e01f9e3baa6c59b4188fe84f2",
+  "generatedStorageAdapterHash": "fe2cb36c76e3aa69970b8b7838e61a8a366d6e81535c151e2e2ca02a9d034a9e",
   "generatedCloudflareConfigs": {
     "cloudflare/wrangler.development.jsonc": {
-      "queues": [],
-      "requiredSecrets": [],
+      "queues": [
+        {
+          "binding": "OUTGOING_WEBHOOK_QUEUE",
+          "queue": "starter-all2cf-dev-outgoing-webhooks"
+        }
+      ],
+      "requiredSecrets": [
+        "STRIPE_SECRET_KEY",
+        "STRIPE_WEBHOOK_SECRET",
+        "STRIPE_PRICE_PRO",
+        "WEBHOOK_SIGNING_KEY"
+      ],
       "database": {
         "provider": "native-postgresql"
       },
@@ -81,14 +211,35 @@
       "imagesBinding": null,
       "imagesVars": {},
       "streamVars": {},
-      "r2Buckets": [],
-      "storageVars": {},
+      "r2Buckets": [
+        {
+          "binding": "OBJECTS",
+          "bucket": "starter-dev-objects"
+        }
+      ],
+      "storageVars": {
+        "STORAGE_PROVIDER": "cloudflare-r2",
+        "STORAGE_BUCKET": "starter-dev-objects",
+        "STORAGE_ACCESS": "private",
+        "STORAGE_MAX_UPLOAD_BYTES": "10485760",
+        "STORAGE_PUBLIC_DOMAIN": ""
+      },
       "crons": [],
       "cronVars": {}
     },
     "cloudflare/wrangler.production.jsonc": {
-      "queues": [],
-      "requiredSecrets": [],
+      "queues": [
+        {
+          "binding": "OUTGOING_WEBHOOK_QUEUE",
+          "queue": "starter-all2cf-outgoing-webhooks"
+        }
+      ],
+      "requiredSecrets": [
+        "STRIPE_SECRET_KEY",
+        "STRIPE_WEBHOOK_SECRET",
+        "STRIPE_PRICE_PRO",
+        "WEBHOOK_SIGNING_KEY"
+      ],
       "database": {
         "provider": "native-postgresql"
       },
@@ -106,18 +257,26 @@
       "imagesBinding": null,
       "imagesVars": {},
       "streamVars": {},
-      "r2Buckets": [],
-      "storageVars": {},
+      "r2Buckets": [
+        {
+          "binding": "OBJECTS",
+          "bucket": "starter-objects"
+        }
+      ],
+      "storageVars": {
+        "STORAGE_PROVIDER": "cloudflare-r2",
+        "STORAGE_BUCKET": "starter-objects",
+        "STORAGE_ACCESS": "private",
+        "STORAGE_MAX_UPLOAD_BYTES": "10485760",
+        "STORAGE_PUBLIC_DOMAIN": ""
+      },
       "crons": [],
       "cronVars": {}
     }
   },
-  "generatedDesignWebHash": "59c08ee8aec948cd506b25b26cd3c5f70000a236003b80fd5d405b161991a3de",
-  "generatedDesignMarketingHash": "59c08ee8aec948cd506b25b26cd3c5f70000a236003b80fd5d405b161991a3de",
-  "generatedDesignDocsHash": "59c08ee8aec948cd506b25b26cd3c5f70000a236003b80fd5d405b161991a3de",
-  "generatedStyleAdapterWebHash": "dcded3c84ec8f641510d5e981a1b532037c60784e0b048c6315b7a26b03e5a9c",
-  "generatedStyleAdapterMarketingHash": "e961c2786c60ad928d281de4f46be9dc5c3c4464e0bcfe122769816986dd3a0c",
-  "generatedStyleAdapterDocsHash": "1ba0db06e657c210171b2537575d6915490ef863dc533e079f90a32d520ef5bb",
-  "generatedMarketingProjectHash": "46ac20233f9ab44f39d97d45ac087e1a8bb2d29ff8e6cc41b035152b78ca19c6",
+  "generatedDesignWebHash": "5f4ef9d9c5cf621f88fda722b668b2bb66e43ee1ff8fd45be63c7e830e63ed6d",
+  "generatedDesignMarketingHash": "5f4ef9d9c5cf621f88fda722b668b2bb66e43ee1ff8fd45be63c7e830e63ed6d",
+  "generatedDesignDocsHash": "5f4ef9d9c5cf621f88fda722b668b2bb66e43ee1ff8fd45be63c7e830e63ed6d",
+  "generatedMarketingProjectHash": "d9523302680ddd7091d33e202f24619759833aca711f0f499ed21492f94a84db",
   "localOverrides": {}
 }

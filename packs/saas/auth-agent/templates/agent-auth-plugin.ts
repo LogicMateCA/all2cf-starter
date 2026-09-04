@@ -1,0 +1,54 @@
+import { agentAuth } from "@better-auth/agent-auth";
+import type { SelectedAuthPluginInput } from "../generated/auth-plugins";
+const capability = {
+  name: "starter.identity.read",
+  description:
+    "Read the identity that explicitly authorized this agent connection.",
+  approvalStrength: "session" as const,
+  grantTTL: 600,
+  output: {
+    type: "object",
+    properties: {
+      id: { type: "string" },
+      name: { type: "string" },
+      email: { type: "string" },
+    },
+    required: ["id", "email"],
+  },
+};
+export function createAgentAuthPlugin(
+  input: SelectedAuthPluginInput,
+  _features: Record<string, boolean>,
+) {
+  return agentAuth({
+    providerName: input.appName,
+    providerDescription: `Scoped AI-agent access to ${input.appName}.`,
+    modes: ["delegated"],
+    approvalMethods: ["device_authorization"],
+    deviceAuthorizationPage: "/agent/approve",
+    capabilities: [capability],
+    validateCapabilities: (requested) =>
+      requested.every((name) => name === capability.name),
+    requireAuthForCapabilities: false,
+    allowedKeyAlgorithms: ["Ed25519"],
+    jwtMaxAge: 60,
+    agentSessionTTL: 600,
+    agentMaxLifetime: 3600,
+    absoluteLifetime: 86400,
+    freshSessionWindow: 300,
+    allowDynamicHostRegistration: false,
+    defaultHostCapabilities: [],
+    jtiCacheStorage: "secondary-storage",
+    jwksCacheStorage: "secondary-storage",
+    dangerouslySkipJtiCheck: false,
+    onExecute: ({ capability: requested, agentSession }) => {
+      if (requested !== capability.name)
+        throw new Error("Unsupported capability.");
+      return {
+        id: agentSession.user.id,
+        name: agentSession.user.name || null,
+        email: agentSession.user.email || null,
+      };
+    },
+  });
+}

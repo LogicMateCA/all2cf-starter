@@ -25,8 +25,8 @@ services:
       - starter-node-modules:/workspace/node_modules
       - /opt/1panel/apps/_starter_profile:/opt/1panel/apps/_starter_profile:ro
       - /var/run/docker.sock:/var/run/docker.sock
-      - /root/.ssh/id_1panel_root_192_168_0_91:/path/to/production-ssh-key:ro
-      - /root/.ssh/known_hosts:/path/to/known_hosts:ro
+      - /root/.ssh/id_1panel_root_192_168_0_91:/run/starter-secrets/production-ssh-key:ro
+      - /root/.ssh/known_hosts:/run/starter-secrets/known_hosts:ro
     command: ["sleep", "infinity"]
 
   browser-acceptance:
@@ -53,12 +53,12 @@ services:
       - starter-node-modules:/workspace/node_modules
       - starter-android-gradle-cache:/root/.gradle
       - /opt/android-sdk:/opt/android-sdk
-      - /root/.ssh/miner-mac-worker:/path/to/mobile-mac-key:ro
+      - /root/.ssh/miner-mac-worker:/run/starter-secrets/mobile-mac-key:ro
       - /root/.ssh/known_hosts:/root/.ssh/known_hosts:ro
     environment:
       ANDROID_HOME: /opt/android-sdk
       ANDROID_SDK_ROOT: /opt/android-sdk
-      MOBILE_MAC_SSH_KEY_PATH: /path/to/mobile-mac-key
+      MOBILE_MAC_SSH_KEY_PATH: /run/starter-secrets/mobile-mac-key
     command: ["sleep", "infinity"]
 
 volumes:

@@ -21,7 +21,7 @@ if (config.development.domain === config.production.domain) throw new Error("Dev
 if (config.development.database.database === config.production.database.database) throw new Error("Development and Production databases must be different");
 
 if (reset) {
-  const canonicalValues = new Set(["starter", "starter-dev", "starterdev", "app-dev.example.com", "app.example.com", "starter-postgres-dev", "starter-dev-db", "starter-prod-db"]);
+  const canonicalValues = new Set(["starter", "starter-dev", "starterdev", "dev.logicm8.com", "starter.logicm8.com", "starter-postgres-dev", "starter-dev-db", "starter-prod-db"]);
   const identityValues = [slug, config.development.worker, config.production.worker, config.development.domain, config.production.domain, config.development.database.database, config.development.database.user, config.production.database.database, config.production.database.user, config.development.database.container, config.development.database.vpcServiceName, config.development.database.hyperdriveName, config.production.database.hyperdriveName];
   const stale = identityValues.filter((value) => canonicalValues.has(value));
   if (stale.length) throw new Error(`Copied project still uses canonical Starter identities: ${[...new Set(stale)].join(", ")}`);

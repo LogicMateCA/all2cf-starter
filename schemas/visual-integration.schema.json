@@ -20,13 +20,13 @@
     "plugin": {
       "type": "object", "additionalProperties": false,
       "required": ["id", "version", "installation", "bundled"],
-      "properties": { "id": { "const": "visual-design" }, "version": { "type": "string" }, "installation": { "const": "external-recommended" }, "bundled": { "const": false } }
+      "properties": { "id": { "const": "visual-design" }, "version": { "type": "string", "minLength": 1 }, "installation": { "enum": ["external-recommended", "installed"] }, "bundled": { "const": false } }
     },
     "service": {
       "type": "object", "additionalProperties": false,
       "required": ["developmentOrigin", "productionOrigin", "mcpPath", "discoveryPath", "capabilityDetection", "requiredDiscoveryFields"],
       "properties": {
-        "developmentOrigin": { "const": "https://visualapp-dev.example.com" }, "productionOrigin": { "const": "https://visual.example.com" },
+        "developmentOrigin": { "const": "https://visualdev.logicm8.com" }, "productionOrigin": { "const": "https://visual.logicm8.com" },
         "mcpPath": { "const": "/mcp" }, "discoveryPath": { "const": "/.well-known/visual-capabilities.json" }, "capabilityDetection": { "const": "runtime-required" },
         "requiredDiscoveryFields": { "type": "array", "minItems": 7, "uniqueItems": true, "items": { "type": "string" } }
       }
@@ -39,7 +39,7 @@
     "fallback": {
       "type": "object", "additionalProperties": false,
       "required": ["required", "behavior", "blocksFactory"],
-      "properties": { "required": { "const": true }, "behavior": { "const": "starter-owned-baseline" }, "blocksFactory": { "const": false } }
+      "properties": { "required": { "const": false }, "behavior": { "const": "structural-css-only" }, "blocksFactory": { "const": false } }
     },
     "ownership": {
       "type": "object", "additionalProperties": false,

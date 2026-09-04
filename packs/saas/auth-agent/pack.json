@@ -1,0 +1,79 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "saas.auth-agent",
+  "version": "0.1.0",
+  "source": {
+    "name": "Better Auth Agent Auth",
+    "url": "https://better-auth.com/docs/plugins/agent-auth",
+    "revision": "0.6.2",
+    "license": "MIT",
+    "relationship": "experimental-upstream"
+  },
+  "files": [
+    {
+      "source": "templates/agent-auth-plugin.ts",
+      "target": "workers/app/features/agent-auth-plugin.ts"
+    },
+    {
+      "source": "templates/agent-auth-client-plugin.ts",
+      "target": "apps/web/src/features/agent-auth-client-plugin.ts"
+    },
+    {
+      "source": "templates/agent-auth-worker.ts",
+      "target": "workers/app/features/agent-auth-worker.ts"
+    },
+    {
+      "source": "templates/agent-approval-page.tsx",
+      "target": "apps/web/src/components/features/agent-approval-page.tsx"
+    },
+    {
+      "source": "templates/agent-approval-page.css",
+      "target": "apps/web/src/components/features/agent-approval-page.css"
+    },
+    {
+      "source": "templates/0001_agent_auth.sql",
+      "target": "db/migrations/1020_agent_auth.sql"
+    },
+    {
+      "source": "templates/0002_agent_secondary_storage.sql",
+      "target": "db/migrations/1022_agent_secondary_storage.sql"
+    }
+  ],
+  "dependencies": [
+    {
+      "packageFile": "workers/app/package.json",
+      "section": "dependencies",
+      "name": "@better-auth/agent-auth",
+      "version": "0.6.2"
+    },
+    {
+      "packageFile": "apps/web/package.json",
+      "section": "dependencies",
+      "name": "@better-auth/agent-auth",
+      "version": "0.6.2"
+    }
+  ],
+  "routes": [
+    {
+      "path": "/agent/approve",
+      "module": "../components/features/agent-approval-page",
+      "export": "AgentApprovalPage",
+      "workerFirst": false
+    }
+  ],
+  "authPlugins": {
+    "server": {
+      "module": "../features/agent-auth-plugin",
+      "export": "createAgentAuthPlugin"
+    },
+    "client": {
+      "module": "../features/agent-auth-client-plugin",
+      "export": "createAgentAuthClientPlugin"
+    }
+  },
+  "workerFeature": {
+    "module": "../features/agent-auth-worker",
+    "export": "agentAuthFeature"
+  }
+}

@@ -6,7 +6,7 @@
   "source": {
     "name": "Better Auth Two-Factor",
     "url": "https://better-auth.com/docs/plugins/2fa",
-    "revision": "1.7.1",
+    "revision": "1.7.2",
     "license": "MIT",
     "relationship": "tracked-upstream"
   },

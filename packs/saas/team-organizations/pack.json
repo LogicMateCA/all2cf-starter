@@ -2,11 +2,11 @@
   "$schema": "../../../schemas/starter-pack.schema.json",
   "schemaVersion": "starter-pack/v1",
   "id": "saas.team-organizations",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "source": {
     "name": "Better Auth Organization",
     "url": "https://better-auth.com/docs/plugins/organization",
-    "revision": "1.7.1",
+    "revision": "1.7.2",
     "license": "MIT",
     "relationship": "tracked-upstream"
   },

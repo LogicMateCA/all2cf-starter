@@ -34,4 +34,4 @@ Bundle evidence passes the existing budgets: Desktop public main about 63KB gzip
 
 # Release
 
-The original Development auth foundation was released at `app-dev.example.com`, but its outbox-only email policy is superseded and must not be promoted. The `auth-email-providers` Change Spec owns the mandatory-verification correction. Production database and Production Worker remain unchanged.
+The original Development auth foundation was released at `dev.logicm8.com`, but its outbox-only email policy is superseded and must not be promoted. The `auth-email-providers` Change Spec owns the mandatory-verification correction. Production database and Production Worker remain unchanged.

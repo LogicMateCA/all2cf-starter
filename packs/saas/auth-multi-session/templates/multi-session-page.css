@@ -1,0 +1,83 @@
+.multi-session,
+.multi-session-loading {
+  min-height: 100vh;
+  padding: clamp(1.5rem, 5vw, 4rem);
+  background: var(--background);
+  color: var(--foreground);
+}
+.multi-session {
+  max-width: 72rem;
+  margin: auto;
+}
+.multi-session header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+.multi-session header span,
+.multi-session header h1,
+.multi-session header p {
+  grid-column: 1;
+}
+.multi-session header > span {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.multi-session h1 {
+  margin: 0;
+  font-size: clamp(2.25rem, 6vw, 4rem);
+}
+.multi-session p,
+.multi-session article span,
+.multi-session article small {
+  color: var(--muted-foreground);
+}
+.multi-session section {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+.multi-session article {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  background: var(--card);
+}
+.multi-session article > div {
+  display: grid;
+  gap: 0.2rem;
+}
+.multi-session article > div:last-child {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.multi-session .active {
+  color: var(--primary);
+  font-weight: 700;
+}
+.multi-session [role="alert"] {
+  color: var(--destructive);
+}
+@media (max-width: 640px) {
+  .multi-session header {
+    grid-template-columns: 1fr;
+  }
+  .multi-session header > * {
+    grid-column: 1;
+  }
+  .multi-session article {
+    grid-template-columns: auto 1fr;
+  }
+  .multi-session article > div:last-child {
+    grid-column: 2;
+  }
+}

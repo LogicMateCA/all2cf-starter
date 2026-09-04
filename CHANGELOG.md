@@ -10,6 +10,61 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Nothing yet.
 
+## [2.3.2] - 2026-09-03
+
+### Added
+
+- An explicit Visual Design ownership and project receipt boundary for generated products.
+
+### Changed
+
+- Starter now emits structural, responsive and accessible compatibility tokens only; project aesthetics are delegated to Visual Design.
+
+### Fixed
+
+- Removed conflicting Starter StyleKit selections, global visual profiles and presentation-specific Marketing variants.
+
+### Performance
+
+- Removed the 146-entry StyleKit catalog, 28 snapshots, preview assets and compiler pipeline from Starter source and generated projects.
+
+### Security
+
+- Visual materialization remains bounded to project-owned `.visual/` receipts and no third-party visual runtime is bundled.
+
+### Migration
+
+- Existing products retain their modified visual files. Functional updates stop managing Starter visual output; run Visual Design deliberately when adopting a new visual direction.
+
+## [2.3.1] - 2026-09-02
+
+### Added
+
+- Local test environment settings for a localhost Worker, direct Tunnel database access, and separate Development and Production Worker identities.
+- `cloudflare/setup-plan.json`, a machine-readable handoff for Codex and Cloudflare MCP to reconcile Tunnel, Workers VPC, Hyperdrive, Worker routes and domains.
+
+### Changed
+
+- Setup now presents Local, Development and Production configuration together on the first page.
+- Local verification is the first stage; a reviewed exact candidate may then be promoted directly to Cloudflare Production.
+
+### Fixed
+
+- Local, Development and Production database, Worker and domain settings can no longer be confused as one environment.
+- Organization brand-color metadata is treated as product data rather than a local StyleKit color literal.
+
+### Performance
+
+- Local MCP planning reads configuration only and does not load optional Pack runtime dependencies.
+
+### Security
+
+- Cloudflare MCP setup plans contain no secrets, require explicit Production confirmation, and record only verified resource identities in ignored receipts.
+
+### Migration
+
+- Existing Starter projects can add the Local environment fields without changing their Development or Production resources; 2.3.0 remains immutable.
+
 ## [2.2.0] - 2026-09-01
 
 ### Added
@@ -456,7 +511,9 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Established Web/Mobile foundation, authentication email Providers, account menu, dual UI strategy, operational Skills and always-current `/dp`.
 
-[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.2.0...HEAD
+[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.3.2...HEAD
+[2.3.2]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.3.2
+[2.3.1]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.3.1
 [2.2.0]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.2.0
 [2.1.12]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.12
 [2.1.11]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.11

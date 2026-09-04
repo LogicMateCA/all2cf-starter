@@ -753,7 +753,17 @@ function localSetupApi(): Plugin {
           next: () => void,
         ) => {
           const url = new URL(request.url || "/", "http://starter.local");
-          if (!new Set(["/__starter/setup", "/__starter/provider-test", "/__starter/visual-discovery", "/__starter/factory", "/__starter/update/receipt", "/__starter/update/check", "/__starter/update/status", "/__starter/update/diff", "/__starter/update/update", "/__starter/all2cf/status", "/__starter/all2cf/authorize", "/__starter/all2cf/complete", "/__starter/all2cf/connect", "/__starter/all2cf/disconnect", "/__starter/all2cf/doctor"]).has(url.pathname))
+          if (
+            url.pathname === "/api/public/site-integrations.js" &&
+            request.method === "GET"
+          ) {
+            response.statusCode = 200;
+            response.setHeader("Content-Type", "text/javascript; charset=utf-8");
+            response.setHeader("Cache-Control", "no-store");
+            response.end("// Local Setup has no published site integrations.\n");
+            return;
+          }
+          if (!new Set(["/__starter/setup", "/__starter/provider-test", "/__starter/visual-discovery", "/__starter/generate", "/__starter/update/receipt", "/__starter/update/check", "/__starter/update/status", "/__starter/update/diff", "/__starter/update/update", "/__starter/all2cf/status", "/__starter/all2cf/authorize", "/__starter/all2cf/complete", "/__starter/all2cf/connect", "/__starter/all2cf/disconnect", "/__starter/all2cf/doctor"]).has(url.pathname))
             return next();
           response.setHeader("Content-Type", "application/json; charset=utf-8");
           response.setHeader("Cache-Control", "no-store");
@@ -892,7 +902,7 @@ function localSetupApi(): Plugin {
               response.end(json({ ok: false, error: "Unknown All2CF action." }));
               return;
             }
-            if (url.pathname === "/__starter/factory") {
+            if (url.pathname === "/__starter/generate") {
               if (!starterFactoryMode || request.method !== "POST") {
                 response.statusCode = 405;
                 response.end(json({ error: "Project generation is available only from the canonical Factory." }));
@@ -964,11 +974,9 @@ function localSetupApi(): Plugin {
               manifestSource,
               blueprintSource,
               catalogSource,
-              designCatalogSource,
               visualIntegrationContractSource,
               pageCatalogSource,
               configSource,
-              stylekitCatalogSource,
               saasSourcesSource,
               saasCapabilitiesSource,
               providerCatalogSource,
@@ -986,23 +994,12 @@ function localSetupApi(): Plugin {
                 "utf8",
               ),
               readFile(
-                path.join(starterSourceRoot, "design/catalog.json"),
-                "utf8",
-              ),
-              readFile(
                 path.join(starterSourceRoot, "integrations/visual.json"),
                 "utf8",
               ),
               readFile(path.join(starterSourceRoot, "pages/catalog.json"), "utf8"),
               readFile(
                 path.join(repositoryRoot, "starter.config.json"),
-                "utf8",
-              ),
-              readFile(
-                path.join(
-                  starterSourceRoot,
-                  "design/stylekit/source-catalog.json",
-                ),
                 "utf8",
               ),
               readFile(
@@ -1020,11 +1017,9 @@ function localSetupApi(): Plugin {
             ]);
             const manifest = JSON.parse(manifestSource);
             const catalog = JSON.parse(catalogSource);
-            const designCatalog = JSON.parse(designCatalogSource);
             const visualIntegrationContract = JSON.parse(visualIntegrationContractSource);
             const pageCatalog = JSON.parse(pageCatalogSource);
             let config = JSON.parse(configSource);
-            const stylekitCatalog = JSON.parse(stylekitCatalogSource);
             const saasSources = JSON.parse(saasSourcesSource);
             const saasCapabilities = JSON.parse(saasCapabilitiesSource);
             const providerCatalog = JSON.parse(providerCatalogSource);
@@ -1040,30 +1035,14 @@ function localSetupApi(): Plugin {
             }
             initialBlueprint.visualIntegration ||= JSON.parse(blueprintSource).visualIntegration;
             delete initialBlueprint.designExtensions;
-            const initialSnapshotPath = path.join(
-              starterSourceRoot,
-              "design/stylekit",
-              initialBlueprint.stylekit?.slug || "",
-              "snapshot.json",
-            );
-            const initialSnapshotSource = await readFile(
-              initialSnapshotPath,
-              "utf8",
-            );
-
             if (request.method === "GET") {
               response.statusCode = 200;
               response.end(
                 json({
                   blueprint: initialBlueprint,
                   catalog,
-                  designCatalog,
                   visualIntegrationContract,
                   pageCatalog,
-                  stylekitSnapshot: {
-                    ...JSON.parse(initialSnapshotSource),
-                    snapshotHash: sha256(initialSnapshotSource),
-                  },
                   saasSources,
                   saasCapabilities,
                   providerCatalog,
@@ -1119,24 +1098,13 @@ function localSetupApi(): Plugin {
                 slug: blueprint.project.slug,
               },
             };
-            const snapshotPath = path.join(
-              starterSourceRoot,
-              "design/stylekit",
-              blueprint.stylekit?.slug || "",
-              "snapshot.json",
-            );
-            const snapshotSource = await readFile(snapshotPath, "utf8");
             const failures = validateAssemblyContracts(
               nextManifest,
               blueprint,
               catalog,
-              designCatalog,
+              null,
               pageCatalog,
-              {
-                catalog: stylekitCatalog,
-                snapshot: JSON.parse(snapshotSource),
-                snapshotHash: sha256(snapshotSource),
-              },
+              null,
               { allowDeferredCfpg: true },
             );
             failures.push(...validateVisualIntegration(visualIntegrationContract, blueprint));
@@ -1163,10 +1131,8 @@ function localSetupApi(): Plugin {
               response.end(json({
                 blueprint,
                 catalog,
-                designCatalog,
                 visualIntegrationContract,
                 pageCatalog,
-                stylekitSnapshot: { ...JSON.parse(snapshotSource), snapshotHash: sha256(snapshotSource) },
                 saasSources,
                 saasCapabilities,
                 providerCatalog,
@@ -1245,13 +1211,8 @@ function localSetupApi(): Plugin {
               json({
                 blueprint,
                 catalog,
-                designCatalog,
                 visualIntegrationContract,
                 pageCatalog,
-                stylekitSnapshot: {
-                  ...JSON.parse(snapshotSource),
-                  snapshotHash: sha256(snapshotSource),
-                },
                 saasSources,
                 saasCapabilities,
                 providerCatalog,

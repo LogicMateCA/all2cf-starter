@@ -2,11 +2,11 @@
   "$schema": "../../../schemas/starter-pack.schema.json",
   "schemaVersion": "starter-pack/v1",
   "id": "saas.api-keys",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "source": {
     "name": "Better Auth API Key",
     "url": "https://better-auth.com/docs/plugins/api-key",
-    "revision": "1.7.1",
+    "revision": "1.7.2",
     "license": "MIT",
     "relationship": "tracked-upstream"
   },
@@ -30,6 +30,10 @@
     {
       "source": "templates/0007_api_keys.sql",
       "target": "db/migrations/1003_api_keys.sql"
+    },
+    {
+      "source": "templates/0008_api_key_reference_ownership.sql",
+      "target": "db/migrations/1004_api_key_reference_ownership.sql"
     }
   ],
   "dependencies": [
@@ -37,13 +41,13 @@
       "packageFile": "workers/app/package.json",
       "section": "dependencies",
       "name": "@better-auth/api-key",
-      "version": "1.7.1"
+      "version": "1.7.2"
     },
     {
       "packageFile": "apps/web/package.json",
       "section": "dependencies",
       "name": "@better-auth/api-key",
-      "version": "1.7.1"
+      "version": "1.7.2"
     }
   ],
   "routes": [

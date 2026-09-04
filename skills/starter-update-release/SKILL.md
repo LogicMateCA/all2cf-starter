@@ -28,7 +28,7 @@ This mode is source-read-only but may query npm/Expo registries. If the user als
 Generic “发布” means Development. The controller must:
 
 1. Start from clean `/opt/1panel/apps/starter`; explicitly choose the next Engine SemVer and preserve the rollback commit.
-2. Use `runtime-upgrade` for dependency changes. Keep Better Auth packages aligned, Expo-owned versions compatible, and StyleKit snapshots owner-selected.
+2. Use `runtime-upgrade` for dependency changes. Keep Better Auth packages aligned and Expo-owned versions compatible. Never introduce a Starter-owned visual profile during an update.
 3. Commit one focused Change Spec and docs. Refresh `.starter/materialization.json` after changing a managed file, run `source:qualify` on the final clean tree during development, then run `source:release:candidate -- --version=<version>` in a clean isolated worktree with a dedicated dependency volume. Copy the exact matching ignored qualification receipt into that tree when the Git tree/lockfile/Node keys match; never rerun cold qualification merely because the commit history was normalized.
 4. Require SQL-first and Drizzle portable verification, two reproducible archives, strict manifest checks and exact SHA-256. Also upgrade an isolated copy of the previous Stable project using that project's own lockfile and dedicated dependency volume. The proof must retain every pre-existing marketing path and customer Page/CSS marker, block an intentional functional conflict, and finish with the new receipt.
 5. Record the candidate checkpoint before any remote mutation. Advance the local Development Channel with `source:publish:channel`; never replace an existing version with another hash.
@@ -38,7 +38,7 @@ Generic “发布” means Development. The controller must:
 9. Publish the exact Artifact with `starter-engine:publish:dev`; it must create/reuse private R2, upload, download again, verify SHA-256 and advance only the Development database Channel. The command must fail closed if the database identity is not `a2cdev / a2cdev`.
 10. Deploy with `all2cf:deploy:dev`. The verified topology is:
    - Worker `a2c-web-dev`
-   - hostname `a2capp-dev.example.com`
+   - hostname `a2cdev.logicm8.com`
    - Hyperdrive `a2c-platform-dev-db`
    - PostgreSQL database/user `a2cdev / a2cdev`
     - R2 `a2c-starter-engine-artifacts`

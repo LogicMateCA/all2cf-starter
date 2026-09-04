@@ -33,7 +33,7 @@ The machine-readable route table is `.ai/agent-map.json`. `npm run agent-map:che
 | `ai-search-maps` | Workers AI, AI Gateway, Vectorize, search and MapCN |
 | `background-realtime` | Cron, Workflows, Durable Objects and WebSockets |
 | `public-pages-docs` | Astro Marketing, PowerAI pages, Starlight and Pagefind |
-| `design-baseline` | Starter visual fallback, Visual Receipt integration, design tokens, typography, modes and baseline acceptance |
+| `visual-handoff` | Structural accessibility boundary, Visual Design handoff, receipt and project-owned visual acceptance |
 | `mobile-expo` | Expo Router, Tamagui, EAS, iOS, Android and native push |
 | `cloudflare-release` | Bindings, provisioning, deploy, rollback and live identity |
 | `performance` | Bundles, caching, request fan-out, Web Vitals and query plans |

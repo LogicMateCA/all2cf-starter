@@ -1,6 +1,5 @@
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { existsSync } from "node:fs";
 import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -25,9 +24,7 @@ export const publicRoutes = [
 ];
 
 export const localSetupRoutes = [
-  existsSync(path.join(root, ".starter/source.json"))
-    ? { surface: "setup", route: "/setup", status: 200 }
-    : { surface: "factory", route: "/factory", status: 200 },
+  { surface: "setup", route: "/setup", status: 200 },
 ];
 
 export const authenticatedRoutes = [
@@ -272,7 +269,7 @@ async function exercisePage({ page, route, viewport, outputRoot, caseId }) {
     );
   }
 
-  if (route === "/setup" || route === "/factory") {
+  if (route === "/setup") {
     await page.getByRole("button", { name: "Providers" }).click();
     const socialSignIn = page.locator("section").filter({
       has: page.getByRole("heading", { name: "Social sign-in", exact: true }),

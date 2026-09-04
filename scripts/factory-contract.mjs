@@ -52,12 +52,11 @@ try {
     if (!initialMaterialization.packs?.["foundation.core"]?.files?.[foundationFile]) failures.push(`Foundation update ownership is missing ${foundationFile}`);
   for (const productAiFile of ["AGENTS.md", "AGENT_MAP.md", "CODEX.md"])
     if (initialMaterialization.packs?.["foundation.core"]?.files?.[productAiFile]) failures.push(`Product AI file must not be foundation-owned: ${productAiFile}`);
-  for (const reference of ["catalog/catalog.json", "catalog/providers.json", "pages/catalog.json", "integrations/visual.json", ".ai/plugins.json", "design/stylekit/source-catalog.json"])
+  for (const reference of ["catalog/catalog.json", "catalog/providers.json", "pages/catalog.json", "integrations/visual.json", ".ai/plugins.json"])
     if (!(await exists(path.join(target, reference)))) failures.push(`Generated AI reference is missing ${reference}`);
-  if (await exists(path.join(target, "design/providers.json"))) failures.push("Universal Visual Provider Catalog leaked into the generated Starter project");
-  const generatedStyleCatalog = JSON.parse(await readFile(path.join(target, "design/stylekit/source-catalog.json"), "utf8"));
-  if (generatedStyleCatalog.count !== 1 || generatedStyleCatalog.styles?.[0]?.slug !== blueprint.stylekit.slug)
-    failures.push("Generated project did not retain exactly one Starter-owned visual fallback");
+  if (blueprint.designProfile || blueprint.stylekit || blueprint.selections?.design?.length)
+    failures.push("Generated project retained Starter-owned visual selection data");
+  if (await exists(path.join(target, "design"))) failures.push("Starter visual data layer leaked into the generated project");
   if (await exists(path.join(target, "apps/web/public/stylekit-previews"))) failures.push("Style library preview assets leaked into the generated project");
   if (await exists(path.join(target, "plugins")))
     failures.push("Global Codex plugin source leaked into the generated project");
@@ -95,7 +94,7 @@ try {
     if (generatedPackage.scripts?.[sourceOnlyScript]) failures.push(`Canonical source contract leaked into generated project: ${sourceOnlyScript}`);
   if (Object.keys(generatedPackage.scripts || {}).some((script) => script.startsWith("mobile:")))
     failures.push("Web-only SaaS retained Mobile commands");
-  if (developmentWorker.name !== `${slug}-dev` || developmentWorker.vars?.SERVICE_NAME !== slug || developmentWorker.vars?.APP_NAME !== "Factory Contract" || developmentWorker.vars?.AUTH_CANONICAL_ORIGIN !== `https://${slug}-app-dev.example.com` || developmentWorker.routes?.[0]?.pattern !== `${slug}-app-dev.example.com`)
+  if (developmentWorker.name !== `${slug}-dev` || developmentWorker.vars?.SERVICE_NAME !== slug || developmentWorker.vars?.APP_NAME !== "Factory Contract" || developmentWorker.vars?.AUTH_CANONICAL_ORIGIN !== `https://${slug}-dev.logicm8.com` || developmentWorker.routes?.[0]?.pattern !== `${slug}-dev.logicm8.com`)
     failures.push("Development Worker identity was not generated from the new project");
   if (productionWorker.name !== slug || productionWorker.vars?.SERVICE_NAME !== slug || productionWorker.vars?.APP_NAME !== "Factory Contract" || productionWorker.vars?.AUTH_CANONICAL_ORIGIN !== `https://${slug}.logicm8.com` || productionWorker.routes?.[0]?.pattern !== `${slug}.logicm8.com`)
     failures.push("Production Worker identity was not generated from the new project");

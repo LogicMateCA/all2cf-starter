@@ -1,0 +1,72 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "saas.auth-sso",
+  "version": "0.1.0",
+  "source": {
+    "name": "Better Auth SSO",
+    "url": "https://better-auth.com/docs/plugins/sso",
+    "revision": "1.7.2",
+    "license": "MIT",
+    "relationship": "tracked-upstream"
+  },
+  "files": [
+    {
+      "source": "templates/sso-config.ts",
+      "target": "workers/app/features/sso-config.ts"
+    },
+    {
+      "source": "templates/sso-auth-plugin.ts",
+      "target": "workers/app/features/sso-auth-plugin.ts"
+    },
+    {
+      "source": "templates/sso-auth-client-plugin.ts",
+      "target": "apps/web/src/features/sso-auth-client-plugin.ts"
+    },
+    {
+      "source": "templates/sso-page.tsx",
+      "target": "apps/web/src/components/features/sso-page.tsx"
+    },
+    {
+      "source": "templates/sso-page.css",
+      "target": "apps/web/src/components/features/sso-page.css"
+    },
+    {
+      "source": "templates/0001_sso.sql",
+      "target": "db/migrations/1015_sso.sql"
+    }
+  ],
+  "dependencies": [
+    {
+      "packageFile": "workers/app/package.json",
+      "section": "dependencies",
+      "name": "@better-auth/sso",
+      "version": "1.7.2"
+    },
+    {
+      "packageFile": "apps/web/package.json",
+      "section": "dependencies",
+      "name": "@better-auth/sso",
+      "version": "1.7.2"
+    }
+  ],
+  "routes": [
+    {
+      "path": "/sso",
+      "module": "../components/features/sso-page",
+      "export": "SsoSignInPage",
+      "workerFirst": false
+    }
+  ],
+  "authPlugins": {
+    "server": {
+      "module": "../features/sso-auth-plugin",
+      "export": "createSsoAuthPlugin"
+    },
+    "client": {
+      "module": "../features/sso-auth-client-plugin",
+      "export": "createSsoAuthClientPlugin"
+    }
+  },
+  "cloudflare": { "requiredSecrets": ["SSO_PROVIDERS_JSON"] }
+}

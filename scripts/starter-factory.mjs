@@ -124,6 +124,12 @@ async function writeIdentity(target, name, slug) {
   config.production.worker = slug;
   config.development.domain = `${slug}-dev.${config.cloudflare.zoneName}`;
   config.production.domain = `${slug}.${config.cloudflare.zoneName}`;
+  if (config.local) {
+    config.local.worker = `${slug}-local`;
+    config.local.domain = "http://localhost:15173";
+    config.local.database.database = `${slug.replaceAll("-", "_")}dev`;
+    config.local.database.user = config.local.database.database;
+  }
   blueprint.providers.storage.development.bucket = `${slug}-dev-objects`;
   blueprint.providers.storage.production.bucket = `${slug}-objects`;
   blueprint.providers.storage.development.publicDomain = "";
@@ -357,7 +363,6 @@ async function pruneSourceLibrary(target) {
     "scripts/page-catalog-contract.mjs",
     "scripts/provider-catalog-contract.mjs",
     "scripts/saas-foundation-contract.mjs",
-    "scripts/stylekit-boundary.mjs",
     "scripts/typography-contract.mjs",
     ".starter/factory-draft.local.json",
     "ALL2CF_FACTORY.md",
@@ -368,18 +373,8 @@ async function pruneSourceLibrary(target) {
     "cloudflare/dist",
   ])
     await rm(path.join(target, relative), { recursive: true, force: true });
-  const blueprint = await readJson(target, "starter.blueprint.json");
-  const stylekitRoot = path.join(target, "design/stylekit");
-  const sourceCatalog = await readJson(target, "design/stylekit/source-catalog.json");
-  const selectedStyle = sourceCatalog.styles.find(({ slug }) => slug === blueprint.stylekit.slug);
-  if (!selectedStyle) throw new Error(`Selected fallback style ${blueprint.stylekit.slug} is missing from the source catalog`);
-  for (const entry of await readdir(stylekitRoot))
-    if (entry !== "source-catalog.json" && entry !== blueprint.stylekit.slug)
-      await rm(path.join(stylekitRoot, entry), { recursive: true, force: true });
-  await writeFile(path.join(stylekitRoot, "source-catalog.json"), json({ ...sourceCatalog, count: 1, styles: [selectedStyle] }));
-  await rm(path.join(target, "apps/web/public/stylekit-previews"), { recursive: true, force: true });
-  for (const relative of ["scripts/stylekit-bundle.mjs", "scripts/stylekit-preview-assets.mjs", "scripts/stylekit-snapshot.mjs", "scripts/stylekit-snapshots.mjs", "scripts/stylekit-source-catalog.mjs", "scripts/stylekit-contract.mjs"])
-    await rm(path.join(target, relative), { force: true });
+  for (const relative of ["design", "apps/web/public/stylekit-previews", "scripts/stylekit-bundle.mjs", "scripts/stylekit-preview-assets.mjs", "scripts/stylekit-snapshot.mjs", "scripts/stylekit-snapshots.mjs", "scripts/stylekit-source-catalog.mjs", "scripts/stylekit-contract.mjs"])
+    await rm(path.join(target, relative), { recursive: true, force: true });
 }
 
 async function writeProductHandoff(target, source) {
@@ -400,7 +395,7 @@ async function writeProductHandoff(target, source) {
   const agents = await readFile(agentsPath, "utf8");
   await writeFile(agentsPath, agents
     .replace(
-      "- The canonical source repository creates projects through local `/factory`; generated products retain local `/setup`. Factory drafts and output must never rewrite canonical source identity. Generated products use their `.starter/source.json` receipt and `starter:status/diff/add/update` commands instead of carrying the complete reusable source library.\n",
+      "- The canonical source repository and generated products both use local `/setup`. Canonical Setup may create an independent project through the internal Factory command, but `/factory` is not a user-facing route. Factory drafts and output must never rewrite canonical source identity. Generated products use their `.starter/source.json` receipt and `starter:status/diff/add/update` commands instead of carrying the complete reusable source library.\n",
       "- This generated product uses local `/setup`. It is independently runnable and carries only its selected output, source receipt, focused Agent Map, and receipt-aware Starter maintenance commands.\n",
     )
     .replace("- For generating a new independent project, read and follow `skills/starter-factory/SKILL.md`.\n", "")
@@ -410,7 +405,7 @@ async function writeProductHandoff(target, source) {
   const project = await readFile(projectPath, "utf8");
   await writeFile(projectPath, project
     .replace(
-      "Blueprint-driven project factory for AI-led Cloudflare SaaS products. The reusable baseline owns the normal SaaS platform, application shell, administration, account, notification, support, documentation and operations behavior. Source-only `/factory` captures what a new SaaS does and generates an independent product; that product retains `/setup`, compact Catalog and StyleKit reference snapshots for later configuration and AI context, but not the reusable Pack template library.",
+      "Blueprint-driven project creation for AI-led Cloudflare products. The reusable baseline owns product behavior, application structure, administration, account, notification, support, documentation and operations. Canonical local `/setup` captures what a new product does and generates an independent product; that product retains `/setup` and compact functional Catalog references, while visual direction belongs to Visual Design and no Starter visual catalog is copied.",
       "An independent AI-ready Cloudflare product generated from a verified Starter source. This repository owns its selected SaaS platform, application shell, administration, account, notification, support, documentation and operations behavior; local `/setup` controls project configuration without depending on the canonical Factory at runtime.",
     )
     .replace(
@@ -432,11 +427,11 @@ async function writeProductHandoff(target, source) {
   const architecture = await readFile(architecturePath, "utf8");
   await writeFile(architecturePath, architecture
     .replace(
-      "`product brief` → source `/factory` → ignored Factory Draft → deterministic source/target materialization → independent product `/setup` + Agent Map + receipt → local verification → Development release → explicit Production release",
+      "`product brief` → canonical `/setup` → ignored Factory Draft → deterministic source/target materialization → independent product `/setup` + Agent Map + receipt → local verification → Development release → explicit Production release",
       "local `/setup` → reviewed Blueprint and Provider state → receipt-aware project output → local verification → Development release → explicit Production release",
     )
     .replace(
-      /- `\/factory` is the canonical source repository's local-only creation UI\..*?deployed Workers reject `\/factory`, `\/setup` and `\/__starter\/\*`\./u,
+      /- `\/setup` is the canonical source repository's local-only creation and configuration UI\..*?deployed Workers reject `\/factory`, `\/setup` and `\/__starter\/\*`\./u,
       "- `/setup` is this generated project's local-only configuration UI. It writes the reviewed Blueprint/config and refreshes `/dp` without mutating Cloudflare or database infrastructure directly; deployed Workers reject `/setup` and `/__starter/*`.",
     )
     .replace(

@@ -1,0 +1,50 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "saas.auth-multi-session",
+  "version": "0.2.0",
+  "source": {
+    "name": "Better Auth Multi Session",
+    "url": "https://better-auth.com/docs/plugins/multi-session",
+    "revision": "1.7.2",
+    "license": "MIT",
+    "relationship": "tracked-upstream"
+  },
+  "files": [
+    {
+      "source": "templates/multi-session-auth-plugin.ts",
+      "target": "workers/app/features/multi-session-auth-plugin.ts"
+    },
+    {
+      "source": "templates/multi-session-auth-client-plugin.ts",
+      "target": "apps/web/src/features/multi-session-auth-client-plugin.ts"
+    },
+    {
+      "source": "templates/multi-session-page.tsx",
+      "target": "apps/web/src/components/features/multi-session-page.tsx"
+    },
+    {
+      "source": "templates/multi-session-page.css",
+      "target": "apps/web/src/components/features/multi-session-page.css"
+    }
+  ],
+  "dependencies": [],
+  "routes": [
+    {
+      "path": "/account/sessions",
+      "module": "../components/features/multi-session-page",
+      "export": "MultiSessionPage",
+      "workerFirst": false
+    }
+  ],
+  "authPlugins": {
+    "server": {
+      "module": "../features/multi-session-auth-plugin",
+      "export": "createMultiSessionAuthPlugin"
+    },
+    "client": {
+      "module": "../features/multi-session-auth-client-plugin",
+      "export": "createMultiSessionAuthClientPlugin"
+    }
+  }
+}

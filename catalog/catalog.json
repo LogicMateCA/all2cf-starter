@@ -5,7 +5,7 @@
   "policies": {
     "betterAuth": "Better Auth core and every selected official plugin move as one stable-compatible version line with generated schema comparison and reviewed SQL migrations.",
     "databaseBaseline": "Every copied Starter project provisions new empty Development and Production PostgreSQL databases from the final selected-pack SQL baseline. Existing data, backfills, dual writes, and compatibility shims are out of scope.",
-    "ownedAdapters": "StyleKit is the pinned classified design-source library, PowerAI is the pinned page/content donor, Open SaaS and SaaSBoard are pinned product-shell donors, LastSaaS is the completeness checklist, and MapCN is a capability donor. Accepted output is licensed, tested, versioned, Starter-owned, and Cloudflare-native without donor runtime dependencies.",
+    "ownedAdapters": "Visual direction belongs to the independent Visual Design plugin. PowerAI is the pinned page/content donor, Open SaaS and SaaSBoard are pinned product-shell donors, LastSaaS is the completeness checklist, and MapCN is a capability donor. Accepted functional output is licensed, tested, versioned, Starter-owned, and Cloudflare-native without donor runtime dependencies.",
     "references": "Open Design and RunCopilot inform design research or extraction only. Donor Wasp, Prisma, Go, MongoDB, Next.js, Supabase, mock data, and hosted APIs never become generated runtime dependencies by default."
   },
   "presets": [
@@ -68,101 +68,11 @@
   ],
   "packs": [
     {
-      "id": "design.owned-neutral",
-      "kind": "design",
-      "name": "Owned neutral foundation",
-      "version": "0.1.0",
-      "status": "local-verified",
-      "delivery": "materializer",
-      "targets": [
-        "desktop-web",
-        "mobile-web",
-        "ios",
-        "android",
-        "admin",
-        "docs"
-      ],
-      "ownership": "starter-owned",
-      "source": [],
-      "updatePolicy": "internal-curated",
-      "provides": [
-        "semantic color tokens",
-        "light and dark modes",
-        "shadcn Web primitives",
-        "lean Tamagui mobile tokens"
-      ],
-      "requires": ["accessibility states", "bundle budgets"],
-      "conflicts": ["a second full component system on the same target"],
-      "performance": [
-        "route-level lazy loading",
-        "package-level Tamagui imports"
-      ],
-      "verification": [
-        "Web build",
-        "Web bundle budget",
-        "mobile export and bundle budget"
-      ],
-      "documentation": ["DESIGN.md", "features/mobile/MODULE.md"]
-    },
-    {
-      "id": "design.stylekit-adapted",
-      "kind": "design",
-      "name": "StyleKit-derived design profiles",
-      "version": "0.1.0",
-      "status": "local-verified",
-      "delivery": "materializer",
-      "targets": [
-        "desktop-web",
-        "mobile-web",
-        "ios",
-        "android",
-        "admin",
-        "docs"
-      ],
-      "ownership": "starter-owned",
-      "source": [
-        {
-          "name": "StyleKit",
-          "url": "https://github.com/AnxForever/stylekit",
-          "revision": "29141b684d5abb967558eb8083fbae91dbbc51b8",
-          "license": "MIT",
-          "relationship": "adapted-donor"
-        }
-      ],
-      "updatePolicy": "internal-curated",
-      "provides": [
-        "versioned design profiles",
-        "semantic tokens",
-        "component recipes",
-        "platform adapters"
-      ],
-      "requires": [
-        "Taste review",
-        "Astro, shadcn, Starlight, and Tamagui adapters"
-      ],
-      "conflicts": [
-        "direct StyleKit runtime calls",
-        "unadapted upstream theme import"
-      ],
-      "performance": [
-        "compile-time tokens",
-        "no StyleKit runtime dependency",
-        "per-target asset budgets"
-      ],
-      "verification": [
-        "reference screenshots",
-        "WCAG checks",
-        "Core Web Vitals",
-        "mobile bundle checks"
-      ],
-      "documentation": ["DESIGN.md", "features/assembler/MODULE.md"]
-    },
-    {
-    "id": "page.core-product-site",
+      "id": "page.core-product-site",
       "kind": "page",
       "name": "Core product site",
       "version": "0.1.0",
-    "status": "local-verified",
+      "status": "local-verified",
       "delivery": "materializer",
       "targets": ["desktop-web", "docs"],
       "ownership": "starter-owned",
@@ -216,11 +126,11 @@
       ]
     },
     {
-    "id": "page.optional-growth",
+      "id": "page.optional-growth",
       "kind": "page",
       "name": "Optional growth pages",
       "version": "0.2.0",
-    "status": "local-verified",
+      "status": "local-verified",
       "delivery": "materializer",
       "targets": ["desktop-web"],
       "ownership": "starter-owned",
@@ -240,7 +150,7 @@
         "isolated all-family materialization",
         "Astro schema and type check",
         "17-route static build",
-      "desktop/mobile light/dark browser acceptance and screenshot review"
+        "desktop/mobile light/dark browser acceptance and screenshot review"
       ],
       "documentation": ["ARCHITECTURE.md", "DESIGN.md"]
     },
@@ -290,11 +200,11 @@
       "documentation": ["features/auth/MODULE.md", "ARCHITECTURE.md"]
     },
     {
-    "id": "saas.product-shell",
+      "id": "saas.product-shell",
       "kind": "saas",
       "name": "Permanent SaaS product shell",
       "version": "0.1.0",
-    "status": "local-verified",
+      "status": "local-verified",
       "delivery": "baseline",
       "targets": ["desktop-web", "admin"],
       "ownership": "starter-owned",
@@ -327,7 +237,7 @@
       "requires": [
         "identity core",
         "notifications core",
-        "selected StyleKit global system"
+        "project visual design"
       ],
       "conflicts": [
         "page-local authenticated shells",
@@ -342,7 +252,7 @@
       "verification": [
         "Web type check",
         "Web production build",
-      "desktop/mobile light/dark browser interaction and accessibility acceptance"
+        "desktop/mobile light/dark browser interaction and accessibility acceptance"
       ],
       "documentation": [
         "features/product-shell/MODULE.md",
@@ -512,7 +422,7 @@
       "id": "saas.team-organizations",
       "kind": "saas",
       "name": "Teams and organizations",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "status": "local-verified",
       "delivery": "materializer",
       "targets": [
@@ -537,7 +447,11 @@
         "members",
         "invitations",
         "organization roles",
-        "active organization"
+        "active organization",
+        "team management UI",
+        "dynamic organization roles",
+        "plan-aware organization and team limits",
+        "tenant branding metadata and invitation theme"
       ],
       "requires": [
         "identity core",
@@ -630,13 +544,31 @@
       "delivery": "materializer",
       "targets": ["desktop-web", "worker"],
       "ownership": "upstream-tracked",
-      "source": [{ "name": "Better Auth Polar", "url": "https://better-auth.com/docs/plugins/polar", "relationship": "tracked-upstream" }],
+      "source": [
+        {
+          "name": "Better Auth Polar",
+          "url": "https://better-auth.com/docs/plugins/polar",
+          "relationship": "tracked-upstream"
+        }
+      ],
       "updatePolicy": "stable-aligned",
-      "provides": ["Polar Checkout", "Customer Portal", "usage metering", "signed webhooks"],
+      "provides": [
+        "Polar Checkout",
+        "Customer Portal",
+        "usage metering",
+        "signed webhooks"
+      ],
       "requires": ["identity core", "Polar Sandbox or Production credentials"],
       "conflicts": ["another selected billing provider"],
-      "performance": ["billing route is lazy", "Polar SDK is absent when deselected"],
-      "verification": ["selected typecheck", "selected Worker dry run", "real Sandbox checkout before Development verification"],
+      "performance": [
+        "billing route is lazy",
+        "Polar SDK is absent when deselected"
+      ],
+      "verification": [
+        "selected typecheck",
+        "selected Worker dry run",
+        "real Sandbox checkout before Development verification"
+      ],
       "documentation": ["features/billing/MODULE.md"]
     },
     {
@@ -648,20 +580,38 @@
       "delivery": "materializer",
       "targets": ["desktop-web", "worker"],
       "ownership": "upstream-tracked",
-      "source": [{ "name": "Better Auth Autumn", "url": "https://better-auth.com/docs/plugins/autumn", "relationship": "tracked-upstream" }],
+      "source": [
+        {
+          "name": "Better Auth Autumn",
+          "url": "https://better-auth.com/docs/plugins/autumn",
+          "relationship": "tracked-upstream"
+        }
+      ],
       "updatePolicy": "stable-aligned",
-      "provides": ["Autumn plans", "Stripe-backed checkout", "usage", "feature permissions"],
+      "provides": [
+        "Autumn plans",
+        "Stripe-backed checkout",
+        "usage",
+        "feature permissions"
+      ],
       "requires": ["identity core", "Autumn environment and secret key"],
       "conflicts": ["another selected billing provider"],
-      "performance": ["billing route is lazy", "Autumn SDK is absent when deselected"],
-      "verification": ["selected typecheck", "selected Worker dry run", "real Autumn test checkout before Development verification"],
+      "performance": [
+        "billing route is lazy",
+        "Autumn SDK is absent when deselected"
+      ],
+      "verification": [
+        "selected typecheck",
+        "selected Worker dry run",
+        "real Autumn test checkout before Development verification"
+      ],
       "documentation": ["features/billing/MODULE.md"]
     },
     {
       "id": "saas.api-keys",
       "kind": "saas",
       "name": "API keys",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "status": "local-verified",
       "delivery": "materializer",
       "targets": ["desktop-web", "worker", "admin", "docs"],
@@ -670,18 +620,16 @@
         {
           "name": "Better Auth API Key plugin",
           "url": "https://better-auth.com/docs/plugins/api-key",
-          "revision": "1.7.1",
+          "revision": "1.7.2",
           "license": "MIT",
           "relationship": "tracked-upstream"
         }
       ],
       "updatePolicy": "stable-aligned",
       "provides": [
-        "user-owned hashed API keys",
-        "one-time secret disclosure",
-        "fixed default product read scope",
-        "rate limits and expiration",
-        "list and revoke lifecycle"
+        "user-owned API keys",
+        "organization-owned API keys when Organizations is selected",
+        "hashed rate-limited keys"
       ],
       "requires": [
         "identity core",
@@ -947,8 +895,15 @@
         "saas.usage",
         "saas.outgoing-webhooks"
       ],
-      "conflicts": ["unbounded usage writes", "API keys converted to browser sessions"],
-      "performance": ["idempotent metering", "bounded webhook retries", "lazy developer route"],
+      "conflicts": [
+        "unbounded usage writes",
+        "API keys converted to browser sessions"
+      ],
+      "performance": [
+        "idempotent metering",
+        "bounded webhook retries",
+        "lazy developer route"
+      ],
       "verification": [
         "API key scope and owner isolation",
         "idempotent usage and exact quota",
@@ -994,9 +949,23 @@
         "isolated Development and Production buckets",
         "new empty Starter database"
       ],
-      "conflicts": ["unbounded uploads", "public-by-default objects", "client-supplied owner or object key"],
-      "performance": ["10 MiB bounded Worker upload", "streamed downloads", "lazy storage page", "no AWS SDK in R2 mode"],
-      "verification": ["put/head/get/delete round trip", "owner isolation", "public/private access", "provider switch and clean removal"],
+      "conflicts": [
+        "unbounded uploads",
+        "public-by-default objects",
+        "client-supplied owner or object key"
+      ],
+      "performance": [
+        "10 MiB bounded Worker upload",
+        "streamed downloads",
+        "lazy storage page",
+        "no AWS SDK in R2 mode"
+      ],
+      "verification": [
+        "put/head/get/delete round trip",
+        "owner isolation",
+        "public/private access",
+        "provider switch and clean removal"
+      ],
       "documentation": ["ARCHITECTURE.md", "features/storage/MODULE.md"]
     },
     {
@@ -1012,7 +981,7 @@
         {
           "name": "Better Auth Captcha",
           "url": "https://better-auth.com/docs/plugins/captcha",
-          "revision": "1.7.1",
+          "revision": "1.7.2",
           "license": "MIT",
           "relationship": "tracked-upstream"
         },
@@ -1034,9 +1003,21 @@
         "public site key and write-only secret key",
         "server-side validation"
       ],
-      "conflicts": ["client-only captcha", "shared Production test keys", "bypass on protected endpoints"],
-      "performance": ["widget script loads only on protected credential steps", "no package dependency beyond aligned Better Auth"],
-      "verification": ["official pass/fail test keys", "missing-token denial", "valid-token acceptance", "pack clean removal"],
+      "conflicts": [
+        "client-only captcha",
+        "shared Production test keys",
+        "bypass on protected endpoints"
+      ],
+      "performance": [
+        "widget script loads only on protected credential steps",
+        "no package dependency beyond aligned Better Auth"
+      ],
+      "verification": [
+        "official pass/fail test keys",
+        "missing-token denial",
+        "valid-token acceptance",
+        "pack clean removal"
+      ],
       "documentation": ["ARCHITECTURE.md", "features/auth/MODULE.md"]
     },
     {
@@ -1067,10 +1048,28 @@
         "Cloudflare AI Binding",
         "remote provider verification before Development acceptance"
       ],
-      "conflicts": ["client-side model credentials", "unbounded public inference endpoint", "silent model fallback"],
-      "performance": ["no AI code or binding when deselected", "bounded prompts and test output", "Gateway metadata without user content"],
-      "verification": ["Cloudflare REST model test", "generated binding types", "selected Worker dry-run", "clean removal", "Development binding call"],
-      "documentation": ["ARCHITECTURE.md", "features/ai/MODULE.md", "features/admin/MODULE.md"]
+      "conflicts": [
+        "client-side model credentials",
+        "unbounded public inference endpoint",
+        "silent model fallback"
+      ],
+      "performance": [
+        "no AI code or binding when deselected",
+        "bounded prompts and test output",
+        "Gateway metadata without user content"
+      ],
+      "verification": [
+        "Cloudflare REST model test",
+        "generated binding types",
+        "selected Worker dry-run",
+        "clean removal",
+        "Development binding call"
+      ],
+      "documentation": [
+        "ARCHITECTURE.md",
+        "features/ai/MODULE.md",
+        "features/admin/MODULE.md"
+      ]
     },
     {
       "id": "capability.vectorize",
@@ -1081,14 +1080,46 @@
       "delivery": "materializer",
       "targets": ["worker", "admin"],
       "ownership": "starter-owned",
-      "source": [{ "name": "Cloudflare Vectorize", "url": "https://developers.cloudflare.com/vectorize/", "relationship": "platform-provider" }],
+      "source": [
+        {
+          "name": "Cloudflare Vectorize",
+          "url": "https://developers.cloudflare.com/vectorize/",
+          "relationship": "platform-provider"
+        }
+      ],
       "updatePolicy": "runtime-stable",
-      "provides": ["environment-isolated vector index Binding", "server-only vector operations", "Admin upsert/query/delete test", "idempotent index provisioning"],
-      "requires": ["fixed dimensions and distance metric", "explicit embedding model compatibility", "product-owned namespaces and metadata"],
-      "conflicts": ["shared Development/Production index", "client-authoritative vectors", "dimension changes in place"],
-      "performance": ["bounded topK", "no vector runtime when deselected", "asynchronous mutation visibility polling only in explicit tests"],
-      "verification": ["temporary live index round trip", "selected Worker types and dry-run", "Admin authorization", "clean removal"],
-      "documentation": ["ARCHITECTURE.md", "features/search/MODULE.md", "features/admin/MODULE.md"]
+      "provides": [
+        "environment-isolated vector index Binding",
+        "server-only vector operations",
+        "Admin upsert/query/delete test",
+        "idempotent index provisioning"
+      ],
+      "requires": [
+        "fixed dimensions and distance metric",
+        "explicit embedding model compatibility",
+        "product-owned namespaces and metadata"
+      ],
+      "conflicts": [
+        "shared Development/Production index",
+        "client-authoritative vectors",
+        "dimension changes in place"
+      ],
+      "performance": [
+        "bounded topK",
+        "no vector runtime when deselected",
+        "asynchronous mutation visibility polling only in explicit tests"
+      ],
+      "verification": [
+        "temporary live index round trip",
+        "selected Worker types and dry-run",
+        "Admin authorization",
+        "clean removal"
+      ],
+      "documentation": [
+        "ARCHITECTURE.md",
+        "features/search/MODULE.md",
+        "features/admin/MODULE.md"
+      ]
     },
     {
       "id": "capability.expo-push",
@@ -1099,14 +1130,51 @@
       "delivery": "materializer",
       "targets": ["mobile", "worker", "admin"],
       "ownership": "starter-owned",
-      "source": [{ "name": "Expo Notifications and Push Service", "url": "https://docs.expo.dev/push-notifications/", "revision": "sdk-57", "license": "MIT", "relationship": "tracked-upstream" }],
+      "source": [
+        {
+          "name": "Expo Notifications and Push Service",
+          "url": "https://docs.expo.dev/push-notifications/",
+          "revision": "sdk-57",
+          "license": "MIT",
+          "relationship": "tracked-upstream"
+        }
+      ],
       "updatePolicy": "expo-compatible",
-      "provides": ["native notification permission and Expo token acquisition", "user-owned device registration", "bounded Expo Push send helper", "Admin self-device test", "ticket and failure evidence"],
-      "requires": ["Expo project ID per environment", "physical iOS/Android build", "APNs and FCM credentials", "optional Expo Push access token"],
-      "conflicts": ["Expo Go remote push acceptance", "client-selected recipient", "unbounded broadcast"],
-      "performance": ["20-device user cap", "bounded payloads", "no mobile native module when deselected"],
-      "verification": ["device registration isolation", "Expo ticket acceptance", "receipt/device-not-registered handling", "native build and physical-device delivery", "clean removal"],
-      "documentation": ["ARCHITECTURE.md", "features/notifications/MODULE.md", "features/mobile/MODULE.md"]
+      "provides": [
+        "native notification permission and Expo token acquisition",
+        "user-owned device registration",
+        "bounded Expo Push send helper",
+        "Admin self-device test",
+        "ticket and failure evidence"
+      ],
+      "requires": [
+        "Expo project ID per environment",
+        "physical iOS/Android build",
+        "APNs and FCM credentials",
+        "optional Expo Push access token"
+      ],
+      "conflicts": [
+        "Expo Go remote push acceptance",
+        "client-selected recipient",
+        "unbounded broadcast"
+      ],
+      "performance": [
+        "20-device user cap",
+        "bounded payloads",
+        "no mobile native module when deselected"
+      ],
+      "verification": [
+        "device registration isolation",
+        "Expo ticket acceptance",
+        "receipt/device-not-registered handling",
+        "native build and physical-device delivery",
+        "clean removal"
+      ],
+      "documentation": [
+        "ARCHITECTURE.md",
+        "features/notifications/MODULE.md",
+        "features/mobile/MODULE.md"
+      ]
     },
     {
       "id": "capability.twilio-sms",
@@ -1117,14 +1185,50 @@
       "delivery": "materializer",
       "targets": ["worker", "admin"],
       "ownership": "starter-owned",
-      "source": [{ "name": "Twilio Programmable Messaging", "url": "https://www.twilio.com/docs/messaging/api/message-resource", "revision": "2010-04-01", "license": "proprietary-service", "relationship": "tracked-upstream" }],
+      "source": [
+        {
+          "name": "Twilio Programmable Messaging",
+          "url": "https://www.twilio.com/docs/messaging/api/message-resource",
+          "revision": "2010-04-01",
+          "license": "proprietary-service",
+          "relationship": "tracked-upstream"
+        }
+      ],
       "updatePolicy": "provider-contract",
-      "provides": ["server-only SMS helper", "SQL idempotency ledger", "recipient hash and provider SID evidence", "Admin fixed-message test"],
-      "requires": ["separate environment API credentials", "E.164 sender", "verified recipient and regulatory compliance", "delivery-status verification"],
-      "conflicts": ["client-selected identity recipient", "stored SMS body", "automatic OTP use"],
-      "performance": ["single provider request per idempotency key", "bounded 1000-character body", "no SDK dependency"],
-      "verification": ["mock authorization/form contract", "idempotent replay", "provider SID/error evidence", "real phone delivery", "clean removal"],
-      "documentation": ["ARCHITECTURE.md", "features/notifications/MODULE.md", "features/admin/MODULE.md"]
+      "provides": [
+        "server-only SMS helper",
+        "SQL idempotency ledger",
+        "recipient hash and provider SID evidence",
+        "Admin fixed-message test"
+      ],
+      "requires": [
+        "separate environment API credentials",
+        "E.164 sender",
+        "verified recipient and regulatory compliance",
+        "delivery-status verification"
+      ],
+      "conflicts": [
+        "client-selected identity recipient",
+        "stored SMS body",
+        "automatic OTP use"
+      ],
+      "performance": [
+        "single provider request per idempotency key",
+        "bounded 1000-character body",
+        "no SDK dependency"
+      ],
+      "verification": [
+        "mock authorization/form contract",
+        "idempotent replay",
+        "provider SID/error evidence",
+        "real phone delivery",
+        "clean removal"
+      ],
+      "documentation": [
+        "ARCHITECTURE.md",
+        "features/notifications/MODULE.md",
+        "features/admin/MODULE.md"
+      ]
     },
     {
       "id": "capability.cloudflare-images",
@@ -1135,14 +1239,45 @@
       "delivery": "materializer",
       "targets": ["worker", "admin"],
       "ownership": "starter-owned",
-      "source": [{ "name": "Cloudflare Images binding", "url": "https://developers.cloudflare.com/images/optimization/binding/", "relationship": "platform-provider" }],
+      "source": [
+        {
+          "name": "Cloudflare Images binding",
+          "url": "https://developers.cloudflare.com/images/optimization/binding/",
+          "relationship": "platform-provider"
+        }
+      ],
       "updatePolicy": "runtime-stable",
-      "provides": ["raw-byte image info/resize/transcode helper", "bounded output formats and dimensions", "Admin fixed-image binding test"],
-      "requires": ["Cloudflare Images Binding", "product-owned source authorization", "cache policy for repeated transforms"],
-      "conflicts": ["using Images as original-file authority", "unbounded transform parameters", "public arbitrary-origin proxy"],
-      "performance": ["20 MB platform ceiling with lower Starter default", "4096 pixel dimension cap", "no Images Binding when deselected"],
-      "verification": ["local low-fidelity binding transform", "selected types/dry-run", "deployed high-fidelity test", "clean removal"],
-      "documentation": ["ARCHITECTURE.md", "features/media/MODULE.md", "features/admin/MODULE.md"]
+      "provides": [
+        "raw-byte image info/resize/transcode helper",
+        "bounded output formats and dimensions",
+        "Admin fixed-image binding test"
+      ],
+      "requires": [
+        "Cloudflare Images Binding",
+        "product-owned source authorization",
+        "cache policy for repeated transforms"
+      ],
+      "conflicts": [
+        "using Images as original-file authority",
+        "unbounded transform parameters",
+        "public arbitrary-origin proxy"
+      ],
+      "performance": [
+        "20 MB platform ceiling with lower Starter default",
+        "4096 pixel dimension cap",
+        "no Images Binding when deselected"
+      ],
+      "verification": [
+        "local low-fidelity binding transform",
+        "selected types/dry-run",
+        "deployed high-fidelity test",
+        "clean removal"
+      ],
+      "documentation": [
+        "ARCHITECTURE.md",
+        "features/media/MODULE.md",
+        "features/admin/MODULE.md"
+      ]
     },
     {
       "id": "capability.cloudflare-stream",
@@ -1153,14 +1288,48 @@
       "delivery": "materializer",
       "targets": ["worker", "admin"],
       "ownership": "starter-owned",
-      "source": [{ "name": "Cloudflare Stream", "url": "https://developers.cloudflare.com/stream/", "relationship": "platform-provider" }],
+      "source": [
+        {
+          "name": "Cloudflare Stream",
+          "url": "https://developers.cloudflare.com/stream/",
+          "relationship": "platform-provider"
+        }
+      ],
       "updatePolicy": "provider-contract",
-      "provides": ["user-owned direct upload URLs", "video asset status and public playback URLs", "HMAC-SHA256 webhook verification and replay denial", "owner-scoped list/delete"],
-      "requires": ["Stream Write token", "single account webhook subscription", "public playback acceptance", "product retention policy"],
-      "conflicts": ["API token exposure to clients", "unsigned webhook state", "private playback without signing-token support"],
-      "performance": ["five uploads per user per hour", "30-minute one-time URLs", "100-asset list cap"],
-      "verification": ["mock direct-upload/delete contract", "signed webhook ready/error/replay", "real provider token test", "real upload/encode/playback", "clean removal"],
-      "documentation": ["ARCHITECTURE.md", "features/media/MODULE.md", "features/admin/MODULE.md"]
+      "provides": [
+        "user-owned direct upload URLs",
+        "video asset status and public playback URLs",
+        "HMAC-SHA256 webhook verification and replay denial",
+        "owner-scoped list/delete"
+      ],
+      "requires": [
+        "Stream Write token",
+        "single account webhook subscription",
+        "public playback acceptance",
+        "product retention policy"
+      ],
+      "conflicts": [
+        "API token exposure to clients",
+        "unsigned webhook state",
+        "private playback without signing-token support"
+      ],
+      "performance": [
+        "five uploads per user per hour",
+        "30-minute one-time URLs",
+        "100-asset list cap"
+      ],
+      "verification": [
+        "mock direct-upload/delete contract",
+        "signed webhook ready/error/replay",
+        "real provider token test",
+        "real upload/encode/playback",
+        "clean removal"
+      ],
+      "documentation": [
+        "ARCHITECTURE.md",
+        "features/media/MODULE.md",
+        "features/admin/MODULE.md"
+      ]
     },
     {
       "id": "capability.cron",
@@ -1171,14 +1340,44 @@
       "delivery": "materializer",
       "targets": ["worker", "admin"],
       "ownership": "starter-owned",
-      "source": [{ "name": "Cloudflare Cron Triggers", "url": "https://developers.cloudflare.com/workers/configuration/cron-triggers/", "relationship": "platform-provider" }],
+      "source": [
+        {
+          "name": "Cloudflare Cron Triggers",
+          "url": "https://developers.cloudflare.com/workers/configuration/cron-triggers/",
+          "relationship": "platform-provider"
+        }
+      ],
       "updatePolicy": "runtime-stable",
-      "provides": ["environment-specific UTC schedule", "generated scheduled event registration", "SQL run heartbeat and Admin readback"],
-      "requires": ["explicit cron expression", "product-owned job registration", "idempotent task behavior"],
-      "conflicts": ["business work in the generic heartbeat", "local timezone assumptions", "untracked dashboard-only schedules"],
-      "performance": ["single heartbeat upsert", "no cron handler when deselected"],
-      "verification": ["local scheduled HTTP trigger", "scheduled time/cron/readback", "selected dry-run", "clean removal"],
-      "documentation": ["ARCHITECTURE.md", "features/background/MODULE.md", "features/admin/MODULE.md"]
+      "provides": [
+        "environment-specific UTC schedule",
+        "generated scheduled event registration",
+        "SQL run heartbeat and Admin readback"
+      ],
+      "requires": [
+        "explicit cron expression",
+        "product-owned job registration",
+        "idempotent task behavior"
+      ],
+      "conflicts": [
+        "business work in the generic heartbeat",
+        "local timezone assumptions",
+        "untracked dashboard-only schedules"
+      ],
+      "performance": [
+        "single heartbeat upsert",
+        "no cron handler when deselected"
+      ],
+      "verification": [
+        "local scheduled HTTP trigger",
+        "scheduled time/cron/readback",
+        "selected dry-run",
+        "clean removal"
+      ],
+      "documentation": [
+        "ARCHITECTURE.md",
+        "features/background/MODULE.md",
+        "features/admin/MODULE.md"
+      ]
     },
     {
       "id": "capability.workflows",
@@ -1189,14 +1388,46 @@
       "delivery": "materializer",
       "targets": ["worker", "admin"],
       "ownership": "starter-owned",
-      "source": [{ "name": "Cloudflare Workflows", "url": "https://developers.cloudflare.com/workflows/", "relationship": "platform-provider" }],
+      "source": [
+        {
+          "name": "Cloudflare Workflows",
+          "url": "https://developers.cloudflare.com/workflows/",
+          "relationship": "platform-provider"
+        }
+      ],
       "updatePolicy": "runtime-stable",
-      "provides": ["durable two-step skeleton", "Admin-only instance create/status", "optional binding schedule", "resource deletion on deselected release"],
-      "requires": ["exported WorkflowEntrypoint class", "environment resource name", "product-owned payload and steps"],
-      "conflicts": ["arbitrary code execution", "client-selected workflow class", "orphaned deselected resources"],
-      "performance": ["bounded serializable payload", "two fixed local test steps", "no Workflow binding when deselected"],
-      "verification": ["local instance create/complete/output", "selected types/dry-run", "resource deletion contract", "clean removal"],
-      "documentation": ["ARCHITECTURE.md", "features/background/MODULE.md", "features/admin/MODULE.md"]
+      "provides": [
+        "durable two-step skeleton",
+        "Admin-only instance create/status",
+        "optional binding schedule",
+        "resource deletion on deselected release"
+      ],
+      "requires": [
+        "exported WorkflowEntrypoint class",
+        "environment resource name",
+        "product-owned payload and steps"
+      ],
+      "conflicts": [
+        "arbitrary code execution",
+        "client-selected workflow class",
+        "orphaned deselected resources"
+      ],
+      "performance": [
+        "bounded serializable payload",
+        "two fixed local test steps",
+        "no Workflow binding when deselected"
+      ],
+      "verification": [
+        "local instance create/complete/output",
+        "selected types/dry-run",
+        "resource deletion contract",
+        "clean removal"
+      ],
+      "documentation": [
+        "ARCHITECTURE.md",
+        "features/background/MODULE.md",
+        "features/admin/MODULE.md"
+      ]
     },
     {
       "id": "capability.durable-objects",
@@ -1207,14 +1438,48 @@
       "delivery": "materializer",
       "targets": ["worker", "admin"],
       "ownership": "starter-owned",
-      "source": [{ "name": "Cloudflare Durable Objects", "url": "https://developers.cloudflare.com/durable-objects/", "relationship": "platform-provider" }],
+      "source": [
+        {
+          "name": "Cloudflare Durable Objects",
+          "url": "https://developers.cloudflare.com/durable-objects/",
+          "relationship": "platform-provider"
+        }
+      ],
       "updatePolicy": "runtime-stable",
-      "provides": ["SQLite-backed per-room state", "authenticated hibernatable WebSocket endpoint", "bounded room and message contracts", "Admin state and socket round-trip"],
-      "requires": ["STARTER_REALTIME Durable Object binding", "StarterRealtimeRoom class export", "declarative SQLite class export"],
-      "conflicts": ["anonymous room access", "unbounded message payloads", "automatic namespace data deletion on deselection"],
-      "performance": ["hibernation API", "one object per room", "1000-character message cap", "no timers in the Durable Object"],
-      "verification": ["ordinary-user Admin denial", "local WebSocket ready/send/broadcast/state", "selected types/dry-run", "clean deactivation"],
-      "documentation": ["ARCHITECTURE.md", "features/background/MODULE.md", "features/admin/MODULE.md", "features/operations/MODULE.md"]
+      "provides": [
+        "SQLite-backed per-room state",
+        "authenticated hibernatable WebSocket endpoint",
+        "bounded room and message contracts",
+        "Admin state and socket round-trip"
+      ],
+      "requires": [
+        "STARTER_REALTIME Durable Object binding",
+        "StarterRealtimeRoom class export",
+        "declarative SQLite class export"
+      ],
+      "conflicts": [
+        "anonymous room access",
+        "unbounded message payloads",
+        "automatic namespace data deletion on deselection"
+      ],
+      "performance": [
+        "hibernation API",
+        "one object per room",
+        "1000-character message cap",
+        "no timers in the Durable Object"
+      ],
+      "verification": [
+        "ordinary-user Admin denial",
+        "local WebSocket ready/send/broadcast/state",
+        "selected types/dry-run",
+        "clean deactivation"
+      ],
+      "documentation": [
+        "ARCHITECTURE.md",
+        "features/background/MODULE.md",
+        "features/admin/MODULE.md",
+        "features/operations/MODULE.md"
+      ]
     },
     {
       "id": "capability.data-layer-drizzle",
@@ -1225,14 +1490,45 @@
       "delivery": "materializer",
       "targets": ["worker"],
       "ownership": "starter-owned",
-      "source": [{ "name": "Drizzle ORM", "url": "https://orm.drizzle.team/", "relationship": "runtime-dependency" }],
+      "source": [
+        {
+          "name": "Drizzle ORM",
+          "url": "https://orm.drizzle.team/",
+          "relationship": "runtime-dependency"
+        }
+      ],
       "updatePolicy": "runtime-stable",
-      "provides": ["product-domain Drizzle schema", "Drizzle Kit configuration", "pg-backed typed database factory"],
-      "requires": ["PostgreSQL", "pg runtime contract", "product-owned tables only"],
-      "conflicts": ["Prisma", "Kysely", "ORM ownership of Starter or Pack migrations", "a CFPG-specific query layer"],
-      "performance": ["absent when SQL-first is selected", "shared pg pool factory", "no generated client runtime"],
-      "verification": ["Native PG and CFPG parity", "Drizzle migration generation", "select/apply/deselect dependency cleanup"],
-      "documentation": ["ARCHITECTURE.md", "features/assembler/MODULE.md", "PERFORMANCE.md"]
+      "provides": [
+        "product-domain Drizzle schema",
+        "Drizzle Kit configuration",
+        "pg-backed typed database factory"
+      ],
+      "requires": [
+        "PostgreSQL",
+        "pg runtime contract",
+        "product-owned tables only"
+      ],
+      "conflicts": [
+        "Prisma",
+        "Kysely",
+        "ORM ownership of Starter or Pack migrations",
+        "a CFPG-specific query layer"
+      ],
+      "performance": [
+        "absent when SQL-first is selected",
+        "shared pg pool factory",
+        "no generated client runtime"
+      ],
+      "verification": [
+        "Native PG and CFPG parity",
+        "Drizzle migration generation",
+        "select/apply/deselect dependency cleanup"
+      ],
+      "documentation": [
+        "ARCHITECTURE.md",
+        "features/assembler/MODULE.md",
+        "PERFORMANCE.md"
+      ]
     },
     {
       "id": "capability.mapcn-web",
@@ -1283,6 +1579,504 @@
         "keyboard and reduced-motion checks"
       ],
       "documentation": ["features/assembler/MODULE.md", "PERFORMANCE.md"]
+    },
+    {
+      "id": "saas.auth-hibp",
+      "kind": "saas",
+      "name": "Compromised password protection",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": ["worker"],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth Have I Been Pwned",
+          "url": "https://better-auth.com/docs/plugins/have-i-been-pwned",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": ["compromised-password rejection"],
+      "requires": ["identity core", "outbound HIBP API access"],
+      "conflicts": [],
+      "performance": ["no runtime when deselected"],
+      "verification": ["known compromised password rejection", "deselection"],
+      "documentation": ["features/auth/MODULE.md"]
+    },
+    {
+      "id": "saas.auth-last-login",
+      "kind": "saas",
+      "name": "Last login method",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": ["desktop-web", "mobile-web", "worker"],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth Last Login Method",
+          "url": "https://better-auth.com/docs/plugins/last-login-method",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": ["database-backed last login method"],
+      "requires": ["identity core"],
+      "conflicts": [],
+      "performance": ["no non-essential client cookie"],
+      "verification": ["email and social method tracking", "deselection"],
+      "documentation": ["features/auth/MODULE.md"]
+    },
+    {
+      "id": "saas.auth-multi-session",
+      "kind": "saas",
+      "name": "Multi-account sessions",
+      "version": "0.2.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": ["desktop-web", "mobile-web", "worker"],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth Multi Session",
+          "url": "https://better-auth.com/docs/plugins/multi-session",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": [
+        "up to five browser account sessions",
+        "account switching and session removal"
+      ],
+      "requires": ["identity core"],
+      "conflicts": [],
+      "performance": ["maximum five device sessions"],
+      "verification": ["list switch revoke", "deselection"],
+      "documentation": ["features/auth/MODULE.md"]
+    },
+    {
+      "id": "saas.auth-passkey",
+      "kind": "saas",
+      "name": "Passkeys",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": ["desktop-web", "mobile-web", "worker"],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth Passkey",
+          "url": "https://better-auth.com/docs/plugins/passkey",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": [
+        "WebAuthn sign-in",
+        "passkey registration, listing and removal"
+      ],
+      "requires": ["secure context", "identity core", "@better-auth/passkey"],
+      "conflicts": [],
+      "performance": ["lazy passkey routes", "no dependency when deselected"],
+      "verification": [
+        "real virtual authenticator registration and sign-in",
+        "deselection"
+      ],
+      "documentation": ["features/auth/MODULE.md"]
+    },
+    {
+      "id": "saas.auth-magic-link",
+      "kind": "saas",
+      "name": "Email magic links",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": ["desktop-web", "mobile-web", "worker"],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth Magic Link",
+          "url": "https://better-auth.com/docs/plugins/magic-link",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": ["one-time email sign-in link"],
+      "requires": ["configured authentication email provider"],
+      "conflicts": [],
+      "performance": ["lazy entry route"],
+      "verification": [
+        "hashed token, expiry, single use, delivery and deselection"
+      ],
+      "documentation": ["features/auth/MODULE.md"]
+    },
+    {
+      "id": "saas.auth-i18n",
+      "kind": "saas",
+      "name": "Localized authentication errors",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": ["worker"],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth i18n",
+          "url": "https://better-auth.com/docs/plugins/i18n",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": ["English, French and Chinese auth errors"],
+      "requires": ["identity core"],
+      "conflicts": [],
+      "performance": ["three locale subset only"],
+      "verification": ["header and session locale detection", "deselection"],
+      "documentation": ["features/auth/MODULE.md"]
+    },
+    {
+      "id": "saas.auth-openapi",
+      "kind": "saas",
+      "name": "Authentication OpenAPI reference",
+      "version": "0.1.0",
+      "status": "experimental",
+      "delivery": "materializer",
+      "targets": ["worker"],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth Open API",
+          "url": "https://better-auth.com/docs/plugins/open-api",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "reviewed-experimental",
+      "provides": ["OpenAPI 3.1 auth schema and reference"],
+      "requires": ["identity core"],
+      "conflicts": [],
+      "performance": ["reference route only when selected"],
+      "verification": ["schema endpoint and reference route", "deselection"],
+      "documentation": ["features/auth/MODULE.md"]
+    },
+    {
+      "id": "saas.auth-jwt",
+      "kind": "saas",
+      "name": "JWT and JWKS",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": ["worker", "desktop-web", "mobile-web"],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth JWT",
+          "url": "https://better-auth.com/docs/plugins/jwt",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": ["15-minute JWT", "JWKS", "30-day key rotation"],
+      "requires": ["identity core"],
+      "conflicts": ["OAuth Provider must disable the legacy token endpoint"],
+      "performance": ["no key table when deselected"],
+      "verification": ["signature, issuer, audience, expiry and rotation"],
+      "documentation": ["features/auth/MODULE.md"]
+    },
+    {
+      "id": "saas.auth-bearer",
+      "kind": "saas",
+      "name": "Bearer session authentication",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": ["worker"],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth Bearer",
+          "url": "https://better-auth.com/docs/plugins/bearer",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": ["Authorization Bearer session token"],
+      "requires": ["identity core"],
+      "conflicts": ["not a general OAuth access token"],
+      "performance": ["no plugin when deselected"],
+      "verification": ["header authentication and revocation"],
+      "documentation": ["features/auth/MODULE.md"]
+    },
+    {
+      "id": "saas.auth-anonymous",
+      "kind": "saas",
+      "name": "Anonymous guest sessions",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": ["worker", "web", "database"],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth Anonymous",
+          "url": "https://better-auth.com/docs/plugins/anonymous",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": ["guest sessions", "account linking"],
+      "requires": ["identity core"],
+      "conflicts": [],
+      "performance": ["no runtime when deselected"],
+      "verification": ["guest sign-in, linking and deletion", "deselection"],
+      "documentation": ["features/auth/MODULE.md"]
+    },
+    {
+      "id": "saas.auth-generic-oauth",
+      "kind": "saas",
+      "name": "Generic OAuth and OIDC",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": ["worker", "web"],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth Generic OAuth",
+          "url": "https://better-auth.com/docs/plugins/generic-oauth",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": ["operator-configured OAuth/OIDC providers"],
+      "requires": ["identity core"],
+      "conflicts": [],
+      "performance": ["no provider discovery when deselected"],
+      "verification": [
+        "strict JSON validation, HTTPS discovery, PKCE and callback",
+        "deselection"
+      ],
+      "documentation": ["features/auth/MODULE.md"]
+    },
+    {
+      "id": "saas.auth-sso",
+      "kind": "saas",
+      "name": "Enterprise SSO",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": ["worker", "web", "database"],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth SSO",
+          "url": "https://better-auth.com/docs/plugins/sso",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": ["OIDC and SAML SSO"],
+      "requires": ["identity core"],
+      "conflicts": [],
+      "performance": ["no discovery or SAML code when deselected"],
+      "verification": [
+        "OIDC discovery, SAML signed assertion and domain routing",
+        "deselection"
+      ],
+      "documentation": ["features/auth/MODULE.md"]
+    },
+    {
+      "id": "saas.auth-scim",
+      "kind": "saas",
+      "name": "SCIM directory provisioning",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": ["worker", "database"],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth SCIM",
+          "url": "https://better-auth.com/docs/plugins/scim",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": ["SCIM 2.0 users and groups"],
+      "requires": ["identity core", "PostgreSQL interactive transactions"],
+      "conflicts": [],
+      "performance": ["no SCIM routes or schema when deselected"],
+      "verification": [
+        "credential scopes, connection isolation and lifecycle",
+        "deselection"
+      ],
+      "documentation": ["features/auth/MODULE.md"]
+    },
+    {
+      "id": "saas.auth-oauth-provider",
+      "kind": "saas",
+      "name": "OAuth 2.1 and OIDC Provider",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": ["worker", "web", "database"],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth OAuth Provider",
+          "url": "https://better-auth.com/docs/plugins/oauth-provider",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": [
+        "authorization code, refresh and client credentials grants",
+        "OIDC consent"
+      ],
+      "requires": ["saas.auth-jwt"],
+      "conflicts": ["saas.auth-mcp-agent"],
+      "performance": ["no provider routes or schema when deselected"],
+      "verification": [
+        "PKCE, exact redirects, consent and client privilege gates",
+        "deselection"
+      ],
+      "documentation": ["features/auth/MODULE.md"]
+    },
+    {
+      "id": "saas.auth-device-authorization",
+      "kind": "saas",
+      "name": "Device Authorization",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": ["worker", "web", "database"],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth Device Authorization",
+          "url": "https://better-auth.com/docs/plugins/device-authorization",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": ["RFC 8628 device grant"],
+      "requires": ["saas.auth-jwt", "saas.auth-oauth-provider"],
+      "conflicts": [],
+      "performance": ["no device endpoints or schema when deselected"],
+      "verification": [
+        "code ownership, explicit approval, expiry, polling and OAuth token exchange",
+        "deselection"
+      ],
+      "documentation": ["features/auth/MODULE.md"]
+    },
+    {
+      "id": "saas.auth-mcp",
+      "kind": "saas",
+      "name": "OAuth-protected MCP",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": ["worker", "web", "database"],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth MCP",
+          "url": "https://better-auth.com/docs/plugins/mcp",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": ["OAuth-protected MCP resource and identity tool"],
+      "requires": ["saas.auth-jwt"],
+      "conflicts": ["saas.auth-oauth-provider"],
+      "performance": ["no MCP route or OAuth schema when deselected"],
+      "verification": [
+        "discovery, issuer/audience/scope checks and JSON-RPC tools",
+        "deselection"
+      ],
+      "documentation": ["features/auth/MODULE.md"]
+    },
+    {
+      "id": "saas.auth-agent",
+      "kind": "saas",
+      "name": "Experimental Agent Auth",
+      "version": "0.1.0",
+      "status": "experimental",
+      "delivery": "materializer",
+      "targets": ["worker", "web", "database"],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth Agent Auth",
+          "url": "https://better-auth.com/docs/plugins/agent-auth",
+          "relationship": "experimental-upstream"
+        }
+      ],
+      "updatePolicy": "reviewed-experimental",
+      "provides": [
+        "agent discovery, registration and scoped capability grants"
+      ],
+      "requires": ["identity core"],
+      "conflicts": [],
+      "performance": ["no agent routes or schema when deselected"],
+      "verification": [
+        "short JWT lifetime, JTI replay, explicit approval and grant expiry",
+        "deselection"
+      ],
+      "documentation": ["features/auth/MODULE.md"]
+    },
+    {
+      "id": "saas.auth-phone",
+      "kind": "saas",
+      "name": "Phone authentication",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": ["worker", "web", "database"],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth Phone Number",
+          "url": "https://better-auth.com/docs/plugins/phone-number",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": ["verified phone linking and sign-in"],
+      "requires": ["capability.twilio-sms"],
+      "conflicts": [],
+      "performance": [
+        "no phone endpoints, SMS helper or schema when deselected"
+      ],
+      "verification": [
+        "E.164, OTP expiry/attempts, delivery and account linking",
+        "deselection"
+      ],
+      "documentation": ["features/auth/MODULE.md"]
+    },
+    {
+      "id": "saas.auth-google-one-tap",
+      "kind": "saas",
+      "name": "Google One Tap",
+      "version": "0.1.0",
+      "status": "implemented",
+      "delivery": "materializer",
+      "targets": ["worker", "web"],
+      "ownership": "upstream-tracked",
+      "source": [
+        {
+          "name": "Better Auth One Tap",
+          "url": "https://better-auth.com/docs/plugins/one-tap",
+          "relationship": "tracked-upstream"
+        }
+      ],
+      "updatePolicy": "stable-aligned",
+      "provides": ["explicit Google One Tap sign-in"],
+      "requires": ["Google social provider"],
+      "conflicts": [],
+      "performance": ["Google script loads only on the lazy One Tap route"],
+      "verification": ["credential callback, account choice and deselection"],
+      "documentation": ["features/auth/MODULE.md"]
     }
   ]
 }

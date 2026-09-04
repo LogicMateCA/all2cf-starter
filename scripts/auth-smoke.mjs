@@ -308,12 +308,12 @@ ${smokeHandlers.join("\n")}
         response.end(JSON.stringify({ success: false, errors: [{ code: 10000, message: "Authentication error" }] }));
         return;
       }
-      if (request.method === "POST" && request.url === "/accounts/00000000000000000000000000000000/stream/direct_upload") {
+      if (request.method === "POST" && request.url === "/accounts/7cb5d7a44fde3f702b4757dbf6d4218d/stream/direct_upload") {
         response.writeHead(200, { "Content-Type": "application/json" });
         response.end(JSON.stringify({ success: true, result: { uid: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", uploadURL: "https://upload.example.test/stream-upload" } }));
         return;
       }
-      if (request.method === "DELETE" && request.url === "/accounts/00000000000000000000000000000000/stream/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") {
+      if (request.method === "DELETE" && request.url === "/accounts/7cb5d7a44fde3f702b4757dbf6d4218d/stream/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") {
         response.writeHead(200, { "Content-Type": "application/json" });
         response.end(JSON.stringify({ success: true, result: {} }));
         return;

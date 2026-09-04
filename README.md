@@ -46,6 +46,8 @@ After cloning, Codex automatically receives repository-level `AGENTS.md`. `CODEX
 
 It is not a generic no-code builder. Product business behavior remains product-owned, and `/setup` produces a reviewed local Blueprint before materialization or release.
 
+The canonical repository and generated products both use local `/setup`. In the canonical source, finishing Setup can create a separate generated product; generated products keep the same `/setup` route but do not carry the canonical Pack source library. The underlying `starter:factory` command remains an internal creation tool, not a second user-facing page.
+
 ## Requirements
 
 - Node.js 24+

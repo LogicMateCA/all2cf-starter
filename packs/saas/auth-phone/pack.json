@@ -1,0 +1,55 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "saas.auth-phone",
+  "version": "0.1.0",
+  "source": {
+    "name": "Better Auth Phone Number",
+    "url": "https://better-auth.com/docs/plugins/phone-number",
+    "revision": "1.7.2",
+    "license": "MIT",
+    "relationship": "tracked-upstream"
+  },
+  "files": [
+    {
+      "source": "templates/phone-auth-plugin.ts",
+      "target": "workers/app/features/phone-auth-plugin.ts"
+    },
+    {
+      "source": "templates/phone-auth-client-plugin.ts",
+      "target": "apps/web/src/features/phone-auth-client-plugin.ts"
+    },
+    {
+      "source": "templates/phone-page.tsx",
+      "target": "apps/web/src/components/features/phone-page.tsx"
+    },
+    {
+      "source": "templates/phone-page.css",
+      "target": "apps/web/src/components/features/phone-page.css"
+    },
+    {
+      "source": "templates/0001_phone.sql",
+      "target": "db/migrations/1021_phone.sql"
+    }
+  ],
+  "dependencies": [],
+  "routes": [
+    {
+      "path": "/phone",
+      "module": "../components/features/phone-page",
+      "export": "PhoneAuthPage",
+      "workerFirst": false
+    }
+  ],
+  "authPlugins": {
+    "server": {
+      "module": "../features/phone-auth-plugin",
+      "export": "createPhoneAuthPlugin"
+    },
+    "client": {
+      "module": "../features/phone-auth-client-plugin",
+      "export": "createPhoneAuthClientPlugin"
+    }
+  },
+  "requiresPacks": ["capability.twilio-sms"]
+}

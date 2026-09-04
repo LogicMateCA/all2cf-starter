@@ -156,11 +156,7 @@ async function status() {
     ok: !source.dirty,
     command: "status",
     source,
-    stylekit: {
-      policy: "starter-owned-curated-snapshots",
-      upstreamAutomaticSync: false,
-      selected: JSON.parse(await readFile(path.join(root, "starter.blueprint.json"), "utf8")).stylekit,
-    },
+    visual: { owner: "visual-design", starterFallback: "structural-css-only" },
     packs: await packVersions(),
     verification: verification
       ? { sourceCommit: verification.sourceCommit, ok: verification.ok, completedAt: verification.completedAt }
@@ -184,7 +180,7 @@ async function channelStatus() {
   return channels.sort((left, right) => left.channel.localeCompare(right.channel));
 }
 
-const permanentPackIds = new Set(["foundation.core", "design.owned-neutral", "design.stylekit-adapted", "page.core-product-site", "saas.product-shell", "saas.identity-core", "saas.notifications-core", "saas.product-operations-lite"]);
+const permanentPackIds = new Set(["foundation.core", "page.core-product-site", "saas.product-shell", "saas.identity-core", "saas.notifications-core", "saas.product-operations-lite"]);
 
 async function portableBlueprint(dataLayer, { minimal = false } = {}) {
   const blueprint = JSON.parse(await readFile(path.join(root, "starter.blueprint.json"), "utf8"));
@@ -309,7 +305,7 @@ async function verify(versionValue) {
     sourceVerification: qualificationReused ? "exact qualification checkpoint" : "npm run verify",
     qualification: { reused: qualificationReused, receipt: qualification.receipt, elapsedMs: qualificationElapsedMs },
     projects,
-    stylekit: { policy: "starter-owned-curated-snapshots", upstreamAutomaticSync: false },
+    visual: { owner: "visual-design", starterFallback: "structural-css-only" },
     startedAt,
     completedAt: new Date().toISOString(),
   };
@@ -371,7 +367,7 @@ async function build(versionValue) {
         runnerGenerationTestsAfterRegistration: true,
         deploymentAuthorized: false,
       },
-      stylekit: { policy: "starter-owned-curated-snapshots", upstreamAutomaticSync: false },
+      visual: { owner: "visual-design", starterFallback: "structural-css-only" },
     };
     const channel = {
       schemaVersion: "all2cf-starter-channel/v1",

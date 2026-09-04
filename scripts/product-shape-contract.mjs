@@ -12,7 +12,7 @@ const cases = [
   { id: "mobile-only", project: { productType: "mobile-app", websiteType: "landing", companionSite: "none", webAdmin: false, platforms: ["ios", "android"] }, present: ["apps/mobile", "apps/web", "workers/app", "db", "cloudflare", ".starter/product-shape.json"], absent: ["apps/marketing", "apps/docs"] },
 ];
 const failures = [];
-const permanent = new Set(["design.owned-neutral", "design.stylekit-adapted", "page.core-product-site", "saas.product-shell", "saas.identity-core", "saas.notifications-core", "saas.product-operations-lite"]);
+const permanent = new Set(["page.core-product-site", "saas.product-shell", "saas.identity-core", "saas.notifications-core", "saas.product-operations-lite"]);
 
 for (const item of cases) {
   const slug = `shape-${item.id}-${process.pid}`;

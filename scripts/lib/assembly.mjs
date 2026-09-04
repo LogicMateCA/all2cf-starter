@@ -14,8 +14,6 @@ export function validateAssemblyContracts(
     failures.push("starter.blueprint.json must use starter-blueprint/v1");
   if (catalog.schemaVersion !== "starter-catalog/v1")
     failures.push("catalog/catalog.json must use starter-catalog/v1");
-  if (designCatalog?.schemaVersion !== "starter-design-catalog/v1")
-    failures.push("design/catalog.json must use starter-design-catalog/v1");
   if (pageCatalog?.schemaVersion !== "starter-page-catalog/v1")
     failures.push("pages/catalog.json must use starter-page-catalog/v1");
   if (
@@ -394,124 +392,10 @@ export function validateAssemblyContracts(
       );
   }
 
-  if (
-    !blueprint.stylekit?.slug ||
-    !blueprint.stylekit.sourceRevision ||
-    !blueprint.stylekit.snapshotVersion ||
-    !/^[a-f0-9]{64}$/u.test(blueprint.stylekit.snapshotHash || "")
-  )
-    failures.push(
-      "Blueprint StyleKit selection must pin slug, source revision, snapshot version, and SHA-256 hash",
-    );
-  if (!selectedIds.has("design.stylekit-adapted"))
-    failures.push(
-      "Blueprint StyleKit selection requires design.stylekit-adapted",
-    );
-  const sourceStyle = stylekit?.catalog?.styles?.find(
-    ({ slug }) => slug === blueprint.stylekit?.slug,
-  );
-  if (stylekit?.catalog && !sourceStyle)
-    failures.push(
-      `Blueprint StyleKit style ${blueprint.stylekit?.slug || "<missing>"} is missing from source catalog`,
-    );
-  if (
-    sourceStyle &&
-    (sourceStyle.classification !== "base-visual" ||
-      sourceStyle.globalEligibility !== "eligible")
-  )
-    failures.push(
-      `Blueprint StyleKit style ${sourceStyle.slug} is not an eligible global visual system`,
-    );
-  if (
-    sourceStyle &&
-    stylekit?.catalog?.source?.revision !== blueprint.stylekit.sourceRevision
-  )
-    failures.push(
-      `Blueprint StyleKit source revision must pin ${stylekit.catalog.source.revision}`,
-    );
-  if (
-    stylekit?.snapshot &&
-    stylekit.snapshot.style?.slug === blueprint.stylekit?.slug
-  ) {
-    if (
-      stylekit.snapshot.snapshotVersion !== blueprint.stylekit.snapshotVersion
-    )
-      failures.push(
-        "Blueprint StyleKit snapshot version does not match the selected immutable snapshot",
-      );
-    if (
-      stylekit.snapshotHash &&
-      stylekit.snapshotHash !== blueprint.stylekit.snapshotHash
-    )
-      failures.push(
-        "Blueprint StyleKit snapshot hash does not match the selected immutable snapshot",
-      );
-    if (stylekit.snapshot.immutable !== true)
-      failures.push("Selected StyleKit snapshot must be immutable");
-    if (
-      stylekit.snapshot.style?.classification !== "base-visual" ||
-      stylekit.snapshot.style?.globalEligibility !== "eligible"
-    )
-      failures.push(
-        "Selected StyleKit snapshot is not approved as a global visual system",
-      );
-  }
-
-  const profileIds = new Set();
-  const profiles = new Map();
-  for (const profile of designCatalog?.profiles || []) {
-    if (profileIds.has(profile.id))
-      failures.push(`Duplicate Design Profile id ${profile.id}`);
-    profileIds.add(profile.id);
-    profiles.set(profile.id, profile);
-    if (!packIds.has(profile.packId))
-      failures.push(
-        `Design Profile ${profile.id} references missing pack ${profile.packId}`,
-      );
-    for (const mode of ["light", "dark"])
-      if (!profile.semanticColors?.[mode])
-        failures.push(
-          `Design Profile ${profile.id} is missing ${mode} semantic colors`,
-        );
-    for (const target of profile.targets || [])
-      if (!(target in (profile.adapters || {})))
-        failures.push(
-          `Design Profile ${profile.id} is missing adapter state for ${target}`,
-        );
-    for (const source of profile.source || []) {
-      if (
-        source.relationship === "adapted-donor" &&
-        (!source.revision || !source.license || !source.url)
-      )
-        failures.push(
-          `Design Profile ${profile.id} donor source must pin URL, revision, and license`,
-        );
-    }
-  }
-  const selectedProfile = profiles.get(blueprint.designProfile?.id);
-  if (blueprint.stylekit?.slug) {
-    const expectedProfile = `stylekit-${blueprint.stylekit.slug}`;
-    if (
-      blueprint.designProfile?.id !== expectedProfile ||
-      blueprint.designProfile?.version !== blueprint.stylekit.snapshotVersion
-    )
-      failures.push(
-        "Blueprint designProfile must be the derived StyleKit compatibility pointer",
-      );
-  } else if (!selectedProfile)
-    failures.push(
-      `Blueprint Design Profile ${blueprint.designProfile?.id || "<missing>"} is missing from Design Catalog`,
-    );
-  else {
-    if (selectedProfile.version !== blueprint.designProfile?.version)
-      failures.push(
-        `Blueprint Design Profile ${selectedProfile.id} must pin version ${selectedProfile.version}`,
-      );
-    if (!selectedIds.has(selectedProfile.packId))
-      failures.push(
-        `Blueprint Design Profile ${selectedProfile.id} requires selected pack ${selectedProfile.packId}`,
-      );
-  }
+  if (blueprint.designProfile || blueprint.stylekit)
+    failures.push("Starter Blueprint must not contain a Starter-owned visual profile or StyleKit selection");
+  if ([...selectedIds].some((id) => id.startsWith("design.")))
+    failures.push("Starter Blueprint must not select a global design Pack; visual ownership belongs to visual-design");
 
   const pages = new Map();
   for (const page of pageCatalog?.pages || []) {

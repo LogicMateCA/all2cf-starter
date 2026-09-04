@@ -9,7 +9,7 @@
     "contractVersion": "1.0.1",
     "contractStatus": "stable",
     "sourceCommit": "3184f802795387161a22a37a8f06a2788ccf8745",
-    "contractUrl": "https://visual.example.com/contracts/starter-integration/v1"
+    "contractUrl": "https://visual.logicm8.com/contracts/starter-integration/v1"
   },
   "plugin": {
     "id": "visual-design",
@@ -18,8 +18,8 @@
     "bundled": false
   },
   "service": {
-    "developmentOrigin": "https://visualapp-dev.example.com",
-    "productionOrigin": "https://visual.example.com",
+    "developmentOrigin": "https://visualdev.logicm8.com",
+    "productionOrigin": "https://visual.logicm8.com",
     "mcpPath": "/mcp",
     "discoveryPath": "/.well-known/visual-capabilities.json",
     "capabilityDetection": "runtime-required",
@@ -33,13 +33,13 @@
     "audits": ".visual/audits/"
   },
   "fallback": {
-    "required": true,
-    "behavior": "starter-owned-baseline",
+    "required": false,
+    "behavior": "structural-css-only",
     "blocksFactory": false
   },
   "ownership": {
     "visual": ["Visual protocol, plugin, MCP, profiles, recommendations, provider and recipe catalogs"],
-    "starter": ["Factory request, response validation, baseline style, source materialization and local verification"],
+    "starter": ["Factory request, response validation, structural CSS, accessibility and local verification"],
     "project": ["Source code, local .visual archive, accepted visual decisions and private references"]
   }
 }

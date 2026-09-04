@@ -4,7 +4,7 @@ import { createSelectedAuthClientPlugins } from "../generated/auth-plugins";
 
 export const authClient = createAuthClient({
   baseURL: typeof window === "undefined" ? undefined : window.location.origin,
-  basePath: "/api/auth",
+  basePath: (typeof window !== "undefined" && window.location.pathname.startsWith("/dashboard") ? "/dashboard" : "") + "/api/auth",
   plugins: [emailOTPClient(), adminClient(), ...createSelectedAuthClientPlugins()],
 });
 

@@ -1,54 +1,84 @@
 ---
-title: Optional SaaS packs
-description: Select and verify Organizations, TOTP 2FA, API SaaS, Stripe, Entitlements, Usage, Onboarding, and Outgoing Webhooks without bloating the default project.
+title: Optional SaaS and identity packs
+description: Select Organizations, security, enterprise identity, API authorization, billing and product-operation Packs without loading unused runtime code.
 ---
 
-# Optional SaaS packs
+# Optional SaaS and identity packs
 
-The default Starter contains identity, lightweight Admin, support, and docs. Organization, TOTP 2FA, API Key, Stripe, Entitlements, Usage, Onboarding, Outgoing Webhook and API Platform implementations live under `packs/` and do not enter the assembled application until selected in `/setup`.
+The Starter always includes identity, sessions, platform Admin, support, docs and localized authentication errors. Every capability below is independently materialized from `/setup`: an unselected Pack contributes no plugin, dependency, route, SQL migration, Cloudflare requirement or client chunk.
 
-After saving the Blueprint, ask AI to review `npm run starter:materialize`. Apply the reviewed plan with `npm run starter:materialize:apply`, then run `npm run auth:smoke:dev`. The smoke flow creates a disposable empty PostgreSQL database, applies exactly the selected SQL baseline, runs workerd, and destroys the database afterward.
+After saving the Blueprint, review `npm run starter:materialize`, apply it with `npm run starter:materialize:apply`, then run the selected contracts. Pack dependencies and conflicts are enforced by the Materializer as well as Setup; editing Blueprint JSON cannot bypass them.
+
+## Identity foundation
+
+Better Auth core, Admin, Expo and every selected official plugin move together on the reviewed `1.7.2` line. `saas.auth-i18n` is required and includes only English, French and Chinese authentication errors. Username, Sign in with Ethereum, Creem, Dodo and Commet remain deferred and cannot be selected.
 
 ## Organizations
 
-The Starter Teams and Organizations module adds teams, verified-email invitations, `/app/team`, and `/app/invitation`. Its identity adapter uses the official Better Auth Organization plugin. Tenant roles do not grant platform Admin access. Invitation mail uses the configured authentication email provider, with CFsend as the default.
+`saas.team-organizations` is an optional customer-side tenant layer under `/app/team`, not a platform `/admin` substitute. It provides:
+
+- organization create, switch, profile update, leave and owner-only deletion;
+- verified-email invitations with accept, reject, cancel, 48-hour expiry and branded email;
+- teams, team membership and active team selection;
+- owner/admin/member roles plus organization-scoped dynamic roles;
+- Free/Pro organization, member and team limits;
+- logo, brand color, support contact, sender label and desired custom-domain metadata.
+
+Custom domains are not active merely because metadata was saved. A copied product must separately verify DNS ownership and routing before serving an organization domain. Tenant roles never grant Better Auth platform Admin.
+
+When `saas.api-keys` is also selected, Better Auth exposes separate `user-keys` and `org-keys` configurations. Owners/admins manage shared organization keys; members can list them but cannot create or revoke them. Both key types remain hashed and cannot create browser sessions.
+
+## Account security and passwordless
+
+- `saas.account-security-2fa`: verified TOTP enrollment, challenge, trusted-device choice, one-time recovery codes and bounded lockout.
+- `saas.auth-passkey`: WebAuthn registration, sign-in, list and removal. Production acceptance requires a real secure-context authenticator flow.
+- `saas.auth-hibp`: k-anonymous compromised-password rejection on password creation/change/reset paths.
+- `saas.auth-magic-link`: ten-minute one-time links delivered by the selected authentication email provider.
+- `saas.auth-last-login`: database-backed last authentication method without a non-essential tracking cookie.
+- `saas.auth-multi-session`: up to five browser account sessions with explicit switch and revoke UI at `/account/sessions`.
+
+## Enterprise identity
+
+- `saas.auth-generic-oauth`: one to twenty operator-configured OAuth/OIDC providers. IDs are unique, discovery and endpoint URLs require HTTPS, and PKCE remains enabled.
+- `saas.auth-sso`: domain-routed OIDC or SAML SSO. OIDC requires HTTPS discovery and PKCE; SAML requires signed certificate material. This Pack uses code/secret-defined providers and does not claim Better Auth's commercial self-service SSO dashboard.
+- `saas.auth-scim`: inbound SCIM 2.0 users and groups with connection-isolated bearer credentials and scopes. It requires PostgreSQL interactive transactions and does not grant product roles unless the copied product deliberately adds a projection.
+
+## API, OAuth, MCP and agents
+
+- `saas.auth-jwt`: short-lived asymmetric JWTs and JWKS rotation.
+- `saas.auth-bearer`: Better Auth session-token Bearer transport. It is not an OAuth access token.
+- `saas.auth-openapi`: experimental Better Auth endpoint reference, visibly marked experimental.
+- `saas.auth-oauth-provider`: OAuth 2.1/OIDC authorization server with exact redirects, PKCE, consent, refresh and administrator-managed clients. It requires JWT.
+- `saas.auth-device-authorization`: RFC 8628 device flow with explicit client/scope/resource review. It requires JWT and OAuth Provider.
+- `saas.auth-mcp`: OAuth-protected MCP resource with discovery and one narrow identity tool. It requires JWT and conflicts with the standalone OAuth Provider Pack because MCP owns that provider instance.
+- `saas.auth-agent`: experimental Agent Auth protocol. It permits delegated mode only, dynamic host registration is disabled, grants expire, JWT/JWKS replay state uses PostgreSQL shared secondary storage, and the built-in proof capability can only read the identity that approved it.
+
+## Optional login modes
+
+- `saas.auth-phone`: verified phone linking and phone/password sign-in. It requires the Twilio SMS capability, E.164 numbers, five attempts and five-minute OTP expiry.
+- `saas.auth-anonymous`: guest sessions that can later link to a verified account. Guest identity is explicit and removable.
+- `saas.auth-google-one-tap`: reuses the selected Google OAuth client and loads Google's script only on `/one-tap`; account auto-selection is disabled.
 
 ## Stripe Billing
 
-The Starter Stripe Billing module adds `/app/billing`, Checkout subscriptions, Customer Portal, signed webhooks, the subscription projection, and replay receipts. Its identity/billing adapter uses the aligned Stripe SDK and Better Auth integration. Development requires Stripe Test credentials; Production requires separate Live credentials. The default billing owner is the authenticated user. Organization billing is a separate product decision.
-
-Local smoke evidence is not a substitute for a real Stripe Test lifecycle. Before Development verification, complete Checkout, the required subscription webhooks, Portal, cancellation/restore, and entitlement reconciliation against Stripe Test.
-
-## API keys
-
-The Starter API Keys module adds `/app/api-keys` and its reviewed SQL-first table. Its credential adapter uses the official Better Auth API Key plugin. The default keys belong to the current user, are stored only as hashes, cannot become browser sessions, and begin with one `product:read` permission. Replace that placeholder permission vocabulary and prove both allowed and denied product routes before Development release. Usage metering and outgoing webhooks are separate capabilities and are not implied by this pack.
-
-## TOTP two-factor authentication
-
-The Starter Account Security module adds TOTP 2FA, `/app/security/two-factor`, and the Worker-first `/two-factor` challenge. Its authentication adapter uses the aligned Better Auth Two-Factor plugin. Enrollment remains pending until a valid TOTP, backup codes are shown only on generation, and five failed challenges lock the account for 15 minutes. Passkeys are not bundled because they require a separate adapter and real WebAuthn browser/device evidence.
+The Stripe module adds `/app/billing`, Checkout subscriptions, Customer Portal, signed webhooks, subscription projection and replay receipts. Development requires Stripe Test credentials; Production requires separate Live credentials. A copied product must deliberately choose user or organization billing ownership.
 
 ## API SaaS
 
-The `api-saas` preset selects API Keys, Stripe Billing, Entitlements, Usage, Outgoing Webhooks and `saas.api-platform`. Its `/api/v1/me` proof endpoint requires `product:read`, a unique `Idempotency-Key`, and a verified owner-scoped API key; it consumes the `api.requests` quota and emits `api.request.completed` only once for a newly recorded request. `/app/developer` and `/docs/guides/api-platform/` expose the assembled contract. Copied products replace the example resource, scopes and quota vocabulary rather than rebuilding authentication, metering and delivery.
+The `api-saas` preset selects API Keys, Stripe, Entitlements, Usage, Outgoing Webhooks and `saas.api-platform`. Its proof endpoint requires a verified key, `product:read` and a unique idempotency key. Replace the example resource, scopes and quota vocabulary before Development release.
 
-## Entitlements
+## Entitlements and Usage
 
-`saas.entitlements` requires `saas.billing-stripe` and resolves the signed-in user's verified subscription projection into Free or paid plan features. The generic `product.read` and `product.actions.monthly` definitions are scaffolding, not a finished product policy: replace them and enforce the result inside the copied product's Worker routes before Development release. Usage accounting, credits, seats, and organization billing remain separate decisions.
-
-## Usage
-
-`saas.usage` requires Entitlements and records only successful server-side product work. It exposes user and platform-Admin readback but no production consume endpoint. PostgreSQL serializes concurrent consumption, replays the same idempotency key without double counting, rejects changed replays, and rolls back over-limit or non-entitled calls without residue. Replace the generic meter and call the helper from the copied product's completed business action before Development release. Credits, corrections, provider metering, and organization usage remain separate decisions.
+`saas.entitlements` requires Stripe and resolves verified subscription projections into Free or paid features. `saas.usage` requires Entitlements and records only successful server-side actions under a transaction-level advisory lock. Both ship generic vocabulary that copied products must replace and enforce.
 
 ## Outgoing Webhooks
 
-`saas.outgoing-webhooks` adds `/app/webhooks`, read-only `/admin/webhooks`, an SQL event/delivery ledger, and one environment-derived Cloudflare Queue. Endpoint secrets are shown only on create or rotate and are derived from the Worker-only `WEBHOOK_SIGNING_KEY`; no endpoint secret is stored. Product Worker code must call `enqueueOutgoingWebhook()` inside the same SQL transaction as the authoritative product change. The receiver gets a bounded JSON envelope plus `Webhook-Id`, `Webhook-Timestamp`, and `Webhook-Signature` HMAC-SHA256 headers. Non-2xx and network failures retry with bounded delays and become terminal after five attempts.
-
-Materialization declares `starter-dev-outgoing-webhooks` for Development and `starter-outgoing-webhooks` for Production, but it does not create cloud resources or store signing roots. Provision the matching Queue and a separate signing root in each environment through the Cloudflare release workflow. Before Development acceptance, replace `starter.webhook.test` with the product event vocabulary and prove a real product transaction against a remote receiver.
+Outgoing Webhooks adds customer management, an SQL event/delivery ledger and one environment-specific Queue. Endpoint secrets are shown only on create/rotation and derived from `WEBHOOK_SIGNING_KEY`. Product code inserts its event in the same SQL transaction as the authoritative change; the Queue consumer signs deliveries, retries bounded failures and records terminal evidence.
 
 ## Product Onboarding
 
-`saas.onboarding` adds `/app/onboarding`, Worker-owned ordered steps, versioned user progress, and an authenticated Product Shell redirect. The neutral welcome step proves the framework but is not a finished product journey. Replace `productOnboarding.steps` with the copied product's first-success path, increment its version when the definition changes, and keep settings/support/admin routes available as recovery paths. Completion is sequential and idempotent; Admin sees aggregate adoption counts only.
+Product Onboarding adds a versioned, sequential and idempotent first-success checklist. The neutral welcome step proves the framework only; replace it and increment the definition version when product steps change.
 
-## Empty database rule
+## Empty database and updates
 
-Starter always provisions a new empty database from the current selected baseline. It does not generate legacy migrations, data backfills, or dual-write compatibility. Once a copied product has real data, that product owns its later upgrades independently.
+New Starter projects initialize an empty database from exactly the selected migrations. Once a product has customer data, updates use Base/Local/Target comparison: customer changes are preserved, safe foundation changes apply, and true conflicts fail closed for review. Deselected catalog Packs remain in canonical source for later selection but stay absent from the product runtime.

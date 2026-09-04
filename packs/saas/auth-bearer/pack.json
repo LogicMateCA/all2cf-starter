@@ -1,0 +1,27 @@
+{
+  "$schema": "../../../schemas/starter-pack.schema.json",
+  "schemaVersion": "starter-pack/v1",
+  "id": "saas.auth-bearer",
+  "version": "0.1.0",
+  "source": {
+    "name": "Better Auth Bearer",
+    "url": "https://better-auth.com/docs/plugins/bearer",
+    "revision": "1.7.2",
+    "license": "MIT",
+    "relationship": "tracked-upstream"
+  },
+  "files": [
+    {
+      "source": "templates/bearer-auth-plugin.ts",
+      "target": "workers/app/features/bearer-auth-plugin.ts"
+    }
+  ],
+  "dependencies": [],
+  "routes": [],
+  "authPlugins": {
+    "server": {
+      "module": "../features/bearer-auth-plugin",
+      "export": "createBearerAuthPlugin"
+    }
+  }
+}

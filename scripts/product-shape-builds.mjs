@@ -10,7 +10,7 @@ const cases = [
   { id: "mobile-only-build", project: { productType: "mobile-app", websiteType: "landing", companionSite: "none", webAdmin: false, platforms: ["ios", "android"] } },
 ];
 const evidence = [];
-const permanent = new Set(["design.owned-neutral", "design.stylekit-adapted", "page.core-product-site", "saas.product-shell", "saas.identity-core", "saas.notifications-core", "saas.product-operations-lite"]);
+const permanent = new Set(["page.core-product-site", "saas.product-shell", "saas.identity-core", "saas.notifications-core", "saas.product-operations-lite"]);
 
 for (const item of cases) {
   const slug = `${item.id}-${process.pid}`;

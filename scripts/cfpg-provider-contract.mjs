@@ -19,9 +19,7 @@ const manifest = JSON.parse(await readFile(path.join(root, "starter.manifest.jso
 const packageJson = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
 const nativeMigrationSource = await readFile(path.join(root, "scripts/database-migrate.mjs"), "utf8");
 const catalog = JSON.parse(await readFile(path.join(root, "catalog/catalog.json"), "utf8"));
-const designCatalog = JSON.parse(await readFile(path.join(root, "design/catalog.json"), "utf8"));
 const pageCatalog = JSON.parse(await readFile(path.join(root, "pages/catalog.json"), "utf8"));
-const stylekit = JSON.parse(await readFile(path.join(root, "design/stylekit", blueprint.stylekit.slug, "snapshot.json"), "utf8"));
 const saved = blueprint.providers.database.cfpg.development;
 
 assert.equal(packageJson.scripts["db:migrate:status"], "node scripts/database-migrate.mjs --environment=development");
@@ -35,9 +33,9 @@ const assemblyFailures = (database, options = {}) => validateAssemblyContracts(
   manifest,
   { ...structuredClone(blueprint), providers: { ...structuredClone(blueprint.providers), database } },
   catalog,
-  designCatalog,
+  null,
   pageCatalog,
-  stylekit,
+  null,
   options,
 );
 
