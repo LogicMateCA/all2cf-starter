@@ -30,4 +30,4 @@ Starter no longer owns or selects StyleKit snapshots, Design Profiles or visual 
 
 # Release
 
-Canonical Starter source change. A new Engine candidate is required before publication.
+Canonical Starter source change released as Engine 2.3.2 after qualification and candidate verification.

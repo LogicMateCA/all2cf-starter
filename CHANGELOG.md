@@ -10,6 +10,32 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Nothing yet.
 
+## [2.3.2] - 2026-09-03
+
+### Added
+
+- An explicit Visual Design ownership and project receipt boundary for generated products.
+
+### Changed
+
+- Starter now emits structural, responsive and accessible compatibility tokens only; project aesthetics are delegated to Visual Design.
+
+### Fixed
+
+- Removed conflicting Starter StyleKit selections, global visual profiles and presentation-specific Marketing variants.
+
+### Performance
+
+- Removed the 146-entry StyleKit catalog, 28 snapshots, preview assets and compiler pipeline from Starter source and generated projects.
+
+### Security
+
+- Visual materialization remains bounded to project-owned `.visual/` receipts and no third-party visual runtime is bundled.
+
+### Migration
+
+- Existing products retain their modified visual files. Functional updates stop managing Starter visual output; run Visual Design deliberately when adopting a new visual direction.
+
 ## [2.3.1] - 2026-09-02
 
 ### Added
@@ -485,7 +511,8 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Established Web/Mobile foundation, authentication email Providers, account menu, dual UI strategy, operational Skills and always-current `/dp`.
 
-[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.2.0...HEAD
+[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.3.2...HEAD
+[2.3.2]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.3.2
 [2.3.1]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.3.1
 [2.2.0]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.2.0
 [2.1.12]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.1.12
