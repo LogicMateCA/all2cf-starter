@@ -10,6 +10,32 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Nothing yet.
 
+## [2.3.4] - 2026-09-05
+
+### Added
+
+- Windows-host Android SDK/JDK discovery and a Starter plugin Android candidate builder for WSL projects.
+
+### Changed
+
+- Android now defaults to the Windows Host Runner; iOS remains on the connected Mac Host Runner.
+
+### Fixed
+
+- WSL projects no longer report Android unavailable merely because the SDK is installed on Windows.
+
+### Performance
+
+- Host readiness uses centralized `super.env` references without scanning project-specific environment files.
+
+### Security
+
+- Shared configuration stores host paths and builder selection only; signing values remain referenced separately.
+
+### Migration
+
+- Add the Starter host fields to `/opt/1panel/apps/super.env`; project-specific `MOBILE_MAC_*` values are no longer required.
+
 ## [2.3.3] - 2026-09-04
 
 ### Added
@@ -537,7 +563,8 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Established Web/Mobile foundation, authentication email Providers, account menu, dual UI strategy, operational Skills and always-current `/dp`.
 
-[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.3.3...HEAD
+[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.3.4...HEAD
+[2.3.4]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.3.4
 [2.3.3]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.3.3
 [2.3.2]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.3.2
 [2.3.1]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.3.1

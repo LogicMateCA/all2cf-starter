@@ -570,7 +570,7 @@ const providerSecretFields = {
   "mobile-local-build": [
     {
       name: "MOBILE_ANDROID_BUILDER",
-      label: "Android builder: local (default) or explicit eas",
+      label: "Android builder: windows-host (default), local or explicit eas",
       secret: false,
     },
     {

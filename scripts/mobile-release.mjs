@@ -95,8 +95,8 @@ function parseJsonOutput(output) {
 
 function builderPreference(platform) {
   const name = platform === "ios" ? "MOBILE_IOS_BUILDER" : "MOBILE_ANDROID_BUILDER";
-  const value = optional(name) || (platform === "ios" ? "connected-mac" : "local");
-  const allowed = platform === "ios" ? new Set(["local", "connected-mac", "eas"]) : new Set(["local", "eas"]);
+  const value = optional(name) || (platform === "ios" ? "connected-mac" : "windows-host");
+  const allowed = platform === "ios" ? new Set(["local", "connected-mac", "eas"]) : new Set(["windows-host", "local", "eas"]);
   if (value === "auto") throw new Error(`${name}=auto is no longer supported; choose an explicit builder`);
   if (!allowed.has(value)) throw new Error(`${name} must be one of ${[...allowed].join(", ")}`);
   return value;
@@ -105,6 +105,7 @@ function builderPreference(platform) {
 function routeFor(platform, targets) {
   const preference = builderPreference(platform);
   if (platform === "android") {
+    if (preference === "windows-host") return "starter-plugin-windows-android";
     if (preference === "local") return targets.localAndroid.available ? "local-android" : "unavailable";
     if (preference === "eas") return targets.easCloud.configured ? "eas-cloud-build" : "unavailable";
     return targets.localAndroid.available ? "local-android" : "unavailable";
@@ -219,7 +220,7 @@ async function release(environment) {
   if (git(["status", "--porcelain"])) throw new Error("Mobile release requires a clean Git worktree");
   await verify();
   const releasePlan = await plan(environment);
-  if (Object.values(releasePlan.routes).includes("unavailable")) throw new Error(`No configured builder for ${Object.entries(releasePlan.routes).filter(([, route]) => route === "unavailable").map(([platform]) => platform).join(" and ")}. Configure a local SDK, connected Mac or Expo/EAS.`);
+  if (Object.values(releasePlan.routes).includes("unavailable")) throw new Error(`No configured builder for ${Object.entries(releasePlan.routes).filter(([, route]) => route === "unavailable").map(([platform]) => platform).join(" and ")}. Configure the Starter host builders or explicitly select EAS.`);
   const message = `${environment} ${releasePlan.commit.slice(0, 12)}`;
   let remote;
 
@@ -241,6 +242,7 @@ async function release(environment) {
       const route = releasePlan.routes[platform];
       if (route === "eas-cloud-build") builds[platform] = parseJsonOutput(eas(["build", "--profile", environment, "--platform", platform, "--message", message, "--wait", "--json", "--non-interactive"]));
       else if (route === "starter-plugin-connected-mac") throw new Error("iOS candidate must be built and device-tested through Logicmate Starter before release. Generate the release contract with that artifact and evidence.");
+      else if (route === "starter-plugin-windows-android") throw new Error("Android candidate must be built through Logicmate Starter build_windows_android_candidate on the Windows Host Runner and recorded in the release contract.");
       else builds[platform] = buildLocally(platform, environment);
     }
     remote = { builds };
