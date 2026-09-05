@@ -9,7 +9,7 @@ const policy = JSON.parse(await readFile(path.join(root, ".ai/change-policy.json
 const runGit = (args) => execFileSync("git", args, { cwd: root, encoding: "utf8" }).trim();
 const runGitRaw = (args) => execFileSync("git", args, { cwd: root, encoding: "utf8" }).trimEnd();
 const isChangeSpec = (file) => file.startsWith(`${policy.changeSpecDirectory}/`) && file.endsWith(".md") && !file.endsWith("/_template.md");
-const isGenerated = (file) => file.startsWith("apps/web/public/dp/") || file.startsWith("dist/") || file.startsWith(".all2cf/");
+const isGenerated = (file) => file === ".starter/materialization.json" || file.startsWith("apps/web/public/dp/") || file.startsWith("dist/") || file.startsWith(".all2cf/");
 const isMaterial = (file) => !isChangeSpec(file) && !isGenerated(file);
 
 function parseFrontmatter(source, file) {

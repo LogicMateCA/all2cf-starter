@@ -21,6 +21,7 @@ Old receipts containing All2CF fields migrate to `updateMode: github-release` af
 - Safe archive extraction and complete Catalog version projection
 - TypeScript and all site builds
 - Generated-project regression: status, diff, add, update, lock refusal, rollback snapshot, customer file/dependency preservation and simultaneous-conflict blocking without an All2CF token
+- Change Spec enforcement treats the deterministic materialization receipt as generated output rather than requiring a separate business spec for receipt-only refresh commits.
 
 # Release
 
