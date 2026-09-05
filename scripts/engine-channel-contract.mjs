@@ -78,6 +78,7 @@ try {
   assert.equal(typeof address, "object");
   const channelUrl = `http://127.0.0.1:${address.port}/channel.json`;
   const updateServiceUrl = `http://127.0.0.1:${address.port}/api/starter-updates/`;
+  const updateEnv = { STARTER_UPDATE_CHANNEL_URL: channelUrl };
   const created = JSON.parse(await runAsync(process.execPath, [
     path.join(root, "scripts/starter-factory.mjs"), "create", `--slug=${projectSlug}`, "--name=Engine Channel Proof",
   ], { env: {
@@ -92,24 +93,18 @@ try {
   } }));
   assert.equal(created.ok, true);
   await runAsync("npm", ["ci", "--ignore-scripts", "--no-audit", "--no-fund"], { cwd: projectRoot });
-  await assert.rejects(runAsync("npm", ["run", "starter:status", "--silent"], { cwd: projectRoot }), /connect.*All2CF/iu);
-  const generatedReceiptPath = path.join(projectRoot, ".starter/source.json");
-  const generatedReceipt = JSON.parse(await readFile(generatedReceiptPath, "utf8"));
-  generatedReceipt.updateServiceUrl = "http://127.0.0.1:9/api/starter-updates/";
-  await writeFile(generatedReceiptPath, `${JSON.stringify(generatedReceipt, null, 2)}\n`);
-  await writeFile(path.join(projectRoot, ".starter/update-auth.local.json"), `${JSON.stringify({ schemaVersion: "starter-update-auth/v1", accessToken: "contract-token", installationId: "installation-contract", projectId: "project-contract", expiresAt: new Date(Date.now() + 10 * 60_000).toISOString(), updateServiceUrl }, null, 2)}\n`, { mode: 0o600 });
-  const status = JSON.parse(await runAsync("npm", ["run", "starter:status", "--silent"], { cwd: projectRoot }));
+  const status = JSON.parse(await runAsync("npm", ["run", "starter:status", "--silent"], { cwd: projectRoot, env: updateEnv }));
   assert.equal(status.source.installedVersion, "2.0.0-dev.9");
   assert.equal(status.source.availableVersion, "2.0.0-dev.10");
   assert.equal(status.source.updateAvailable, true);
-  const diff = JSON.parse(await runAsync("npm", ["run", "starter:diff", "--silent"], { cwd: projectRoot }));
+  const diff = JSON.parse(await runAsync("npm", ["run", "starter:diff", "--silent"], { cwd: projectRoot, env: updateEnv }));
   assert.equal(diff.ok, true);
   assert.equal(diff.changes.length, 0);
   const updateLock = path.join(projectRoot, ".starter/update.lock");
   await writeFile(updateLock, `${JSON.stringify({ schemaVersion: "starter-update-lock/v1", pid: 1, command: "update", startedAt: new Date().toISOString() })}\n`);
-  await assert.rejects(runAsync("npm", ["run", "starter:add", "--silent", "--", "saas.account-security-2fa"], { cwd: projectRoot }), /Another Starter update is already running/u);
+  await assert.rejects(runAsync("npm", ["run", "starter:add", "--silent", "--", "saas.account-security-2fa"], { cwd: projectRoot, env: updateEnv }), /Another Starter update is already running/u);
   await rm(updateLock, { force: true });
-  await runAsync("npm", ["run", "starter:add", "--silent", "--", "saas.account-security-2fa"], { cwd: projectRoot });
+  await runAsync("npm", ["run", "starter:add", "--silent", "--", "saas.account-security-2fa"], { cwd: projectRoot, env: updateEnv });
   let receipt = JSON.parse(await readFile(path.join(projectRoot, ".starter/source.json"), "utf8"));
   assert.equal(receipt.engineVersion, "2.0.0-dev.10");
   assert.equal(receipt.sourceCommit, availableCommit);
@@ -117,11 +112,11 @@ try {
   receipt.sourceCommit = installedCommit;
   receipt.artifactSha256 = "1".repeat(64);
   await writeFile(path.join(projectRoot, ".starter/source.json"), `${JSON.stringify(receipt, null, 2)}\n`);
-  await assert.rejects(runAsync("npm", ["run", "starter:update", "--silent"], { cwd: projectRoot, env: { STARTER_UPDATE_TEST_FORCE_VERIFY_FAILURE: "true" } }), /Forced post-update verification failure/u);
+  await assert.rejects(runAsync("npm", ["run", "starter:update", "--silent"], { cwd: projectRoot, env: { ...updateEnv, STARTER_UPDATE_TEST_FORCE_VERIFY_FAILURE: "true" } }), /Forced post-update verification failure/u);
   receipt = JSON.parse(await readFile(path.join(projectRoot, ".starter/source.json"), "utf8"));
   assert.equal(receipt.engineVersion, "2.0.0-dev.9");
   assert.ok((await readdir(path.join(projectRoot, ".starter/backups"))).some((name) => name.endsWith(".json.gz")), "failed update must leave a recovery snapshot");
-  await runAsync("npm", ["run", "starter:update", "--silent"], { cwd: projectRoot });
+  await runAsync("npm", ["run", "starter:update", "--silent"], { cwd: projectRoot, env: updateEnv });
   receipt = JSON.parse(await readFile(path.join(projectRoot, ".starter/source.json"), "utf8"));
   assert.equal(receipt.engineVersion, "2.0.0-dev.10");
   const ownedPath = path.join(projectRoot, "workers/app/features/object-storage-worker.ts");
@@ -136,11 +131,11 @@ try {
   const productDependencyVersion = "0.0.0-product-override";
   packageModel[dependencyReceipt.section][dependencyReceipt.name] = productDependencyVersion;
   await writeFile(packagePath, `${JSON.stringify(packageModel, null, 2)}\n`);
-  const preserveDiff = JSON.parse(await runAsync("npm", ["run", "starter:diff", "--silent"], { cwd: projectRoot }));
+  const preserveDiff = JSON.parse(await runAsync("npm", ["run", "starter:diff", "--silent"], { cwd: projectRoot, env: updateEnv }));
   assert.equal(preserveDiff.summary.conflicts, 0);
   assert.equal(preserveDiff.preserved.some(({ target }) => target === "workers/app/features/object-storage-worker.ts"), true);
   assert.equal(preserveDiff.preserved.some(({ target }) => target === `${dependencyReceipt.packageFile}:${dependencyReceipt.name}`), true);
-  await runAsync("npm", ["run", "starter:update", "--silent"], { cwd: projectRoot });
+  await runAsync("npm", ["run", "starter:update", "--silent"], { cwd: projectRoot, env: updateEnv });
   assert.equal(await readFile(ownedPath, "utf8"), localOverride);
   assert.equal(JSON.parse(await readFile(packagePath, "utf8"))[dependencyReceipt.section][dependencyReceipt.name], productDependencyVersion);
 
@@ -154,7 +149,7 @@ try {
   availableCommit = "3".repeat(40);
   availableVersion = "2.0.0-dev.11";
   await assert.rejects(
-    runAsync("npm", ["run", "starter:diff", "--silent"], { cwd: projectRoot }),
+    runAsync("npm", ["run", "starter:diff", "--silent"], { cwd: projectRoot, env: updateEnv }),
     /both product and Starter changes|conflict|blocked/iu,
   );
   assert.equal(await readFile(ownedPath, "utf8"), localOverride);

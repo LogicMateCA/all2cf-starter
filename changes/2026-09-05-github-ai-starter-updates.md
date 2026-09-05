@@ -20,6 +20,7 @@ Old receipts containing All2CF fields migrate to `updateMode: github-release` af
 - Exact target commit and GitHub asset SHA-256
 - Safe archive extraction and complete Catalog version projection
 - TypeScript and all site builds
+- Generated-project regression: status, diff, add, update, lock refusal, rollback snapshot, customer file/dependency preservation and simultaneous-conflict blocking without an All2CF token
 
 # Release
 
