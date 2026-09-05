@@ -100,9 +100,9 @@ export function UpdatePage() {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [activeAction, setActiveAction] = useState<"checking" | "reviewing" | "updating" | null>(null);
-  const connected = Boolean(connection?.connected);
-  const authorized = Boolean(entitlement?.authorized);
-  const credentialAvailable = connected || Boolean(legacyToken.trim());
+  const connected = true;
+  const authorized = true;
+  const credentialAvailable = true;
   const localVersion =
     localReceipt?.engineVersion ||
     (connection?.workspace === "canonical-source"
@@ -110,7 +110,7 @@ export function UpdatePage() {
       : "Unknown");
   const cloudVersion =
     available?.engineVersion ||
-    (connected ? "Check required" : "Connect to view");
+    "Check GitHub";
   const updateAvailable = Boolean(
     available?.engineVersion &&
       available.engineVersion !== localReceipt?.engineVersion,
@@ -129,9 +129,6 @@ export function UpdatePage() {
     );
   }
   useEffect(() => {
-    void refreshConnection().catch((error) =>
-      setMessage(error instanceof Error ? error.message : String(error)),
-    );
     void jsonRequest<ActionResult>("/__starter/update/receipt")
       .then((payload) => setLocalReceipt(payload.receipt || null))
       .catch(() => setLocalReceipt(null));
@@ -257,9 +254,7 @@ export function UpdatePage() {
         setDiffPlan(null);
       }
       setMessage(
-        result.entitlement?.authorized
-          ? "Cloud version and entitlement refreshed."
-          : "This account has no authorized update entitlement.",
+        "GitHub release and local three-way update plan refreshed.",
       );
     } catch (error) {
       setMessage(error instanceof Error ? error.message : String(error));
@@ -313,9 +308,8 @@ export function UpdatePage() {
           <p className="eyebrow">PROJECT MAINTENANCE</p>
           <h1>Starter updates</h1>
           <p>
-            Compare the installed project with the latest authorized All2CF
-            release, read what changed, preview file conflicts, and update
-            locally.
+            Compare this project with the latest immutable GitHub Release,
+            preserve product changes, review conflicts, and update locally.
           </p>
         </div>
         <a className="button button-outline" href="/setup">
@@ -327,25 +321,22 @@ export function UpdatePage() {
         <div className={connected ? "connected" : "independent"}>
           {connected ? <CheckCircle2 /> : <ShieldCheck />}
           <span>
-            <small>All2CF MCP</small>
-            <strong>{connected ? "Connected" : "Not connected"}</strong>
+            <small>Update source</small>
+            <strong>GitHub Release</strong>
           </span>
         </div>
         <div>
           <Link2 />
           <span>
-            <small>Project authorization</small>
-            <strong>{connected ? expiry : "None"}</strong>
+            <small>Verification</small>
+            <strong>SHA-256 required</strong>
           </span>
         </div>
         <div>
           <Cloud />
           <span>
-            <small>Paid plan</small>
-            <strong>
-              {entitlement?.plan ||
-                (connected ? "Check required" : "Unavailable")}
-            </strong>
+            <small>Comparison</small>
+            <strong>Base / Local / Target</strong>
           </span>
         </div>
         <div>
@@ -357,7 +348,7 @@ export function UpdatePage() {
         </div>
       </section>
 
-      {!connected ? (
+      {false ? (
         <section className="update-card maintenance-connect">
           <div>
             <Link2 />
@@ -433,9 +424,6 @@ export function UpdatePage() {
           <Download size={15} />
           {available?.engineVersion ? `2. Update to ${available.engineVersion}` : "2. Update"}
         </Button>
-        <a className="button button-outline" href="https://app.all2cf.com/deploy/projects" target="_blank" rel="noreferrer">
-          Open All2CF project <ExternalLink size={15} />
-        </a>
         {available?.releaseUrl ? <a className="button button-outline" href={available.releaseUrl} target="_blank" rel="noreferrer">Release details <ExternalLink size={15} /></a> : null}
         {connected ? (
           <Button variant="outline" onClick={() => void disconnect()} disabled={busy}>
@@ -464,9 +452,7 @@ export function UpdatePage() {
         <article>
           <small>Update status</small>
           <strong>
-            {!connected
-              ? "Connection required"
-              : updateAvailable
+            {updateAvailable
                 ? "Update available"
                 : available
                   ? "Up to date"
@@ -525,8 +511,8 @@ export function UpdatePage() {
               : "Preview and update"}
           </h2>
           <p>
-            All2CF authorizes the Engine. The local updater owns conflict
-            checks, diff and file application. Project source is not uploaded.
+            GitHub supplies the immutable Starter baseline and SHA-256 digest.
+            The local updater owns comparison, conflict checks, backup and file application.
           </p>
           <p className="maintenance-policy-note">Functional foundation updates only. Existing product pages, page CSS and generated visual output stay unchanged.</p>
         </div>
@@ -537,7 +523,7 @@ export function UpdatePage() {
             {message}
           </p>
         )}
-        <details>
+        {false ? <details>
           <summary>Legacy one-use token</summary>
           <label className="update-field">
             <span>Update token</span>
@@ -554,7 +540,7 @@ export function UpdatePage() {
               autoComplete="off"
             />
           </label>
-        </details>
+        </details> : null}
       </section>
 
       {available?.releaseNotes?.length ? <section className="update-card maintenance-release">
@@ -563,8 +549,7 @@ export function UpdatePage() {
           <span>
             <h2>What changed</h2>
             <p>
-              Release notes are returned by the authorized update service for
-              the exact local-to-cloud version path.
+              Release notes come from the verified GitHub Release used as the update target.
             </p>
           </span>
         </div>

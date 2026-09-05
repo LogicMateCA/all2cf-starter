@@ -79,14 +79,14 @@ function allowedChannelUrl(value) {
   throw new Error("Starter Channel must use HTTPS; loopback HTTP is allowed only for local verification");
 }
 
-async function fetchBytes(url, label) {
+async function fetchBytes(url, label, redirect = "error") {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 30_000);
   try {
     const headers = process.env.STARTER_UPDATE_TOKEN
       ? { Authorization: `Bearer ${process.env.STARTER_UPDATE_TOKEN}` }
       : undefined;
-    const response = await fetch(url, { headers, signal: controller.signal, redirect: "error" });
+    const response = await fetch(url, { headers, signal: controller.signal, redirect });
     if (!response.ok) throw new Error(`${label} returned HTTP ${response.status}`);
     const length = Number(response.headers.get("content-length") || 0);
     if (length > maxArtifactBytes) throw new Error(`${label} exceeds the ${maxArtifactBytes} byte limit`);
@@ -111,11 +111,35 @@ function validateChannel(value, channelUrl) {
 }
 
 async function remoteChannel() {
-  if (receipt.updateServiceUrl) return serviceChannel();
-  if (!receipt.channelUrl) throw new Error("This portable project has no update Channel in .starter/source.json");
-  const channelUrl = allowedChannelUrl(receipt.channelUrl);
-  const bytes = await fetchBytes(channelUrl, "Starter Channel");
-  return validateChannel(JSON.parse(bytes.toString("utf8")), channelUrl);
+  if (process.env.STARTER_UPDATE_CHANNEL_URL) {
+    const channelUrl = allowedChannelUrl(process.env.STARTER_UPDATE_CHANNEL_URL);
+    const bytes = await fetchBytes(channelUrl, "Starter test Channel");
+    return validateChannel(JSON.parse(bytes.toString("utf8")), channelUrl);
+  }
+  return githubRelease();
+}
+
+async function githubRelease() {
+  const repository = process.env.STARTER_GITHUB_REPOSITORY || "LogicMateCA/all2cf-starter";
+  if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u.test(repository)) throw new Error("STARTER_GITHUB_REPOSITORY is invalid");
+  const response = await fetch(`https://api.github.com/repos/${repository}/releases/latest`, { headers: { Accept: "application/vnd.github+json", "User-Agent": "all2cf-starter-updater" }, redirect: "error" });
+  if (!response.ok) throw new Error(`GitHub Releases returned HTTP ${response.status}`);
+  const release = await response.json();
+  const version = String(release.tag_name || "").replace(/^v/u, "");
+  if (!/^\d+\.\d+\.\d+$/u.test(version)) throw new Error("Latest GitHub release is not a stable Starter version");
+  const assetName = `starter-${version}.tar.gz`;
+  const asset = release.assets?.find(({ name }) => name === assetName);
+  const digest = String(asset?.digest || "").match(/^sha256:([a-f0-9]{64})$/u)?.[1];
+  if (!asset?.browser_download_url || !digest) throw new Error(`${assetName} is missing its GitHub SHA-256 digest`);
+  if (!/^[a-f0-9]{40}$/u.test(release.target_commitish || "")) throw new Error("GitHub release target commit is not immutable");
+  return {
+    schemaVersion: "starter-github-release/v1",
+    channel: "github-release",
+    publishedAt: release.published_at || null,
+    releaseUrl: release.html_url || null,
+    releaseNotes: String(release.body || "").split(/\r?\n/u).map((line) => line.replace(/^[-*]\s*/u, "").trim()).filter(Boolean),
+    engine: { version, sourceCommit: release.target_commitish, artifactUrl: asset.browser_download_url, artifactSha256: digest, packVersions: {} },
+  };
 }
 
 async function serviceChannel() {
@@ -153,7 +177,11 @@ async function serviceChannel() {
 }
 
 async function statusRemote() {
-  const channel = await remoteChannel();
+  const resolved = await withRemoteEngine(async (sourceRoot) => {
+    const catalog = JSON.parse(await readFile(path.join(sourceRoot, "catalog/catalog.json"), "utf8"));
+    return Object.fromEntries((catalog.packs || []).map(({ id, version }) => [id, version]));
+  });
+  const channel = { ...resolved.channel, engine: { ...resolved.channel.engine, packVersions: resolved.result } };
   const materialization = JSON.parse(await readFile(materializationPath, "utf8"));
   const installedVersions = new Map(Object.entries(materialization.packs || {}).map(([id, value]) => [id, value.version]));
   const packs = Object.entries(channel.engine.packVersions || {})
@@ -223,7 +251,7 @@ async function withRemoteEngine(callback) {
   const archive = path.join(work, "engine.tar.gz");
   const sourceRoot = path.join(work, "source");
   try {
-    const bytes = await fetchBytes(channel.engine.artifactUrl, "Starter Engine artifact");
+    const bytes = await fetchBytes(channel.engine.artifactUrl, "Starter GitHub release artifact", "follow");
     const digest = createHash("sha256").update(bytes).digest("hex");
     if (digest !== channel.engine.artifactSha256) throw new Error("Starter Engine artifact SHA-256 does not match the Channel");
     await writeFile(archive, bytes, { mode: 0o600 });
@@ -241,8 +269,10 @@ async function withRemoteEngine(callback) {
 async function updateReceipt(channel) {
   const next = JSON.parse(await readFile(receiptPath, "utf8"));
   next.schemaVersion = "starter-source/v2";
-  next.updateMode = "engine-channel";
-  if (next.updateServiceUrl) next.updateMode = "all2cf-service";
+  next.updateMode = "github-release";
+  next.githubRepository = process.env.STARTER_GITHUB_REPOSITORY || "LogicMateCA/all2cf-starter";
+  delete next.updateServiceUrl;
+  delete next.channelUrl;
   next.sourceCommit = channel.engine.sourceCommit;
   next.sourceDirty = false;
   next.engineVersion = channel.engine.version;
@@ -274,7 +304,7 @@ async function executeMain() {
       STARTER_FACTORY_SOURCE_COMMIT: descriptor.engine.sourceCommit,
       STARTER_FACTORY_PORTABLE: "true",
       STARTER_FACTORY_SOURCE_URL: receipt.sourceUrl || descriptor.engine.artifactUrl,
-      STARTER_FACTORY_CHANNEL_URL: receipt.channelUrl,
+      STARTER_FACTORY_CHANNEL_URL: process.env.STARTER_UPDATE_CHANNEL_URL || "https://api.github.com/repos/LogicMateCA/all2cf-starter/releases/latest",
       STARTER_FACTORY_ENGINE_VERSION: descriptor.engine.version,
       STARTER_FACTORY_ARTIFACT_SHA256: descriptor.engine.artifactSha256,
       ...(command === "update" || command === "diff" ? { STARTER_UPDATE_SCOPE: "functional" } : {}),

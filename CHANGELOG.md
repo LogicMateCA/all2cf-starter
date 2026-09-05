@@ -10,6 +10,32 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Nothing yet.
 
+## [2.3.5] - 2026-09-05
+
+### Added
+
+- Direct GitHub Release discovery with immutable target commit, asset digest and Catalog component comparison.
+
+### Changed
+
+- Local Starter maintenance now uses GitHub as its default update authority and performs Base/Local/Target comparison locally.
+
+### Fixed
+
+- Removed the retired All2CF paid Channel, project Token and entitlement requirement from Starter updates.
+
+### Performance
+
+- One bounded verified release download supplies both component metadata and the local update target.
+
+### Security
+
+- GitHub-provided SHA-256, archive path validation, update locking, recovery snapshots and pre/post builds remain mandatory.
+
+### Migration
+
+- Existing All2CF receipt fields are removed after the first successful GitHub update and the receipt advances to `updateMode: github-release`.
+
 ## [2.3.4] - 2026-09-05
 
 ### Added
@@ -563,7 +589,8 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Established Web/Mobile foundation, authentication email Providers, account menu, dual UI strategy, operational Skills and always-current `/dp`.
 
-[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.3.4...HEAD
+[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.3.5...HEAD
+[2.3.5]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.3.5
 [2.3.4]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.3.4
 [2.3.3]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.3.3
 [2.3.2]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.3.2
