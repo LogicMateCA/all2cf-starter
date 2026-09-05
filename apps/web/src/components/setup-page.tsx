@@ -570,12 +570,12 @@ const providerSecretFields = {
   "mobile-local-build": [
     {
       name: "MOBILE_ANDROID_BUILDER",
-      label: "Android builder: auto, local or eas",
+      label: "Android builder: local (default) or explicit eas",
       secret: false,
     },
     {
       name: "MOBILE_IOS_BUILDER",
-      label: "iOS builder: auto, local, connected-mac or eas",
+      label: "iOS builder: connected-mac (default), local or explicit eas",
       secret: false,
     },
     { name: "ANDROID_HOME", label: "Android SDK path", secret: false },

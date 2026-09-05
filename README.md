@@ -134,7 +134,7 @@ Development is the default release lane. Production requires an explicit product
 npm run release:production
 ```
 
-For iOS and Android, run `npm run mobile:doctor` and use the documented local Android, connected-Mac Xcode, or optional EAS path selected by the project.
+For Mobile, the default chain is fixed: Android uses the local Gradle/SDK builder; iOS uses the Logicmate Starter plugin through the Windows host connection to `mac-mini`, unlocks the dedicated `logicmate-build` keychain, runs the headless Xcode wrapper, produces a signed app/archive, installs it on the selected iPhone with `devicectl`, cold-launches it and records evidence before generating the release contract. EAS is an explicit advanced opt-in for both platforms and is never selected merely because an Expo token exists. Run `npm run mobile:targets` to see the exact selected builders; use the plugin tools `inspect_macos_builder`, `verify_macos_signing`, `build_ios_candidate` and `install_ios_on_device` for iOS.
 
 ## Licensing
 

@@ -52,4 +52,4 @@ Report exact environment, identity, commands/checks, results, failures, and unve
 
 - Cloudflare Development and Production deployment, identity read-back, PostgreSQL identity, artifact parity, and Development rollback are verified through the project scripts and official Cloudflare MCP.
 - Expo local TypeScript, Doctor, iOS/Android export, API reachability, and fingerprint planning are verified.
-- Expo remote Project binding, EAS Build/Update, installed-device E2E, App Store Connect, Google Play, and mobile rollback remain unverified and must not be represented as complete.
+- EAS remains an explicit advanced opt-in and is never an automatic fallback. The default iOS candidate path is Logicmate Starter on Windows -> connected Mac -> dedicated keychain -> headless Xcode -> signed artifact -> `devicectl` physical-device install/cold launch -> evidence -> release contract. Android defaults to local Gradle. App Store Connect, Google Play and rollback remain separate release evidence.

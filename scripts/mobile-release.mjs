@@ -14,8 +14,10 @@ const providers = JSON.parse(await readFile(path.join(root, "profiles/providers.
 const profilePath = process.env.STARTER_DEV_PROFILE_PATH || providers.defaultPath;
 let profile = new Map();
 let projectEnv = new Map();
+let development = {};
 try { profile = parseEnv(await readFile(profilePath, "utf8")); } catch {}
 try { projectEnv = parseEnv(await readFile(path.join(root, ".dev.vars"), "utf8")); } catch {}
+try { development = JSON.parse(await readFile(path.join(root, ".starter/development.json"), "utf8")); } catch {}
 const state = await readState();
 
 function required(name) {
@@ -32,31 +34,14 @@ function executable(command) {
   return spawnSync(command, ["-version"], { encoding: "utf8", stdio: "ignore" }).status === 0;
 }
 
-function shellQuote(value) { return `'${String(value).replaceAll("'", `'"'"'`)}'`; }
-
-function executionTargets({ probeConnectedMac = false } = {}) {
-  const macHost = optional("MOBILE_MAC_HOST");
-  const macProjectRoot = optional("MOBILE_MAC_PROJECT_ROOT");
-  const macKeyPath = optional("MOBILE_MAC_SSH_KEY_PATH");
-  const connectedMacConfigured = Boolean(macHost && macProjectRoot);
-  let connectedMac = { configured: connectedMacConfigured, reachable: false, xcode: false, commit: null, reason: connectedMacConfigured ? "not probed" : "MOBILE_MAC_HOST and MOBILE_MAC_PROJECT_ROOT are not configured" };
-  if (connectedMacConfigured && probeConnectedMac) {
-    const args = ["-o", "BatchMode=yes", "-o", "ConnectTimeout=8"];
-    if (macKeyPath) args.push("-i", macKeyPath);
-    args.push(macHost, `cd ${shellQuote(macProjectRoot)} && uname -s && xcodebuild -version | head -2 && git rev-parse HEAD`);
-    const result = spawnSync("ssh", args, { encoding: "utf8", timeout: 15_000 });
-    const lines = String(result.stdout || "").trim().split(/\r?\n/u);
-    const commit = lines.find((line) => /^[a-f0-9]{40}$/u.test(line)) || null;
-    connectedMac = {
-      configured: true,
-      reachable: result.status === 0 && lines[0] === "Darwin",
-      xcode: result.status === 0 && lines.some((line) => line.startsWith("Xcode ")),
-      commit,
-      reason: result.status === 0 ? null : String(result.stderr || "Connected Mac probe failed").trim().slice(0, 300),
-    };
-  }
+function executionTargets() {
+  const macBuilder = development.builders?.ios;
+  const connectedMac = macBuilder
+    ? { configured: true, host: macBuilder.host, runner: macBuilder.runnerName || "logicmate-xcode-headless", keychainProfile: macBuilder.keychainProfile, status: "plugin-verification-required" }
+    : { configured: false, status: "blocked", reason: "Run Logicmate Starter inspect_macos_builder and configure_macos_build_keychain" };
   return {
     host: { platform: process.platform, architecture: process.arch },
+    selectedBuilders: { ios: builderPreference("ios"), android: builderPreference("android") },
     easCloud: { configured: Boolean(optional("EXPO_TOKEN") && optional("EXPO_PROJECT_ID")) },
     localIos: { available: process.platform === "darwin" && executable("xcodebuild") },
     localAndroid: { available: existsSync(optional("ANDROID_HOME") || optional("ANDROID_SDK_ROOT")) && executable("java") },
@@ -110,8 +95,9 @@ function parseJsonOutput(output) {
 
 function builderPreference(platform) {
   const name = platform === "ios" ? "MOBILE_IOS_BUILDER" : "MOBILE_ANDROID_BUILDER";
-  const value = optional(name) || "auto";
-  const allowed = platform === "ios" ? new Set(["auto", "local", "connected-mac", "eas"]) : new Set(["auto", "local", "eas"]);
+  const value = optional(name) || (platform === "ios" ? "connected-mac" : "local");
+  const allowed = platform === "ios" ? new Set(["local", "connected-mac", "eas"]) : new Set(["local", "eas"]);
+  if (value === "auto") throw new Error(`${name}=auto is no longer supported; choose an explicit builder`);
   if (!allowed.has(value)) throw new Error(`${name} must be one of ${[...allowed].join(", ")}`);
   return value;
 }
@@ -121,12 +107,12 @@ function routeFor(platform, targets) {
   if (platform === "android") {
     if (preference === "local") return targets.localAndroid.available ? "local-android" : "unavailable";
     if (preference === "eas") return targets.easCloud.configured ? "eas-cloud-build" : "unavailable";
-    return targets.localAndroid.available ? "local-android" : targets.easCloud.configured ? "eas-cloud-build" : "unavailable";
+    return targets.localAndroid.available ? "local-android" : "unavailable";
   }
   if (preference === "local") return targets.localIos.available ? "local-xcode" : "unavailable";
-  if (preference === "connected-mac") return targets.connectedMac.configured ? "connected-mac" : "unavailable";
+  if (preference === "connected-mac") return targets.connectedMac.configured ? "starter-plugin-connected-mac" : "unavailable";
   if (preference === "eas") return targets.easCloud.configured ? "eas-cloud-build" : "unavailable";
-  return targets.localIos.available ? "local-xcode" : targets.connectedMac.configured ? "connected-mac" : targets.easCloud.configured ? "eas-cloud-build" : "unavailable";
+  throw new Error("iOS builder selection must be explicit");
 }
 
 async function doctor() {
@@ -150,7 +136,7 @@ async function doctor() {
 }
 
 async function targets() {
-  const result = executionTargets({ probeConnectedMac: process.argv.includes("--probe") });
+  const result = executionTargets();
   console.log(JSON.stringify({ ok: true, executionTargets: result }, null, 2));
   return result;
 }
@@ -193,29 +179,13 @@ async function plan(environment) {
   const current = fingerprints(profile);
   const previous = state.releases[environment];
   const targets = executionTargets();
-  const canUpdate = previous && sameFingerprint(previous.fingerprints, current) && previous.builds && targets.easCloud.configured;
+  const easSelected = builderPreference("ios") === "eas" && builderPreference("android") === "eas";
+  const canUpdate = previous && sameFingerprint(previous.fingerprints, current) && previous.builds && targets.easCloud.configured && easSelected;
   const action = canUpdate ? "update" : "build";
   const routes = action === "update" ? { ios: "eas-update", android: "eas-update" } : { ios: routeFor("ios", targets), android: routeFor("android", targets) };
   const result = { environment, profile, commit, fingerprints: current, previous: previous ? { commit: previous.commit, fingerprints: previous.fingerprints, builds: previous.builds } : null, action, routes, executionTargets: targets };
   console.log(JSON.stringify(result, null, 2));
   return result;
-}
-
-function connectedMacArgs() {
-  const args = ["-o", "BatchMode=yes", "-o", "ConnectTimeout=8"];
-  const key = optional("MOBILE_MAC_SSH_KEY_PATH");
-  if (key) args.push("-i", key);
-  return args;
-}
-
-function buildOnConnectedMac(environment, commit) {
-  const target = executionTargets({ probeConnectedMac: true }).connectedMac;
-  if (!target.reachable || !target.xcode || target.commit !== commit)
-    throw new Error(`Connected Mac must prove Darwin, Xcode and commit ${commit}; received ${target.commit || target.reason || "unavailable"}`);
-  const host = required("MOBILE_MAC_HOST");
-  const projectRoot = required("MOBILE_MAC_PROJECT_ROOT");
-  const output = run("ssh", [...connectedMacArgs(), host, `cd ${shellQuote(projectRoot)} && npm ci --ignore-scripts --no-audit --no-fund && node scripts/mobile-local-build.mjs ios ${environment}`], { maxBuffer: 64 * 1024 * 1024 });
-  return parseJsonOutput(output);
 }
 
 function buildLocally(platform, environment) {
@@ -242,8 +212,7 @@ async function buildLocalCommand(platform, environment) {
 async function buildConnectedIosCommand(environment) {
   profileFor(environment);
   const commit = requireCleanMobileCommit();
-  const result = buildOnConnectedMac(environment, commit);
-  console.log(JSON.stringify({ ok: true, commit, result }, null, 2));
+  throw new Error(`Connected Mac build for ${commit} is owned by the Logicmate Starter plugin. Run inspect_macos_builder, verify_macos_signing, build_ios_candidate, then install_ios_on_device; WSL SSH and bare xcodebuild are prohibited.`);
 }
 
 async function release(environment) {
@@ -271,7 +240,7 @@ async function release(environment) {
     for (const platform of ["ios", "android"]) {
       const route = releasePlan.routes[platform];
       if (route === "eas-cloud-build") builds[platform] = parseJsonOutput(eas(["build", "--profile", environment, "--platform", platform, "--message", message, "--wait", "--json", "--non-interactive"]));
-      else if (route === "connected-mac") builds[platform] = buildOnConnectedMac(environment, releasePlan.commit);
+      else if (route === "starter-plugin-connected-mac") throw new Error("iOS candidate must be built and device-tested through Logicmate Starter before release. Generate the release contract with that artifact and evidence.");
       else builds[platform] = buildLocally(platform, environment);
     }
     remote = { builds };

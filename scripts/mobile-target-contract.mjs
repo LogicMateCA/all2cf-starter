@@ -13,9 +13,6 @@ function targets(env = {}) {
       STARTER_DEV_PROFILE_PATH: path.join(root, "profiles/development.env.example"),
       EXPO_TOKEN: "",
       EXPO_PROJECT_ID: "",
-      MOBILE_MAC_HOST: "",
-      MOBILE_MAC_PROJECT_ROOT: "",
-      MOBILE_MAC_SSH_KEY_PATH: "",
       ...env,
     },
   });
@@ -25,10 +22,11 @@ function targets(env = {}) {
 const unavailable = targets();
 assert.equal(unavailable.easCloud.configured, false);
 assert.equal(unavailable.connectedMac.configured, false);
+assert.deepEqual(unavailable.selectedBuilders, { ios: "connected-mac", android: "local" });
 const eas = targets({ EXPO_TOKEN: "contract-token", EXPO_PROJECT_ID: "00000000-0000-4000-8000-000000000000" });
 assert.equal(eas.easCloud.configured, true);
-const mac = targets({ MOBILE_MAC_HOST: "builder@example.invalid", MOBILE_MAC_PROJECT_ROOT: "/Users/builder/project" });
-assert.equal(mac.connectedMac.configured, true);
-assert.equal(mac.connectedMac.reachable, false);
-assert.equal(mac.connectedMac.reason, "not probed");
-console.log(JSON.stringify({ ok: true, unavailable: true, easCloud: true, connectedMacConfigured: true, probeIsExplicit: true }, null, 2));
+assert.deepEqual(eas.selectedBuilders, { ios: "connected-mac", android: "local" });
+const explicitEas = targets({ EXPO_TOKEN: "contract-token", EXPO_PROJECT_ID: "00000000-0000-4000-8000-000000000000", MOBILE_IOS_BUILDER: "eas", MOBILE_ANDROID_BUILDER: "eas" });
+assert.deepEqual(explicitEas.selectedBuilders, { ios: "eas", android: "eas" });
+assert.throws(() => targets({ MOBILE_IOS_BUILDER: "auto" }), /auto is no longer supported/u);
+console.log(JSON.stringify({ ok: true, defaults: unavailable.selectedBuilders, easRequiresExplicitSelection: true, wslSshFallback: false }, null, 2));
