@@ -22,3 +22,7 @@ The iOS path is Windows Codex -> Starter plugin host runner -> Mac keychain unlo
 - Logicmate Starter plugin tests and installed-cache verification
 
 The Change Spec enforcement baseline advances to the released 2.3.2 `main` merge commit so this release checks only subsequent work.
+
+# Release
+
+Released as Starter 2.3.3 after full source qualification, Engine candidate verification and public source validation.

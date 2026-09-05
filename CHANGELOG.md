@@ -10,6 +10,32 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Nothing yet.
 
+## [2.3.3] - 2026-09-04
+
+### Added
+
+- A canonical connected-Mac iOS handoff covering keychain verification, headless Xcode, signed candidates and physical-device evidence.
+
+### Changed
+
+- iOS now defaults to the Logicmate Starter connected-Mac builder and Android defaults to local Gradle; EAS requires explicit selection.
+
+### Fixed
+
+- Removed automatic EAS fallback and the invalid WSL-to-Mac raw SSH build route.
+
+### Performance
+
+- Builder discovery is local and deterministic; it no longer probes EAS or SSH merely to choose a route.
+
+### Security
+
+- Signing stays in the dedicated Mac keychain and only public builder references enter project receipts.
+
+### Migration
+
+- Replace legacy `MOBILE_*_BUILDER=auto` with `connected-mac`/`local`, or select `eas` explicitly. Configure Mac readiness through the Logicmate Starter plugin.
+
 ## [2.3.2] - 2026-09-03
 
 ### Added
@@ -511,7 +537,8 @@ The format follows Keep a Changelog and Semantic Versioning. Dates use ISO `YYYY
 
 - Established Web/Mobile foundation, authentication email Providers, account menu, dual UI strategy, operational Skills and always-current `/dp`.
 
-[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.3.2...HEAD
+[Unreleased]: https://github.com/LogicMateCA/all2cf-starter/compare/v2.3.3...HEAD
+[2.3.3]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.3.3
 [2.3.2]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.3.2
 [2.3.1]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.3.1
 [2.2.0]: https://github.com/LogicMateCA/all2cf-starter/releases/tag/v2.2.0
